@@ -1,0 +1,1300 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DefaultXtreamParser.kt corrigido</title>
+<style>body{max-width:1100px;margin:32px auto;padding:0 20px;background:#121212;color:#eee;font:16px system-ui}button{padding:12px 18px;margin:8px 12px 16px 0;cursor:pointer;background:#e6b84b;border:0;border-radius:6px}textarea{box-sizing:border-box;width:100%;height:70vh;background:#202020;color:#eee;padding:16px;font:13px monospace;border:1px solid #555}code{overflow-wrap:anywhere}</style>
+<h1>DefaultXtreamParser.kt</h1><p>Substitua apenas este arquivo no projeto:</p><p><code>app/src/main/java/br/com/flaviotorres/iptvpremium/data/parser/DefaultXtreamParser.kt</code></p><p>Alteração: limite de recuperação do colchete final ausente de 4 para 8 milhões de caracteres. A recuperação é verificada antes do parsing, evitando interpretar duas vezes uma resposta grande. A validação completa do JSON permanece.</p>
+<button id="copy">Copiar arquivo completo</button><button id="save">Baixar arquivo .kt</button><span id="status" role="status"></span>
+<textarea id="source" readonly spellcheck="false" aria-label="Código Kotlin completo">package br.com.flaviotorres.iptvpremium.data.parser
+
+import android.util.Log
+import br.com.flaviotorres.iptvpremium.domain.model.Category
+import br.com.flaviotorres.iptvpremium.domain.model.CategorySource
+import br.com.flaviotorres.iptvpremium.domain.model.CategoryType
+import br.com.flaviotorres.iptvpremium.domain.model.Channel
+import br.com.flaviotorres.iptvpremium.domain.model.Movie
+import br.com.flaviotorres.iptvpremium.domain.model.MovieDetails
+import br.com.flaviotorres.iptvpremium.domain.model.MovieCastMemberDetails
+import br.com.flaviotorres.iptvpremium.domain.model.RatingSource
+import br.com.flaviotorres.iptvpremium.domain.model.Series
+import org.json.JSONArray
+import org.json.JSONObject
+
+class DefaultXtreamParser : XtreamParser {
+
+    override fun parseLiveCategories(
+        content: String
+    ): List&lt;Category&gt; {
+        return parseCategories(
+            content = content,
+            type = CategoryType.LIVE_TV
+        )
+    }
+
+    override fun parseLiveStreams(
+        content: String
+    ): List&lt;Channel&gt; {
+        val array = parseArray(content, endpoint = &quot;get_live_streams&quot;)
+
+        return buildList {
+            for (index in 0 until array.length()) {
+                val item = array.optJSONObject(index)
+                    ?: continue
+
+                val id = item
+                    .optStringOrNull(&quot;stream_id&quot;)
+                    ?: continue
+
+                val name = item
+                    .optStringOrNull(&quot;name&quot;)
+                    ?: &quot;Canal&quot;
+
+                add(
+                    Channel(
+                        id = id,
+                        name = name,
+                        categoryId = item.optStringOrNull(
+                            &quot;category_id&quot;
+                        ),
+                        logoUrl = item.optStringOrNull(
+                            &quot;stream_icon&quot;
+                        ),
+                        streamUrl = item.optStringOrNull(
+                            &quot;direct_source&quot;
+                        ).orEmpty(),
+                        epgChannelId = item.optStringOrNull(
+                            &quot;epg_channel_id&quot;
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    override fun parseMovieCategories(
+        content: String
+    ): List&lt;Category&gt; {
+        return parseCategories(
+            content = content,
+            type = CategoryType.MOVIES
+        )
+    }
+
+    override fun parseMovies(
+        content: String
+    ): List&lt;Movie&gt; {
+        val array = parseArray(content, endpoint = &quot;get_vod_streams&quot;)
+
+        var ignoredNonObjects = 0
+        var ignoredWithoutId = 0
+
+        val parsed = buildList&lt;Movie&gt; {
+            for (index in 0 until array.length()) {
+                val item = array.optJSONObject(index)
+                if (item == null) {
+                    ignoredNonObjects++
+                    continue
+                }
+
+                val id = item.optStringOrNull(&quot;stream_id&quot;)
+                if (id == null) {
+                    ignoredWithoutId++
+                    continue
+                }
+
+                val name = item
+                    .optStringOrNull(&quot;name&quot;)
+                    ?: &quot;Filme&quot;
+
+                add(
+                    Movie(
+                        id = id,
+                        name = name,
+                        categoryId = item.optStringOrNull(
+                            &quot;category_id&quot;
+                        ),
+                        posterUrl = item.optStringOrNull(
+                            &quot;stream_icon&quot;
+                        ),
+                        backdropUrl = extractFirstBackdrop(
+                            item
+                        ),
+                        streamUrl = item.optStringOrNull(
+                            &quot;direct_source&quot;
+                        ).orEmpty(),
+                        year = extractYear(item),
+                        rating = item.optDoubleOrNull(
+                            &quot;rating&quot;
+                        ),
+                        durationSeconds = extractDurationSeconds(
+                            item
+                        )?.toLong(),
+                        addedAtEpochSeconds = item.optLongOrNull(
+                            &quot;added&quot;
+                        )
+                    )
+                )
+            }
+        }
+
+        logCatalogParseSummary(
+            endpoint = &quot;get_vod_streams&quot;,
+            array = array,
+            accepted = parsed.size,
+            ignoredNonObjects = ignoredNonObjects,
+            ignoredWithoutId = ignoredWithoutId
+        )
+
+        if (array.length() &gt; 0 &amp;&amp; parsed.isEmpty()) {
+            throw IllegalStateException(
+                &quot;A API Xtream retornou filmes, mas nenhum item foi reconhecido. &quot; +
+                        &quot;Verifique o Logcat: XtreamCatalogParser.&quot;
+            )
+        }
+
+        return parsed
+    }
+
+    override fun parseMovieDetails(
+        content: String,
+        movieId: String
+    ): MovieDetails? {
+        if (
+            content.isBlank() ||
+            movieId.isBlank()
+        ) {
+            return null
+        }
+
+        val root =
+            runCatching {
+                JSONObject(content)
+            }.getOrNull()
+                ?: return null
+
+        val info =
+            root.optJSONObject(
+                &quot;info&quot;
+            )
+
+        val movieData =
+            root.optJSONObject(
+                &quot;movie_data&quot;
+            )
+
+        if (
+            info == null &amp;&amp;
+            movieData == null
+        ) {
+            return null
+        }
+
+        val metadata =
+            info ?: movieData
+            ?: return null
+
+        val fallback =
+            movieData ?: info
+
+        val genres =
+            extractStringList(
+                item = metadata,
+                key = &quot;genre&quot;
+            ).ifEmpty {
+                extractStringList(
+                    item = metadata,
+                    key = &quot;genres&quot;
+                )
+            }.ifEmpty {
+                fallback
+                    ?.let {
+                        extractStringList(
+                            item = it,
+                            key = &quot;genre&quot;
+                        )
+                    }
+                    .orEmpty()
+            }
+
+        val cast =
+            extractStringList(
+                item = metadata,
+                key = &quot;cast&quot;
+            ).ifEmpty {
+                fallback
+                    ?.let {
+                        extractStringList(
+                            item = it,
+                            key = &quot;cast&quot;
+                        )
+                    }
+                    .orEmpty()
+            }
+
+        val castMembers =
+            extractCastMembers(
+                item = metadata,
+                key = &quot;cast&quot;
+            ).ifEmpty {
+                extractCastMembers(
+                    item = metadata,
+                    key = &quot;actors&quot;
+                )
+            }.ifEmpty {
+                fallback
+                    ?.let {
+                        extractCastMembers(
+                            item = it,
+                            key = &quot;cast&quot;
+                        )
+                    }
+                    .orEmpty()
+            }.ifEmpty {
+                fallback
+                    ?.let {
+                        extractCastMembers(
+                            item = it,
+                            key = &quot;actors&quot;
+                        )
+                    }
+                    .orEmpty()
+            }
+
+        val year =
+            extractYear(
+                metadata
+            )
+                ?: metadata
+                    .optStringOrNull(
+                        &quot;releasedate&quot;
+                    )
+                    ?.take(4)
+                    ?.toIntOrNull()
+                ?: fallback
+                    ?.let {
+                        extractYear(
+                            it
+                        )
+                    }
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;releasedate&quot;
+                    )
+                    ?.take(4)
+                    ?.toIntOrNull()
+
+        val rating =
+            metadata.optDoubleOrNull(
+                &quot;rating&quot;
+            )
+                ?: fallback
+                    ?.optDoubleOrNull(
+                        &quot;rating&quot;
+                    )
+
+        val ratingSource =
+            detectRatingSource(
+                metadata
+            )
+                ?: fallback
+                    ?.let {
+                        detectRatingSource(
+                            it
+                        )
+                    }
+
+        val durationSeconds =
+            extractDurationSeconds(
+                metadata
+            )
+                ?: fallback
+                    ?.let {
+                        extractDurationSeconds(
+                            it
+                        )
+                    }
+
+        val posterUrl =
+            metadata.optStringOrNull(
+                &quot;movie_image&quot;
+            )
+                ?: metadata.optStringOrNull(
+                    &quot;cover_big&quot;
+                )
+                ?: metadata.optStringOrNull(
+                    &quot;cover&quot;
+                )
+                ?: metadata.optStringOrNull(
+                    &quot;stream_icon&quot;
+                )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;movie_image&quot;
+                    )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;cover_big&quot;
+                    )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;cover&quot;
+                    )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;stream_icon&quot;
+                    )
+
+        val backdropUrl =
+            extractFirstBackdrop(
+                metadata
+            )
+                ?: fallback
+                    ?.let {
+                        extractFirstBackdrop(
+                            it
+                        )
+                    }
+
+        val plot =
+            metadata.optStringOrNull(
+                &quot;plot&quot;
+            )
+                ?: metadata.optStringOrNull(
+                    &quot;description&quot;
+                )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;plot&quot;
+                    )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;description&quot;
+                    )
+
+        val director =
+            metadata.optStringOrNull(
+                &quot;director&quot;
+            )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;director&quot;
+                    )
+
+        val trailerUrl =
+            metadata.optStringOrNull(
+                &quot;youtube_trailer&quot;
+            )
+                ?: metadata.optStringOrNull(
+                    &quot;trailer&quot;
+                )
+                ?: metadata.optStringOrNull(
+                    &quot;trailer_url&quot;
+                )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;youtube_trailer&quot;
+                    )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;trailer&quot;
+                    )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;trailer_url&quot;
+                    )
+
+        val imdbId =
+            metadata.optStringOrNull(
+                &quot;imdb_id&quot;
+            )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;imdb_id&quot;
+                    )
+
+        val tmdbId =
+            metadata.optStringOrNull(
+                &quot;tmdb_id&quot;
+            )
+                ?: fallback
+                    ?.optStringOrNull(
+                        &quot;tmdb_id&quot;
+                    )
+
+        val titleLogoUrl =
+            extractTitleLogoUrl(
+                metadata
+            )
+                ?: fallback
+                    ?.let {
+                        extractTitleLogoUrl(
+                            it
+                        )
+                    }
+
+        return MovieDetails(
+            movieId = movieId,
+            plot = plot,
+            genres = genres,
+            cast = cast,
+            castMembers = castMembers,
+            director = director,
+            trailerUrl = trailerUrl,
+            posterUrl = posterUrl,
+            backdropUrl = backdropUrl,
+            titleLogoUrl = titleLogoUrl,
+            year = year,
+            rating = rating,
+            ratingSource = ratingSource,
+            durationSeconds = durationSeconds,
+            imdbId = imdbId,
+            tmdbId = tmdbId
+        )
+    }
+
+    override fun parseSeriesCategories(
+        content: String
+    ): List&lt;Category&gt; {
+        return parseCategories(
+            content = content,
+            type = CategoryType.SERIES
+        )
+    }
+
+    override fun parseSeries(
+        content: String
+    ): List&lt;Series&gt; {
+        val array = parseArray(content, endpoint = &quot;get_series&quot;)
+
+        var ignoredNonObjects = 0
+        var ignoredWithoutId = 0
+
+        val parsed = buildList&lt;Series&gt; {
+            for (index in 0 until array.length()) {
+                val item = array.optJSONObject(index)
+                if (item == null) {
+                    ignoredNonObjects++
+                    continue
+                }
+
+                val id = item.optStringOrNull(&quot;series_id&quot;)
+                if (id == null) {
+                    ignoredWithoutId++
+                    continue
+                }
+
+                val name = item
+                    .optStringOrNull(&quot;name&quot;)
+                    ?: &quot;Série&quot;
+
+                val genreText = item.optStringOrNull(
+                    &quot;genre&quot;
+                )
+
+                val genres = genreText
+                    ?.split(&quot;,&quot;)
+                    ?.map { it.trim() }
+                    ?.filter { it.isNotEmpty() }
+                    .orEmpty()
+
+                add(
+                    Series(
+                        id = id,
+                        name = name,
+                        categoryId = item.optStringOrNull(
+                            &quot;category_id&quot;
+                        ),
+                        posterUrl = item.optStringOrNull(
+                            &quot;cover&quot;
+                        ),
+                        backdropUrl = extractFirstBackdrop(
+                            item
+                        ),
+                        year = extractYear(item),
+                        rating = item.optDoubleOrNull(
+                            &quot;rating&quot;
+                        ),
+                        plot = item.optStringOrNull(
+                            &quot;plot&quot;
+                        ),
+                        titleLogoUrl = null,
+                        imdbId = item.optStringOrNull(
+                            &quot;imdb_id&quot;
+                        ),
+                        tmdbId = item.optStringOrNull(
+                            &quot;tmdb_id&quot;
+                        ),
+                        ratingSource = detectRatingSource(
+                            item
+                        ),
+                        durationSeconds = extractDurationSeconds(
+                            item
+                        ),
+                        genres = genres,
+                        trailerUrl = item.optStringOrNull(
+                            &quot;youtube_trailer&quot;
+                        )
+                    )
+                )
+            }
+        }
+
+        logCatalogParseSummary(
+            endpoint = &quot;get_series&quot;,
+            array = array,
+            accepted = parsed.size,
+            ignoredNonObjects = ignoredNonObjects,
+            ignoredWithoutId = ignoredWithoutId
+        )
+
+        if (array.length() &gt; 0 &amp;&amp; parsed.isEmpty()) {
+            throw IllegalStateException(
+                &quot;A API Xtream retornou séries, mas nenhum item foi reconhecido. &quot; +
+                        &quot;Verifique o Logcat: XtreamCatalogParser.&quot;
+            )
+        }
+
+        return parsed
+    }
+
+    private fun extractStringList(
+        item: JSONObject,
+        key: String
+    ): List&lt;String&gt; {
+        if (
+            !item.has(key) ||
+            item.isNull(key)
+        ) {
+            return emptyList()
+        }
+
+        return when (
+            val value = item.opt(key)
+        ) {
+            is JSONArray -&gt; {
+                buildList {
+                    for (
+                    index in
+                    0 until value.length()
+                    ) {
+                        val rawItem =
+                            value.opt(index)
+
+                        val name =
+                            when (rawItem) {
+                                is JSONObject -&gt; {
+                                    rawItem.optStringOrNull(
+                                        &quot;name&quot;
+                                    )
+                                        ?: rawItem.optStringOrNull(
+                                            &quot;original_name&quot;
+                                        )
+                                }
+
+                                else -&gt; {
+                                    rawItem
+                                        ?.toString()
+                                        ?.trim()
+                                        ?.takeIf {
+                                            it.isNotBlank() &amp;&amp;
+                                                    !it.equals(
+                                                        &quot;null&quot;,
+                                                        ignoreCase = true
+                                                    )
+                                        }
+                                }
+                            }
+
+                        name
+                            ?.let {
+                                add(it)
+                            }
+                    }
+                }
+                    .distinct()
+            }
+
+            is String -&gt; {
+                value
+                    .split(
+                        &quot;,&quot;,
+                        &quot;|&quot;
+                    )
+                    .map {
+                        it.trim()
+                    }
+                    .filter {
+                        it.isNotBlank() &amp;&amp;
+                                !it.equals(
+                                    &quot;null&quot;,
+                                    ignoreCase = true
+                                )
+                    }
+                    .distinct()
+            }
+
+            else -&gt; emptyList()
+        }
+    }
+
+    private fun extractCastMembers(
+        item: JSONObject,
+        key: String
+    ): List&lt;MovieCastMemberDetails&gt; {
+        if (
+            !item.has(key) ||
+            item.isNull(key)
+        ) {
+            return emptyList()
+        }
+
+        val value =
+            item.opt(key)
+
+        if (value !is JSONArray) {
+            return emptyList()
+        }
+
+        return buildList {
+            for (index in 0 until value.length()) {
+                val actor =
+                    value.optJSONObject(index)
+                        ?: continue
+
+                val name =
+                    actor.optStringOrNull(
+                        &quot;name&quot;
+                    )
+                        ?: actor.optStringOrNull(
+                            &quot;original_name&quot;
+                        )
+                        ?: continue
+
+                val tmdbId =
+                    actor.optStringOrNull(
+                        &quot;tmdb_id&quot;
+                    )
+                        ?: actor.optStringOrNull(
+                            &quot;person_id&quot;
+                        )
+
+                val id =
+                    actor.optStringOrNull(
+                        &quot;id&quot;
+                    )
+                        ?: tmdbId
+                        ?: actor.optStringOrNull(
+                            &quot;cast_id&quot;
+                        )
+                        ?: &quot;$name-$index&quot;
+
+                val profileUrl =
+                    actor.optStringOrNull(
+                        &quot;profile_url&quot;
+                    )
+                        ?: actor.optStringOrNull(
+                            &quot;profile_path&quot;
+                        )
+                        ?: actor.optStringOrNull(
+                            &quot;photo_url&quot;
+                        )
+                        ?: actor.optStringOrNull(
+                            &quot;photo&quot;
+                        )
+                        ?: actor.optStringOrNull(
+                            &quot;image&quot;
+                        )
+                        ?: actor.optStringOrNull(
+                            &quot;avatar&quot;
+                        )
+
+                val characterName =
+                    actor.optStringOrNull(
+                        &quot;character&quot;
+                    )
+                        ?: actor.optStringOrNull(
+                            &quot;role&quot;
+                        )
+
+                add(
+                    MovieCastMemberDetails(
+                        id = id,
+                        name = name,
+                        profileUrl = profileUrl,
+                        characterName = characterName,
+                        tmdbId = tmdbId
+                    )
+                )
+            }
+        }
+            .distinctBy {
+                it.id
+            }
+    }
+
+    private fun extractTitleLogoUrl(
+        item: JSONObject
+    ): String? {
+        val keys =
+            listOf(
+                &quot;title_logo&quot;,
+                &quot;title_logo_url&quot;,
+                &quot;clearlogo&quot;,
+                &quot;clear_logo&quot;,
+                &quot;movie_logo&quot;,
+                &quot;logo&quot;
+            )
+
+        for (key in keys) {
+            item.optStringOrNull(
+                key
+            )
+                ?.let {
+                    return it
+                }
+        }
+
+        return null
+    }
+
+    private fun parseCategories(
+        content: String,
+        type: CategoryType
+    ): List&lt;Category&gt; {
+        val endpoint = when (type) {
+            CategoryType.LIVE_TV -&gt; &quot;get_live_categories&quot;
+            CategoryType.MOVIES -&gt; &quot;get_vod_categories&quot;
+            CategoryType.SERIES -&gt; &quot;get_series_categories&quot;
+        }
+        val array = parseArray(content, endpoint = endpoint)
+
+        val categories = buildList {
+            for (index in 0 until array.length()) {
+                val item = array.optJSONObject(index)
+                    ?: continue
+
+                val id = item
+                    .optStringOrNull(&quot;category_id&quot;)
+                    ?: continue
+
+                val name = item
+                    .optStringOrNull(&quot;category_name&quot;)
+                    ?: continue
+
+                add(
+                    Category(
+                        id = id,
+                        name = name,
+                        type = type,
+                        source = CategorySource.PROVIDER
+                    )
+                )
+            }
+        }
+
+        Log.i(
+            TAG_CATALOG,
+            &quot;$endpoint: categoriasJSON=${array.length()} &quot; +
+                    &quot;categoriasReconhecidas=${categories.size} &quot; +
+                    &quot;ignoradas=${array.length() - categories.size}&quot;
+        )
+        if (array.length() &gt; 0 &amp;&amp; categories.isEmpty()) {
+            throw IllegalStateException(
+                &quot;A API Xtream retornou categorias para $endpoint, &quot; +
+                        &quot;mas nenhuma tinha identificador e nome válidos.&quot;
+            )
+        }
+        return categories
+    }
+
+    /**
+     * Nunca converte um JSON malformado em uma lista vazia silenciosamente.
+     * Importante: captura apenas Exception; erros graves de VM, como
+     * OutOfMemoryError, precisam continuar propagando em vez de gerar um
+     * catálogo falsamente &quot;concluído&quot; com zero itens.
+     *
+     * Nenhum conteúdo da resposta, URL ou credencial é registrado em logs.
+     */
+    private fun parseArray(
+        content: String,
+        endpoint: String = &quot;categoria/outra_lista&quot;
+    ): JSONArray {
+        if (content.isBlank()) {
+            Log.w(
+                TAG_CATALOG,
+                &quot;$endpoint: resposta vazia; itens=0&quot;
+            )
+            return JSONArray()
+        }
+
+        // Verifica primeiro a recuperação estrita para evitar construir e
+        // descartar uma árvore JSON inteira antes de interpretar a correção.
+        // Alguns provedores enviam arrays com todos os objetos fechados, mas sem o
+        // último &#x27;]&#x27; externo. Recupera APENAS esse caso, submetendo a
+        // resposta inteira corrigida novamente ao parser JSON.
+        //
+        // Respostas acima do limite NÃO são consertadas aqui: continuam na
+        // recuperação por categoria do DefaultPlaylistRepository, para
+        // evitar pressionar a memória da Android TV.
+        recoverArrayMissingClosingBracket(content, endpoint)?.let { recovered -&gt;
+            Log.w(
+                TAG_CATALOG,
+                &quot;$endpoint: ARRAY_RECUPERADO motivo=COLCHETE_FINAL_AUSENTE &quot; +
+                        &quot;caracteresOriginais=${content.length} &quot; +
+                        &quot;itensJSON=${recovered.length()}&quot;
+            )
+            return recovered
+        }
+
+
+        return try {
+            JSONArray(content)
+        } catch (error: Exception) {
+
+            // A mensagem crua do JSONException pode conter parte da resposta.
+            // Não imprimimos error.message nem a exceção completa no Logcat.
+            val structural = inspectArrayStructure(content)
+            val failurePosition = safeJsonFailurePosition(error.message)
+            Log.e(
+                TAG_CATALOG,
+                &quot;$endpoint: JSON_ARRAY_INVALIDO caracteres=${content.length} &quot; +
+                        &quot;tipoErro=${error.javaClass.simpleName} &quot; +
+                        &quot;posicaoErro=${failurePosition ?: &quot;desconhecida&quot;} &quot; +
+                        structural
+            )
+            throw IllegalStateException(
+                &quot;Resposta Xtream inválida em $endpoint: &quot; +
+                        &quot;esperado um array JSON válido (${content.length} caracteres).&quot;
+            )
+        }
+    }
+
+    /**
+     * Recuperação estritamente limitada de arrays Xtream no formato
+     * `[ {...}, {...} `, quando só falta fechar o array raiz.
+     *
+     * Não tenta reconstruir dados ausentes, reparar strings, ignorar itens,
+     * fechar objetos incompletos, nem usar JSON leniente para mascarar erros.
+     * Mesmo após a verificação estrutural, o JSONArray inteiro precisa ser
+     * válido. Se não for, a sincronização continua falhando de forma segura.
+     *
+     * Limites deliberados:
+     * - categorias: 256 mil caracteres;
+     * - canais/filmes/séries: 8 milhões de caracteres.
+     *   Um VOD global maior que isso continua sendo recuperado por categoria
+     *   no Repository, em vez de construir uma árvore JSON muito grande.
+     */
+    private fun recoverArrayMissingClosingBracket(
+        content: String,
+        endpoint: String
+    ): JSONArray? {
+        val maxCharacters = when (endpoint) {
+            &quot;get_live_categories&quot;, &quot;get_vod_categories&quot;, &quot;get_series_categories&quot; -&gt; 256_000
+            &quot;get_live_streams&quot;, &quot;get_vod_streams&quot;, &quot;get_series&quot; -&gt; 8_000_000
+            else -&gt; return null
+        }
+        if (content.length &gt; maxCharacters) return null
+
+        val value = content.trim().removePrefix(&quot;\uFEFF&quot;)
+        if (value.length &lt; 3 || value.first() != &#x27;[&#x27; || value.last() != &#x27;}&#x27;) {
+            return null
+        }
+
+        var openArrays = 0
+        var openObjects = 0
+        var inString = false
+        var escaped = false
+
+        for (character in value) {
+            if (inString) {
+                if (escaped) {
+                    escaped = false
+                    continue
+                }
+                when (character) {
+                    &#x27;\\&#x27; -&gt; escaped = true
+                    &#x27;&quot;&#x27; -&gt; inString = false
+                    else -&gt; if (character.code &lt; 0x20) return null
+                }
+            } else {
+                when (character) {
+                    &#x27;&quot;&#x27; -&gt; inString = true
+                    &#x27;[&#x27; -&gt; openArrays++
+                    &#x27;]&#x27; -&gt; {
+                        openArrays--
+                        if (openArrays &lt; 1) return null
+                    }
+                    &#x27;{&#x27; -&gt; openObjects++
+                    &#x27;}&#x27; -&gt; {
+                        openObjects--
+                        if (openObjects &lt; 0) return null
+                    }
+                }
+            }
+        }
+
+        if (inString || escaped || openArrays != 1 || openObjects != 0) {
+            return null
+        }
+
+        return try {
+            JSONArray(value + &quot;]&quot;)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Procura apenas o índice numérico mencionado pelo JSONException.
+     * Não repassa o texto da exceção, que pode incluir dados do provedor.
+     */
+    private fun safeJsonFailurePosition(message: String?): Int? {
+        if (message.isNullOrBlank()) return null
+        val patterns = listOf(
+            Regex(&quot;at\\s+character\\s+(\\d+)&quot;, RegexOption.IGNORE_CASE),
+            Regex(&quot;at\\s+position\\s+(\\d+)&quot;, RegexOption.IGNORE_CASE),
+            Regex(&quot;at\\s+offset\\s+(\\d+)&quot;, RegexOption.IGNORE_CASE)
+        )
+        for (pattern in patterns) {
+            val index = pattern.find(message)
+                ?.groupValues?.getOrNull(1)?.toIntOrNull()
+            if (index != null) return index
+        }
+        return null
+    }
+
+    /**
+     * Diagnóstico estrutural sem logar dados pessoais, títulos ou URLs.
+     * Apenas contadores, delimitadores e classificação de caracteres.
+     * Não modifica a resposta nem aceita JSON inválido como catálogo válido.
+     */
+    private fun inspectArrayStructure(content: String): String {
+        var inString = false
+        var escaped = false
+        var unescapedControls = 0
+        var invalidEscapes = 0
+        var incompleteUnicodeEscapes = 0
+        var trailingCommas = 0
+        var braces = 0
+        var brackets = 0
+        var unmatchedClosings = 0
+        var previousSignificant: Char? = null
+        var index = 0
+
+        while (index &lt; content.length) {
+            val current = content[index]
+            if (inString) {
+                if (escaped) {
+                    when (current) {
+                        &#x27;&quot;&#x27;, &#x27;\\&#x27;, &#x27;/&#x27;, &#x27;b&#x27;, &#x27;f&#x27;, &#x27;n&#x27;, &#x27;r&#x27;, &#x27;t&#x27; -&gt; Unit
+                        &#x27;u&#x27; -&gt; {
+                            val enough = index + 4 &lt; content.length &amp;&amp;
+                                    (1..4).all { shift -&gt;
+                                        content[index + shift].isDigit() ||
+                                                content[index + shift].lowercaseChar() in &#x27;a&#x27;..&#x27;f&#x27;
+                                    }
+                            if (!enough) incompleteUnicodeEscapes++
+                        }
+                        else -&gt; invalidEscapes++
+                    }
+                    escaped = false
+                } else {
+                    when {
+                        current == &#x27;\\&#x27; -&gt; escaped = true
+                        current == &#x27;&quot;&#x27; -&gt; inString = false
+                        current.code &lt; 0x20 -&gt; unescapedControls++
+                    }
+                }
+            } else {
+                when (current) {
+                    &#x27;&quot;&#x27; -&gt; inString = true
+                    &#x27;{&#x27; -&gt; braces++
+                    &#x27;}&#x27; -&gt; {
+                        if (previousSignificant == &#x27;,&#x27;) trailingCommas++
+                        braces--
+                        if (braces &lt; 0) unmatchedClosings++
+                    }
+                    &#x27;[&#x27; -&gt; brackets++
+                    &#x27;]&#x27; -&gt; {
+                        if (previousSignificant == &#x27;,&#x27;) trailingCommas++
+                        brackets--
+                        if (brackets &lt; 0) unmatchedClosings++
+                    }
+                }
+                if (!current.isWhitespace()) previousSignificant = current
+            }
+            index++
+        }
+
+        val first = content.firstOrNull { !it.isWhitespace() }
+        val last = content.lastOrNull { !it.isWhitespace() }
+        fun typeOf(character: Char?): String = when (character) {
+            &#x27;[&#x27; -&gt; &quot;ABRE_ARRAY&quot;
+            &#x27;]&#x27; -&gt; &quot;FECHA_ARRAY&quot;
+            &#x27;{&#x27; -&gt; &quot;ABRE_OBJETO&quot;
+            &#x27;}&#x27; -&gt; &quot;FECHA_OBJETO&quot;
+            null -&gt; &quot;AUSENTE&quot;
+            else -&gt; &quot;OUTRO&quot;
+        }
+
+        return &quot;inicio=${typeOf(first)} fim=${typeOf(last)} &quot; +
+                &quot;stringAberta=$inString escapePendente=$escaped &quot; +
+                &quot;controlesEmString=$unescapedControls escapesInvalidos=$invalidEscapes &quot; +
+                &quot;unicodeInvalido=$incompleteUnicodeEscapes virgulaFinal=$trailingCommas &quot; +
+                &quot;colchetesSaldo=$brackets chavesSaldo=$braces &quot; +
+                &quot;fechamentosExtras=$unmatchedClosings&quot;
+    }
+
+    /**
+     * Diagnóstico agregado seguro: só informa quantidades e nomes das chaves
+     * do primeiro objeto. Nunca imprime IDs, nomes, links, tokens ou valores.
+     */
+    private fun logCatalogParseSummary(
+        endpoint: String,
+        array: JSONArray,
+        accepted: Int,
+        ignoredNonObjects: Int,
+        ignoredWithoutId: Int
+    ) {
+        val firstItem = (0 until array.length())
+            .asSequence()
+            .mapNotNull { index -&gt; array.optJSONObject(index) }
+            .firstOrNull()
+
+        val firstKeys = firstItem
+            ?.keys()
+            ?.asSequence()
+            ?.take(24)
+            ?.toList()
+            ?.sorted()
+            ?.joinToString(separator = &quot;,&quot;)
+            .orEmpty()
+
+        Log.i(
+            TAG_CATALOG,
+            &quot;$endpoint: itensJSON=${array.length()} &quot; +
+                    &quot;aceitos=$accepted naoObjetos=$ignoredNonObjects &quot; +
+                    &quot;semIdentificador=$ignoredWithoutId &quot; +
+                    &quot;chavesPrimeiroObjeto=[$firstKeys]&quot;
+        )
+    }
+
+    private companion object {
+        const val TAG_CATALOG = &quot;XtreamCatalogParser&quot;
+    }
+
+    private fun extractFirstBackdrop(
+        item: JSONObject
+    ): String? {
+        val backdrop = item.opt(
+            &quot;backdrop_path&quot;
+        )
+
+        return when (backdrop) {
+            is JSONArray -&gt; {
+                if (backdrop.length() &gt; 0) {
+                    backdrop.optString(0)
+                        .takeIf { it.isNotBlank() }
+                } else {
+                    null
+                }
+            }
+
+            is String -&gt; {
+                backdrop.takeIf {
+                    it.isNotBlank()
+                }
+            }
+
+            else -&gt; null
+        }
+    }
+
+    private fun extractYear(
+        item: JSONObject
+    ): Int? {
+        val year = item.optIntOrNull(
+            &quot;year&quot;
+        )
+
+        if (year != null &amp;&amp; year &gt; 0) {
+            return year
+        }
+
+        val releaseDate =
+            item.optStringOrNull(
+                &quot;releaseDate&quot;
+            )
+                ?: item.optStringOrNull(
+                    &quot;release_date&quot;
+                )
+
+        return releaseDate
+            ?.take(4)
+            ?.toIntOrNull()
+    }
+
+    private fun extractDurationSeconds(
+        item: JSONObject
+    ): Int? {
+        val durationSeconds =
+            item.optIntOrNull(
+                &quot;duration_secs&quot;
+            )
+
+        if (durationSeconds != null &amp;&amp;
+            durationSeconds &gt; 0
+        ) {
+            return durationSeconds
+        }
+
+        val duration =
+            item.optStringOrNull(
+                &quot;duration&quot;
+            ) ?: return null
+
+        return parseDurationToSeconds(
+            duration
+        )
+    }
+
+    private fun parseDurationToSeconds(
+        duration: String
+    ): Int? {
+        val parts = duration
+            .trim()
+            .split(&quot;:&quot;)
+            .mapNotNull {
+                it.toIntOrNull()
+            }
+
+        return when (parts.size) {
+            3 -&gt; {
+                parts[0] * 3600 +
+                        parts[1] * 60 +
+                        parts[2]
+            }
+
+            2 -&gt; {
+                parts[0] * 60 +
+                        parts[1]
+            }
+
+            1 -&gt; {
+                parts[0]
+            }
+
+            else -&gt; null
+        }
+    }
+
+    private fun detectRatingSource(
+        item: JSONObject
+    ): RatingSource? {
+        return when {
+            !item.optStringOrNull(
+                &quot;imdb_id&quot;
+            ).isNullOrBlank() -&gt; {
+                RatingSource.IMDB
+            }
+
+            !item.optStringOrNull(
+                &quot;tmdb_id&quot;
+            ).isNullOrBlank() -&gt; {
+                RatingSource.TMDB
+            }
+
+            item.has(&quot;rating&quot;) -&gt; {
+                RatingSource.PROVIDER
+            }
+
+            else -&gt; null
+        }
+    }
+
+    private fun JSONObject.optStringOrNull(
+        key: String
+    ): String? {
+        if (!has(key) || isNull(key)) {
+            return null
+        }
+
+        val value = optString(
+            key,
+            &quot;&quot;
+        ).trim()
+
+        return value.takeIf {
+            it.isNotEmpty() &amp;&amp;
+                    !it.equals(
+                        &quot;null&quot;,
+                        ignoreCase = true
+                    )
+        }
+    }
+
+    private fun JSONObject.optIntOrNull(
+        key: String
+    ): Int? {
+        if (!has(key) || isNull(key)) {
+            return null
+        }
+
+        val value = opt(key)
+
+        return when (value) {
+            is Number -&gt; value.toInt()
+
+            is String -&gt; value
+                .trim()
+                .toIntOrNull()
+
+            else -&gt; null
+        }
+    }
+
+    private fun JSONObject.optLongOrNull(
+        key: String
+    ): Long? {
+        if (!has(key) || isNull(key)) {
+            return null
+        }
+
+        val value = opt(key)
+
+        return when (value) {
+            is Number -&gt; value.toLong()
+
+            is String -&gt; value
+                .trim()
+                .toLongOrNull()
+
+            else -&gt; null
+        }
+    }
+
+    private fun JSONObject.optDoubleOrNull(
+        key: String
+    ): Double? {
+        if (!has(key) || isNull(key)) {
+            return null
+        }
+
+        val value = opt(key)
+
+        return when (value) {
+            is Number -&gt; value.toDouble()
+
+            is String -&gt; value
+                .trim()
+                .replace(&quot;,&quot;, &quot;.&quot;)
+                .toDoubleOrNull()
+
+            else -&gt; null
+        }
+    }
+}
+</textarea>
+<script>
+const field=document.getElementById('source'),status=document.getElementById('status');
+document.getElementById('copy').onclick=async()=>{try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(field.value);}else{field.focus();field.select();if(!document.execCommand('copy'))throw Error();}status.textContent='Arquivo completo copiado.';}catch(e){field.focus();field.select();status.textContent='Código selecionado. Pressione Ctrl+C para copiar.';}};
+document.getElementById('save').onclick=()=>{const url=URL.createObjectURL(new Blob([field.value],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='DefaultXtreamParser.kt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+</script></html>
