@@ -1,0 +1,23 @@
+﻿### Atualização obrigatória do APK
+
+Acesse `/admin` → **Atualização do aplicativo**. Há uma única configuração ativa na tabela `settings` (`app_update`); publicar substitui a anterior e suspender remove esse registro. Ela contém número interno, nome da versão, link HTTPS, tamanho, SHA-256, mensagem e data. APKs não são enviados ao Worker ou ao banco. Selecionar o arquivo no formulário calcula hash e tamanho no navegador. Nada é publicado antes da confirmação do administrador.
+
+O aplicativo recebe a regra na sincronização existente, normalmente em até 30 minutos de uso com conexão ou ao tocar em **Sincronizar agora**. Versões antigas sem este recurso precisam receber primeiro o APK de preparação manualmente. O projeto agora gera por padrão **versionCode 2 / versão 1.1**. Só depois de instalar e testar essa preparação publique a próxima versão obrigatória.
+
+A exigência conhecida fica salva no aparelho e impede compor o catálogo/player, mesmo sem internet. Uma regra nova só pode ser conhecida após contato com a central. A tela oferece download, progresso, verificação, tentativa novamente, instalação e consulta manual da regra. **Verificar novamente** também recebe uma suspensão feita pelo administrador. APKs precisam de confirmação do Android; o app solicita a permissão de instalar dessa fonte quando necessário. Cancelar a instalação mantém o bloqueio, sem apagar dados.
+
+O download vai ao cache privado do aparelho, tem limite de 512 MiB, HTTPS em todos os redirecionamentos e valida tamanho e SHA-256. Antes da instalação, o aplicativo exige o mesmo pacote, versão interna exata e maior que a instalada e a mesma assinatura. A instalação usa FileProvider restrito à pasta de atualizações. Um arquivo inválido não é instalado. Os arquivos temporários são removidos após falha; o APK de atualização é limpo no próximo início após instalar a versão, ou ao receber a suspensão da exigência. Listas, chaves de legendas, identificação e licença não são removidas.
+
+**Preparar a próxima versão no computador que já assina os seus APKs:**
+
+1. Coloque `Preparar-nova-versao.ps1` na raiz do projeto Android.
+2. Para a versão seguinte à preparação, execute `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Preparar-nova-versao.ps1 -Numero 3 -Nome "1.2"`. Para as futuras, aumente sempre o número interno.
+3. O script preserva as demais propriedades locais, faz backup, grava `APP_VERSION_CODE` / `APP_VERSION_NAME`, compila `assembleDebug` (o mesmo fluxo utilizado atualmente) e gera `dados-atualizacao.json` ao lado do APK. Se já houver APK de referência e apksigner disponível, compara a assinatura. Mantenha a chave de assinatura atual, inclusive `debug.keystore` enquanto usar esse tipo de build.
+4. Teste a instalação sobre a versão anterior, sem desinstalar, em um aparelho real. Confirme listas, MAC, código e licença.
+5. Hospede o APK separadamente. Uma opção é uma Release em um repositório público no GitHub: crie a release, anexe o APK e copie o link direto do arquivo publicado. Use links específicos por versão. Um repositório privado não oferece esse download público sem autenticação. Este projeto não publica APKs automaticamente.
+6. No painel, selecione o APK para calcular hash/tamanho, informe número/nome conforme o JSON, link direto e mensagem; publique só depois do teste de instalação. Não use o endereço da página da release no lugar do arquivo.
+7. Em caso de erro de distribuição, use **Suspender exigência**. No aparelho, toque em **Verificar novamente**. Não desinstale nem troque a chave para resolver erro de assinatura.
+
+Os dados da versão anterior são substituídos no banco. Arquivos antigos na hospedagem externa não são excluídos automaticamente e não ocupam o banco D1. Preserve links antigos enquanto aparelhos ainda puderem estar usando regras em cache.
+
+Validação de desenvolvimento: testes da API e navegador; verificador/download Kotlin com APIs Android e conexões adaptadas para testar os casos de erro. Não substituem o teste de instalação real e de permissão em Android TV/celular. Os scripts PowerShell precisam ser executados no computador Windows do administrador; não foram executados em Windows neste ambiente.
