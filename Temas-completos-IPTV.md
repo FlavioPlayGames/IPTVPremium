@@ -1,3 +1,5 @@
+> Atualização: o instalador agora inclui os seis fundos exclusivos da segunda opção. Consulte [Fundos-exclusivos-IPTV.md](Fundos-exclusivos-IPTV.md) para imagens, medidas e validação atuais.
+
 # Temas completos do IPTV Premium
 
 Sete opções em Configurações → Aparência: Dourado (padrão), Azul, Roxo, Vermelho, Rosa, Verde esmeralda e Ciano/Turquesa. A escolha é aplicada imediatamente e permanece salva ao reiniciar o aplicativo.
