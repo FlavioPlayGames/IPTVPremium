@@ -1,3 +1,5 @@
+> Acabamento atualizado: [cores dos seis temas unificadas aos logos](Cores-unificadas-IPTV.md). O instalador Aplicar-temas-completos.ps1 inclui esta correção.
+
 # Aparência compacta e ícones originais
 
 A tela de Aparência agora usa uma grade de quatro cores por linha e coloca os três tamanhos de texto lado a lado. Em telas com pelo menos 660 dp de largura disponível, a prévia aparece na coluna da direita; em telas estreitas, abaixo dos controles. A tela continua rolável para acomodar textos ampliados e formatos menores.
