@@ -1,3 +1,5 @@
+> Correção mais recente: [Aparência compacta e ícones originais](Aparencia-e-icones-IPTV.md). O instalador Aplicar-temas-completos.ps1 já inclui essa correção.
+
 > Atualização: o instalador agora inclui os seis fundos exclusivos da segunda opção. Consulte [Fundos-exclusivos-IPTV.md](Fundos-exclusivos-IPTV.md) para imagens, medidas e validação atuais.
 
 # Temas completos do IPTV Premium
