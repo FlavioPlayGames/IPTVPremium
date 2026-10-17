@@ -1,0 +1,5 @@
+PASS command import/ack loop, push registration, QR login crypto, renewal and HTTP authentication code preserved
+PASS activity change only adds optional trial overlay alongside existing navigation; no update/parental changes
+PASS site HTML/CSS/JS/assets, runtime config, DB id, domain, cron and keep_vars unchanged
+PASS all five actual APK outputs are 1.05/code7
+PASS shared current-theme artwork/rims, responsive activation layout; no private installation secret displayed

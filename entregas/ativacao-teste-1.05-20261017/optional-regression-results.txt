@@ -1,0 +1,10 @@
+PASS legacy publication and public response
+PASS four architectures + universal retain same version; uppercase SHA normalizes
+PASS invalid variants reject atomically
+PASS universal remains mandatory; versions and metadata bounded
+PASS old-client 16 KiB response limit enforced
+PASS admin authentication, CSRF and origin preserved
+PASS delete publication affects setting only
+PASS assets forwarding unchanged
+PASS legacy clients receive no blocking demand; new protocol receives optional manifest
+9 Worker scenarios passed

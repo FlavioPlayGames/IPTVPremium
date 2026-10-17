@@ -1,0 +1,12 @@
+PASS first trial is offered once; due choice stored in one existing SQLite row
+PASS now choice acknowledgement survives credential replacement/reinstallation and repeated requests
+PASS actual reinstall registration recovers the same acknowledged trial without extending access
+PASS authenticated endpoint rejects missing or foreign credentials
+PASS invalid choices/deadlines are rejected without writes
+PASS paid or blocked devices never receive welcome and cannot acknowledge trial
+PASS expiration uses original server deadline; no fresh seven-day period
+PASS new administrator trial deadline gets its own acknowledgement; existing trial remains acknowledged
+PASS activation racing with acknowledgement cannot overwrite preference after license grant
+PASS pre-existing licensed renewal preference is replaced only by a valid trial; later licensed renewal still notices stage7
+PASS no schema migrations, command writes, catalog or APK storage introduced
+11 authenticated Worker/SQLite scenarios passed

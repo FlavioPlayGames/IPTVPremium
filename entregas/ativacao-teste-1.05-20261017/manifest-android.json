@@ -1,0 +1,60 @@
+{
+  "files": [
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt",
+      "before": [
+        "5f8d370f62d26a37c95d694d4dffec3e0a8cb15a623f22f8e2cf3c0461dd5ce8"
+      ],
+      "after": "2519e805bb8d16cc3cbfeefd3b10889574095ce7fc4ceb985d00e62a44d3b871"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt",
+      "before": [
+        "49d62a31a9ac016c3f03a7fd26c511f0e1d845252fe045a5c9ee94320ae02c62"
+      ],
+      "after": "aa244db7cd1b99af638212f8a60007aa6f2d84e96cab510ebfd720b2da7467c8"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalQr.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalQr.kt",
+      "before": [
+        "0b66fe362c6bb53677f5bff0fbadba3e0b45cef5394228bc55ae131769927839"
+      ],
+      "after": "2d00169e470b2ea86e90d811f66bafc0f8a02cfa7b100ed4184394955646ec11"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalAccessOverlay.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalAccessOverlay.kt",
+      "before": [
+        "6170ce41b43010b4d25d57b719470a76db155ca5fdb61e5d037aabaaa0d6dde8"
+      ],
+      "after": "a6b3e399f10902f4221db2ec3f0611b6dd3a67308bdb8176e45c724a712c1395"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/TrialNoticePolicy.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/TrialNoticePolicy.kt",
+      "before": [
+        null
+      ],
+      "after": "6a37e063601c8d6d12ee3f240dee67cc301684a59d90515d3547a510961917d9"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalTrialState.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalTrialState.kt",
+      "before": [
+        null
+      ],
+      "after": "415e92fd19fd5b538176444ad513c1f36974877e9b46a1f4c13622318976032d"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalTrialOverlay.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalTrialOverlay.kt",
+      "before": [
+        null
+      ],
+      "after": "e8754a42d17654b743010a6cf875649ec894545ebcaf40ee0f17e14535f3698d"
+    }
+  ]
+}

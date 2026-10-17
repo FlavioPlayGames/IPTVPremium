@@ -1,0 +1,5 @@
+PASS auto pull legacy no blocking demand preserves encrypted list commands and account response
+PASS auto pull protocol 2 optional update preserves encrypted list commands and account response
+PASS manual pull legacy no blocking demand preserves encrypted list commands and account response
+PASS manual pull protocol 2 optional update preserves encrypted list commands and account response
+4 authenticated device pull scenarios passed; old mandatory record normalized without rewriting D1

@@ -1,0 +1,12 @@
+PASS fresh server-confirmed seven-day trial shows welcome once
+PASS no notice before server protocol support; no fabricated seven-day deadline
+PASS due survives process recreation/update; acknowledgement and network retry are persisted
+PASS successful network acknowledgement clears retry while keeping initial notice suppressed
+PASS server acknowledgement suppresses welcome after reinstall without local preferences
+PASS local acknowledgement belongs only to matching MAC and exact trial expiry
+PASS day7 reaches original deadline even when deferred; paid/blocked access never treated as trial
+PASS license activation clears trial state and stale UI cannot block the licensed device
+PASS preference failure leaves acknowledgement unset and throws instead of losing the choice
+PASS monotonic server anchor reaches expiry without relying on wall clock changes
+PASS offline acknowledgement retry backs off across process recreation without resending catalogues
+11 trial policy/persistence scenarios passed

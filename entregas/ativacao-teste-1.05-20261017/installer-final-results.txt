@@ -1,0 +1,9 @@
+PASS seven Android targets verified/applied with backup; repeat idempotent; private properties/version preserved
+PASS combined verification makes no Android changes or central deployment/extraction
+PASS combined prepare extracts exact central and applies app without deployment, npm or compilation
+PASS unknown Android edits abort combined runner before any central extraction/publication
+PASS central command workflow install failure stops before deploy
+PASS central command workflow check failure stops before deploy
+PASS central command workflow checks bundle then deploys existing config using mocked CLI
+PASS central verification failure preserves all app sources; no deployment/compile
+PASS website frontend, existing DB bindings/routes/secrets settings unchanged; no APK/private keys in bundles
