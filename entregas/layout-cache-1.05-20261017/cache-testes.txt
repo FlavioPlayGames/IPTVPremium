@@ -1,0 +1,6 @@
+PASS recria pasta apagada mantendo o mesmo carregador vivo
+PASS preserva arquivos existentes
+PASS falha transitoria tenta novamente
+PASS falha permanente limitada a tres tentativas
+PASS URL ausente nao inicia rede
+PASS sair da tela cancela repeticao

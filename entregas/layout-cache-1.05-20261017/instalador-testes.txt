@@ -1,0 +1,4 @@
+PASS preflight nao modifica arquivos
+PASS aplica quatro fontes e salva backups
+PASS repeticao idempotente
+PASS fonte desconhecido interrompe sem sobrescrever
