@@ -1,19 +1,20 @@
-CONFIGURACAO RECRIADA EM PASTA SEPARADA
+CONFIGURACAO RECONSTRUIDA A PARTIR DAS CAPTURAS
 
-Estes arquivos nao foram exportados do Cloudflare. Sao um rascunho local baseado nas vinculacoes DB e ASSETS mostradas e no codigo recebido.
-Nenhum site, arquivo original, banco ou configuracao remota foi alterado.
-O package.json e novo e minimo; nao e uma restauracao das dependencias antigas.
-Nao contem scripts de publicacao nem instala dependencias automaticamente.
+Worker central-iptv-premium; compatibilidade 2026-10-14; sem flags adicionais.
+Dominio personalizado centraliptvpremium.com.br; workers.dev e previas habilitados.
+Cron 0 * * * * (a cada hora, UTC no Cloudflare).
+DB vinculado ao banco EXISTENTE a00e82d6-a8d8-4f43-a53b-861f4ac73a8f.
+ASSETS vinculado a ./public; chamadas /api/* passam pelo Worker.
+keep_vars preserva variaveis remotas. Nao ha senhas ou tokens nestes arquivos.
+Os segredos ADMIN_PASSWORD, APP_KEY e FCM_SERVICE_ACCOUNT continuam no Cloudflare.
 
-Antes de publicar, conferir no Cloudflare:
-- confirmar que o ID a00e82d6-a8d8-4f43-a53b-861f4ac73a8f corresponde ao banco D1 EXISTENTE vinculado como DB;
-- data de compatibilidade e flags da versao ativa;
-- dominios/rotas e o agendamento existente;
-- configuracao de Assets e nomes das variaveis/segredos, sem copiar seus valores para estes arquivos.
-Nao criar outro banco. Nao executar migrations ou deploy deste rascunho.
+Este package.json e novo e minimo, nao uma restauracao das dependencias antigas.
+O unico script, npm run check, usa --dry-run e nao publica nem modifica o banco.
+Nao foram criadas migracoes, outro banco ou upload de APK ao D1.
+Os APKs continuam nos links externos; o banco guarda apenas metadados limitados a 16 KiB.
+O registro app_update e substituido a cada publicacao, sem historico.
 
-O main aponta para worker-atualizacao-abi.js do pacote de atualizacao que ja foi preparado.
-A pasta public deve ser a pasta do site correspondente.
-Estes dois arquivos sozinhos nao constituem uma copia completa do site.
-
-ID preenchido conforme informado pelo usuario; a vinculacao nao foi verificada por acesso ao Cloudflare.
+main aponta para worker-atualizacao-abi.js do pacote de atualizacao preparado.
+Estes dois arquivos isoladamente nao contem o site completo.
+O pacote completo prepara uma pasta nova; as fontes locais antigas nao sao substituidas.
+Nenhuma implantacao em producao foi feita por esta entrega.

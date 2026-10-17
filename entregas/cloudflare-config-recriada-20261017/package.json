@@ -2,8 +2,14 @@
   "name": "central-iptv-premium",
   "version": "0.0.0",
   "private": true,
-  "description": "Configuracao local recriada; sem publicacao automatica.",
+  "description": "Preparacao local da central; nenhuma publicacao automatica.",
+  "scripts": {
+    "check": "wrangler deploy --dry-run --outdir .worker-preview"
+  },
   "devDependencies": {
     "wrangler": "4.151.1"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }

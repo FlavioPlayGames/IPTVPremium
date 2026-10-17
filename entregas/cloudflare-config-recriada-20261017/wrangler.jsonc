@@ -1,24 +1,37 @@
+// Configuracao reconstruida com base nas capturas fornecidas.
+// Banco existente; sem comandos de criacao ou migracao.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "central-iptv-premium",
   "main": "worker-atualizacao-abi.js",
-  // RASCUNHO LOCAL: conferir esta data com a versao publicada antes de implantar.
-  "compatibility_date": "2026-10-17",
-  // Preserva variaveis ja configuradas no Cloudflare durante uma futura implantacao.
+  "compatibility_date": "2026-10-14",
+  "compatibility_flags": [],
   "keep_vars": true,
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    {
+      "pattern": "centraliptvpremium.com.br",
+      "custom_domain": true
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "0 * * * *"
+    ]
+  },
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": [
+      "/api/*"
+    ]
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "central-iptv-premium",
-      // ID informado para o banco EXISTENTE. Este arquivo nao cria banco de dados.
       "database_id": "a00e82d6-a8d8-4f43-a53b-861f4ac73a8f"
     }
   ]
-  // Dominios, rotas, agendamento, flags e demais ajustes devem ser conferidos
-  // no painel atual antes de qualquer publicacao. Nao executar deploy deste rascunho.
 }
