@@ -15,8 +15,8 @@
     {
       "binding": "DB",
       "database_name": "central-iptv-premium",
-      // Copiar o ID do banco EXISTENTE. Este arquivo nao cria banco de dados.
-      "database_id": "PREENCHER_COM_ID_DO_BANCO_EXISTENTE"
+      // ID informado para o banco EXISTENTE. Este arquivo nao cria banco de dados.
+      "database_id": "a00e82d6-a8d8-4f43-a53b-861f4ac73a8f"
     }
   ]
   // Dominios, rotas, agendamento, flags e demais ajustes devem ser conferidos

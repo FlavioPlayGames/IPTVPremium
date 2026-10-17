@@ -6,7 +6,7 @@ O package.json e novo e minimo; nao e uma restauracao das dependencias antigas.
 Nao contem scripts de publicacao nem instala dependencias automaticamente.
 
 Antes de publicar, conferir no Cloudflare:
-- ID e nome exatos do banco D1 EXISTENTE vinculado como DB;
+- confirmar que o ID a00e82d6-a8d8-4f43-a53b-861f4ac73a8f corresponde ao banco D1 EXISTENTE vinculado como DB;
 - data de compatibilidade e flags da versao ativa;
 - dominios/rotas e o agendamento existente;
 - configuracao de Assets e nomes das variaveis/segredos, sem copiar seus valores para estes arquivos.
@@ -15,3 +15,5 @@ Nao criar outro banco. Nao executar migrations ou deploy deste rascunho.
 O main aponta para worker-atualizacao-abi.js do pacote de atualizacao que ja foi preparado.
 A pasta public deve ser a pasta do site correspondente.
 Estes dois arquivos sozinhos nao constituem uma copia completa do site.
+
+ID preenchido conforme informado pelo usuario; a vinculacao nao foi verificada por acesso ao Cloudflare.
