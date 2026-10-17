@@ -1,0 +1,3 @@
+PASS existing and orphaned favorites/history counted without exposing sensitive fields
+PASS missing or inaccessible private files reported safely
+PASS all ADB commands are read-only
