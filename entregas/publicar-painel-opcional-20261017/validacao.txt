@@ -1,0 +1,4 @@
+PASS success: wrapper ordering, deployment guard, existing file preserved (npm/Wrangler simulated)
+PASS failed-check: wrapper ordering, deployment guard, existing file preserved (npm/Wrangler simulated)
+PASS bad-download: wrapper ordering, deployment guard, existing file preserved (npm/Wrangler simulated)
+PASS old-node: wrapper ordering, deployment guard, existing file preserved (npm/Wrangler simulated)
