@@ -1,0 +1,6 @@
+PASS known playlist variant 0 replaced with approved layout; Home restoration included; backup/idempotence/properties verified
+PASS known playlist variant 1 replaced with approved layout; Home restoration included; backup/idempotence/properties verified
+PASS known playlist variant 2 replaced with approved layout; Home restoration included; backup/idempotence/properties verified
+PASS unknown screen source aborts before changing Home or version properties
+PASS structural checks: no header logo/row trash, explicit load, guarded confirmed deletion, Cancel initial focus, responsive split/stack
+PASS five compiled APKs retain 1.05/code7
