@@ -1,0 +1,9 @@
+{
+  "name": "central-iptv-premium",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Configuracao local recriada; sem publicacao automatica.",
+  "devDependencies": {
+    "wrangler": "4.151.1"
+  }
+}

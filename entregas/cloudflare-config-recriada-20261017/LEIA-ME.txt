@@ -1,0 +1,17 @@
+CONFIGURACAO RECRIADA EM PASTA SEPARADA
+
+Estes arquivos nao foram exportados do Cloudflare. Sao um rascunho local baseado nas vinculacoes DB e ASSETS mostradas e no codigo recebido.
+Nenhum site, arquivo original, banco ou configuracao remota foi alterado.
+O package.json e novo e minimo; nao e uma restauracao das dependencias antigas.
+Nao contem scripts de publicacao nem instala dependencias automaticamente.
+
+Antes de publicar, conferir no Cloudflare:
+- ID e nome exatos do banco D1 EXISTENTE vinculado como DB;
+- data de compatibilidade e flags da versao ativa;
+- dominios/rotas e o agendamento existente;
+- configuracao de Assets e nomes das variaveis/segredos, sem copiar seus valores para estes arquivos.
+Nao criar outro banco. Nao executar migrations ou deploy deste rascunho.
+
+O main aponta para worker-atualizacao-abi.js do pacote de atualizacao que ja foi preparado.
+A pasta public deve ser a pasta do site correspondente.
+Estes dois arquivos sozinhos nao constituem uma copia completa do site.
