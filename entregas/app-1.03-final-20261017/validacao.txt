@@ -1,0 +1,36 @@
+manager-results.txt
+PASS new publication opens optional prompt
+PASS deferral keeps policy and suppresses repeated synchronization
+PASS deferral survives manager reinitialization from disk cache
+PASS manual check reopens deferred update with protocol 2
+PASS 15-day reminder suppresses same and newer publications until deadline
+PASS deferring a repeated reminder starts a fresh 15-day period
+PASS old mandatory cache opens with dismissal available
+PASS withdrawal clears update cache only
+PASS installed and older versions never prompt
+PASS corrupt cache does not affect user data
+PASS installer requests a result and grants read access without NEW_TASK
+PASS repeated installation press cannot launch a second installer
+PASS cancellation reports retry/later and preserves the verified download
+PASS retry revalidates the existing APK without downloading again
+PASS installer failure is distinct from user cancellation
+PASS launcher failure remains retryable
+PASS deferral during validation cannot open installer afterward
+PASS Android success closes the optional prompt
+PASS late installer result cannot change a different publication
+PASS earlier indefinite deferral migrates once to a 15-day deadline
+PASS favorite/history/catalog/cover sentinels unchanged across lifecycle
+21 update manager lifecycle scenarios passed (JVM, fake Android services)
+
+
+installer-final-results.txt
+PASS first 1.03 -> final 1.03/code5, five exact source hashes, original-byte backup, unrelated files preserved, idempotence
+PASS higher version aborts before source/property mutation
+PASS invalid version aborts before source/property mutation
+PASS absent version properties appended without changing other bytes
+PASS late source mismatch aborts full package and preserves local edits/version
+PASS source installer verification mode changes nothing
+PASS compile workflow verifies all five APK outputs at 1.03/code5
+PASS rejects unexpected APK version after build
+PASS original 1.02/code4 sources also upgrade to final 1.03/code5
+PASS no APK, private local configuration or signing key included
