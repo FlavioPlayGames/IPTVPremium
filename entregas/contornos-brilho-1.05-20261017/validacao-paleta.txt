@@ -1,0 +1,8 @@
+PASS gold: matches Gold luminance, alpha, cache, metallic stops and unchanged player glass
+PASS blue: matches Gold luminance, alpha, cache, metallic stops and unchanged player glass
+PASS purple: matches Gold luminance, alpha, cache, metallic stops and unchanged player glass
+PASS red: matches Gold luminance, alpha, cache, metallic stops and unchanged player glass
+PASS pink: matches Gold luminance, alpha, cache, metallic stops and unchanged player glass
+PASS emerald: matches Gold luminance, alpha, cache, metallic stops and unchanged player glass
+PASS cyan: matches Gold luminance, alpha, cache, metallic stops and unchanged player glass
+PASS seven distinct theme colors preserved

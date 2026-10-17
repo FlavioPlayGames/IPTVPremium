@@ -1,0 +1,3 @@
+PASS three sources applied with backup; repeat idempotent; version/private bytes preserved
+PASS unknown source rejected before changing any target/private properties
+PASS palette text/background/selection functions unchanged; player changes only separate legacy glass shading from rims
