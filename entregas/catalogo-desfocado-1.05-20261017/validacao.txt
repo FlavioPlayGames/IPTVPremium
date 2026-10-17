@@ -1,0 +1,5 @@
+PASS four sources/helpers applied with backup; repeat idempotent; version/private bytes preserved
+PASS unknown source rejected before changing any target/helper/private properties
+PASS catalogue sources differ only in decorative background and surface colors; navigation, sorting, history, paging and video code preserved
+PASS blur restricted to theme image, shared across themes; both series catalogue paths covered
+PASS five compiled APKs retain 1.05/code7
