@@ -1,0 +1,5 @@
+PASS latest 1.05 sources: all six targets/backups/idempotence/private properties verified
+PASS base 1.05 sources: all six targets/backups/idempotence/private properties verified
+PASS unknown wizard source aborts before creating helper/changing other targets or properties
+PASS wizard source differs only in background/decorative colors; input, keyboard, QR, connect and callbacks preserved
+PASS button selection is focus-only; blur is confined to original theme image and panels remain translucent
