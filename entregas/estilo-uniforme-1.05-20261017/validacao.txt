@@ -1,0 +1,39 @@
+palette-results.txt
+PASS gold: tinted dark surfaces, visible colored selection and white contrast
+PASS gold: metallic highlights preserve alpha and ordered contrast
+PASS blue: tinted dark surfaces, visible colored selection and white contrast
+PASS blue: metallic highlights preserve alpha and ordered contrast
+PASS purple: tinted dark surfaces, visible colored selection and white contrast
+PASS purple: metallic highlights preserve alpha and ordered contrast
+PASS red: tinted dark surfaces, visible colored selection and white contrast
+PASS red: metallic highlights preserve alpha and ordered contrast
+PASS pink: tinted dark surfaces, visible colored selection and white contrast
+PASS pink: metallic highlights preserve alpha and ordered contrast
+PASS emerald: tinted dark surfaces, visible colored selection and white contrast
+PASS emerald: metallic highlights preserve alpha and ordered contrast
+PASS cyan: tinted dark surfaces, visible colored selection and white contrast
+PASS cyan: metallic highlights preserve alpha and ordered contrast
+PASS switching theme updates cached surfaces and selection without restarting
+15 palette scenarios passed
+
+
+preservation-results.txt
+PASS data/import/storage/favorites/history/update policy and sync logic byte-identical
+PASS series loading animation and TV geometry byte-identical
+PASS movie loading, Home focus movement and keyboard animation timing parameters preserved
+PASS only six additional-theme logos replaced; Gold, icons, movie art and loading resources unchanged; native size/alpha retained
+PASS all five APK architectures carry 1.05/code7
+
+
+installer-results.txt
+PASS playlist variant 0 preserved; all targets/hashes checked; code7; byte-preserving backup; idempotence
+PASS playlist variant 1 preserved; all targets/hashes checked; code7; byte-preserving backup; idempotence
+PASS playlist variant 2 preserved; all targets/hashes checked; code7; byte-preserving backup; idempotence
+PASS known pre-1.04 sources receive approved refinements and uniform style together
+PASS higher does not modify sources or local properties
+PASS invalid does not modify sources or local properties
+PASS mismatch does not modify sources or local properties
+PASS verify does not modify sources or local properties
+PASS build workflow verifies all five APKs at 1.05/code7
+PASS rejects unexpected APK version
+PASS no APK/private configuration/signing keys in package
