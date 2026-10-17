@@ -1,0 +1,5 @@
+PASS release 3 -> 4 / 1.02, only version assignments changed, original-byte backup, source hashes and idempotence
+PASS higher version preserved
+PASS missing version properties appended
+PASS invalid version aborts before any source/property change
+PASS source mismatch preserves local properties and local edits

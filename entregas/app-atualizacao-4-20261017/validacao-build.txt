@@ -1,0 +1,1 @@
+assembleDebug: BUILD SUCCESSFUL in 33s. Todas as 5 saidas possuem versionCode=4 e versionName=1.02; bibliotecas nativas correspondem aos filtros ABI; universal contem as 4 ABIs. APKs da nuvem nao sao distribuidos.
