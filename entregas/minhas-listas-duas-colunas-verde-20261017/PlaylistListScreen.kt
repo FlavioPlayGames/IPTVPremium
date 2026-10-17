@@ -320,8 +320,21 @@ private fun PlaylistAction(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Text(symbol, color = if (label == "Adicionar") ListMint else Color.White,
-            fontSize = if (label == "Adicionar") 25.sp else 17.sp)
+        if (label == "Excluir") {
+            Canvas(Modifier.size(20.dp)) {
+                val stroke = 1.7.dp.toPx()
+                drawLine(Color.White, Offset(size.width * .2f, size.height * .26f),
+                    Offset(size.width * .8f, size.height * .26f), stroke, cap = StrokeCap.Round)
+                drawLine(Color.White, Offset(size.width * .4f, size.height * .16f),
+                    Offset(size.width * .6f, size.height * .16f), stroke, cap = StrokeCap.Round)
+                drawRoundRect(Color.White, topLeft = Offset(size.width * .27f, size.height * .35f),
+                    size = Size(size.width * .46f, size.height * .48f),
+                    cornerRadius = CornerRadius(2.dp.toPx()), style = Stroke(stroke))
+            }
+        } else {
+            Text(symbol, color = if (label == "Adicionar") ListMint else Color.White,
+                fontSize = if (label == "Adicionar") 25.sp else 17.sp)
+        }
         Box(Modifier.width(10.dp))
         Text(label, color = Color.White, fontSize = 14.sp, maxLines = 1,
             fontWeight = FontWeight.SemiBold)
