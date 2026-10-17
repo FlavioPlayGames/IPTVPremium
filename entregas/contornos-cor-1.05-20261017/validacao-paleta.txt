@@ -1,0 +1,7 @@
+PASS gold: saturated theme hue, distinct metallic shades, bright highlights, alpha/cache; Gold exact
+PASS blue: saturated theme hue, distinct metallic shades, bright highlights, alpha/cache; Gold exact
+PASS purple: saturated theme hue, distinct metallic shades, bright highlights, alpha/cache; Gold exact
+PASS red: saturated theme hue, distinct metallic shades, bright highlights, alpha/cache; Gold exact
+PASS pink: saturated theme hue, distinct metallic shades, bright highlights, alpha/cache; Gold exact
+PASS emerald: saturated theme hue, distinct metallic shades, bright highlights, alpha/cache; Gold exact
+PASS cyan: saturated theme hue, distinct metallic shades, bright highlights, alpha/cache; Gold exact

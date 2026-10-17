@@ -1,0 +1,3 @@
+PASS single palette source applied with backup; repeat idempotent; version/private bytes preserved
+PASS unknown source rejected before changing any target/private properties
+PASS only rim color algorithm changed; theme selection, text/background palette and player glass unchanged
