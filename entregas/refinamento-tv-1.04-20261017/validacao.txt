@@ -1,0 +1,33 @@
+results.txt
+PASS native-size artwork keeps every original pixel
+PASS opaque neutral surfaces remain constant at strong minification
+PASS dense checkerboard averages into balanced grey rather than aliasing
+PASS transparent RGB cannot create colored halos
+PASS downsampling preserves soft alpha and enforces no upscale
+PASS YouTube IDs and common URL forms normalize to a playable video
+PASS direct HTTP/HTTPS trailers remain available
+PASS missing metadata searches for the actual title without pretending it is a video
+PASS unsafe schemes and credential-bearing URLs cannot be launched
+PASS blue rims darken while Gold and the other theme colors are preserved
+10 artwork and trailer scenarios passed
+
+
+preservacao.txt
+PASS movie loading timings, movements, carousel and transitions unchanged; only rim color getter separated
+PASS series loading animation and measured TV geometry byte-identical
+PASS all original images/resources byte-identical; no new image files or regenerated designs
+PASS update/15-day reminder, watch history and playlist storage code unchanged
+PASS package supports original and external-trash playlist variants without forcing either layout
+
+
+installer-results.txt
+PASS external trash/confirmation preserved; 27 targets verified; version 1.04/code6; byte-preserving backup; idempotence
+PASS original playlist UI preserved without adding trash; 27 targets verified; version 1.04/code6; byte-preserving backup; idempotence
+PASS higher version rejected before source/property mutation
+PASS invalid version rejected before source/property mutation
+PASS late source mismatch preserves all local edits and version
+PASS verify-only mode does not change any source
+PASS missing version properties appended preserving all previous bytes
+PASS compile workflow checks all five APKs at 1.04/code6
+PASS unexpected APK version rejected
+PASS no APKs, signing keys or private local configuration in delivery
