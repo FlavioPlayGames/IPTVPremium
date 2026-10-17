@@ -1,0 +1,114 @@
+android-results.txt
+PASS legacy universal policy remains readable
+PASS four native architectures choose their artifact
+PASS 32-bit Android never selects ARM64
+PASS OS ABI preference order respected
+PASS missing variant falls back to supported secondary or universal
+PASS selected policy persists and restores as flat cache
+PASS invalid metadata rejected before selection
+PASS unknown or corrupt variants and incompatible cache rejected
+PASS APK native ABI inspection accepts correct split and universal
+PASS mislabeled and incompatible APKs rejected
+PASS pure Java universal accepted; claimed native split rejected
+PASS optional manifest false accepted and serialized without blocking
+12 Android policy/ABI scenarios passed
+
+
+manager-results.txt
+PASS new publication opens optional prompt
+PASS deferral keeps policy and suppresses repeated synchronization
+PASS deferral survives manager reinitialization from disk cache
+PASS manual check reopens deferred update with protocol 2
+PASS newer publication prompts after earlier version deferred
+PASS old mandatory cache opens with dismissal available
+PASS withdrawal clears update cache only
+PASS installed and older versions never prompt
+PASS corrupt cache does not affect user data
+PASS favorite/history/catalog/cover sentinels unchanged across lifecycle
+10 update manager lifecycle scenarios passed (JVM, fake Android services)
+
+
+device-pull-results.txt
+(node:53091) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/optional-worker-work/worker-atualizacao-abi.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/optional-worker-work/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS auto pull legacy no blocking demand preserves encrypted list commands and account response
+PASS auto pull protocol 2 optional update preserves encrypted list commands and account response
+PASS manual pull legacy no blocking demand preserves encrypted list commands and account response
+PASS manual pull protocol 2 optional update preserves encrypted list commands and account response
+4 authenticated device pull scenarios passed; old mandatory record normalized without rewriting D1
+
+
+worker-results.txt
+(node:53756) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/optional-worker-work/worker-atualizacao-abi.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/optional-worker-work/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS legacy publication and public response
+PASS four architectures + universal retain same version; uppercase SHA normalizes
+PASS invalid variants reject atomically
+PASS universal remains mandatory; versions and metadata bounded
+PASS old-client 16 KiB response limit enforced
+PASS admin authentication, CSRF and origin preserved
+PASS delete publication affects setting only
+PASS assets forwarding unchanged
+PASS legacy clients receive no blocking demand; new protocol receives optional manifest
+9 Worker scenarios passed
+
+
+frontend-results.txt
+(node:53764) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/optional-worker-work/public/update-artifacts.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/optional-worker-work/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS legacy publication initializes optional APKs disabled
+PASS optional APKs published independently; hash normalized
+PASS incomplete optional metadata identifies its architecture
+PASS unsafe URLs, fractional sizes and invalid hashes rejected
+PASS all artifacts required in server confirmation; old server cannot silently drop variants
+5 frontend contract scenarios passed
+
+
+browser-results.txt
+(node:53780) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/optional-worker-work/worker-atualizacao-abi.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/optional-worker-work/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS real browser + Worker publish three APKs; switching preserves individual metadata
+PASS disabling one optional APK leaves universal and other variant intact
+PASS local APK size and SHA-256 match selected bytes
+PASS late hash from another APK cannot overwrite the selected architecture
+PASS existing panel style remains usable at mobile width
+PASS suspension through browser clears published update
+6 browser scenarios passed; no JavaScript errors
+
+
+installer-results.txt
+PASS release 4 -> 5 / 1.03, five exact source hashes, original-byte backup, unrelated files preserved, idempotence
+PASS higher version aborts before source/property mutation
+PASS invalid version aborts before source/property mutation
+PASS absent version properties appended without changing other bytes
+PASS late source mismatch aborts full package and preserves local edits/version
+PASS source installer verification mode changes nothing
+PASS compile workflow verifies all five APK outputs at 1.03/code5
+PASS rejects unexpected APK version after build
+PASS complete site recreated in fresh folder, 16 hashes verified; original site and Cloudflare config unchanged
+PASS delivery excludes APKs, private Android configuration and signing keys
+
+
+wrangler-results.txt
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+
+ ⛅️ wrangler 4.151.1
+────────────────────
+✨ Read 16 files from the assets directory /workspace/optional-worker-work/public
+Total Upload: 60.51 KiB / gzip: 15.68 KiB
+Your Worker has access to the following bindings:
+Binding                                Resource         
+env.DB (central-iptv-premium)          D1 Database      
+env.ASSETS                             Assets           
+
+--dry-run: exiting now.
