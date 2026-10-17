@@ -1,0 +1,3 @@
+PASS three targets applied with backup; repeat is idempotent; version and private properties preserved
+PASS unknown source aborts before changing all targets; properties preserved
+PASS original theme artwork routing restored; Home boxes removed; focus scale retained
