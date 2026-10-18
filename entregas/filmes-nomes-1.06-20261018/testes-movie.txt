@@ -1,0 +1,17 @@
+PASS filme identificado por traducao oficial pt-PT
+PASS filme devolve titulo pt-BR
+PASS apenas endpoints de filmes e detalhes pt-BR
+PASS ordem original ingles pt-BR sem duplicar original igual ao ingles
+PASS ingles britanico usado quando nao ha traducao dos EUA
+PASS titulo original identifica filme
+PASS titulo brasileiro identifica filme
+PASS titulo alternativo oficial identifica filme
+PASS ano de remake diferente rejeitado
+PASS IMDb evita busca de nomes
+PASS cancelamento de filme preservado
+PASS Fanart movie por ID confirmado sem consultar TVmaze
+PASS logo Fanart em portugues tem prioridade
+PASS sem ID nao adivinha filme no Fanart
+PASS Fanart tenta IMDb se TMDB nao retorna arte
+PASS Fanart com ID conflitante nao fornece arte
+PASS cancelamento de Fanart preservado

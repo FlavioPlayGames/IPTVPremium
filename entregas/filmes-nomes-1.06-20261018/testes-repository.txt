@@ -1,0 +1,4 @@
+PASS repositorio real enriquece filme Xtream por tmdb e preserva ID reproduzivel
+PASS repositorio real preserva nome da lista e usa sinopse pt-BR e elenco
+PASS enriquecimento nao repete consulta do provedor nem acessa video
+PASS M3U nativa usa somente item local e mantem ID sem consultar Xtream ou videos

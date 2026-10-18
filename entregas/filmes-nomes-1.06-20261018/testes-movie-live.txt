@@ -1,0 +1,3 @@
+PASS API real: nome pt-PT identifica filme 238 e retorna titulo pt-BR
+PASS API real: nomes original ingles pt-BR preservados sem repeticoes
+PASS API real: ficha inclui sinopse e elenco localizado
