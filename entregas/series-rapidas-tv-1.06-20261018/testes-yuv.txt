@@ -1,0 +1,6 @@
+PASS YUV preto gera RGB preto opaco
+PASS YUV branco gera RGB branco
+PASS canais U V nao estao trocados
+PASS respeita crop e padding de linha
+PASS respeita posicao inicial do buffer
+PASS rejeita bitmap maior que limite de miniatura

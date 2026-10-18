@@ -1,0 +1,8 @@
+PASS abre na temporada do episodio assistido quando o ID existe nesta lista
+PASS escolha manual da rota prevalece sobre historico
+PASS sem historico deixa a tela escolher primeira temporada disponivel
+PASS episodio de outra lista nao inventa temporada
+PASS temporada removida usa episodio confirmado se existir
+PASS ID repetido entre temporadas nao escolhe vinculo ambiguo
+PASS temporada zero escolhida continua valida quando tem episodios
+PASS sem episodios reais nao seleciona temporada

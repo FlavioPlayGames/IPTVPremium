@@ -1,0 +1,13 @@
+PASS primeira consulta valida e guardada
+PASS nova instancia abre temporadas sem rede
+PASS formato e thumbnail especifica sobrevivem ao cache
+PASS nomes de arquivos nao revelam credenciais
+PASS nova geracao nao reutiliza temporadas antigas
+PASS troca de credenciais invalida a chave
+PASS apos seis horas faz consulta nova
+PASS arquivo corrompido recupera pela rede
+PASS limpar cache permite recriar detalhes
+PASS resposta vazia nao fica gravada como definitiva
+PASS limite de entradas remove a mais antiga
+PASS item maior que orcamento nao remove pequenos
+PASS limite de bytes e respeitado
