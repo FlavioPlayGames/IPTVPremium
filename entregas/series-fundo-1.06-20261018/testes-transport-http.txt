@@ -1,0 +1,3 @@
+PASS healthy series response ready after9s completes instead of failing at8s
+PASS cancellation still disconnects without waiting restored30s timeout
+PASS diagnostics preserve URL and credential privacy

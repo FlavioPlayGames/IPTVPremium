@@ -1,0 +1,48 @@
+PASS canonical season map
+PASS flat array
+PASS PHP grouped arrays
+PASS PHP season zero retained
+PASS keyed episode objects
+PASS explicit season overrides object bucket
+PASS explicit season overrides array bucket
+PASS keyed flat episode map defaults first season
+PASS wrapped season episode list
+PASS existing id-only flat records preserved
+PASS numeric IDs preserved
+PASS ID never guessed from key
+PASS malformed ID object rejected
+PASS metadata outside episodes ignored
+PASS season metadata not episode
+PASS negative episode or season rejected
+PASS duplicates removed without dropping distinct seasons
+PASS depth bounded
+PASS accepted episode count bounded
+PASS malformed root rejected
+PASS empty response produces no invented episodes
+PASS leading BOM accepted
+PASS whitespace before BOM accepted
+PASS repeated BOM with interleaved whitespace accepted
+PASS Unicode leading whitespace accepted
+PASS ordinary surrounding whitespace accepted
+PASS HTML error is not stripped into JSON
+PASS PHP warning is not stripped into JSON
+PASS array root remains rejected
+PASS Android parser category and offset captured
+PASS JSON diagnostic redacts keys values URLs and exception message
+PASS JSON java parser offset captured
+PASS unknown private parser message never logged
+PASS malformed parser position bounded without substring exception
+PASS malformed optional synopsis does not block intact episodes
+PASS invalid optional escape does not block intact episodes
+PASS complete episodes survive only missing outer brace
+PASS malformed episode text is never guessed
+PASS truncated episode node remains rejected
+PASS recovery keeps actual IDs and explicit seasons
+PASS recovery never invents ID from numeric key
+PASS nested metadata episodes cannot be recovered as real series
+PASS ambiguous duplicate root episode nodes rejected
+PASS recovery rejects trailing fields rather than discarding unknown structure
+PASS recovery rejects trailing garbage
+PASS recovery rejects extra closing braces
+PASS quoted metadata marker never treated as episode node
+PASS malformed metadata loads episodes in one HTTP call without manual retry

@@ -1,0 +1,10 @@
+PASS foto especifica tem prioridade e encerra consulta
+PASS imagem indisponivel tenta proxima referencia
+PASS erro de imagem permite alternativa sem interromper card
+PASS sem foto nao inicia extracao ou qualquer consulta de video
+PASS cancelamento e preservado ao sair da tela
+PASS referencias duplicadas consultadas apenas uma vez
+PASS imagem invalida no primeiro campo nao esconde campo valido
+PASS thumbnail_url na raiz do episodio reconhecida
+PASS thumbnail no info reconhecida apos valor invalido
+PASS still_path absoluto na raiz reconhecido
