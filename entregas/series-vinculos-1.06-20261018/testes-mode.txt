@@ -1,0 +1,3 @@
+PASS modo pausado gera BuildConfig debug com isolamento ativo
+PASS debug padrao mantem compartilhamento ativo
+PASS release padrao mantem compartilhamento ativo

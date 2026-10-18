@@ -1,0 +1,2 @@
+PASS orquestracao Pausados: propriedade correta, instala uma vez, reinicia processo, captura separada, sem apagar dados
+PASS orquestracao Ativos: propriedade correta, instala uma vez, reinicia processo, captura separada, sem apagar dados
