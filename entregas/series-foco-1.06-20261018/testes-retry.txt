@@ -1,0 +1,13 @@
+PASS 429 rapido recupera na segunda tentativa
+PASS reset rapido usa ate tres tentativas com pausas 400 e 1200ms
+PASS HTTP 401 permanente nao repete
+PASS HTTP 403 permanente nao repete
+PASS HTTP 404 permanente nao repete
+PASS HTML temporario nao vira serie vazia definitiva
+PASS JSON vazio faz somente duas tentativas
+PASS falha de dez segundos nao acumula novas esperas
+PASS cancelamento nao e tratado como falha transitoria
+PASS HTTP 503 temporario repete e recupera
+PASS falha persistente termina na terceira tentativa
+PASS resposta invalida lenta nao acumula novas tentativas
+PASS primeira resposta valida nao adiciona pausa nem chamadas

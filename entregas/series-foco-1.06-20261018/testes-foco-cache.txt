@@ -1,0 +1,11 @@
+PASS passagem rapida e perda de foco antigo nao carregam card errado
+PASS somente card parado por 450ms inicia carga
+PASS sair do card antes do prazo cancela consulta pendente
+PASS sair da grade cancela aquecimento pendente
+PASS clique preserva consulta que o foco ja iniciou
+PASS clique compartilha consulta iniciada ha mais de 12s sem reiniciar
+PASS serie de 3000 episodios fica em cache
+PASS total de 8000 episodios e permitido
+PASS acima do total limite remove serie menos recente
+PASS texto excessivo nao ocupa cache nem remove series pequenas
+PASS aquecimento limita a duas consultas simultaneas

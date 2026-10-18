@@ -1,0 +1,48 @@
+{
+  "files": [
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+      "before": [
+        "bf585e1042469dca39ff92982b762e460e475606a56ef533ca24d86bea9827aa",
+        "67b00d3b480c6ff85d2a27ca8c51927474ca33ee8f7579db7b0e4b31fb32d389"
+      ],
+      "after": "8046323c0b4b24aff9e751bd35fe9fd8eeae37df14da121842eb59b04ec4d8b8"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+      "before": [
+        "5b6fe47c7bde24c707f5afb485ec0a3e03cebcd9b3c4a1e996b39e16e07b4a5a",
+        "b0d83a993c763d905d783cde0c22bbccf8d78941b92a9fbed6c0e1c5b63ade10"
+      ],
+      "after": "2d8869e125659c4b07be10b32df3ef5e2ec3ffd4893007eee5ef0d8d2f75e90a"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogDetailsWarmupCache.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogDetailsWarmupCache.kt",
+      "before": [
+        "ac9e1e23cced07b0afd2ebe10062b63b9b165e005643b8ccf0bb7c9607308908",
+        "d7975c0cdf83e1456b155e589a9952373d1ad1038825236e9a5935b58a15616c"
+      ],
+      "after": "a8754b1eeb2795d807d6c0e08a3cc3f278f96d5a732332cdb65f61a2af846e0c"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesEpisodesRepository.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesEpisodesRepository.kt",
+      "before": [
+        "ed6c1534f94b9d33241d8c14f25df557a1b1dc8b8f7fc3b4955e37067cd4cd8e",
+        "74a50ea521fbe03b6d65663077b77f5d70ce39f35ec100f6bd99165ce820c180"
+      ],
+      "after": "716ad7075979c5bf89e349a8efd9b8fe0cf3b0327928c7af66c3cb356dd3347f"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/SeriesFocusPreloader.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/SeriesFocusPreloader.kt",
+      "before": [
+        null
+      ],
+      "after": "a16e264e84f99117f01122b7b5d551981cbbbb14f5dcbd68abc4df2c8fd92dbb"
+    }
+  ]
+}
