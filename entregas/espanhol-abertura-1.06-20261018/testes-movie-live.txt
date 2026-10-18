@@ -1,0 +1,6 @@
+PASS API real: nome pt-PT identifica filme 238 e retorna titulo pt-BR
+PASS API real: nomes original ingles pt-BR preservados sem repeticoes
+PASS API real: ficha inclui sinopse e elenco localizado
+PASS API real: filme de original espanhol retorna ficha pt-BR sem duplicar espanhol
+DIAGNOSTICO nomes oficiais serie espanhola=[La casa de papel, Money Heist] localizado=La casa de papel
+PASS API real: serie de original espanhol identifica ingles e titulo brasileiro

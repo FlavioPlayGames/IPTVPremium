@@ -1,0 +1,13 @@
+PASS movie nomes original ingles espanhol brasileiro
+PASS movie original espanhol nao repete busca
+PASS movie espanhol mexicano aceito sem es-ES
+PASS tv nomes original ingles espanhol brasileiro
+PASS tv original espanhol nao repete busca
+PASS tv espanhol mexicano aceito sem es-ES
+PASS TVmaze tenta quatro nomes na ordem e encontra brasileiro
+PASS TMDB inclui locale espanhol antes do brasileiro
+PASS arte pronta dispensa espera minima
+PASS arte ausente aguarda dois segundos
+PASS prazo passado nao soma outra espera
+PASS imagens recebem apenas tempo restante
+PASS preparo e animacao juntos cabem em cinco segundos

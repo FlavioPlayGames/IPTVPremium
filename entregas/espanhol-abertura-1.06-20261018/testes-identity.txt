@@ -1,0 +1,16 @@
+PASS caso real reconhece traducao pt-PT sem rejeitar pt-BR
+PASS ficha retornada continua em portugues brasileiro
+PASS todas consultas de detalhes pedem pt-BR
+PASS ordem original ingles espanhol portugues brasileiro
+PASS original alem de todas traducoes oficiais disponivel
+PASS nome original encontra mesma producao
+PASS nao pesquisa outras linguas apos correspondencia unica
+PASS nome ingles encontra mesma producao
+PASS ano divergente nao confunde producoes
+PASS sem ano nao adivinha por traducao
+PASS ID TMDB evita buscas por nome
+PASS IMDb confirma ID antes de buscar nomes
+PASS duas obras com mesmo alias e ano sao rejeitadas
+PASS titulo apenas semelhante nao e aceito
+PASS cancelamento e preservado
+PASS falha de rede nao inventa correspondencia

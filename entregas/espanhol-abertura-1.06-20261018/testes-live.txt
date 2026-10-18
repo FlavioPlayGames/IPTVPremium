@@ -1,0 +1,4 @@
+PASS API real: A Armadilha identificada como TMDB 283371 com ficha pt-BR
+PASS API real: nomes na ordem Die Falle, The Trap, La trampa, Armadilha
+PASS API real: identificacao devolve logo em portugues
+PASS API real: seis miniaturas e nome de episodio em portugues
