@@ -1,0 +1,3 @@
+PASS API real: vinculo de serie aprende original ingles espanhol brasileiro na mesma regra das artes
+PASS API real: metadados do historico tambem solicitam pt-BR
+PASS API real: filme de titulo espanhol compartilha com nome brasileiro oficial

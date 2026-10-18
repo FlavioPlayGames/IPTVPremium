@@ -1,0 +1,55 @@
+PASS identificador externo liga nomes diferentes
+PASS IMDb valido e conflito entre identificadores
+PASS fallback nome ano normalizado sem confundir remakes
+PASS numero integrante do titulo nao e removido como ano diferente
+PASS favoritos legados aparecem na outra lista por ID e por nome ano
+PASS filme compartilha posicao com ID real da lista destino
+PASS serie sem episodio fica em favoritos sem continuar inventado
+PASS duracao incompativel nao aplica posicao em outra edicao do filme
+PASS temporada e episodio exatos recuperam posicao
+PASS ID de episodio igual entre provedores nao substitui temporada e numero
+PASS episodios duplicados ficam apenas em favoritos
+PASS desfavoritar em uma lista remove na outra
+PASS remover continuar evita reaparecimento do mesmo progresso compartilhado
+PASS nova reproducao apos remover volta com progresso novo
+PASS fallback ambiguo nao marca dois filmes diferentes
+PASS lista adicionada depois recebe favorito existente
+PASS reinicio preserva remocao de favorito e dados antigos
+PASS limpar historico nao recupera progresso excluido e preserva favoritos
+PASS catalogo grande usa lotes limitados
+PASS falha de gravacao nao confirma nem substitui vinculos persistidos
+PASS reconciliacao sem mudanca nao repete varredura
+PASS preferencias de vinculos nao guardam enderecos de video ou credenciais
+PASS nota ou nome sem ano nao sao tratados como IMDb inventado
+PASS Homem Aranha HDR e 4K vinculados apos obter IDs reais dos candidatos
+PASS entre variantes escolhe primeira sem L na ordem do provedor
+PASS marcadores L e Legendado reconhecidos sem confundir titulos comuns
+PASS troca de lista pre carregada refaz reconciliacao e usa progresso novo
+PASS desfavoritar variante escolhida propaga ao retornar para origem
+PASS detalhes resolvidos nao geram consultas repetidas
+PASS prefere nao legendado confirmado por nome ano mesmo com ID na variante L
+PASS se todas forem legendadas mantem a primeira disponivel
+PASS identidade incompleta e atualizada quando o cache local ganha o ano
+PASS nome alternativo ingles exige ano ou identificador confirmado
+PASS serie com titulo ingles compartilha favorito na primeira variante sem L
+PASS titulo alternativo conserva favorito sem inventar episodio
+PASS nomes alternativos persistem apos recriar a instancia do armazenamento
+PASS remocao propaga tambem entre nomes alternativos
+PASS progresso sem favorito explicito cria favorito quando falta episodio
+PASS importa episodio sem abrir detalhes e usa ID do provedor destino
+PASS episodio exato ja importado nao repete rede
+PASS ID igual sem temporada e numero iguais nao transfere progresso
+PASS favorito de recuperacao respeita desfavoritar explicito
+PASS atualizacao silenciosa usa historico novo sem varrer catalogo de novo
+PASS todos favoritos aprendem aliases sem limite antigo de quatro itens
+PASS aliases oficiais persistidos nao repetem consulta a cada troca
+PASS serie de nome espanhol sem ano enriquece antes de associar
+PASS importa todas as series em pares e uma falha nao bloqueia as demais
+PASS episodio anterior disponivel nao substitui ultimo episodio ausente
+PASS sem coordenadas nao busca episodio inventado e deixa apenas favorito
+PASS nova lista aproveita favoritos e historico mesmo apos excluir catalogos antigos
+PASS favorito apenas local nao gera consulta desnecessaria ao provedor
+PASS episodios descobertos depois notificam interface sem criar loop de atualizacao
+PASS serie longa conserva apenas coordenadas necessarias ao historico na RAM
+PASS progresso local mais recente impede favorito de recuperacao por episodio antigo de outra lista
+PASS serie ja confirmada por ID dispensa busca adicional mesmo sem ano no destino

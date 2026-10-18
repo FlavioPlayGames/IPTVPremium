@@ -1,0 +1,8 @@
+PASS nomes oficiais ingles original e alternativo aprendidos sem traduzir a interface
+PASS identificadores reais da resposta associados a serie confirmada
+PASS ano divergente nao associa remake
+PASS resultado parecido sem nome exato nao associa
+PASS ID conhecido dispensa pesquisa por nome
+PASS busca ambigua nao escolhe primeiro por popularidade
+PASS filmes tambem comparam nome em ingles e portugues
+PASS identificador IMDb conflitante recusa metadados
