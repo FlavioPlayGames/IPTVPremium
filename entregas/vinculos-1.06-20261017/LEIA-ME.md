@@ -1,0 +1,13 @@
+# Correção de vínculos entre listas — 1.06 / número interno8
+
+Recalcula favoritos e Continuar assistindo ao ativar uma lista, inclusive com catálogo já carregado, e quando favorito/progresso/geração mudam. A interface usa os favoritos locais explícitos como base, sem reaproveitar um conjunto derivado antigo. Reconsulta identidades incompletas na reconciliação forçada. Não reimporta o catálogo apenas para atualizar esses estados.
+
+Identifica por IMDb/TMDB reais ou título normalizado+ano. 4K e4K HDR representam variantes do mesmo título; as marcas técnicas não fazem parte do nome. Se mais de uma versão for confirmada como o mesmo conteúdo, prefere a primeira sem L/LEG/Legendado, na ordem do provedor quando disponível. Se só houver legendadas, mantém a primeira disponível. IDs conflitantes e obras ambíguas continuam separadas. Uma nota não é tratada como um identificador IMDb.
+
+Quando faltam ano/IDs, prepara uma fila pequena dos filmes acompanhados e dos candidatos de nome exato na lista destino. Reutiliza metadados já presentes no aquecimento; se necessário, consulta apenas get_vod_info do provedor, sem baixar elenco/artes do TMDB nem o catálogo inteiro. Até16 solicitações por rodada, orçamento cancelável de12s e4s por consulta; timeouts de transporte do cliente também se aplicam. Falhas têm intervalo mínimo de5min nesta sessão para evitar repetir tráfego sem parar. A interface recebe primeiro os vínculos locais prontos e depois é atualizada se obtiver identificadores adicionais. Se o provedor não tiver dados suficientes, mantém separado.
+
+Os identificadores aprendidos continuam em preferências privadas locais; não há novas tabelas/migrações, armazenamento Cloudflare ou sincronização entre aparelhos. Temporada/episódio continuam exigindo correspondência exata para retomar a posição; o atalho parcial da série é preservado. Favoritos, posições existentes, temas, cache de artes e suporte Android9 são preservados.
+
+Preparar-Vinculos-1.06.ps1 verifica os cinco fontes, faz backup e compila com a assinatura local. Mantém1.06/code8. Não instala nem publica APK. -Verificar só confere; -NaoCompilar aplica sem compilar. Arquivos desconhecidos interrompem antes de sobrescrever.
+
+Validação: testes JVM com preferências em arquivos e catálogo simulado, incluindo Homem-Aranha4K HDR/4K, dados recuperados dos detalhes, preferência semL, seleção com catálogo pronto, progresso novo e remoção de favorito; compilação e análise estática. Falta testar com as respostas reais dos seus provedores na TV. Instale por cima sem desinstalar nem limpar dados. Favorite/assista na listaA, use a listaB já carregada, confira o primeiro título semL e depois volte paraA após alterar o progresso.

@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/ContentIdentity.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/ContentIdentity.kt",
+      "before": [
+        "e53c0d05640238f8f751db47dc3de614e40bc5b1eaeeebe02cb8fe9429a1ed97"
+      ],
+      "after": "64b5152bb20d104b879577d33ad1d2ca1a03ead76b623de919cd2316a4ad7d57"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt",
+      "before": [
+        "5ac3f14ffb91d331786364323b56e49fc6f72fbf6e85d262b88ceded4b2448d1"
+      ],
+      "after": "a194cd6abed05ecb5eaf4a4065aca3fbbea4e79d586a61655f7400bb0c9b7f02"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+      "before": [
+        "eb5990e324f1c9fb9631ca85d16c55f58e19cb7748773fcc012af2fad1a202e4"
+      ],
+      "after": "35851db41c31c709b85be20abb9614927920da484b5ef47950217b78f9fbbb4d"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/dao/PlaylistCacheDao.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/dao/PlaylistCacheDao.kt",
+      "before": [
+        "a97a18db4c15a6051d99d8d9c4779568263f70e8651ea284f6b631127ce34edd"
+      ],
+      "after": "b7f5bff899cde98599c73a15e2e3fef423423d481638731effe2e9fa50f54558"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt",
+      "before": [
+        "d391f8c11ffbd9a248c4b7d17da15d6937ae6261415c00c2c2ec6bfbe3ded211"
+      ],
+      "after": "18aaf9182e7379153f58ae96a63cb843659fa2e181ff23acb66200a08ecfc0b4"
+    }
+  ]
+}
