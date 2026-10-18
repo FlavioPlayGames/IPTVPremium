@@ -1,0 +1,19 @@
+PASS 429 rapido recupera na segunda tentativa
+PASS reset rapido usa ate tres tentativas com pausas 400 e 1200ms
+PASS HTTP 401 permanente nao repete
+PASS HTTP 403 permanente nao repete
+PASS HTTP 404 permanente nao repete
+PASS HTML temporario nao vira serie vazia definitiva
+PASS JSON vazio tenta recuperar automaticamente tres vezes
+PASS timeout lento persistente recebe uma recuperacao automatica
+PASS cancelamento nao e tratado como falha transitoria
+PASS HTTP 503 temporario repete e recupera
+PASS falha persistente termina na quarta tentativa
+PASS resposta invalida lenta recebe uma recuperacao automatica
+PASS primeira resposta valida nao adiciona pausa nem chamadas
+PASS timeout de 30s recupera sem botao Tentar
+PASS HTML lento recupera sem intervencao
+PASS vazio temporario recupera na terceira resposta
+PASS quarta chamada recupera falha antes dependente do usuario
+PASS orcamento nao inicia outra chamada depois de 45s
+PASS sair durante pausa impede novas chamadas

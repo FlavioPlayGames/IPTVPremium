@@ -1,0 +1,11 @@
+PASS foto existente permanece e nao extrai video
+PASS ausencia de foto usa frame do proprio episodio
+PASS frame em cache aparece sem extrair novamente
+PASS foto oficial substitui somente frame provisorio em cache
+PASS aguarda verificacao de imagens antes de extrair
+PASS sair da tela cancela antes da extracao
+PASS falha de extracao nao inventa foto nem substitui por arte generica
+PASS imagem invalida no primeiro campo nao esconde campo valido
+PASS thumbnail_url na raiz do episodio reconhecida
+PASS thumbnail no info reconhecida apos valor invalido
+PASS still_path absoluto na raiz reconhecido

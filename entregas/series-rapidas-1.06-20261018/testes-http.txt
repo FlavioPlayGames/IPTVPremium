@@ -1,0 +1,4 @@
+PASS GET normal conclui sem ficar preso no observador de cancelamento
+PASS HTTP permanente preserva codigo para politica de retry
+PASS cancelar consulta fecha conexao antes do timeout
+PASS logs nao expõem credenciais nem URL
