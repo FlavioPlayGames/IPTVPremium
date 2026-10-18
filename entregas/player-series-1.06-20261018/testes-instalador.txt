@@ -1,0 +1,6 @@
+PASS bootstrap verificar nao altera versao nem fontes
+PASS aplica 14 fontes e prepara 1.06 codigo8 preservando bytes privados e dados
+PASS repeticao idempotente sem backups adicionais
+PASS fonte desconhecido interrompe antes de alterar arquivos e versao
+PASS recusa downgrade de numero interno
+PASS pacote nao inclui APKs ou configuracao de assinatura local

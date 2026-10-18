@@ -1,0 +1,14 @@
+PASS tamanho do video obtido sem download completo
+PASS leitura aleatoria retorna bytes corretos
+PASS bloco ja lido reutiliza cache pequeno
+PASS fim do arquivo nao gera nova requisicao
+PASS servidor sem Range nao provoca download integral
+PASS orcamento de bytes interrompe novas leituras
+PASS cancelamento impede acesso ao provedor
+PASS temporada declarada mas sem episodio real fica oculta
+PASS sem episodios nao mostra temporada informativa
+PASS abertura prioriza primeiro bloco de 15
+PASS proxima linha antecipa bloco 15 a 29
+PASS navegacao longa usa blocos seguintes
+PASS voltar ao inicio retoma primeiro bloco
+PASS parser ignora temporada vazia informada pelo provedor
