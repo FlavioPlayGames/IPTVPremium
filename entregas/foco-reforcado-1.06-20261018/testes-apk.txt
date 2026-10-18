@@ -1,0 +1,8 @@
+PASS app-universal-debug.apk minSdk28 targetSdk37 1.06/code8 assinatura valida para Android9
+PASS app-armeabi-v7a-debug.apk minSdk28 targetSdk37 1.06/code8 assinatura valida para Android9
+PASS app-x86_64-debug.apk minSdk28 targetSdk37 1.06/code8 assinatura valida para Android9
+PASS app-x86-debug.apk minSdk28 targetSdk37 1.06/code8 assinatura valida para Android9
+PASS app-arm64-v8a-debug.apk minSdk28 targetSdk37 1.06/code8 assinatura valida para Android9
+PASS lint sem erros e sem ocorrencias NewApi/InlinedApi com minSdk28
+PASS APK de testes nativos compilado e assinado; execucao em dispositivo nao realizada aqui
+PASS extrator antigo e fixtures de video ausentes dos cinco APKs e APK de testes
