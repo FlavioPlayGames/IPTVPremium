@@ -1,0 +1,8 @@
+PASS atalho com cache frio carrega temporadas e episodios
+PASS retorno reutiliza temporadas completas
+PASS resposta vazia nao bloqueia consulta posterior
+PASS mesmo ID em outra lista usa episodios da lista destino
+PASS nova geracao nao reutiliza episodios antigos
+PASS aberturas simultaneas compartilham consulta
+PASS saida durante carregamento permite reabrir
+PASS remocao de lista libera seus dados sem afetar outra
