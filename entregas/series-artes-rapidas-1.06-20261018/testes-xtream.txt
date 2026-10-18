@@ -1,0 +1,56 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.kotlin.org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.jetbrains.kotlin.com.intellij.util.containers.Unsafe (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Please consider reporting this to the maintainers of class org.jetbrains.kotlin.com.intellij.util.containers.Unsafe
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+PASS streaming matches legacy fields, URLs, category types and provider order across batches
+PASS missing outer bracket recovery preserved; mixed invalid records do not reject good later batch
+PASS malformed full endpoint retries twice, staged categories preserve first occurrence and order
+PASS category retry discards previous partial writes and only retries failing category
+PASS staged keyset merge crosses multiple batches with correct order
+PASS full-endpoint retry removes earlier persisted partial batches
+PASS 32 simultaneous callers share the same progressive import
+PASS failed category preserves active generation and discards all staging imports
+PASS local write failure is not retried as provider error and leaves previous active intact
+PASS transport failure after persisted batches discards partial generation
+PASS cancellation during streamed writes preserves active and releases generation
+PASS adaptive series category mode remains available on subsequent sync
+PASS learned provider category IDs remain part of later VOD fallback
+PASS failed adaptive category mode recovers through full endpoint and cleans stages
+PASS adaptive category merge disk failure does not trigger full network fallback
+PASS alternate parser retains the legacy repository contract
+16 real repository/synchronizer/writer integration scenarios passed; persistence simulated
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.kotlin.org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.jetbrains.kotlin.com.intellij.util.containers.Unsafe (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Please consider reporting this to the maintainers of class org.jetbrains.kotlin.com.intellij.util.containers.Unsafe
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+PASS nested strings, escaped delimiters, Unicode and single-char input boundaries match legacy
+PASS ignored primitives and mixed arrays preserve recognized data
+PASS Android JSON leniency: comments, omitted entries, single quotes and unquoted keys
+PASS BOM and whitespace are accepted
+PASS missing closing bracket recovery and upper character limit
+PASS unfinished object, string, nesting and trailing comma cannot activate partial response
+PASS batch count and text budget are bounded independently of catalog length
+7 framing/legacy-parser scenarios passed using Android JSON
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.kotlin.org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.jetbrains.kotlin.com.intellij.util.containers.Unsafe (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Please consider reporting this to the maintainers of class org.jetbrains.kotlin.com.intellij.util.containers.Unsafe
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+PASS production HTTP reader redirects and UTF-8
+PASS production HTTP rejects non-success status
+PASS production HTTP propagates callback failure
+PASS production HTTP propagates cancellation

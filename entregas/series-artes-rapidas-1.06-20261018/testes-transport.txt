@@ -1,0 +1,7 @@
+PASS TMDB consulta HTTP local e resposta completa
+PASS consultas concorrentes iguais compartilham uma resposta HTTP
+PASS reabertura usa metadados em memoria sem nova consulta
+PASS consultas diferentes nao misturam respostas de cache
+PASS erro HTTP informa status sem corpo ou credenciais
+PASS chave ausente nao faz consulta sem autenticacao
+PASS prazo libera chamador durante consulta TMDB lenta tempoMs=205

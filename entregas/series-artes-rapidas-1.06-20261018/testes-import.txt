@@ -1,0 +1,9 @@
+PASS campo tmdb numerico preserva ID oficial
+PASS campo tmdb string preserva ID oficial
+PASS tmdb_id valido tem prioridade
+PASS tmdb_id invalido permite alternativa valida
+PASS zero e ID negativo rejeitados
+PASS booleano e URL nao se tornam IDs
+PASS ID acima do limite rejeitado
+PASS logo explicita do provedor e importada
+PASS ID de reproducao do provedor nao muda
