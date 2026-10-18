@@ -1,0 +1,19 @@
+PASS busca inicial vazia nao espera teclado
+PASS dez caracteres aceitos sem executar dez buscas
+PASS nao consulta antes da pausa de digitacao
+PASS pausa consulta apenas texto completo
+PASS limpar busca tem resposta imediata
+PASS consulta intermediaria e descartada
+PASS oito comandos rapidos mantem terceira coluna enquanto foco aguarda
+PASS foco atrasado nao sobrescreve destino mais recente
+PASS inverter direcao durante fila mantem a terceira coluna
+PASS confirmar destino libera intencao pendente
+PASS comando horizontal cancela movimento antigo
+PASS ultima linha incompleta nao desvia terceira coluna para primeira
+PASS primeira linha nao vira indice negativo
+PASS fim da lista nao faz wrap
+PASS resposta de seis colunas tambem preserva coluna
+PASS catalogo vazio nao cria destino
+PASS cache paginado tem janela limitada
+PASS orcamento reserva mais de 180 MB para runtime GPU e video nativo
+PASS pressao e detectada com pelo menos 70 MB de margem

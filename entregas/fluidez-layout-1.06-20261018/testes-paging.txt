@@ -1,0 +1,3 @@
+PASS configuracao de producao limita janela e carga inicial da grade
+PASS descarte de paginas preserva indices globais com placeholders
+PASS alteracao de grade nao introduz placeholders sem tamanho nos canais
