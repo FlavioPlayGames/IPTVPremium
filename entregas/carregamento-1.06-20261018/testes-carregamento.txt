@@ -1,0 +1,8 @@
+PASS episodios locais aparecem sem esperar rede
+PASS cache ausente consulta provedor na mesma abertura
+PASS cache vazio nao impede consulta remota
+PASS resposta vazia nao e considerada pronta
+PASS saida da pagina propaga cancelamento
+PASS imagem do provedor nao espera TMDB
+PASS foto TMDB continua prioritaria quando disponivel
+PASS URLs invalidas e repetidas nao geram consultas extras

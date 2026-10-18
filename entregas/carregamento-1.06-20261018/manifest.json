@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+      "before": [
+        "11ef5b40ebc29871334446cd92faa4ca966b42a19de599fc23abaf6e7280961e"
+      ],
+      "after": "bf585e1042469dca39ff92982b762e460e475606a56ef533ca24d86bea9827aa"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt",
+      "before": [
+        "de709d7832a8b8d4c14e2f793db91267512679c60589bbae2ea5558f9c763a07"
+      ],
+      "after": "8091870e87a4555e794c5ea3c7035288603d7b61186879abd19dcddec885e8aa"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesEpisodeLoader.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesEpisodeLoader.kt",
+      "before": [
+        null
+      ],
+      "after": "eb04e77cfc49cb23691c0a4b123f692f66e9c852eff0f7b76c3c32a37a768b4d"
+    }
+  ]
+}
