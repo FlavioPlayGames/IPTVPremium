@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+      "before": [
+        "5db52ecd8b9e866262fef5968ed7a1b0c9fd904fb77cdfa9258682cfcbdf1066"
+      ],
+      "after": "80fc184908fc470b0864d2aa82b9dc70a8d6f03a475934791c3052f6969e72b4"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/ContentIdentity.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/ContentIdentity.kt",
+      "before": [
+        "64b5152bb20d104b879577d33ad1d2ca1a03ead76b623de919cd2316a4ad7d57"
+      ],
+      "after": "9605497b550c70931ace0d6458e8ea3db2c3164cdeca6e9d6d0a9b67b4f7a4ba"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt",
+      "before": [
+        "a194cd6abed05ecb5eaf4a4065aca3fbbea4e79d586a61655f7400bb0c9b7f02"
+      ],
+      "after": "5c9808d2c6f143fb686444d354134314ae2268b2ebea46dfc152f7313aad41ab"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/TitleAliasResolver.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/TitleAliasResolver.kt",
+      "before": [
+        null
+      ],
+      "after": "785541a0d8803eb6d6612deafd131f2aba7cf4d3d49deee4850f35b5ad21faaa"
+    }
+  ]
+}
