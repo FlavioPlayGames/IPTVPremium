@@ -1,0 +1,8 @@
+PASS artes em cache mantem abertura minima de dois segundos
+PASS artes prontas liberam sem esperar prazo maximo
+PASS artes lentas liberam com fundo no limite total de cinco segundos
+PASS consulta dos episodios nao reinicia a janela das artes
+PASS prazo restante respeita tempo desde o clique
+PASS dados essenciais lentos nao recebem nova espera opcional
+PASS falha essencial interrompe espera das imagens
+PASS voltar cancela espera sem concluir abertura

@@ -1,0 +1,4 @@
+PASS TMDB consulta HTTP local e resposta completa
+PASS erro HTTP informa status sem corpo ou credenciais
+PASS chave ausente nao faz consulta sem autenticacao
+PASS prazo libera chamador durante consulta TMDB lenta tempoMs=213

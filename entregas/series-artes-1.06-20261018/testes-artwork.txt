@@ -1,0 +1,19 @@
+PASS ordem provedor TMDB TVmaze preservada
+PASS URL repetida nao duplica download
+PASS IMDb exato associa sem depender de nome ou ano
+PASS numero de episodio e temporada exatos
+PASS Fanart por TVDB confirmado e logo portuguesa prioritaria
+PASS nao consulta episodios ou Fanart sem lacunas
+PASS TVmaze funciona sem chave Fanart
+PASS busca nome normalizado e ano exato
+PASS ano divergente rejeitado
+PASS nome sem ano nao identifica por suposicao
+PASS dois shows com mesmo nome e ano sao rejeitados
+PASS IMDb conflitante nao e substituido por busca de nome
+PASS numeracao duplicada nao atribui foto ao episodio errado
+PASS duplicatas reais rejeitadas
+PASS resposta malformada nao cria imagens
+PASS imagem ausente nao usa poster da serie como foto oficial
+PASS erro de rede alternativo nao quebra ficha
+PASS cancelamento preservado
+PASS URLs invalidas ou locais nao viram imagens
