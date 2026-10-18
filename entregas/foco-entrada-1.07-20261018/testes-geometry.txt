@@ -1,0 +1,2 @@
+PASS 64 geometrias com oito posters 2:3 inteiros, texto ampliado e maior tamanho possivel
+PASS dimensoes invalidas nao produzem tamanhos negativos
