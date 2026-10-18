@@ -1,0 +1,2 @@
+PASS 64 geometrias de duas fileiras: quatro colunas, texto ampliado e margens
+PASS limites de dimensoes invalidas
