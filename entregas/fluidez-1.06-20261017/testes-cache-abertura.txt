@@ -1,0 +1,14 @@
+PASS icones e cena permanecem retidos no tema ativo
+PASS reentrada no mesmo tema conserva as artes
+PASS troca de tema remove as referencias anteriores
+PASS decodificacao atrasada nao recoloca tema anterior
+PASS orcamento recusa excesso sem descartar icones reservados
+PASS troca de tamanho substitui apenas o mesmo grupo
+PASS limpeza explicita remove reservas mesmo sem trocar tema
+PASS limpeza do cache Android detectada uma vez sem apagar preferencias
+PASS todos os requisitos sao necessarios para ligar a TV
+PASS conteudo ja pronto nao introduz espera
+PASS TV aguarda conteudo real antes de ligar
+PASS falha libera pagina sem ligar TV
+PASS timeout nao simula conteudo pronto
+PASS voltar cancela espera pela serie
