@@ -1,0 +1,5 @@
+PASS cores dos sete temas permanecem uniformes
+PASS sem raio preserva os pixels e a entrada nunca e modificada
+PASS desfoque espalha detalhe sem perder opacidade
+PASS imagens pequenas e raios limitados nao excedem os limites
+PASS wallpaper limitado a 384x216 e computado em tempo finito
