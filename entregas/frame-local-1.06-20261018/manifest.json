@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/EpisodeFrameLoader.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/EpisodeFrameLoader.kt",
+      "before": [
+        "483be885832e3a25c7c50370c3cf1c0ba6e80f972fb14fb8bc40df786d063f25"
+      ],
+      "after": "1c19e605a8017ea0f6488d9d1fa5faf93f671005f0c70d36e5304e34f3e89dff"
+    },
+    {
+      "file": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/EpisodePreviewFile.kt",
+      "payload": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/EpisodePreviewFile.kt",
+      "before": [
+        null
+      ],
+      "after": "9e0857bb03a0169b7c178e9132c088b462474ec9126e8c97d4534836ddbbc812"
+    }
+  ]
+}

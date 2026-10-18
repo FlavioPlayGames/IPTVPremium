@@ -1,0 +1,10 @@
+PASS arquivo so contem prefixo limitado de seis MiB
+PASS descritor local le os bytes reais do episodio
+PASS resultado do decodificador e devolvido
+PASS temporario removido depois do sucesso
+PASS video maior nao e baixado por completo
+PASS servidor sem Range e arquivo pequeno preservados
+PASS falha do decodificador remove arquivo e propaga erro
+PASS cancelamento durante copia remove temporario
+PASS falha HTTP limpa temporario sem decodificar
+PASS ausencia de frame tambem limpa temporario

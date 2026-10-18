@@ -1,0 +1,10 @@
+PASS RuntimeException da fonte remota aciona descritor local
+PASS arquivo temporario nao permanece apos alternativa
+PASS JPEG obtido reutiliza cache sem nova extracao
+PASS frame remoto nulo tambem tenta arquivo
+PASS sucesso remoto dispensa alternativa local
+PASS falha de ambas alternativas nao quebra card
+PASS falha repetida respeita intervalo sem martelar origem
+PASS consulta somente cache nao inicia video
+PASS logs identificam etapa sem mensagem privada ou URL
+PASS todas fontes nativas abertas foram liberadas
