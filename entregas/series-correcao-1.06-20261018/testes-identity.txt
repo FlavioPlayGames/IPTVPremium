@@ -1,0 +1,29 @@
+PASS canonical season map
+PASS flat array
+PASS PHP grouped arrays
+PASS PHP season zero retained
+PASS keyed episode objects
+PASS explicit season overrides object bucket
+PASS explicit season overrides array bucket
+PASS keyed flat episode map defaults first season
+PASS wrapped season episode list
+PASS existing id-only flat records preserved
+PASS numeric IDs preserved
+PASS ID never guessed from key
+PASS malformed ID object rejected
+PASS metadata outside episodes ignored
+PASS season metadata not episode
+PASS negative episode or season rejected
+PASS duplicates removed without dropping distinct seasons
+PASS depth bounded
+PASS accepted episode count bounded
+PASS malformed root rejected
+PASS empty response produces no invented episodes
+PASS leading BOM accepted
+PASS whitespace before BOM accepted
+PASS repeated BOM with interleaved whitespace accepted
+PASS Unicode leading whitespace accepted
+PASS ordinary surrounding whitespace accepted
+PASS HTML error is not stripped into JSON
+PASS PHP warning is not stripped into JSON
+PASS array root remains rejected

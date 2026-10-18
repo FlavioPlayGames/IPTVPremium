@@ -1,0 +1,20 @@
+PASS valid first response has one request and no retry delay
+PASS transient IO recovers once after400ms
+PASS persistent IO stops after2 attempts
+PASS HTTP408 recovers with one additional request
+PASS HTTP429 recovers with one additional request
+PASS HTTP503 recovers with one additional request
+PASS HTTP401 is not retried
+PASS HTTP403 is not retried
+PASS HTTP404 is not retried
+PASS nontransient exception is not retried
+PASS temporary HTML recovers automatically on second response
+PASS persistent HTML stops after2 responses
+PASS temporary empty JSON recovers on second response
+PASS persistent empty JSON stops after2 responses
+PASS slow first timeout still permits one automatic recovery
+PASS slow invalid first response still permits one recovery
+PASS retry budget prevents starting new request after45s
+PASS cancellation propagates with no retry
+PASS cancellation during400ms retry pause prevents second request
+PASS safe trace diagnostics exclude URL credentials and raw playlist ID

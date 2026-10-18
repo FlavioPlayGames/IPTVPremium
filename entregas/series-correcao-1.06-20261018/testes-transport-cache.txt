@@ -1,0 +1,6 @@
+PASS overlapping focus and click share a terminal null instead of reloading
+PASS explicit retry after null cohort finishes starts fresh and can succeed
+PASS overlapping focus and click share same terminal exception
+PASS explicit retry after error cohort finishes is not poisoned
+PASS cancelled focus owner does not poison active foreground follower
+PASS cancelled follower leaves successful owner and memory cache intact
