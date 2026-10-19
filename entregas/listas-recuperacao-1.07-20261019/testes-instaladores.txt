@@ -1,0 +1,1 @@
+PASS: app compatibilidade, aplicacao de cinco arquivos, hashes, backup, preservacao da configuracao; publicador extrai central com conteudos identicos sem publicar. Testes Android e publicacao ao vivo pendentes.

@@ -1,0 +1,69 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt",
+    "allowMissing": false,
+    "allowed": [
+      "53a0a9dab27cd5527c8ec96d795807b7dcc14e0f898aadc66819012b994e624c",
+      "ec4a95699325d40ad8a08d5c7a93c3850fde3163c3fc10650b3dcf92ca5f0a33",
+      "54c1d04c88eaced72d1b558fc32a6aad7347537c35fc93b2e49a4b3cfa7d4dc9",
+      "23cdf2bc75ca6e4ec8d16e459f61270014e36c0ae6bdc6ef71cd7e5fe4de5b5e",
+      "29cc40561fa5ec144afcdaaf9377dcbfcff83074112e5c115c34e72ff9ea37c7",
+      "1c1a537aaa480dc4b9b424fb953ed756c388f4adff6282dbe09e86d6330e0aec",
+      "8ec04328f627c0ddc608e9d043c820f21f8104f59d4db1dd65e236db89d49097",
+      "6bc1120caeb86bc75b9774201314e62a1c82191e5ca63362e1c5ac8f335231ae"
+    ],
+    "sha": "29cc40561fa5ec144afcdaaf9377dcbfcff83074112e5c115c34e72ff9ea37c7"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/XtreamAuthenticationRecovery.kt",
+    "allowMissing": true,
+    "allowed": [
+      "a69654996bb0a95779b8349e661517c9df4165c558a218f20e44f93120244751",
+      "c7023b694320a8efcd325f3feafe073e7913cb8da6941850db0aa43089954e53",
+      "a45a4bc9c7315abf1640c6e8f015f8ad0d334c93309844d52ef8a79aa4efec94",
+      "db1ba43dbf177b068fd448da3a1a249287d57cbb5633e5f7fff2a7cdcee2239b"
+    ],
+    "sha": "a69654996bb0a95779b8349e661517c9df4165c558a218f20e44f93120244751"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/AppStartupLoadingScreen.kt",
+    "allowMissing": false,
+    "allowed": [
+      "78d6afb46fe9dd0c6471a1064c93ec3ebeaa97d1de119694f6623480f78e2e96",
+      "fd68eb48cb0b28e7a2ca51e2ef345a8bf100736d1776e796281fbfe415de699c",
+      "81972284208105ec9d2e2c8a3b4405f843345028b1646ab02cedbce960ffde37",
+      "bd07f6f252504844b295d61f52c218542b74a5abd99c245a13a8e09225c003bf",
+      "105425df303b8b07dcea7b9856cf6de79e0da00c98c4b6165e1ae0cba6475d8d",
+      "6a7fbe26fef1b3e88556c6a2c0a78b6498fb83ce01e78e80982a55019b7aea9b",
+      "0e075068afbcd0014f11a70bcc47ae370dd2e929daf60932a689ffbbabe54a2b",
+      "4e2f58a69b02af33596be46642d864c341ba31412b0f0b4bebb9a94b81a59b64"
+    ],
+    "sha": "105425df303b8b07dcea7b9856cf6de79e0da00c98c4b6165e1ae0cba6475d8d"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "allowMissing": false,
+    "allowed": [
+      "05a6a24c9f8cfeff4438c280d1c173cd190b7cb6cc1076156cd57e32f150d1b7",
+      "096961fabb97c66afab6cd1f1d0becc07061d24cd72dba95bda1b1051cc68dfd",
+      "149309b8c27e2c607674d91ebf42201ca963260c3cc76d9d7101f7d950fa6a08",
+      "d5fae5de41ebbb8fdfe54602a3e5b54ef195712c7d2143afe64fad947764a093",
+      "7be18f40ab0ed2b6898bc5eba96f253e991f7b2b69ba92a64154f1801e0220da",
+      "5e99e5d7de7a212dc1cc5b53fa21f001a848711f6f7a2ff0a6646cf122829e45",
+      "5ea0b0233feae7df20e6feae07a2716b65f761ce9982f80db3485eb6bc3d6547",
+      "fa72c498fce50cfc718c45bc395ffbb0f02e0a8cd08a4dc4d1031648e08df545"
+    ],
+    "sha": "7be18f40ab0ed2b6898bc5eba96f253e991f7b2b69ba92a64154f1801e0220da"
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/XtreamAuthenticationRecoveryDeviceTest.kt",
+    "allowMissing": true,
+    "allowed": [
+      "6088331449189784432c0373c2b8b34a7706d78e425a98a07547694865777d63",
+      "4e73e2f4ba0faf6bc00e2de4dd16052e4b1a0582a9896b22958980bbc7b9ae37",
+      "d4d02adabb3b4872b12c9286f28b7140c29500707fb1d55fae89ccf909c110fe",
+      "0f0ef517a3642fab9b9548e3f9b136bf7ab5ae592a4c63581dce2cbfba98a0a1"
+    ],
+    "sha": "6088331449189784432c0373c2b8b34a7706d78e425a98a07547694865777d63"
+  }
+]

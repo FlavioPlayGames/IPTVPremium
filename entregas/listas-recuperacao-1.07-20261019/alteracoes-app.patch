@@ -1,0 +1,222 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt
+@@ -949,7 +949,7 @@
+         val encodedUser = encodeQueryValue(user)
+         val encodedPassword = encodeQueryValue(source.password)
+         fun url(action: String) = buildPlayerApiUrl(base, encodedUser, encodedPassword, action)
+-        fetchAndParse(buildAuthenticationUrl(base, encodedUser, encodedPassword)) { validateXtreamAuthentication(it) }
++        authenticateXtream(buildAuthenticationUrl(base, encodedUser, encodedPassword))
+         suspend fun endpoint(action: String, address: String = url(action),
+                              receive: suspend (PlaylistContent) -> Unit): StreamCatalogStats =
+             streamCatalogEndpoint(action, address) { batch ->
+@@ -1202,15 +1202,7 @@
+          * as grandes Strings JSON do catálogo Xtream.
+          */
+ 
+-        fetchAndParse(
+-            url = buildAuthenticationUrl(
+-                baseUrl = baseUrl,
+-                username = encodedUsername,
+-                password = encodedPassword
+-            )
+-        ) { authenticationJson ->
+-            validateXtreamAuthentication(authenticationJson)
+-        }
++        authenticateXtream(buildAuthenticationUrl(baseUrl, encodedUsername, encodedPassword))
+ 
+         val liveCategories =
+             fetchAndParse(
+@@ -2164,47 +2156,16 @@
+         }
+     }
+ 
+-    private fun validateXtreamAuthentication(
+-        content: String
+-    ) {
+-        val root =
+-            try {
+-                JSONObject(content)
+-            } catch (_: Exception) {
+-                throw IllegalStateException(
+-                    "O servidor não retornou uma resposta Xtream Codes válida."
+-                )
+-            }
+-
+-        val userInfo =
+-            root.optJSONObject("user_info")
+-                ?: throw IllegalStateException(
+-                    "Não foi possível validar o usuário no servidor."
+-                )
+-
+-        val authValue =
+-            userInfo.opt("auth")
+-                ?.toString()
+-                ?.trim()
+-
+-        val status =
+-            userInfo
+-                .optString("status")
+-                .trim()
+-
+-        val authenticated =
+-            authValue == "1" ||
+-                    status.equals(
+-                        "Active",
+-                        ignoreCase = true
+-                    )
+-
+-        if (!authenticated) {
+-            throw br.com.flaviotorres.iptvpremium.data.remote.PlaylistAccessDeniedException(
+-                "Usuário ou senha inválidos, ou a conta não está ativa."
+-            )
+-        }
+-    }
++    private suspend fun authenticateXtream(url: String) {
++        XtreamAuthenticationRecovery.confirm(
++            load = { fetchAndParse(url) { it } },
++            validate = ::validateXtreamAuthentication,
++            onRetry = { Log.w(XTREAM_SYNC_TAG, "AUTH resposta_invalida tentativa_automatica=2") }
++        )
++    }
++
++    private fun validateXtreamAuthentication(content: String) =
++        XtreamAuthenticationRecovery.validateResponse(content)
+ 
+     private fun buildAuthenticationUrl(
+         baseUrl: String,
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/XtreamAuthenticationRecovery.kt
+@@ -0,0 +1,58 @@
++package br.com.flaviotorres.iptvpremium.data.repository
++
++import kotlinx.coroutines.delay
++
++/** Distinguishes a malformed/empty auth response from a confirmed account denial. */
++internal class XtreamAuthenticationResponseException(message: String) : IllegalStateException(message)
++
++internal object XtreamAuthenticationRecovery {
++    fun validateResponse(content: String) {
++        val root =
++            try {
++                org.json.JSONObject(content.trimStart { it.isWhitespace() || it == '\uFEFF' })
++            } catch (_: Exception) {
++                throw XtreamAuthenticationResponseException(
++                    "O servidor não retornou uma resposta Xtream Codes válida."
++                )
++            }
++
++        val userInfo =
++            root.optJSONObject("user_info")
++                ?: throw XtreamAuthenticationResponseException(
++                    "Não foi possível validar o usuário no servidor."
++                )
++
++        val authValue =
++            userInfo.opt("auth")
++                ?.takeUnless { it == org.json.JSONObject.NULL }
++                ?.toString()
++                ?.trim()
++
++        val status =
++            userInfo
++                .optString("status")
++                .trim()
++
++        if (authValue.isNullOrBlank() && status.isBlank()) {
++            throw XtreamAuthenticationResponseException("Autenticacao Xtream sem dados de conta.")
++        }
++        val active = status.equals("Active", ignoreCase = true)
++        val authenticated = (authValue == "1" || authValue == null && active) &&
++            (status.isBlank() || active)
++
++        if (!authenticated) {
++            throw br.com.flaviotorres.iptvpremium.data.remote.PlaylistAccessDeniedException(
++                "Usuário ou senha inválidos, ou a conta não está ativa."
++            )
++        }
++    }
++
++    suspend fun confirm(load: suspend () -> String, validate: (String) -> Unit, onRetry: () -> Unit = {}) {
++        try { validate(load()) }
++        catch (error: XtreamAuthenticationResponseException) {
++            onRetry()
++            delay(300)
++            validate(load())
++        }
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/AppStartupLoadingScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/AppStartupLoadingScreen.kt
+@@ -148,7 +148,7 @@
+                     })
+             Spacer(Modifier.height(18.dp))
+             if (error) {
+-                Text(state.errorMessage ?: "Não foi possível carregar", color = br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.color(0xFFFFE6A0),
++                Text("Não conseguimos carregar sua lista agora. Tente novamente em Listas ou confira o link.", color = br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.color(0xFFFFE6A0),
+                     fontSize = 14.sp, textAlign = TextAlign.Center, maxLines = 4)
+                 Spacer(Modifier.height(14.dp))
+                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -1758,8 +1758,7 @@
+                                     }
+ 
+                                     playlistConnectionError =
+-                                        error.message
+-                                            ?: "Não foi possível atualizar a lista."
++                                        "Não foi possível atualizar a lista agora. Tente novamente."
+                                 } finally {
+                                     val finallyStartedAt =
+                                         SystemClock.elapsedRealtime()
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/XtreamAuthenticationRecoveryDeviceTest.kt
+@@ -0,0 +1,49 @@
++package br.com.flaviotorres.iptvpremium.data.repository
++
++import br.com.flaviotorres.iptvpremium.data.remote.PlaylistAccessDeniedException
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++
++class XtreamAuthenticationRecoveryDeviceTest {
++    private val active = """{"user_info":{"auth":1,"status":"Active"}}"""
++    private suspend fun confirm(load: suspend () -> String) = XtreamAuthenticationRecovery.confirm(load, XtreamAuthenticationRecovery::validateResponse)
++    @Test fun validResponseIsNotRequestedTwice() = runBlocking {
++        var calls = 0; confirm { calls++; active }; assertEquals(1, calls)
++    }
++    @Test fun bomAndWhitespaceAreAccepted() = runBlocking {
++        confirm { " \n\uFEFF$active" }
++        confirm { """{"user_info":{"auth":null,"status":"Active"}}""" }
++    }
++    @Test fun malformedFirstResponseRecoversAutomatically() = runBlocking {
++        var calls = 0; confirm { if (++calls == 1) "<html>temporary</html>" else active }; assertEquals(2, calls)
++    }
++    @Test fun repeatedMalformedResponseStopsAtTwoAttempts() = runBlocking {
++        var calls = 0
++        val error = runCatching { confirm { calls++; "{" } }.exceptionOrNull()
++        assertTrue(error is XtreamAuthenticationResponseException); assertEquals(2, calls)
++    }
++    @Test fun explicitDenialDoesNotRetryEvenIfStatusSaysActive() = runBlocking {
++        var calls = 0
++        val error = runCatching { confirm { calls++; """{"user_info":{"auth":0,"status":"Active"}}""" } }.exceptionOrNull()
++        assertTrue(error is PlaylistAccessDeniedException); assertEquals(1, calls)
++    }
++    @Test fun expiredAccountDoesNotRetry() = runBlocking {
++        var calls = 0
++        val error = runCatching { confirm { calls++; """{"user_info":{"auth":1,"status":"Expired"}}""" } }.exceptionOrNull()
++        assertTrue(error is PlaylistAccessDeniedException); assertEquals(1, calls)
++    }
++    @Test fun unrelatedNetworkFailureIsNotRetried() = runBlocking {
++        var calls = 0
++        val error = runCatching { confirm { calls++; throw java.io.IOException("fixture") } }.exceptionOrNull()
++        assertTrue(error is java.io.IOException); assertEquals(1, calls)
++    }
++    @Test fun cancellationDuringRetryDelayPreventsAnotherRequest() = runBlocking {
++        var calls = 0
++        val task = launch(start = CoroutineStart.UNDISPATCHED) { confirm { calls++; "{}" } }
++        task.cancelAndJoin(); assertEquals(1, calls)
++    }
++    @Test fun emptyAccountResponseIsRetriedAsUnconfirmed() = runBlocking {
++        var calls = 0; confirm { if (++calls == 1) """{"user_info":{}}""" else active }; assertEquals(2, calls)
++    }
++}
