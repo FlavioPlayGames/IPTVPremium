@@ -1,0 +1,15 @@
+# Histórico em segundo plano e aviso na Home — 1.07 / interno 9
+
+Ao adicionar ou trocar de lista, a Home é liberada sem espera artificial de dois segundos. A mensagem Carregando seu histórico aparece no rodapé indicado pelo usuário, com a identidade do tema e a explicação de que o aplicativo pode ser usado normalmente. Não toma foco nem bloqueia comandos. Fica visível na Home enquanto a atualização daquela seleção está pendente/em andamento. Ao navegar, a importação continua; a mensagem não ocupa as outras telas.
+
+Filmes e séries são processados em sequência no mesmo trabalho global. Considera somente Favoritos/Continuar assistindo e fatos relacionados de remoção/conclusão. O banco filtra candidatos por nomes/aliases/IDs, sem materializar o catálogo completo. Temporada/número de episódio e as regras de nomes original/inglês/espanhol/português são mantidos. Inclui a recuperação de histórico antigo no mesmo trabalho, antes da confirmação final.
+
+Ao concluir uma troca, mostra Histórico carregado. uma única vez na tela do aplicativo em que a pessoa estiver. Se o aplicativo estiver em segundo plano, a confirmação aguarda o retorno ao primeiro plano; isso não reinicia a busca. Cancelamento ou erro não gera uma confirmação de sucesso.
+
+Abertura após fechamento, parada forçada ou limpeza de cache agenda uma busca silenciosa: sem aviso de carregamento ou de conclusão. Cada sessão/seleção executa a importação uma vez. Abrir Filmes/Séries, atualizar progresso/favoritos, recompor telas, receber outra geração de catálogo ou voltar do segundo plano não reinicia a busca remota. Edições locais de favoritos/progresso continuam sendo refletidas, sem refazer a importação remota.
+
+Controle em memória do processo, nunca gravado como concluído em disco. Um processo novo sempre começa silenciosamente. Encerrar a Activity pelo fluxo normal invalida a sessão; ON_STOP/retorno do segundo plano não a invalida. Recriar uma Activity pode retomar um trabalho interrompido usando os caches já existentes; uma importação concluída continua concluída. O estado de uma lista antiga não conclui ou cancela o de outra lista. Um marcador descartável no cache detecta limpeza externa sem morte do processo; sua ausência em uma retomada agenda uma atualização silenciosa. A simples existência do marcador nunca evita a busca de um processo novo. Falha ao gravar esse marcador não dispara buscas em loop.
+
+A rotina de catálogo/licença da central permanece independente. A primeira importação de uma lista ainda depende da rede/provedor/armazenamento. Não prometemos um tempo total sem medição no aparelho. Limites de memória e as correções anteriores de capas, foco, teclado, metadados e saídas x86 únicas são mantidos.
+
+Cumulativo, versão 1.07/interno 9. Instalador com hashes, backup/rollback e -Verificar, sem apagar listas, chaves, favoritos ou histórico. Validação de regras da sessão, instalador, compilação e lint. A nuvem não dispõe de TV/emulador; o posicionamento visual e o desempenho real precisam ser conferidos no aparelho.

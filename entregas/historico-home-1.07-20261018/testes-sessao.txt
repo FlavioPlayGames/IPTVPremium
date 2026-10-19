@@ -1,0 +1,24 @@
+PASS abertura fria silenciosa
+PASS mesma lista nao cria outro trabalho enquanto pendente
+PASS apenas um executor pode iniciar a busca
+PASS retorno do segundo plano preserva trabalho em andamento
+PASS finalizacao silenciosa nao emite confirmacao
+PASS navegar ou retomar apos concluir nao repete a busca
+PASS troca de lista agenda mensagem na Home
+PASS nao anuncia antes da conclusao
+PASS lista antiga nao pode concluir importacao nova
+PASS conclusao entrega uma unica mensagem independente da rota
+PASS voltar a lista anterior realiza nova atualizacao
+PASS cancelamento por recriacao pode retomar sem criar outra selecao
+PASS falha nao confirma sucesso nem repete automaticamente
+PASS fechar ou novo processo reinicia busca silenciosamente
+PASS tarefa da sessao anterior nao modifica a nova
+PASS nova tela aguarda executor anterior liberar sem duplicar chamadas
+PASS recriacao assume trabalho pendente sem ficar preso
+PASS troca de lista encerra espera antiga sem apropriar trabalho novo
+PASS primeira observacao de cache nao duplica abertura fria
+PASS retomar com cache intacto nao agenda importacao
+PASS limpeza externa de cache e reconhecida no mesmo processo
+PASS mesma limpeza de cache nao e notificada duas vezes
+PASS fechar e reabrir com cache vazio mantem uma unica abertura silenciosa
+PASS falha de gravacao do marcador nao provoca repeticoes de busca
