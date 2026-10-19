@@ -1,0 +1,39 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/DefaultPlaylistHttpClient.kt",
+    "allowMissing": false,
+    "allowed": [
+      "a5284da7f4f9e32dafa2247f5e5761d3d265f1e0d312480e5e01a7ae481f72e6",
+      "a2eae89e6604d0be4171b73632209aeca4ff0a774928680813ea9b444f5312ad",
+      "c0ad43b72142c34f2947f9aa72124c06da2db665f5ec9bf904cb944b1afd7bb1",
+      "51ddcd45c2415d788c9eddc1d6ceb346f092bde0611c468f3a9f1ac72d800d1e",
+      "b5ae73f9535c94586b7238e45c4c25e7a876657de3fe665e27780103a7baac99",
+      "2719eaad729bec933de79a851f2bbc25a0832fe5a651689c9697c9c6cd8c2942",
+      "1027870080de55dfbda85e8884f6ae3f3aad4ecdf27eb274983078b732979e78",
+      "5035720160a606ee4ad6c795da3144011127d825c83851f93d22831eb07b038d"
+    ],
+    "sha": "b5ae73f9535c94586b7238e45c4c25e7a876657de3fe665e27780103a7baac99"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/PlaylistResponseBody.kt",
+    "allowMissing": true,
+    "allowed": [
+      "1b9a982632418d1751bfebca2dbaff70e730d378dc16a01b2e6c70976bfe18f2",
+      "3b6194f2fd1e1b232b693e224fb30526fbac860da91ef27223eeb86111221c86",
+      "d64b5154e14cd0a96cc817f6186ea651f3d68ef6fd5b7e09e9e2b4216d433e8b",
+      "1653611fac1a985041a98f8e4046726c307d3b5b8f0951c59485e17b3d1d8476"
+    ],
+    "sha": "1b9a982632418d1751bfebca2dbaff70e730d378dc16a01b2e6c70976bfe18f2"
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/remote/PlaylistCompressionDeviceTest.kt",
+    "allowMissing": true,
+    "allowed": [
+      "696f449f26266e55ac6957b45f934a18804af041a6055dec599b41a782500ec3",
+      "c4e9bea2a82fccd5debf7678255148e361f8f463d71960d33af7f9eb0893091f",
+      "86370ae1bc579c14725a7d4185a42c1a795b1d3cd7d920a9bb5140b64f02f472",
+      "cf587a9538e96110c2d513a73e0d62f6c646989d5f1e7abcac40e1fae3900682"
+    ],
+    "sha": "696f449f26266e55ac6957b45f934a18804af041a6055dec599b41a782500ec3"
+  }
+]

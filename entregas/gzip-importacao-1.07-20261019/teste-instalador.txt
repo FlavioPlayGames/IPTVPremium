@@ -1,0 +1,1 @@
+PASS: compatibilidade, aplicacao dos tres arquivos, hashes, backup e preservacao da configuracao. Testes nativos pendentes.

@@ -1,0 +1,230 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/DefaultPlaylistHttpClient.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/DefaultPlaylistHttpClient.kt
+@@ -41,6 +41,7 @@
+                 try { awaitCancellation() } finally { connection.disconnect() }
+             }
+             var status = -1
++            var responseBody: PlaylistResponseBody? = null
+             try {
+                 currentCoroutineContext().ensureActive()
+                 configure(connection)
+@@ -49,7 +50,7 @@
+                 status = connection.responseCode
+                 if (status == 401 || status == 403) throw PlaylistAccessDeniedException("Acesso negado pelo provedor. Confira a lista e suas credenciais.")
+                 check(status in 200..299) { "Erro HTTP $status ao acessar a lista." }
+-                connection.inputStream.bufferedReader(Charsets.UTF_8).use { reader -> consume(reader) }
++                PlaylistResponseBody(connection).also { responseBody = it }.stream.bufferedReader(Charsets.UTF_8).use { reader -> consume(reader) }
+             } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+             catch (error: Exception) {
+                 currentCoroutineContext().ensureActive()
+@@ -58,6 +59,7 @@
+             } finally {
+                 disconnectOnCancel.cancel()
+                 connection.disconnect()
++                responseBody?.let { Log.d(TAG, "COMPACTACAO endpoint=$endpoint ${it.statistics()}") }
+                 Log.i(TAG, "READER endpoint=$endpoint http=$status duracaoMs=${elapsedMillis(started)}")
+             }
+         } }
+@@ -68,6 +70,7 @@
+         val startedNs = System.nanoTime()
+         val connection = URL(url).openConnection() as HttpURLConnection
+         var status = -1
++        var responseBody: PlaylistResponseBody? = null
+         var phase = "CONNECT"
+         // A perda de foco deve liberar a conexao, sem esperar o readTimeout.
+         val disconnectOnCancel = launch(Dispatchers.IO, start = CoroutineStart.UNDISPATCHED) {
+@@ -96,7 +99,7 @@
+             }
+ 
+             phase = "READ"
+-            val response = connection.inputStream
++            val response = PlaylistResponseBody(connection).also { responseBody = it }.stream
+                 .bufferedReader(Charsets.UTF_8)
+                 .use { reader ->
+                     val result = StringBuilder()
+@@ -138,6 +141,7 @@
+         } finally {
+             disconnectOnCancel.cancel()
+             connection.disconnect()
++            responseBody?.let { Log.d(TAG, "COMPACTACAO endpoint=$endpoint ${it.statistics()}") }
+         }
+     } }
+ 
+@@ -149,6 +153,7 @@
+         val startedNs = System.nanoTime()
+         val connection = URL(url).openConnection() as HttpURLConnection
+         var status = -1
++        var responseBody: PlaylistResponseBody? = null
+         var phase = "CONNECT"
+         var lines = 0
+ 
+@@ -174,7 +179,7 @@
+             }
+ 
+             phase = "READ_LINES"
+-            connection.inputStream
++            PlaylistResponseBody(connection).also { responseBody = it }.stream
+                 .bufferedReader(Charsets.UTF_8)
+                 .use { reader ->
+                     while (true) {
+@@ -204,6 +209,7 @@
+             throw error
+         } finally {
+             connection.disconnect()
++            responseBody?.let { Log.d(TAG, "COMPACTACAO endpoint=$endpoint ${it.statistics()}") }
+         }
+         Unit
+     }
+@@ -215,6 +221,9 @@
+         connection.instanceFollowRedirects = true
+         connection.useCaches = false
+         connection.setRequestProperty("Accept", "*/*")
++        // Explicit negotiation disables Android's implicit decoding, allowing safe
++        // wire-byte measurement and exactly one streaming decompression below.
++        connection.setRequestProperty("Accept-Encoding", "gzip")
+         connection.setRequestProperty("User-Agent", "IPTVPremium/1.0")
+     }
+ 
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/PlaylistResponseBody.kt
+@@ -0,0 +1,33 @@
++package br.com.flaviotorres.iptvpremium.data.remote
++
++import java.io.FilterInputStream
++import java.io.IOException
++import java.io.InputStream
++import java.net.HttpURLConnection
++import java.util.Locale
++import java.util.zip.GZIPInputStream
++
++/** Bounded buffers: neither the compressed nor expanded body is materialized here. */
++internal class PlaylistResponseBody(connection: HttpURLConnection) {
++    private val encoding = connection.contentEncoding.orEmpty().trim().lowercase(Locale.ROOT)
++    private val coding = when (encoding) {
++        "", "identity" -> "identity"
++        "gzip", "x-gzip" -> "gzip"
++        else -> throw IOException("Compactacao HTTP nao suportada pelo cliente de listas.")
++    }
++    private val wire = CountingInputStream(connection.inputStream)
++    private val decoded = CountingInputStream(
++        if (coding == "gzip") GZIPInputStream(wire, 32 * 1024) else wire
++    )
++    val stream: InputStream get() = decoded
++    fun statistics(): String = "codificacao=$coding bytesRede=${wire.count} bytesTexto=${decoded.count}"
++
++    private class CountingInputStream(source: InputStream) : FilterInputStream(source) {
++        var count = 0L
++            private set
++        override fun read(): Int = `in`.read().also { if (it >= 0) count++ }
++        override fun read(buffer: ByteArray, offset: Int, length: Int): Int =
++            `in`.read(buffer, offset, length).also { if (it > 0) count += it }
++        override fun skip(amount: Long): Long = `in`.skip(amount).also { count += it }
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/remote/PlaylistCompressionDeviceTest.kt
+@@ -0,0 +1,104 @@
++package br.com.flaviotorres.iptvpremium.data.remote
++
++import java.io.ByteArrayOutputStream
++import java.net.HttpURLConnection
++import java.net.ServerSocket
++import java.net.URL
++import java.util.concurrent.atomic.AtomicReference
++import java.util.zip.GZIPOutputStream
++import kotlinx.coroutines.runBlocking
++import org.junit.Assert.*
++import org.junit.Test
++
++/** Local fixtures: no provider credentials or external connection are required. */
++class PlaylistCompressionDeviceTest {
++    private val text = "#EXTM3U\n#EXTINF:-1,Filme Ação\nhttps://example.invalid/video\n"
++    private fun gzip(text: String): ByteArray = ByteArrayOutputStream().also { buffer ->
++        GZIPOutputStream(buffer).use { it.write(text.toByteArray(Charsets.UTF_8)) }
++    }.toByteArray()
++
++    private fun serve(body: ByteArray, coding: String?, status: Int = 200, action: suspend (String) -> Unit) = runBlocking {
++        val server = ServerSocket(0).apply { soTimeout = 5_000 }
++        val request = AtomicReference<List<String>>(emptyList())
++        val failure = AtomicReference<Throwable?>()
++        val thread = Thread {
++            try {
++                server.accept().use { socket ->
++                    socket.soTimeout = 5_000
++                    val reader = socket.getInputStream().bufferedReader(Charsets.US_ASCII)
++                    val headers = mutableListOf<String>()
++                    while (true) {
++                        val line = reader.readLine() ?: break
++                        if (line.isEmpty()) break
++                        headers += line
++                    }
++                    request.set(headers)
++                    val header = "HTTP/1.1 $status Fixture\r\nContent-Type: text/plain; charset=utf-8\r\n" +
++                        "Content-Length: ${body.size}\r\nConnection: close\r\n" +
++                        (coding?.let { "Content-Encoding: $it\r\n" } ?: "") + "\r\n"
++                    socket.getOutputStream().apply { write(header.toByteArray(Charsets.US_ASCII)); write(body); flush() }
++                }
++            } catch (error: Throwable) { failure.set(error) }
++        }.apply { isDaemon = true; start() }
++        try {
++            action("http://127.0.0.1:${server.localPort}/fixture?password=private_fixture")
++            thread.join(5_000)
++            assertFalse("Fixture thread did not finish", thread.isAlive)
++            failure.get()?.let { throw AssertionError("Fixture failed", it) }
++            assertTrue("Must explicitly negotiate gzip", request.get().any { it.equals("Accept-Encoding: gzip", true) })
++        } finally { server.close(); thread.join(1_000) }
++    }
++
++    private fun transport(compressed: Boolean, mode: Int) {
++        serve(if (compressed) gzip(text) else text.toByteArray(), if (compressed) "gzip" else null) { url ->
++            val client = DefaultPlaylistHttpClient()
++            when (mode) {
++                0 -> assertEquals(text, client.get(url))
++                1 -> assertEquals(text, client.withReader(url) { it.readText() })
++                else -> {
++                    val lines = mutableListOf<String>()
++                    client.readLines(url) { lines += it }
++                    assertEquals(text.trimEnd().lines(), lines)
++                }
++            }
++        }
++    }
++    @Test fun getGzip() { transport(true, 0) }
++    @Test fun getIdentity() { transport(false, 0) }
++    @Test fun readerGzip() { transport(true, 1) }
++    @Test fun readerIdentity() { transport(false, 1) }
++    @Test fun linesGzip() { transport(true, 2) }
++    @Test fun linesIdentity() { transport(false, 2) }
++    @Test fun corruptGzipFailsWithoutReturningGarbage() {
++        serve(byteArrayOf(1, 2, 3, 4), "gzip") { url ->
++            val error = runCatching { DefaultPlaylistHttpClient().get(url) }.exceptionOrNull()
++            assertTrue(error is java.io.IOException)
++        }
++    }
++    @Test fun accessDeniedStillHasItsOriginalType() {
++        serve(ByteArray(0), null, 403) { url ->
++            val error = runCatching { DefaultPlaylistHttpClient().withReader(url) { it.readText() } }.exceptionOrNull()
++            assertTrue(error is PlaylistAccessDeniedException)
++        }
++    }
++    @Test fun wireAndExpandedBytesAreMeasuredWithoutDoubleDecoding() {
++        val large = text.repeat(10_000)
++        val compressed = gzip(large)
++        serve(compressed, "gzip") { url ->
++            val connection = URL(url).openConnection() as HttpURLConnection
++            connection.setRequestProperty("Accept-Encoding", "gzip")
++            try {
++                val response = PlaylistResponseBody(connection)
++                val count = response.stream.use { input ->
++                    val buffer = ByteArray(8192)
++                    var total = 0L
++                    while (true) { val read = input.read(buffer); if (read < 0) break; total += read }
++                    total
++                }
++                assertEquals(large.toByteArray().size.toLong(), count)
++                assertEquals("codificacao=gzip bytesRede=${compressed.size} bytesTexto=$count", response.statistics())
++                assertTrue(compressed.size * 10 < count)
++            } finally { connection.disconnect() }
++        }
++    }
++}
