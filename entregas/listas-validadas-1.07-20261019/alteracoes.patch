@@ -1,0 +1,638 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -213,7 +213,7 @@
+ private const val AUTO_SYNC_CHECK_MS = 30L * 60L * 1000L
+ private const val MOVIE_PREPARATION_ROUTE = "movie_preparation/{movieId}"
+ private const val ACTOR_DETAILS_ROUTE = "actor_details/{personId}"
+-private const val MIN_MOVIE_PREPARATION_MS = 2_000L
++private const val MIN_MOVIE_PREPARATION_MS = 3_000L
+ private const val MAX_CAROUSEL_POSTERS = 20
+ 
+ // Estados da rota de detalhes que devem sobreviver a ida ao player.
+@@ -939,6 +939,10 @@
+         mutableStateOf<AppCatalogLoadingState?>(AppCatalogLoadingState())
+     }
+     var catalogStartupRetry by remember { mutableStateOf(0) }
++    var startupCatalogJob by remember { mutableStateOf<Job?>(null) }
++    var manualCatalogJob by remember { mutableStateOf<Job?>(null) }
++    var catalogLoadingDismissed by remember { mutableStateOf(false) }
++    var dismissedCatalogPlaylistId by remember { mutableStateOf<String?>(null) }
+     var manualPlaylistOperationId by remember { mutableStateOf<String?>(null) }
+ 
+     val automaticSyncPreferences = remember(context) {
+@@ -1033,6 +1037,28 @@
+      */
+     var loadingPlaylistId by remember {
+         mutableStateOf<String?>(null)
++    }
++
++    fun leaveCatalogImport(message: String? = null) {
++        // Release the interface immediately; cancellation/Room cleanup continues safely.
++        dismissedCatalogPlaylistId = activePlaylistId
++        catalogLoadingDismissed = true
++        startupCatalogJob?.cancel()
++        manualCatalogJob?.cancel()
++        catalogLoadingState = null
++        isPlaylistConnecting = false
++        loadingPlaylistId = null
++        manualPlaylistOperationId = null
++        sharedSelectionInFlight = null
++        message?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
++        val pendingPortalRequest = portalLoadRequest
++        if (pendingPortalRequest != null) coroutineScope.launch {
++            playlistStorage.finishPortalLoad(pendingPortalRequest)
++        }
++        navController.navigate(AppDestination.Home.route) {
++            popUpTo(AppDestination.Home.route) { inclusive = false }
++            launchSingleTop = true
++        }
+     }
+ 
+     /*
+@@ -1099,6 +1125,9 @@
+                 it.id == playlistId
+             } ?: return@LaunchedEffect
+ 
++        if (catalogLoadingDismissed && (dismissedCatalogPlaylistId == null || dismissedCatalogPlaylistId == playlistId) && remoteRequest == null) return@LaunchedEffect
++        catalogLoadingDismissed = false
++        startupCatalogJob = currentCoroutineContext()[Job]
+         val openingStartedAt = SystemClock.elapsedRealtime()
+         val showHistoryImport = activePlaylistContentSourceId != null && activePlaylistContentSourceId != playlistId
+         catalogLoadingState = AppCatalogLoadingState(
+@@ -1220,6 +1249,12 @@
+ 
+     }
+ 
++    LaunchedEffect(catalogLoadingState?.phase) {
++        if (catalogLoadingState?.phase == AppCatalogLoadingPhase.ERROR) {
++            leaveCatalogImport("Não foi possível importar a lista. Você pode excluir ou cadastrar outra em Minhas listas.")
++        }
++    }
++
+     /*
+      * ATUALIZACAO AUTOMATICA EM PRIMEIRO PLANO
+      *
+@@ -1350,8 +1385,7 @@
+ 
+         val resolvedXtream = when (source) {
+             is PlaylistSource.XtreamCodes -> source
+-            is PlaylistSource.M3u ->
+-                M3uXtreamResolver.resolve(source)
++            is PlaylistSource.M3u -> null
+         }
+ 
+         val intervalMs =
+@@ -1555,7 +1589,9 @@
+                                 isPlaylistRefresh = true
+                             )
+ 
+-                            coroutineScope.launch {
++                            catalogLoadingDismissed = false
++                            dismissedCatalogPlaylistId = null
++                            manualCatalogJob = coroutineScope.launch {
+                                 // Espera o encerramento seguro de uma
+                                 // eventual sincronizacao automatica antes
+                                 // de iniciar uma importacao manual.
+@@ -1734,9 +1770,11 @@
+                                     val finallyStartedAt =
+                                         SystemClock.elapsedRealtime()
+ 
+-                                    loadingPlaylistId = null
+-                                    manualPlaylistOperationId = null
+-                                    sharedSelectionInFlight = null
++                                    if (manualCatalogJob === currentCoroutineContext()[Job]) {
++                                        loadingPlaylistId = null
++                                        manualPlaylistOperationId = null
++                                        sharedSelectionInFlight = null
++                                    }
+ 
+                                     Log.i(
+                                         NAVIGATION_PERF_TAG,
+@@ -1842,7 +1880,9 @@
+                         sharedSelectionInFlight = newPlaylist.id
+                         catalogLoadingState = AppCatalogLoadingState(isPlaylistRefresh = true)
+ 
+-                        coroutineScope.launch {
++                        catalogLoadingDismissed = false
++                        dismissedCatalogPlaylistId = null
++                        manualCatalogJob = coroutineScope.launch {
+                             runCatching {
+                                 /*
+                                  * SINCRONIZAÇÃO INICIAL DO XTREAM DIRETO:
+@@ -1902,14 +1942,13 @@
+                                     launchSingleTop = true
+                                 }
+                             }.onFailure { error ->
++                                if (error is CancellationException) throw error
+                                 isPlaylistConnecting = false
+                                 catalogLoadingState = null
+                                 sharedSelectionInFlight = null
+-                                if (error is CancellationException) throw error
+-
+-                                playlistConnectionError =
+-                                    error.message
+-                                        ?: "Não foi possível conectar à lista."
++
++                                playlistConnectionError = "Não foi possível conectar à lista."
++                                leaveCatalogImport("Não foi possível importar a lista. Confira o link ou cadastre outra em Minhas listas.")
+                             }
+                         }
+                     },
+@@ -1935,7 +1974,9 @@
+                         sharedSelectionInFlight = newPlaylist.id
+                         catalogLoadingState = AppCatalogLoadingState(isPlaylistRefresh = true)
+ 
+-                        coroutineScope.launch {
++                        catalogLoadingDismissed = false
++                        dismissedCatalogPlaylistId = null
++                        manualCatalogJob = coroutineScope.launch {
+                             runCatching {
+                                 /*
+                                  * SINCRONIZAÇÃO INICIAL DA M3U:
+@@ -2005,14 +2046,13 @@
+                                     launchSingleTop = true
+                                 }
+                             }.onFailure { error ->
++                                if (error is CancellationException) throw error
+                                 isPlaylistConnecting = false
+                                 catalogLoadingState = null
+                                 sharedSelectionInFlight = null
+-                                if (error is CancellationException) throw error
+-
+-                                playlistConnectionError =
+-                                    error.message
+-                                        ?: "Não foi possível conectar à lista."
++
++                                playlistConnectionError = "Não foi possível conectar à lista."
++                                leaveCatalogImport("Não foi possível importar a lista. Confira o link ou cadastre outra em Minhas listas.")
+                             }
+                         }
+                     }
+@@ -4218,45 +4258,28 @@
+ 
+         br.com.flaviotorres.iptvpremium.ui.settings.ParentalCategoryDialog(parentalCategoryRequest) { parentalCategoryRequest = null }
+ 
+-        // A tela de preparo cobre qualquer destino anterior ate a fila terminar.
+-        // Em caso de erro, ela permanece visivel para permitir uma nova tentativa.
+-        val visibleCatalogLoading = catalogLoadingState ?: if (portalSyncRequests > 0 || portalLoadRequest != null)
+-            AppCatalogLoadingState() else null
++        val visibleCatalogLoading = if (catalogLoadingDismissed) null else
++            catalogLoadingState ?: if (portalSyncRequests > 0 || portalLoadRequest != null)
++                AppCatalogLoadingState() else null
+         BackHandler(enabled = visibleCatalogLoading != null) {
+-            // Durante o carregamento nao retornamos a um destino incompleto.
+-        }
+-        val loadingFocusRequester = remember { FocusRequester() }
+-        LaunchedEffect(visibleCatalogLoading?.phase) {
+-            val state = visibleCatalogLoading
+-            if (state != null && state.phase != AppCatalogLoadingPhase.ERROR) {
+-                loadingFocusRequester.requestFocus()
+-            }
++            leaveCatalogImport("Importação cancelada. Você pode gerenciar suas listas na Home.")
+         }
+         visibleCatalogLoading?.let { state ->
+-            val loadingModifier = if (state.phase != AppCatalogLoadingPhase.ERROR) {
+-                Modifier.fillMaxSize()
+-                    .focusRequester(loadingFocusRequester)
+-                    .onPreviewKeyEvent { true }
+-                    .focusable()
+-            } else {
+-                Modifier.fillMaxSize()
+-            }
+             AppStartupLoadingScreen(
+                 state = state,
+-                modifier = loadingModifier.pointerInput(Unit) { detectTapGestures {} },
+-                onRetry = if (state.phase == AppCatalogLoadingPhase.ERROR &&
+-                    !state.isPlaylistRefresh) {
+-                    { catalogStartupRetry += 1 }
++                modifier = Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures {} },
++                onOpenHome = { leaveCatalogImport("Importação cancelada.") },
++                onRetry = if (state.phase == AppCatalogLoadingPhase.ERROR && !state.isPlaylistRefresh) {
++                    {
++                        dismissedCatalogPlaylistId = null
++                        catalogLoadingDismissed = false
++                        catalogStartupRetry += 1
++                    }
+                 } else null,
+                 onOpenPlaylists = if (state.phase == AppCatalogLoadingPhase.ERROR) {
+                     {
+-                        coroutineScope.launch {
+-                            portalLoadRequest?.let { playlistStorage.finishPortalLoad(it) }
+-                            catalogLoadingState = null
+-                            navController.navigate(PLAYLIST_LIST_ROUTE) {
+-                                launchSingleTop = true
+-                            }
+-                        }
++                        leaveCatalogImport()
++                        navController.navigate(PLAYLIST_LIST_ROUTE) { launchSingleTop = true }
+                     }
+                 } else null
+             )
+@@ -4632,7 +4655,7 @@
+         val count = cards.size.coerceAtLeast(1).toFloat()
+         val chosenIndex = cards.indexOfFirst { it.movieId == selectedMovieId }
+             .coerceAtLeast(0).toFloat()
+-        val rotationSpeed = 2.50f // mesma velocidade e direcao aprovadas
++        val rotationSpeed = br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningPolicy.rotationCardsPerSecond
+         // Relogio ancorado: nao acumula erros nem perde distancia em frames lentos.
+         // Uma pausa longa (TV em segundo plano) nao faz o anel dar um salto.
+         var rotationOriginNanos = withFrameNanos { it }
+@@ -4655,9 +4678,8 @@
+                     if (finishSignal.value) {
+                         initial = trackPosition.floatValue
+                         val phase = ((initial % count) + count) % count
+-                        var forward = ((chosenIndex - phase) % count + count) % count
+-                        // A selecao percorre pelo menos parte do anel. Nunca volta.
+-                        if (count > 1f && forward < count * 0.17f) forward += count
++                        val forward = ((chosenIndex - phase) % count + count) % count
++                        // Vai direto ao filme escolhido, sem acrescentar uma volta acelerada.
+                         destination = initial + forward
+                         phaseStarted = now
+                         phaseDuration = br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningPolicy.alignNanos
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/AppStartupLoadingScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/AppStartupLoadingScreen.kt
+@@ -37,6 +37,7 @@
+ import androidx.compose.ui.graphics.graphicsLayer
+ import androidx.compose.ui.draw.alpha
+ import androidx.compose.ui.draw.clip
++import androidx.compose.ui.focus.focusRequester
+ import androidx.compose.ui.focus.onFocusChanged
+ import androidx.compose.ui.geometry.Offset
+ import androidx.compose.ui.graphics.Brush
+@@ -128,7 +129,8 @@
+     state: AppCatalogLoadingState,
+     modifier: Modifier = Modifier,
+     onRetry: (() -> Unit)? = null,
+-    onOpenPlaylists: (() -> Unit)? = null
++    onOpenPlaylists: (() -> Unit)? = null,
++    onOpenHome: (() -> Unit)? = null
+ ) {
+     val error = state.phase == AppCatalogLoadingPhase.ERROR
+     val transition = rememberInfiniteTransition(label = "startupLogo")
+@@ -151,6 +153,7 @@
+                 Spacer(Modifier.height(14.dp))
+                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                     onRetry?.let { LoadingAction("TENTAR NOVAMENTE", it) }
++                    onOpenHome?.let { LoadingAction("IR PARA HOME", it) }
+                     onOpenPlaylists?.let { LoadingAction("MINHAS LISTAS", it) }
+                 }
+             } else {
+@@ -169,6 +172,8 @@
+                             Offset(size.width * (index + 1) / 4f, size.height / 2f))
+                     }
+                 }
++                Spacer(Modifier.height(20.dp))
++                onOpenHome?.let { LoadingAction("CANCELAR E IR PARA HOME", it) }
+             }
+         }
+     }
+@@ -177,9 +182,12 @@
+ @Composable
+ private fun LoadingAction(label: String, onClick: () -> Unit) {
+     var focused by remember { mutableStateOf(false) }
++    val actionFocus = remember { androidx.compose.ui.focus.FocusRequester() }
++    androidx.compose.runtime.LaunchedEffect(Unit) { actionFocus.requestFocus() }
+     val shape = RoundedCornerShape(9.dp)
+     Box(
+         modifier = Modifier
++            .focusRequester(actionFocus)
+             .clip(shape)
+             .background(if (focused) br.com.flaviotorres.iptvpremium.ui.theme.SelectionTheme.color() else br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.surface(0xFF232025))
+             .border(
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/DefaultPlaylistHttpClient.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/DefaultPlaylistHttpClient.kt
+@@ -28,29 +28,39 @@
+  *
+  * O contrato PlaylistHttpClient permanece inalterado.
+  */
++class PlaylistAccessDeniedException(message: String) : java.io.IOException(message)
++
+ class DefaultPlaylistHttpClient : PlaylistHttpClient {
+ 
+     override suspend fun <T> withReader(url: String, consume: suspend (java.io.Reader) -> T): T =
+-        withContext(Dispatchers.IO) {
++        withContext(Dispatchers.IO) { coroutineScope {
+             val endpoint = endpointKind(url)
+             val started = System.nanoTime()
+             val connection = URL(url).openConnection() as HttpURLConnection
++            val disconnectOnCancel = launch(Dispatchers.IO, start = CoroutineStart.UNDISPATCHED) {
++                try { awaitCancellation() } finally { connection.disconnect() }
++            }
+             var status = -1
+             try {
+                 currentCoroutineContext().ensureActive()
+                 configure(connection)
++                connection.connectTimeout = 10_000
++                connection.readTimeout = 15_000
+                 status = connection.responseCode
++                if (status == 401 || status == 403) throw PlaylistAccessDeniedException("Acesso negado pelo provedor. Confira a lista e suas credenciais.")
+                 check(status in 200..299) { "Erro HTTP $status ao acessar a lista." }
+                 connection.inputStream.bufferedReader(Charsets.UTF_8).use { reader -> consume(reader) }
+             } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+             catch (error: Exception) {
++                currentCoroutineContext().ensureActive()
+                 Log.w(TAG, "READER endpoint=$endpoint http=$status erro=${error.javaClass.simpleName}")
+                 throw error
+             } finally {
++                disconnectOnCancel.cancel()
+                 connection.disconnect()
+                 Log.i(TAG, "READER endpoint=$endpoint http=$status duracaoMs=${elapsedMillis(started)}")
+             }
+-        }
++        } }
+ 
+     override suspend fun get(url: String): String = withContext(Dispatchers.IO) { coroutineScope {
+         val trace = currentCoroutineContext()[CoroutineName]?.name?.takeIf { it.matches(Regex("serie-[0-9a-f]{8}")) }
+@@ -70,6 +80,7 @@
+             status = connection.responseCode
+             phase = "STATUS"
+ 
++            if (status == 401 || status == 403) throw PlaylistAccessDeniedException("Acesso negado pelo provedor. Confira a lista e suas credenciais.")
+             if (status !in 200..299) {
+                 logResult(
+                     endpoint = endpoint,
+@@ -147,6 +158,7 @@
+             status = connection.responseCode
+             phase = "STATUS"
+ 
++            if (status == 401 || status == 403) throw PlaylistAccessDeniedException("Acesso negado pelo provedor. Confira a lista e suas credenciais.")
+             if (status !in 200..299) {
+                 logResult(
+                     endpoint = endpoint,
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt
+@@ -1127,7 +1127,7 @@
+                 } catch (cancelled: CancellationException) { throw cancelled }
+                 catch (error: br.com.flaviotorres.iptvpremium.data.sync.XtreamCatalogWriteException) { throw error }
+                 catch (error: Exception) {
+-                    if (attempt == 2) throw error
++                    if (error is br.com.flaviotorres.iptvpremium.data.remote.PlaylistAccessDeniedException || attempt == 2) throw error
+                     kotlinx.coroutines.delay(300L * (attempt + 1))
+                 }
+             }
+@@ -2200,7 +2200,7 @@
+                     )
+ 
+         if (!authenticated) {
+-            throw IllegalStateException(
++            throw br.com.flaviotorres.iptvpremium.data.remote.PlaylistAccessDeniedException(
+                 "Usuário ou senha inválidos, ou a conta não está ativa."
+             )
+         }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/resolver/M3uXtreamResolver.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/resolver/M3uXtreamResolver.kt
+@@ -1,161 +1,39 @@
+ package br.com.flaviotorres.iptvpremium.data.resolver
+ 
+-import android.net.Uri
+ import br.com.flaviotorres.iptvpremium.domain.model.PlaylistSource
++import java.net.URI
++import java.net.URLDecoder
+ import java.util.Locale
+ 
+ object M3uXtreamResolver {
+-
+-    fun resolve(
+-        source: PlaylistSource.M3u
+-    ): PlaylistSource.XtreamCodes? {
+-        val playlistUrl =
+-            source.playlistUrl.trim()
+-
+-        if (playlistUrl.isBlank()) {
+-            return null
++    /** Derives an API source only from explicit get.php credentials, preserving the list ID. */
++    fun resolve(source: PlaylistSource.M3u): PlaylistSource.XtreamCodes? = runCatching {
++        // Clipboard links may contain HTML entities or Markdown-escaped separators.
++        val cleaned = source.playlistUrl.trim()
++            .replace("&amp;", "&", ignoreCase = true)
++            .replace("\\&", "&")
++        val uri = URI(cleaned)
++        val scheme = uri.scheme?.lowercase(Locale.ROOT) ?: return null
++        if (scheme !in setOf("http", "https") || uri.host.isNullOrBlank() || uri.rawUserInfo != null) return null
++        val path = uri.rawPath.orEmpty().trimEnd('/')
++        if (!path.endsWith("/get.php", ignoreCase = true)) return null
++        val parameters = linkedMapOf<String, String>()
++        for (part in uri.rawQuery.orEmpty().split('&')) {
++            val split = part.indexOf('=')
++            if (split < 0) continue
++            val key = URLDecoder.decode(part.substring(0, split), "UTF-8").lowercase(Locale.ROOT)
++            if (key != "username" && key != "password") continue
++            val value = URLDecoder.decode(part.substring(split + 1), "UTF-8")
++            // Conflicting repeated credentials must not silently select a different account.
++            if (parameters.containsKey(key) && parameters[key] != value) return null
++            parameters[key] = value
+         }
+-
+-        val uri =
+-            runCatching {
+-                Uri.parse(playlistUrl)
+-            }.getOrNull()
+-                ?: return null
+-
+-        val scheme =
+-            uri.scheme
+-                ?.lowercase(Locale.ROOT)
+-                ?: return null
+-
+-        if (
+-            scheme != "http" &&
+-            scheme != "https"
+-        ) {
+-            return null
+-        }
+-
+-        val authority =
+-            uri.encodedAuthority
+-                ?.takeIf {
+-                    it.isNotBlank()
+-                }
+-                ?: return null
+-
+-        val path =
+-            uri.path
+-                .orEmpty()
+-
+-        val normalizedPath =
+-            path.trimEnd('/')
+-
+-        /*
+-         * O formato clássico do Xtream para exportar M3U é:
+-         *
+-         * /get.php?username=...&password=...&type=m3u_plus...
+-         *
+-         * Não exigimos "type=m3u_plus" porque alguns servidores omitem
+-         * esse parâmetro ou usam "m3u". O que realmente nos interessa
+-         * para detectar o Xtream é o endpoint get.php + as credenciais.
+-         */
+-        if (
+-            !normalizedPath.endsWith(
+-                "/get.php",
+-                ignoreCase = true
+-            ) &&
+-            !normalizedPath.equals(
+-                "get.php",
+-                ignoreCase = true
+-            )
+-        ) {
+-            return null
+-        }
+-
+-        val username =
+-            uri.getQueryParameter("username")
+-                ?.trim()
+-                ?.takeIf {
+-                    it.isNotBlank()
+-                }
+-                ?: return null
+-
+-        val password =
+-            uri.getQueryParameter("password")
+-                ?.takeIf {
+-                    it.isNotBlank()
+-                }
+-                ?: return null
+-
+-        /*
+-         * Preserva um eventual prefixo do servidor.
+-         *
+-         * Exemplo:
+-         * https://servidor.com/iptv/get.php?...
+-         *
+-         * vira:
+-         * https://servidor.com/iptv
+-         */
+-        val parentPath =
+-            if (
+-                normalizedPath.equals(
+-                    "get.php",
+-                    ignoreCase = true
+-                )
+-            ) {
+-                ""
+-            } else {
+-                normalizedPath
+-                    .removeSuffixIgnoreCase(
+-                        "/get.php"
+-                    )
+-                    .trimEnd('/')
+-            }
+-
+-        val serverUrl =
+-            buildString {
+-                append(scheme)
+-                append("://")
+-                append(authority)
+-
+-                if (parentPath.isNotBlank()) {
+-                    if (!parentPath.startsWith("/")) {
+-                        append("/")
+-                    }
+-
+-                    append(parentPath)
+-                }
+-            }
+-
+-        /*
+-         * A conversão é somente em memória.
+-         *
+-         * A playlist cadastrada continua sendo PlaylistSource.M3u.
+-         * Não duplicamos username/senha no modelo persistido e não
+-         * alteramos a experiência do usuário.
+-         */
+-        return PlaylistSource.XtreamCodes(
+-            id = source.id,
+-            name = source.name,
+-            isEnabled = source.isEnabled,
+-            serverUrl = serverUrl,
+-            username = username,
+-            password = password
++        val username = parameters["username"]?.trim()?.takeIf { it.isNotBlank() } ?: return null
++        val password = parameters["password"]?.takeIf { it.isNotBlank() } ?: return null
++        val prefix = path.dropLast("/get.php".length).trimEnd('/')
++        PlaylistSource.XtreamCodes(
++            id = source.id, name = source.name, isEnabled = source.isEnabled,
++            serverUrl = "$scheme://${uri.rawAuthority}$prefix", username = username, password = password
+         )
+-    }
+-
+-    private fun String.removeSuffixIgnoreCase(
+-        suffix: String
+-    ): String {
+-        return if (
+-            endsWith(
+-                suffix,
+-                ignoreCase = true
+-            )
+-        ) {
+-            dropLast(
+-                suffix.length
+-            )
+-        } else {
+-            this
+-        }
+-    }
++    }.getOrNull()
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
+@@ -26,38 +26,7 @@
+     suspend fun sync(source: PlaylistSource.M3u): String = sharedSync(source) { syncM3u(source) }
+ 
+     private suspend fun syncM3u(source: PlaylistSource.M3u): String {
+-        val resolvedXtream =
+-            M3uXtreamResolver.resolve(
+-                source = source
+-            )
+-
+-        if (resolvedXtream != null) {
+-            Log.i(
+-                TAG,
+-                "M3U detectada como Xtream-compatible; tentando sincronização pela API Xtream."
+-            )
+-
+-            try {
+-                return syncFromXtream(
+-                    playlistId = source.id,
+-                    xtreamSource = resolvedXtream
+-                )
+-            } catch (cancelled: CancellationException) {
+-                throw cancelled
+-            } catch (error: Exception) {
+-                Log.w(
+-                    TAG,
+-                    "Xtream automatico falhou; usando M3U nativa. " +
+-                        "tipoErro=${error.javaClass.simpleName}"
+-                )
+-            }
+-        } else {
+-            Log.i(
+-                TAG,
+-                "M3U sem padrão Xtream detectável; usando importação M3U nativa."
+-            )
+-        }
+-
++        Log.i(TAG, "M3U nativa; formato de importacao definido no cadastro/central.")
+         return medirEtapa("M3U_NATIVA") {
+             m3uCacheImporter.import(
+                 playlistId = source.id,
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
+@@ -4,10 +4,14 @@
+ internal object MovieOpeningPolicy {
+     const val preparationMs = 3_500L
+     const val remoteMs = 2_500L
+-    const val alignNanos = 450_000_000L
+-    const val pressNanos = 220_000_000L
+-    const val expandNanos = 550_000_000L
++    const val minimumLoadingMs = 3_000L
++    const val rotationCardsPerSecond = 1.5f
++    const val alignNanos = 1_100_000_000L
++    const val pressNanos = 260_000_000L
++    const val expandNanos = 600_000_000L
+     fun remainingMs(elapsedMs: Long): Long = (preparationMs - elapsedMs.coerceAtLeast(0L)).coerceAtLeast(0L)
++    // Artwork readiness never shortens the mandatory three-second loading stage.
++    @Suppress("UNUSED_PARAMETER")
+     fun minimumWaitMs(elapsedMs: Long, artworkReady: Boolean): Long =
+-        if (artworkReady) 0L else (2_000L - elapsedMs.coerceAtLeast(0L)).coerceAtLeast(0L)
++        (minimumLoadingMs - elapsedMs.coerceAtLeast(0L)).coerceAtLeast(0L)
+ }

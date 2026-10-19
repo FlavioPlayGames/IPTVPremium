@@ -1,0 +1,7 @@
+PASS verificar does not modify
+PASS applies exact seven files
+PASS preserves configuration
+PASS exact backup
+PASS idempotent reapplication
+PASS unknown version rejected before any changes
+PASS injected copy failure rolls back original files

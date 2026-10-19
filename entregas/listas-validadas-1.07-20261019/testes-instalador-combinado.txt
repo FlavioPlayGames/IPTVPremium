@@ -1,0 +1,1 @@
+PASS combined installer prepares site without touching Android or publishing

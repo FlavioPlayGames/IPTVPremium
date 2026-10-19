@@ -1,0 +1,21 @@
+PASS recognized link variant preserving identity
+PASS recognized link variant preserving identity
+PASS recognized link variant preserving identity
+PASS recognized link variant preserving identity
+PASS recognized link variant preserving identity
+PASS recognized link variant preserving identity
+PASS encoded credentials decoded once
+PASS rejects invalid or ambiguous conversion
+PASS rejects invalid or ambiguous conversion
+PASS rejects invalid or ambiguous conversion
+PASS rejects invalid or ambiguous conversion
+PASS rejects invalid or ambiguous conversion
+PASS rejects invalid or ambiguous conversion
+PASS rejects invalid or ambiguous conversion
+PASS rejects invalid or ambiguous conversion
+PASS streaming successful body unchanged
+PASS streaming permanent denial 401 classified
+PASS authentication permanent denial 401 classified
+PASS streaming permanent denial 403 classified
+PASS authentication permanent denial 403 classified
+PASS import caller released during blocked streaming in 0ms
