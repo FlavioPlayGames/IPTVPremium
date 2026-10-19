@@ -1,0 +1,65 @@
+--- a/playlist-validation.js
++++ b/playlist-validation.js
+@@ -141,6 +141,16 @@
+ export async function validatePlaylistInput(input, options = {}) {
+   if (!input || typeof input !== 'object' || Array.isArray(input)) invalid('Informe os dados da lista.');
+   const format = input.format ?? 'm3u';
++  if (format === 'm3u_direct') {
++    if (options.allowDirectM3u !== true) throw new PlaylistValidationError('Opção disponível somente para o administrador.',403,'permission');
++    if (typeof input.name !== 'string' || !input.name.trim() || input.name.trim().length > 80) invalid('Informe o nome da lista, com até 80 caracteres.');
++    if (typeof input.link !== 'string' || !input.link.trim() || input.link.length > 4096) invalid('Informe o link da lista.');
++    const link = input.link.trim().replace(/&amp;/gi,'&').replace(/\\&/g,'&');
++    publicUrl(link);
++    return {playlist:{type:'m3u',name:input.name.trim(),isEnabled:true,playlistUrl:link},
++      validation:{state:'device_required',format:'m3u'},
++      message:'M3U direta preparada, sem conversão. O aplicativo verificará o link ao importar.'};
++  }
+   if (format === 'm3u') return validatePlaylistLink(input.name, input.link, options);
+   if (format !== 'xtream') invalid('Escolha M3U ou Xtream Codes.');
+   if (typeof input.serverUrl !== 'string' || typeof input.username !== 'string' || typeof input.password !== 'string') invalid('Preencha servidor, usuário e senha.');
+--- a/worker-atualizacao-abi.js
++++ b/worker-atualizacao-abi.js
+@@ -804,8 +804,9 @@
+   if (p === "/api/lists/validate" && m === "POST") {
+     await limit(env, "validate-list:" + id, 10, 60);
+     const input = await readBody(r);
++    if (input?.format === 'm3u_direct' && s.role !== 'admin') fail(403, 'Opção disponível somente para o administrador.');
+     try {
+-      const result = await validatePlaylistInput(input);
++      const result = await validatePlaylistInput(input, {allowDirectM3u:s.role === 'admin'});
+       if (s.role !== "admin") delete result.diagnostics;
+       return json(result);
+     }
+--- a/public/app.js
++++ b/public/app.js
+@@ -96,15 +96,20 @@
+ }
+ function applyListInputFormat() {
+   const xtream = $('list-input-format').value === 'xtream';
++  const direct = role === 'admin' && $('list-input-format').value === 'm3u_direct';
+   $('list-m3u-input').hidden = xtream;$('list-xtream-input').hidden = !xtream;
+   $('list-url').disabled = xtream;$('list-url').required = !xtream;
+   ['list-xtream-server','list-xtream-user','list-xtream-pass'].forEach(id => { $(id).disabled = !xtream;$(id).required = xtream; });
+-  $('list-format-help').textContent = xtream ? 'Tentaremos Xtream primeiro. A M3U será usada somente se essa tentativa falhar.' : 'Identificaremos a configuração Xtream do link. Quando identificada, a M3U seguirá como alternativa, usada somente se o Xtream falhar.';
++  $('list-format-help').textContent = direct ? 'Enviaremos o link como M3U, sem conversão para Xtream. O aplicativo fará a importação direta.' : xtream ? 'Tentaremos Xtream primeiro. A M3U será usada somente se essa tentativa falhar.' : 'Identificaremos a configuração Xtream do link. Quando identificada, a M3U seguirá como alternativa, usada somente se o Xtream falhar.';
+ }
+ $('list-input-format').onchange = () => { invalidatePlaylistValidation();applyListInputFormat(); };
+ ['list-xtream-server','list-xtream-user','list-xtream-pass'].forEach(id => $(id).oninput = invalidatePlaylistValidation);
+ function openList(list=null) {
+   invalidatePlaylistValidation();
++  const formatSelect = $('list-input-format');
++  const directOption = formatSelect.querySelector('option[value="m3u_direct"]');
++  if (role === 'admin' && !directOption) formatSelect.add(new Option('M3U direta — sem conversão', 'm3u_direct'));
++  if (role !== 'admin') directOption?.remove();
+   editingId = list?.id || null;
+   $('list-name').value = list?.name || '';
+   $('list-input-format').value = list?.type === 'xtream' ? 'xtream' : 'm3u';
+@@ -135,7 +140,7 @@
+   const input = format === 'xtream' ? {name,format,serverUrl:$('list-xtream-server').value,username:$('list-xtream-user').value,password:$('list-xtream-pass').value} : {name,format,link:$('list-url').value};
+   validationController = new AbortController();
+   $('validate-list').disabled = true;
+-  $('list-validation-status').textContent = 'Validando a lista e identificando o formato…';
++  $('list-validation-status').textContent = format === 'm3u_direct' ? 'Preparando envio da M3U direta…' : 'Validando a lista e identificando o formato…';
+   try {
+     const result = await api(target('/api/lists/validate'), { method:'POST', signal:validationController.signal, body:JSON.stringify(input) });
+     if (sequence !== validationSequence || !$('list-modal').open) return;

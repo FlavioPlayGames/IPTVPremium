@@ -1,0 +1,1 @@
+PASS: publicador extraido com PowerShell real; todos os arquivos conferidos com o ZIP; nenhuma publicacao ao vivo.

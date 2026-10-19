@@ -1,0 +1,86 @@
+(node:1050) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/playlist-validation-site/worker-atualizacao-abi.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/playlist-validation-site/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ actual encrypted queue retains Xtream plus alternative as ONE list (603.452213ms)
+✔ old Xtream commands stay compatible without invented fallback (17.906682ms)
+✔ unsupported alternative URL cannot be queued (4.372914ms)
+(node:1051) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/playlist-validation-site/playlist-validation.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/playlist-validation-site/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ compatible M3U sends Xtream and original alternative together (528.613382ms)
+✔ site refusal also retains the original alternative without downloading it (1.385319ms)
+✔ direct Xtream builds a correctly encoded fallback with same prefix and port (1.082779ms)
+✔ player API fallback removes action and uses get.php (0.358765ms)
+✔ plain M3U has no invented alternative or Xtream config (1.124728ms)
+(node:1052) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/playlist-validation-site/playlist-validation.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/playlist-validation-site/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ get.php -> Xtream configuration, original prefix/port and encoded credentials (430.562214ms)
+✔ HTML and Markdown clipboard links recognized (0.897382ms)
+✔ generic M3U stays M3U, never invents credentials (1.831359ms)
+✔ unsupported API falls back to validated M3U (2.932461ms)
+✔ site 403 preserves pending Xtream; HTTP 401 can still check the M3U link (130.118543ms)
+✔ auth zero does not override a false Active status (17.268266ms)
+✔ expired account is not confirmed as Xtream (1.399099ms)
+✔ invalid responses are rejected without returning raw body or credentials (2.279401ms)
+✔ metadata-only JSON is not an authenticated API (2.827292ms)
+✔ huge M3U probe reads only first valid entry, cancels stream (3.450269ms)
+✔ BOM, CRLF and final stream without newline accepted (6.002362ms)
+✔ playlist without a real stream rejected (2.257731ms)
+✔ oversized probe is bounded (12.77234ms)
+✔ private destinations rejected before any provider request (1.454359ms)
+✔ redirect target checked before following (2.969539ms)
+✔ redirect loop bounded (1.015665ms)
+✔ timeout returns a useful failure without provider exceptions (373.188623ms)
+✔ invalid name and unsupported schemes do not trigger network calls (1.839025ms)
+✔ site HTTP 403 is unverified, preserving Xtream and administrator diagnostics (1.789629ms)
+✔ explicit inactive account cannot be presented as pending validation (3.787609ms)
+✔ verified formats are explicitly marked verified (1.188985ms)
+✔ player_api configuration remains pending Xtream on site refusal (0.622953ms)
+✔ explicit Xtream uses server/user/password and preserves special characters (1.7316ms)
+✔ explicit Xtream stays Xtream when site network is refused (0.662176ms)
+✔ explicit Xtream never silently switches to M3U after unsupported response (0.627083ms)
+✔ M3U input uses M3U when API is actually unavailable (0.678947ms)
+✔ site HTTP 403 does not trigger bulk M3U probe for recognizable Xtream link (0.462001ms)
+✔ invalid explicit formats and private server are rejected before fetch (0.428323ms)
+✔ legacy clients without format still work (0.49765ms)
+(node:1074) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/playlist-validation-site/worker-atualizacao-abi.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/playlist-validation-site/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ validation requires a session before touching provider (218.689083ms)
+✔ validation requires CSRF and same origin (744.701004ms)
+✔ device-scoped validated response, no command persisted, no caching (354.225245ms)
+✔ rate limit stops validation (1192.853025ms)
+✔ admin must select an existing device (6.070945ms)
+✔ unsupported links return meaningful validation error (5.812997ms)
+✔ site 403 preserves pending Xtream and restricts technical details: user (3.472334ms)
+✔ site 403 preserves pending Xtream and restricts technical details: admin (3.461045ms)
+(node:1085) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/playlist-validation-site/playlist-validation.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/playlist-validation-site/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ validation requires a session before touching provider (2321.377236ms)
+✔ validation requires CSRF and same origin (15.563631ms)
+✔ device-scoped validated response, no command persisted, no caching (9.932959ms)
+✔ rate limit stops validation (1.67316ms)
+✔ admin must select an existing device (0.932701ms)
+✔ unsupported links return meaningful validation error (4.141569ms)
+✔ administrator prepares recognizable M3U without conversion or any provider request (6.078849ms)
+✔ direct mode requires trusted server option, not a field from the request (2.54296ms)
+✔ direct mode rejects bad names and unsafe destinations (3.471993ms)
+✔ direct mode preserves port, path, output and encoded credentials (0.524996ms)
+✔ worker denies direct mode to customer even with forged permission field (4.874206ms)
+✔ worker allows direct mode only in administrator session with selected device (2.092674ms)
+✔ customer automatic M3U conversion still sends Xtream and alternative (0.680164ms)
+ℹ tests 58
+ℹ suites 0
+ℹ pass 58
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4325.484211
