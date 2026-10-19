@@ -1,0 +1,13 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -161,7 +161,9 @@
+                                 scrollBy(distance)
+                                 break
+                             }
+-                            val omega = 32f
++                            // Gentler acceleration and a longer deceleration, without
++                            // restarting the motion when a held key changes its target.
++                            val omega = 20f
+                             val error = -distance
+                             val decay = kotlin.math.exp(-omega * dt)
+                             val nextError = (error + (velocity + omega * error) * dt) * decay
