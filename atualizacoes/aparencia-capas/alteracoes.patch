@@ -1,0 +1,852 @@
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogLayoutDeviceTest.kt
+@@ -0,0 +1,46 @@
++package br.com.flaviotorres.iptvpremium.data.repository
++
++import androidx.compose.runtime.mutableIntStateOf
++import androidx.compose.ui.test.*
++import androidx.compose.ui.test.junit4.createComposeRule
++import br.com.flaviotorres.iptvpremium.ui.components.*
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertTrue
++import org.junit.Rule
++import org.junit.Test
++
++class CatalogLayoutDeviceTest {
++    @get:Rule val compose = createComposeRule()
++
++    @Test fun bothModesFitTwoCompleteRowsForAllTextSizes() {
++        for ((width, height) in listOf(580f to 456f, 740f to 540f, 1000f to 740f)) {
++            for (columns in listOf(4, 5)) for (scale in listOf(1f, 1.1f, 1.2f)) {
++                val metadata = 26f * scale + 6f
++                val geometry = catalogTwoRowGeometry(width, height, columns, 10f, metadata)
++                assertTrue(geometry.posterWidth > 0f)
++                assertTrue(geometry.posterWidth <= (width - 16f - 10f * (columns - 1)) / columns + .01f)
++                assertEquals(height - 16f, geometry.cardHeight * 2 + geometry.rowSpacing, .01f)
++                assertTrue(8f + 2 * (geometry.cardHeight + geometry.rowSpacing) >= height - 8f)
++            }
++        }
++    }
++    @Test fun fourColumnsUseLargerArtworkOnTvLayout() {
++        val four = catalogTwoRowGeometry(740f, 540f, 4, 10f, 32f)
++        val five = catalogTwoRowGeometry(740f, 540f, 5, 10f, 32f)
++        assertTrue(four.posterWidth > five.posterWidth)
++    }
++    @Test fun previewChangesFromEightToTenPostersImmediately() {
++        val columns = mutableIntStateOf(4)
++        compose.setContent { CatalogLayoutPreview(columns.intValue) }
++        compose.onNodeWithContentDescription("Prévia: duas fileiras de 4 capas, 8 capas visíveis")
++            .assertExists()
++        compose.onNodeWithTag("preview-poster-7").assertExists()
++        compose.onNodeWithTag("preview-poster-8").assertDoesNotExist()
++        compose.runOnIdle { columns.intValue = 5 }
++        compose.onNodeWithContentDescription("Prévia: duas fileiras de 5 capas, 10 capas visíveis")
++            .assertExists()
++        compose.onNodeWithTag("preview-poster-9").assertExists()
++        compose.runOnIdle { columns.intValue = 4 }
++        compose.onNodeWithTag("preview-poster-9").assertDoesNotExist()
++    }
++}
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogNavigationDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogNavigationDeviceTest.kt
+@@ -26,6 +26,7 @@
+ class CatalogNavigationDeviceTest {
+     @get:Rule val compose = createComposeRule()
+     private val hostVisits = AtomicInteger(0)
++    private val outerBacks = AtomicInteger(0)
+     private fun grid(count: Int, columns: Int = 5, enterHost: Boolean = false,
+         regions: Boolean = false): AtomicInteger {
+         val focused = AtomicInteger(-1)
+@@ -39,11 +40,12 @@
+             val navigator = remember { CatalogGridNavigator(state, scope, columns, { count }, {}, {},
+                 onTop = if (regions) ({ search.requestFocus(); Unit }) else null,
+                 onLeft = if (regions) ({ menu.requestFocus(); Unit }) else null) }
++            androidx.activity.compose.BackHandler(enabled = regions) { outerBacks.incrementAndGet() }
+             androidx.activity.compose.BackHandler(enabled = regions && contentFocused) {
+                 navigator.cancel()
+                 menu.requestFocus()
+             }
+-            Row {
++            Row(Modifier.catalogEscapeBack()) {
+             Column(Modifier.width(60.dp).height(180.dp)
+                 .focusRequester(menu).focusRestorer().focusGroup()) {
+                 Box(Modifier.height(60.dp).fillMaxWidth().testTag("category").focusable())
+@@ -112,6 +114,16 @@
+         compose.mainClock.advanceTimeBy(3_000)
+         compose.onNodeWithTag("last-category").assertIsFocused()
+     }
++    @Test fun escapeFromGridRestoresCategoryBeforeLeavingScreen() {
++        val focused = grid(100, regions = true)
++        compose.onNodeWithTag("cell-2").performKeyInput { repeat(8) { pressKey(Key.DirectionDown) } }
++        compose.waitUntil(5_000) { focused.get() == 42 }
++        compose.onNodeWithTag("cell-42").performKeyInput { pressKey(Key.Escape) }
++        compose.onNodeWithTag("last-category").assertIsFocused()
++        assertEquals(0, outerBacks.get())
++        compose.onNodeWithTag("last-category").performKeyInput { pressKey(Key.Escape) }
++        assertEquals(1, outerBacks.get())
++    }
+     @Test fun enteringGridHostTransfersFocusToFirstCard() {
+         grid(100, enterHost = true)
+         compose.onNodeWithTag("cell-0").assertIsFocused()
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsHubPages.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsHubPages.kt
+@@ -115,13 +115,13 @@
+                 }
+                 Text("Capas por fileira", color = pageGold, fontSize = 18.sp)
+                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-                    listOf(4 to "4 capas · maiores", 5 to "5 capas").forEach { (columns, title) ->
++                    listOf(4 to "4 por fileira · 8 capas", 5 to "5 por fileira · 10 capas").forEach { (columns, title) ->
+                         AppearanceChoice(title, settings.catalogColumns() == columns, Modifier.weight(1f)) {
+                             settings.setCatalogColumns(columns)
+                         }
+                     }
+                 }
+-                Text("Com 4 capas, duas fileiras completas ficam visíveis em filmes e séries.",
++                Text("Duas fileiras completas: 8 capas grandes ou 10 capas em filmes e séries.",
+                     color = Color(0xFFB7BBC1), fontSize = 13.sp)
+                 Text("A cor acompanha todo o aplicativo. Legendas têm ajuste próprio.",
+                     color = Color(0xFFB7BBC1), fontSize = 13.sp)
+@@ -133,7 +133,10 @@
+                 Box(Modifier.weight(.58f)) { controls() }
+                 Column(Modifier.weight(.42f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                     Text("Prévia · " + selectedTheme.label, color = pageGold, fontSize = 18.sp)
+-                    AppearanceThemePreview()
++                    AppearanceThemePreview(compact = true)
++                    Text("Grade · ${settings.catalogColumns()} por fileira · ${settings.catalogColumns() * 2} capas",
++                        color = pageGold, fontSize = 16.sp)
++                    br.com.flaviotorres.iptvpremium.ui.components.CatalogLayoutPreview(settings.catalogColumns())
+                     Text("Aplicado automaticamente", color = Color(0xFFB7BBC1), fontSize = 13.sp)
+                 }
+             }
+@@ -141,6 +144,9 @@
+             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                 controls()
+                 AppearanceThemePreview()
++                Text("Grade · ${settings.catalogColumns()} por fileira · ${settings.catalogColumns() * 2} capas",
++                    color = pageGold, fontSize = 16.sp)
++                br.com.flaviotorres.iptvpremium.ui.components.CatalogLayoutPreview(settings.catalogColumns())
+             }
+         }
+     }
+@@ -168,8 +174,8 @@
+ }
+ 
+ @Composable
+-private fun AppearanceThemePreview() {
+-    Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(12.dp))
++private fun AppearanceThemePreview(compact: Boolean = false) {
++    Box(Modifier.fillMaxWidth().aspectRatio(if (compact) 2.6f else 16f / 9f).clip(RoundedCornerShape(12.dp))
+         .border(1.dp, Color(0xFF485058), RoundedCornerShape(12.dp))) {
+         androidx.compose.foundation.Image(br.com.flaviotorres.iptvpremium.ui.theme.themePainterResource(br.com.flaviotorres.iptvpremium.R.drawable.home_background), null,
+             modifier = Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogEscapeBack.kt
+@@ -0,0 +1,20 @@
++package br.com.flaviotorres.iptvpremium.ui.components
++
++import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.input.key.*
++
++/** ESC follows the same back stack as the remote: keyboard, category, then exit. */
++@Composable
++internal fun Modifier.catalogEscapeBack(): Modifier {
++    val dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
++    return onPreviewKeyEvent { event ->
++        if (event.key == Key.Escape && dispatcher != null) {
++            if (event.type == KeyEventType.KeyDown && event.nativeKeyEvent.repeatCount == 0) {
++                dispatcher.onBackPressed()
++            }
++            true
++        } else false
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridGeometry.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridGeometry.kt
+@@ -1,10 +1,27 @@
+ package br.com.flaviotorres.iptvpremium.ui.components
+ 
+-/** Largest natural 2:3 poster that fits four cells and two complete rows. */
++internal const val CATALOG_POSTER_ASPECT = 2f / 3f
++internal const val CATALOG_POSTER_CORNER_DP = 4f
++
++internal data class CatalogTwoRowGeometry(
++    val posterWidth: Float,
++    val cardHeight: Float,
++    val rowSpacing: Float
++)
++
++/** Natural 2:3 artwork, two complete rows, and no sliver of a third row. */
++internal fun catalogTwoRowGeometry(width: Float, height: Float, columns: Int,
++    spacing: Float, metadata: Float, padding: Float = 8f): CatalogTwoRowGeometry {
++    if (width <= 0 || height <= 0 || columns <= 0) return CatalogTwoRowGeometry(0f, 0f, 0f)
++    val usableHeight = (height - padding * 2).coerceAtLeast(0f)
++    val cellWidth = ((width - padding * 2 - spacing * (columns - 1)) / columns).coerceAtLeast(0f)
++    val posterHeight = ((usableHeight - spacing) / 2f - metadata).coerceAtLeast(0f)
++    val posterWidth = minOf(cellWidth, posterHeight * CATALOG_POSTER_ASPECT)
++    val cardHeight = posterWidth / CATALOG_POSTER_ASPECT + metadata
++    return CatalogTwoRowGeometry(posterWidth, cardHeight,
++        (usableHeight - cardHeight * 2).coerceAtLeast(spacing))
++}
++
+ internal fun catalogTwoRowPosterWidth(width: Float, height: Float, columns: Int,
+-    spacing: Float, metadata: Float): Float {
+-    if (width <= 0 || height <= 0 || columns <= 0) return 0f
+-    val cellWidth = ((width - 16f - spacing * (columns - 1)) / columns).coerceAtLeast(0f)
+-    val posterHeight = ((height - 18f - spacing) / 2f - metadata).coerceAtLeast(0f)
+-    return minOf(cellWidth, posterHeight * (2f / 3f))
+-}
++    spacing: Float, metadata: Float): Float =
++    catalogTwoRowGeometry(width, height, columns, spacing, metadata).posterWidth
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -159,7 +159,7 @@
+     val width = LocalCatalogPosterWidth.current
+     val metadata = LocalCatalogMetadataHeight.current
+     Column(Modifier.fillMaxWidth().then(if (width.value.isFinite())
+-        Modifier.wrapContentWidth(Alignment.CenterHorizontally).width(width) else Modifier)) {
++        Modifier.wrapContentWidth(Alignment.CenterHorizontally).width(width).height(LocalCatalogCardHeight.current) else Modifier)) {
+         Box(Modifier.fillMaxWidth().aspectRatio(aspect).background(Color(0xFF0B1020)))
+         Spacer(Modifier.height(if (width.value.isFinite()) metadata else 34.dp))
+     }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogLayoutPreview.kt
+@@ -0,0 +1,80 @@
++package br.com.flaviotorres.iptvpremium.ui.components
++
++import androidx.compose.foundation.Image
++import androidx.compose.foundation.background
++import androidx.compose.foundation.border
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.clip
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.layout.ContentScale
++import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.semantics.contentDescription
++import androidx.compose.ui.semantics.semantics
++import androidx.compose.ui.unit.dp
++import br.com.flaviotorres.iptvpremium.R
++import br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors
++import br.com.flaviotorres.iptvpremium.ui.theme.themePainterResource
++
++/** Local artwork only: changing the column preference needs no playlist or network. */
++@Composable
++internal fun CatalogLayoutPreview(columns: Int, modifier: Modifier = Modifier) {
++    val edge = ThemeColors.metallicBorder
++    val shape = RoundedCornerShape(10.dp)
++    val artwork = listOf(R.drawable.home_movies, R.drawable.home_series,
++        R.drawable.actor_cinematic_background, R.drawable.series_living_room)
++    Row(modifier.fillMaxWidth().aspectRatio(1.9f).clip(shape)
++        .background(ThemeColors.surface(0xFF080A0C)).border(1.dp, edge, shape)
++        .testTag("catalog-layout-preview")
++        .semantics { contentDescription = "Prévia: duas fileiras de $columns capas, ${columns * 2} capas visíveis" }
++        .padding(6.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
++        Column(Modifier.fillMaxHeight().weight(.28f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
++            Image(themePainterResource(R.drawable.iptv_premium_logo), null,
++                Modifier.fillMaxWidth().weight(1.3f), contentScale = ContentScale.Fit)
++            repeat(6) { index ->
++                Box(Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(3.dp))
++                    .background(ThemeColors.surface(if (index == 0) 0xFF1E3059 else 0xFF161B25))
++                    .border(if (index == 0) 1.dp else .5.dp, edge, RoundedCornerShape(3.dp))
++                    .padding(horizontal = 5.dp), contentAlignment = Alignment.CenterStart) {
++                    Box(Modifier.fillMaxWidth(if (index % 2 == 0) .65f else .8f)
++                        .height(2.dp).background(Color(0xFFB9C2D0)))
++                }
++            }
++        }
++        Column(Modifier.fillMaxHeight().weight(.72f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
++            Row(Modifier.fillMaxWidth().height(13.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
++                Box(Modifier.weight(.25f).fillMaxHeight().border(.5.dp, edge, RoundedCornerShape(3.dp)))
++                Box(Modifier.weight(.75f).fillMaxHeight().border(.5.dp, edge, RoundedCornerShape(3.dp)))
++            }
++            BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
++                val geometry = catalogTwoRowGeometry(maxWidth.value, maxHeight.value, columns,
++                    spacing = 4f, metadata = 6f, padding = 0f)
++                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(geometry.rowSpacing.dp)) {
++                    repeat(2) { row ->
++                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
++                            repeat(columns) { column ->
++                                val index = row * columns + column
++                                Box(Modifier.weight(1f), contentAlignment = Alignment.TopCenter) {
++                                    Column(Modifier.width(geometry.posterWidth.dp).height(geometry.cardHeight.dp)
++                                        .testTag("preview-poster-$index")) {
++                                        val posterShape = RoundedCornerShape(2.dp)
++                                        Image(themePainterResource(artwork[index % artwork.size]),
++                                            contentDescription = "Capa de exemplo ${index + 1}",
++                                            modifier = Modifier.fillMaxWidth().aspectRatio(CATALOG_POSTER_ASPECT)
++                                                .clip(posterShape).border(.5.dp, edge, posterShape),
++                                            contentScale = ContentScale.Crop)
++                                        Spacer(Modifier.height(2.dp))
++                                        Box(Modifier.fillMaxWidth(.85f).height(2.dp).background(Color(0xFFB9C2D0)))
++                                    }
++                                }
++                            }
++                        }
++                    }
++                }
++            }
++        }
++    }
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogTwoRowFrame.kt
+@@ -0,0 +1,41 @@
++package br.com.flaviotorres.iptvpremium.ui.components
++
++import androidx.compose.foundation.background
++import androidx.compose.foundation.border
++import androidx.compose.foundation.layout.BoxWithConstraints
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.foundation.layout.padding
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.CompositionLocalProvider
++import androidx.compose.runtime.staticCompositionLocalOf
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.platform.LocalDensity
++import androidx.compose.ui.unit.Dp
++import androidx.compose.ui.unit.dp
++import br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors
++
++internal val LocalCatalogCardHeight = staticCompositionLocalOf { Dp.Unspecified }
++internal val LocalCatalogRowSpacing = staticCompositionLocalOf { 10.dp }
++
++/** Header-free catalog frame shared by movies and series, including local lists. */
++@Composable
++internal fun CatalogTwoRowFrame(compactLayout: Boolean, columns: Int,
++    content: @Composable (Float) -> Unit) {
++    val shape = RoundedCornerShape(if (compactLayout) 14.dp else 18.dp)
++    BoxWithConstraints(Modifier.fillMaxSize()
++        .background(CatalogGlass.surface(0xFF070708), shape)
++        .border(1.dp, ThemeColors.metallicBorder, shape)
++        .padding(if (compactLayout) 4.dp else 6.dp)) {
++        val scale = LocalDensity.current.fontScale
++        val metadata = if (compactLayout) 26f * scale + 6f else 34f * scale + 10f
++        val geometry = catalogTwoRowGeometry(maxWidth.value, maxHeight.value, columns,
++            if (compactLayout) 10f else 16f, metadata)
++        CompositionLocalProvider(
++            LocalCatalogPosterWidth provides geometry.posterWidth.dp,
++            LocalCatalogMetadataHeight provides metadata.dp,
++            LocalCatalogCardHeight provides geometry.cardHeight.dp,
++            LocalCatalogRowSpacing provides geometry.rowSpacing.dp
++        ) { content(CATALOG_POSTER_ASPECT) }
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
+@@ -17,6 +17,7 @@
+ import androidx.media3.exoplayer.ExoPlayer
+ import androidx.media3.ui.AspectRatioFrameLayout
+ import androidx.media3.ui.PlayerView
++import br.com.flaviotorres.iptvpremium.ui.components.catalogEscapeBack
+ import androidx.activity.compose.BackHandler
+ import androidx.compose.foundation.BorderStroke
+ import androidx.compose.foundation.Canvas
+@@ -62,6 +63,8 @@
+ import androidx.compose.ui.draw.drawBehind
+ import androidx.compose.foundation.layout.offset
+ import androidx.compose.ui.geometry.CornerRadius
++import androidx.compose.ui.focus.FocusRequester
++import androidx.compose.ui.focus.focusRequester
+ import androidx.compose.ui.focus.onFocusChanged
+ import androidx.compose.ui.graphics.Brush
+ import androidx.compose.ui.graphics.Color
+@@ -789,6 +792,7 @@
+ 
+     BoxWithConstraints(
+         modifier = Modifier
++            .catalogEscapeBack()
+             .fillMaxSize()
+             .background(br.com.flaviotorres.iptvpremium.ui.components.CatalogGlass.surface(0xFF070708))
+     ) {
+@@ -1618,8 +1622,17 @@
+     compactLayout: Boolean,
+     onCategorySelected: (ChannelCategory) -> Unit
+ ) {
++    val selectedIndex = categories.indexOfFirst { it.id == selectedCategory.id }.coerceAtLeast(0)
++    val state = androidx.compose.foundation.lazy.rememberLazyListState(selectedIndex)
++    val selectedFocus = remember { FocusRequester() }
++    LaunchedEffect(selectedCategory.id, categories) {
++        if (categories.isNotEmpty()) {
++            state.scrollToItem(selectedIndex)
++        }
++    }
+     LazyColumn(
+         modifier = Modifier.fillMaxSize(),
++        state = state,
+         verticalArrangement =
+             Arrangement.spacedBy(
+                 if (compactLayout) 4.dp else 6.dp
+@@ -1630,6 +1643,7 @@
+             key = { it.id }
+         ) { category ->
+             CategoryItem(
++                focus = if (category.id == categories.getOrNull(selectedIndex)?.id) selectedFocus else null,
+                 title = cleanCategoryDisplayName(category.title),
+                 count = categoryCounts[category] ?: 0,
+                 isSelected = category == selectedCategory,
+@@ -1648,8 +1662,15 @@
+     count: Int,
+     isSelected: Boolean,
+     compactLayout: Boolean,
+-    onSelect: () -> Unit
++    onSelect: () -> Unit,
++    focus: FocusRequester? = null
+ ) {
++    LaunchedEffect(focus) {
++        if (focus != null) {
++            androidx.compose.runtime.withFrameNanos { }
++            focus.requestFocus()
++        }
++    }
+     var isFocused by remember {
+         mutableStateOf(false)
+     }
+@@ -1659,6 +1680,7 @@
+ 
+     Row(
+         modifier = Modifier
++            .then(if (focus != null) Modifier.focusRequester(focus) else Modifier)
+             .fillMaxWidth()
+             .height(if (compactLayout) 40.dp else 46.dp)
+             .background(
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -29,6 +29,9 @@
+ import androidx.compose.foundation.border
+ import androidx.compose.foundation.clickable
+ import androidx.compose.foundation.gestures.detectTapGestures
++import br.com.flaviotorres.iptvpremium.ui.components.catalogEscapeBack
++import br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogRowSpacing
++import br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogCardHeight
+ import androidx.compose.foundation.focusGroup
+ import androidx.compose.ui.focus.focusRestorer
+ import androidx.compose.foundation.focusable
+@@ -616,6 +619,7 @@
+ 
+     BoxWithConstraints(
+         modifier = Modifier
++            .catalogEscapeBack()
+             .fillMaxSize()
+             .background(br.com.flaviotorres.iptvpremium.ui.components.CatalogGlass.surface(0xFF070708))
+     ) {
+@@ -953,26 +957,9 @@
+                     )
+                 )
+ 
+-                MoviesCatalogFrame(
++                br.com.flaviotorres.iptvpremium.ui.components.CatalogTwoRowFrame(
+                     columns = gridColumns,
+                     compactLayout = compactLayout,
+-                    title = when {
+-                        selectedSourceCategoryId != null -> {
+-                            val selectedName = visiblePagingCategories.firstOrNull {
+-                                it.id == selectedSourceCategoryId
+-                            }?.name?.let(::displayMovieCategoryName) ?: "Todos"
+-                            "FILMES - ${selectedName.uppercase(Locale.ROOT)}"
+-                        }
+-                        else -> "FILMES - ${selectedCategory.title.uppercase(Locale.ROOT)}"
+-                    },
+-                    count = when {
+-                        selectedSourceCategoryId != null -> pagingCategoryCounts[selectedSourceCategoryId] ?: 0
+-                        selectedCategory == MovieCategory.FAVORITES -> favoriteMovieIds.size
+-                        selectedCategory == MovieCategory.CONTINUE_WATCHING -> continueMovies.size
+-                        selectedCategory == MovieCategory.ALL -> visibleTotalMovieCount
+-                        !useRoomPaging -> displayedMovies.size
+-                        else -> pagedMovies?.itemCount ?: 0
+-                    }
+                 ) { posterAspectRatio ->
+ 
+                     if (
+@@ -992,7 +979,7 @@
+                                     modifier = Modifier.fillMaxSize().catalogGridHost(gridNavigator),
+                                     contentPadding = PaddingValues(8.dp),
+                                     horizontalArrangement = Arrangement.spacedBy(gridHorizontalSpacing),
+-                                    verticalArrangement = Arrangement.spacedBy(gridVerticalSpacing)
++                                    verticalArrangement = Arrangement.spacedBy(LocalCatalogRowSpacing.current)
+                                 ) {
+                                     items(continueMovies.size) { index ->
+                                         val entry = continueMovies[index]
+@@ -1093,7 +1080,7 @@
+                                         ),
+                                     verticalArrangement =
+                                         Arrangement.spacedBy(
+-                                            gridVerticalSpacing
++                                            LocalCatalogRowSpacing.current
+                                         )
+                                 ) {
+                                     items(
+@@ -1210,7 +1197,7 @@
+                             horizontalArrangement =
+                                 Arrangement.spacedBy(gridHorizontalSpacing),
+                             verticalArrangement =
+-                                Arrangement.spacedBy(gridVerticalSpacing)
++                                Arrangement.spacedBy(LocalCatalogRowSpacing.current)
+                         ) {
+                             items(
+                                 items = displayedMovies,
+@@ -1707,60 +1694,6 @@
+     }
+ }
+ 
+-@Composable
+-private fun MoviesCatalogFrame(
+-    compactLayout: Boolean,
+-    title: String,
+-    count: Int,
+-    columns: Int = 5,
+-    content: @Composable (Float) -> Unit
+-) {
+-    val shape = RoundedCornerShape(if (compactLayout) 14.dp else 18.dp)
+-    Column(
+-        modifier = Modifier.fillMaxSize()
+-            .background(PremiumPanelBackground, shape)
+-            .border(BorderStroke(1.dp, PremiumGoldBorder), shape)
+-            .padding(if (compactLayout) 8.dp else 12.dp)
+-    ) {
+-        Row(
+-            modifier = Modifier.fillMaxWidth(),
+-            horizontalArrangement = Arrangement.SpaceBetween,
+-            verticalAlignment = Alignment.CenterVertically
+-        ) {
+-            Text(
+-                text = title,
+-                color = AppGoldLight,
+-                fontSize = if (compactLayout) 11.sp else 14.sp,
+-                fontWeight = FontWeight.Bold,
+-                maxLines = 1
+-            )
+-            Text(
+-                text = "$count ITENS",
+-                color = AppGoldLight,
+-                fontSize = if (compactLayout) 10.sp else 12.sp,
+-                fontWeight = FontWeight.Bold,
+-                maxLines = 1
+-            )
+-        }
+-        PremiumDivider(compactLayout = compactLayout)
+-        Spacer(Modifier.height(if (compactLayout) 3.dp else 7.dp))
+-        BoxWithConstraints(Modifier.weight(1f)) {
+-            val scale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+-            val metadataHeight = if (compactLayout) 26f * scale + 6f else 34f * scale + 10f
+-            val width = if (columns == 4) br.com.flaviotorres.iptvpremium.ui.components.catalogTwoRowPosterWidth(
+-                maxWidth.value, maxHeight.value, columns,
+-                if (compactLayout) 10f else 16f,
+-                metadataHeight
+-            ).dp else androidx.compose.ui.unit.Dp.Unspecified
+-            CompositionLocalProvider(
+-                br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWidth provides width,
+-                br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogMetadataHeight provides metadataHeight.dp
+-            ) {
+-                content(if (columns == 4) 2f / 3f else if (compactLayout) .72f else .67f)
+-            }
+-        }
+-    }
+-}
+ 
+ @Composable
+ private fun MovieCategoryItem(
+@@ -2256,13 +2189,7 @@
+         }
+     }
+ 
+-    val shape = RoundedCornerShape(
+-        if (compactLayout) {
+-            9.dp
+-        } else {
+-            12.dp
+-        }
+-    )
++    val shape = RoundedCornerShape(br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP.dp)
+ 
+     val posterContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
+     val artworkEpoch by br.com.flaviotorres.iptvpremium.ui.theme.ThemeArtworkEpoch.collectAsState()
+@@ -2285,9 +2212,7 @@
+             rating,
+             durationSeconds
+         ) {
+-            if (fittedPosterWidth.value.isFinite()) {
+-                rating?.takeIf { it.isFinite() && it > 0.0 }?.let { String.format(Locale.US, "★ %.1f", it) } ?: "★ —"
+-            } else movieMetadataText(
++            movieMetadataText(
+                 year = year,
+                 rating = rating,
+                 durationSeconds =
+@@ -2297,7 +2222,7 @@
+ 
+     Column(
+         modifier = Modifier
+-            .then(if (fittedPosterWidth.value.isFinite()) Modifier.wrapContentWidth(Alignment.CenterHorizontally).width(fittedPosterWidth) else Modifier)
++            .then(if (fittedPosterWidth.value.isFinite()) Modifier.wrapContentWidth(Alignment.CenterHorizontally).width(fittedPosterWidth).height(LocalCatalogCardHeight.current) else Modifier)
+             .graphicsLayer { scaleX = focusScale; scaleY = focusScale }
+             .onFocusChanged { focusState ->
+                 if (focusState.isFocused && !isFocused) {
+@@ -2406,7 +2331,7 @@
+                     ),
+                     shape = shape
+                 )
+-                .premiumGlow(isFocused || isSelected, roundedDp = if (compactLayout) 9f else 12f)
++                .premiumGlow(isFocused || isSelected, roundedDp = br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
+                 .border(
+                     border = BorderStroke(
+                         width =
+@@ -2531,7 +2456,7 @@
+                 Box(
+                     modifier = Modifier
+                         .matchParentSize()
+-                        .reinforcedCatalogFocus(true, if (compactLayout) 9f else 12f)
++                        .reinforcedCatalogFocus(true, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
+                 )
+             }
+         }
+@@ -2548,6 +2473,7 @@
+ 
+         Text(
+             text = name,
++            lineHeight = if (compactLayout) 14.sp else 18.sp,
+             modifier = if (isFocused) Modifier.basicMarquee(iterations = Int.MAX_VALUE, initialDelayMillis = 800, repeatDelayMillis = 1000) else Modifier,
+             color =
+                 if (
+@@ -2590,6 +2516,7 @@
+ 
+             Text(
+                 text = metadataText,
++                lineHeight = if (compactLayout) 12.sp else 16.sp,
+                 color = Color(0xFF9D9DA3),
+                 fontSize =
+                     if (compactLayout) {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -25,6 +25,9 @@
+ import androidx.compose.foundation.border
+ import androidx.compose.foundation.clickable
+ import androidx.compose.foundation.gestures.detectTapGestures
++import br.com.flaviotorres.iptvpremium.ui.components.catalogEscapeBack
++import br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogRowSpacing
++import br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogCardHeight
+ import androidx.compose.foundation.focusGroup
+ import androidx.compose.ui.focus.focusRestorer
+ import androidx.compose.foundation.focusable
+@@ -529,8 +532,10 @@
+             }
+         }
+ 
++    val previewGridColumns = br.com.flaviotorres.iptvpremium.ui.settings.rememberSettingsPreferences().catalogColumns()
+     BoxWithConstraints(
+         modifier = Modifier
++            .catalogEscapeBack()
+             .fillMaxSize()
+             .background(br.com.flaviotorres.iptvpremium.ui.components.CatalogGlass.surface(0xFF070708))
+     ) {
+@@ -991,11 +996,10 @@
+                     )
+                 )
+ 
+-                SeriesCatalogFrame(
++                br.com.flaviotorres.iptvpremium.ui.components.CatalogTwoRowFrame(
++                    columns = previewGridColumns,
+                     compactLayout = compactLayout,
+-                    title = "SÉRIES - ${selectedCategory.title.uppercase(Locale.ROOT)}",
+-                    count = displayedSeries.size
+-                ) {
++                ) { posterAspectRatio ->
+                     if (displayedSeries.isEmpty()) {
+                         Box(
+                             modifier = Modifier.fillMaxSize(),
+@@ -1022,7 +1026,7 @@
+                          * 5 + 5.
+                          */
+                         LazyVerticalGrid(
+-                            columns = GridCells.Fixed(5),
++                            columns = GridCells.Fixed(previewGridColumns),
+                             modifier = Modifier.fillMaxSize(),
+                             // Resguarda o zoom de foco (3,5%) também na primeira capa.
+                             // Segue o mesmo criterio da grade de Filmes.
+@@ -1033,7 +1037,7 @@
+                                 ),
+                             verticalArrangement =
+                                 Arrangement.spacedBy(
+-                                    gridVerticalSpacing
++                                    LocalCatalogRowSpacing.current
+                                 )
+                         ) {
+                             items(
+@@ -1338,7 +1342,7 @@
+     }
+ 
+     BoxWithConstraints(
+-        modifier = Modifier.fillMaxSize().background(br.com.flaviotorres.iptvpremium.ui.components.CatalogGlass.surface(0xFF070708))
++        modifier = Modifier.catalogEscapeBack().fillMaxSize().background(br.com.flaviotorres.iptvpremium.ui.components.CatalogGlass.surface(0xFF070708))
+     ) {
+         val compactLayout = maxHeight < 650.dp || maxWidth < 1200.dp
+         val outerHorizontalPadding = if (compactLayout) 18.dp else 28.dp
+@@ -1497,23 +1501,9 @@
+                     compactLayout = compactLayout
+                 )
+                 Spacer(Modifier.height(if (compactLayout) 10.dp else 16.dp))
+-                val selectedSeriesTitle = when (selectedMenu) {
+-                    "all" -> "Todos"
+-                    "continue" -> "Continuar assistindo"
+-                    "favorites" -> "Favoritos"
+-                    else -> realCategories.firstOrNull { it.id == selectedProviderId }
+-                        ?.name?.let(::displaySeriesCategoryName) ?: "Todos"
+-                }
+-                SeriesCatalogFrame(
++                br.com.flaviotorres.iptvpremium.ui.components.CatalogTwoRowFrame(
+                     columns = gridColumns,
+                     compactLayout = compactLayout,
+-                    title = "SÉRIES - ${selectedSeriesTitle.uppercase(Locale.ROOT)}",
+-                    count = when (selectedMenu) {
+-                        "all" -> totalSeriesCount
+-                        "continue" -> continueWatchingEntries.size
+-                        "favorites" -> favoriteSeriesIds.size
+-                        else -> pagingCategoryCounts[selectedProviderId] ?: pagedSeries.itemCount
+-                    }
+                 ) { posterAspectRatio ->
+                     val refreshState = pagedSeries.loadState.refresh
+ 
+@@ -1533,7 +1523,7 @@
+                                 modifier = Modifier.fillMaxSize().catalogGridHost(gridNavigator),
+                                 contentPadding = PaddingValues(8.dp),
+                                 horizontalArrangement = Arrangement.spacedBy(gridHorizontalSpacing),
+-                                verticalArrangement = Arrangement.spacedBy(gridVerticalSpacing)
++                                verticalArrangement = Arrangement.spacedBy(LocalCatalogRowSpacing.current)
+                             ) {
+                                 items(continueWatchingEntries.size) { index ->
+                                     val entry = continueWatchingEntries[index]
+@@ -1585,7 +1575,7 @@
+                             // Assim o card ampliado nao e cortado no topo/lateral.
+                             contentPadding = PaddingValues(8.dp),
+                             horizontalArrangement = Arrangement.spacedBy(gridHorizontalSpacing),
+-                            verticalArrangement = Arrangement.spacedBy(gridVerticalSpacing)
++                            verticalArrangement = Arrangement.spacedBy(LocalCatalogRowSpacing.current)
+                         ) {
+                             items(
+                                 count = pagedSeries.itemCount,
+@@ -2062,60 +2052,6 @@
+     }
+ }
+ 
+-@Composable
+-private fun SeriesCatalogFrame(
+-    compactLayout: Boolean,
+-    title: String,
+-    count: Int,
+-    columns: Int = 5,
+-    content: @Composable (Float) -> Unit
+-) {
+-    val shape = RoundedCornerShape(if (compactLayout) 14.dp else 18.dp)
+-    Column(
+-        modifier = Modifier.fillMaxSize()
+-            .background(PremiumPanelBackground, shape)
+-            .border(BorderStroke(1.dp, PremiumGoldBorder), shape)
+-            .padding(if (compactLayout) 8.dp else 12.dp)
+-    ) {
+-        Row(
+-            modifier = Modifier.fillMaxWidth(),
+-            horizontalArrangement = Arrangement.SpaceBetween,
+-            verticalAlignment = Alignment.CenterVertically
+-        ) {
+-            Text(
+-                text = title,
+-                color = AppGoldLight,
+-                fontSize = if (compactLayout) 11.sp else 14.sp,
+-                fontWeight = FontWeight.Bold,
+-                maxLines = 1
+-            )
+-            Text(
+-                text = "$count ITENS",
+-                color = AppGoldLight,
+-                fontSize = if (compactLayout) 10.sp else 12.sp,
+-                fontWeight = FontWeight.Bold,
+-                maxLines = 1
+-            )
+-        }
+-        PremiumDivider(compactLayout = compactLayout)
+-        Spacer(Modifier.height(if (compactLayout) 3.dp else 7.dp))
+-        BoxWithConstraints(Modifier.weight(1f)) {
+-            val scale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+-            val metadataHeight = if (compactLayout) 26f * scale + 6f else 34f * scale + 10f
+-            val width = if (columns == 4) br.com.flaviotorres.iptvpremium.ui.components.catalogTwoRowPosterWidth(
+-                maxWidth.value, maxHeight.value, columns,
+-                if (compactLayout) 10f else 16f,
+-                metadataHeight
+-            ).dp else androidx.compose.ui.unit.Dp.Unspecified
+-            CompositionLocalProvider(
+-                br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWidth provides width,
+-                br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogMetadataHeight provides metadataHeight.dp
+-            ) {
+-                content(if (columns == 4) 2f / 3f else if (compactLayout) .72f else .67f)
+-            }
+-        }
+-    }
+-}
+ 
+ @Composable
+ private fun SeriesCategoryItem(
+@@ -2438,13 +2374,11 @@
+         }
+     }
+ 
+-    val shape = RoundedCornerShape(
+-        if (compactLayout) 9.dp else 12.dp
+-    )
++    val shape = RoundedCornerShape(br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP.dp)
+ 
+     Column(
+         modifier = Modifier
+-            .then(if (fittedPosterWidth.value.isFinite()) Modifier.wrapContentWidth(Alignment.CenterHorizontally).width(fittedPosterWidth) else Modifier)
++            .then(if (fittedPosterWidth.value.isFinite()) Modifier.wrapContentWidth(Alignment.CenterHorizontally).width(fittedPosterWidth).height(LocalCatalogCardHeight.current) else Modifier)
+             .graphicsLayer { scaleX = focusScale; scaleY = focusScale }
+             .onFocusChanged { focusState ->
+                 isFocused = focusState.isFocused
+@@ -2558,7 +2492,7 @@
+                     ),
+                     shape = shape
+                 )
+-                .premiumGlow(isFocused || isSelected, roundedDp = if (compactLayout) 9f else 12f)
++                .premiumGlow(isFocused || isSelected, roundedDp = br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
+                 .border(
+                     border = BorderStroke(
+                         width = if (isFocused || isSelected) 2.dp else 1.dp,
+@@ -2615,7 +2549,7 @@
+             }
+             // Foco por cima da arte, com metalizado da paleta ativa.
+             Box(Modifier.matchParentSize().reinforcedCatalogFocus(
+-                isFocused || isSelected, if (compactLayout) 9f else 12f
++                isFocused || isSelected, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP
+             ))
+ 
+             Box(
+@@ -2663,6 +2597,7 @@
+ 
+         Text(
+             text = name,
++            lineHeight = if (compactLayout) 14.sp else 18.sp,
+             modifier = if (isFocused) Modifier.basicMarquee(iterations = Int.MAX_VALUE, initialDelayMillis = 800, repeatDelayMillis = 1000) else Modifier,
+             color =
+                 if (
+@@ -2692,9 +2627,7 @@
+             overflow = if (isFocused) TextOverflow.Clip else TextOverflow.Ellipsis
+         )
+         // Mesmos metadados de classificacao mostrados nos cards de Filmes.
+-        val metadata = if (fittedPosterWidth.value.isFinite()) {
+-            rating?.takeIf { it.isFinite() && it > 0.0 }?.let { String.format(Locale.US, "★ %.1f", it) } ?: "★ —"
+-        } else buildList {
++        val metadata = buildList {
+             year?.takeIf { it in 1888..2100 }?.let { add(it.toString()) }
+             rating?.takeIf { it > 0.0 }?.let {
+                 add(String.format(Locale.US, "★ %.1f", it))
+@@ -2704,6 +2637,7 @@
+             Spacer(Modifier.height(if (compactLayout) 2.dp else 3.dp))
+             Text(
+                 text = metadata,
++                lineHeight = if (compactLayout) 12.sp else 16.sp,
+                 color = Color(0xFF9D9DA3),
+                 fontSize = if (compactLayout) 9.sp else 11.sp,
+                 maxLines = 1,
