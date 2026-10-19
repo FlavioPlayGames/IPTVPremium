@@ -1,0 +1,62 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogTwoRowFrame.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogTwoRowFrame.kt
+@@ -56,6 +56,6 @@
+ 
+ /** DPAD navigation owns row alignment; platform focus must not recenter a card. */
+ @OptIn(ExperimentalFoundationApi::class)
+-private object CatalogRowBringIntoViewSpec : BringIntoViewSpec {
++internal object CatalogRowBringIntoViewSpec : BringIntoViewSpec {
+     override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float = 0f
+ }
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
+@@ -19,7 +19,7 @@
+ import org.junit.Rule
+ import org.junit.Test
+ 
+-@OptIn(ExperimentalTestApi::class)
++@OptIn(ExperimentalTestApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
+ class CatalogSmoothScrollDeviceTest {
+     @get:Rule val compose = createComposeRule()
+     private lateinit var navigation: CatalogGridNavigator
+@@ -50,7 +50,9 @@
+             }
+             if (realFrame) Box(Modifier.width(600.dp).height(343.dp)) {
+                 CatalogTwoRowFrame(true, columns) { content() }
+-            } else content()
++            } else CompositionLocalProvider(
++                androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides CatalogRowBringIntoViewSpec
++            ) { content() }
+ 
+         }
+         compose.waitUntil(5_000) { focused.get() == 2 }
+@@ -99,17 +101,24 @@
+         assertEquals(0f, position(columns), 1f)
+         assertTwoRows(columns)
+     }
+-    private fun wheelSettles(columns: Int) {
+-        setup(columns)
++    private fun wheelSettles(columns: Int, realFrame: Boolean = false) {
++        setup(columns, realFrame)
+         compose.mainClock.autoAdvance = false
+-        compose.runOnIdle { runBlocking { grid.scrollBy(66f) } }
+-        assertEquals(66f, position(columns), 1f)
++        val stepPx = compose.runOnIdle {
++            grid.layoutInfo.visibleItemsInfo.first().size.height + grid.layoutInfo.mainAxisItemSpacing
++        }
++        // scrollBy uses physical pixels, while the fixture dimensions use dp.
++        val wheelDistancePx = stepPx * 0.6f
++        compose.runOnIdle { runBlocking { grid.scrollBy(wheelDistancePx) } }
++        assertEquals(wheelDistancePx, position(columns), 1f)
+         compose.mainClock.advanceTimeBy(1000)
+-        assertEquals(columns, compose.runOnIdle { grid.firstVisibleItemIndex })
++        assertEquals("stepPx=$stepPx wheelPx=$wheelDistancePx", columns, compose.runOnIdle { grid.firstVisibleItemIndex })
+         assertTwoRows(columns)
+     }
+     @Test fun wheelStopsOnEightWholeCards() = wheelSettles(4)
+     @Test fun wheelStopsOnTenWholeCards() = wheelSettles(5)
++    @Test fun actualFrameWheelStopsOnEightWholeCards() = wheelSettles(4, true)
++    @Test fun actualFrameWheelStopsOnTenWholeCards() = wheelSettles(5, true)
+     @Test fun actualFrameFourColumnsNeverStopsWithClippedSecondRow() = rowSlides(4, true)
+     @Test fun actualFrameFiveColumnsNeverStopsWithClippedSecondRow() = rowSlides(5, true)
+     @Test fun fourColumnsSlideAndSettleWithEightCards() = rowSlides(4)

@@ -1,0 +1,32 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogTwoRowFrame.kt",
+    "allowMissing": false,
+    "allowed": [
+      "8da11ba0a6de8de30a50730371421e58cfafdebfc0529213319a0f022735f017",
+      "f11ebedcd26823629aa7b53d7b3683b3d78b4d3f3642ef073c569be5d25b83d9",
+      "685de80a6bf9238ad79ad7a8ebf0dd2c90a09999219c1deea4e32b28d455ed02",
+      "9cba770f8c0eaea42e1bdefb2fa3ce18452faf8749659d2d8a8cd1cd7ac47f33",
+      "e3d2367b59510a82f205c2dfd2d4bab89b2459f8d9937c4523a14f870020c375",
+      "938a9746fa0b6df43ee6374376fef03255a3350907f47167839e44c5703fd900",
+      "6aa7c6c184a8b337fa2f4c88e27a96feae88618957ac2cb0bfe693996212150e",
+      "3ba6f5993b2ce90d5087600268a68074e65cc606e460dd92ca40ccfa73f5a18f"
+    ],
+    "sha": "e3d2367b59510a82f205c2dfd2d4bab89b2459f8d9937c4523a14f870020c375"
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt",
+    "allowMissing": false,
+    "allowed": [
+      "aab0785d42b0ff3f1108ac7012f1018833070c46b64c86e23b53cf3c31c2da5f",
+      "f487d391ee2e733feda827045ae1802459af08a4f3495957b75ed154eb05897b",
+      "8213dda401b3ad62d1ed7dc3abfbc8a508e816f8ea5c354b064cb2006d43b32f",
+      "70445a2fcc0170bcd0300eeee696a987d8d8cc78ddb6497f68492e930ce2e05f",
+      "acc19b9eebe90a9eac65e24326f56209a4e22fd88dae21f2aaab511aac0bda3d",
+      "5c5474aceff93ef66b3b6cc91c503d7e77543d83975fe5eaa15c2042ef0064c9",
+      "5bd151e61cb7ba30e09143dd6c0fdf998e7903b398efdc2d13c9236076da53a5",
+      "b24289eb382da692c095308211f969b2d5decc0159b425558d66441c59c6ff87"
+    ],
+    "sha": "acc19b9eebe90a9eac65e24326f56209a4e22fd88dae21f2aaab511aac0bda3d"
+  }
+]
