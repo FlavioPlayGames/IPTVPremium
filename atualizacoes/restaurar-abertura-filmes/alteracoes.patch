@@ -1,0 +1,254 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -2477,27 +2477,6 @@
+                         maxHeight.roundToPx().coerceAtLeast(1)
+                     }
+ 
+-                    var openingNavigationIssued by remember(movieId, retryCount) { mutableStateOf(false) }
+-                    val completeMovieOpening by rememberUpdatedState<() -> Unit>({
+-                        if (!openingNavigationIssued && selectedPlaylistId == activePlaylistId &&
+-                            movieId.isNotBlank() && errorMessage == null) {
+-                            openingNavigationIssued = true
+-                            navController.navigate(AppDestination.MovieDetails.createRoute(movieId)) {
+-                                popUpTo(entry.destination.id) { inclusive = true }
+-                                launchSingleTop = true
+-                            }
+-                        }
+-                    })
+-
+-                    // Reserve the gentle stop/zoom inside a three-second presentation.
+-                    // Metadata may continue on MovieDetails after this visual budget.
+-                    LaunchedEffect(movieId, selectedPlaylistId, retryCount, viewportWidthPx, viewportHeightPx) {
+-                        delay(br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningPolicy.spinBudgetMs)
+-                        if (errorMessage == null) finishRequested = true
+-                        delay(br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningPolicy.finishingMs)
+-                        completeMovieOpening()
+-                    }
+-
+                     LaunchedEffect(
+                         movieId,
+                         selectedPlaylistId,
+@@ -2544,7 +2523,7 @@
+                                     null
+                                 }
+ 
+-                            // Ready data ends the spin immediately; the visual stop remains smooth.
++                            // Evita piscadas mesmo quando Room e cache sao rapidos.
+                             val elapsed = SystemClock.elapsedRealtime() - startedAt
+                             delay(br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningPolicy.minimumWaitMs(
+                                 elapsed, prepared?.images?.backdropReady == true && prepared.images?.titleLogoReady == true
+@@ -2618,7 +2597,19 @@
+                         selectedMovieId = movieId,
+                         finishRequested = finishRequested,
+                         errorMessage = errorMessage,
+-                        onTransitionFinished = { completeMovieOpening() },
++                        onTransitionFinished = {
++                            val prepared = preparedMovieDetails
++                            if (prepared != null && prepared.movieId == movieId &&
++                                prepared.playlistId == activePlaylistId
++                            ) {
++                                navController.navigate(
++                                    AppDestination.MovieDetails.createRoute(movieId)
++                                ) {
++                                    popUpTo(entry.destination.id) { inclusive = true }
++                                    launchSingleTop = true
++                                }
++                            }
++                        },
+                         onRetry = {
+                             finishRequested = false
+                             errorMessage = null
+@@ -4568,7 +4559,7 @@
+  * - Ate 20 capas reais e diferentes, somente das paginas ja presentes no Paging.
+  * - Um unico relogio com withFrameNanos, sem reiniciar a animacao a cada volta.
+  * - Uma orbita continua e sempre no mesmo sentido, com a frente sobre o fundo.
+- * - Ao concluir: alinha pelo caminho curto ate o filme escolhido, pressiona com borda dourada,
++ * - Ao concluir: acelera para o filme escolhido, pressiona com borda dourada,
+  *   oculta os textos e so entao expande para abrir a tela de detalhes.
+  * - Nenhum clique real e disparado: onTransitionFinished e chamado uma vez.
+  */
+@@ -4607,7 +4598,7 @@
+     val selectionStarted = remember(selectedMovieId) { mutableStateOf(false) }
+     val finishSignal = rememberUpdatedState(finishRequested)
+     val finishCallback = rememberUpdatedState(onTransitionFinished)
+-    val animationCards = rememberUpdatedState(cards)
++    val orderKey = cards.joinToString("|") { it.movieId }
+ 
+     val transition = rememberInfiniteTransition(label = "cinematic-carousel-light")
+     val shimmer by transition.animateFloat(
+@@ -4625,22 +4616,23 @@
+         label = "carousel-loading-chrome-alpha"
+     )
+ 
+-    // Visual presentation progress; metadata has no measurable percentage.
+-    // Its duration shares the same three-second presentation budget.
++    // A barra nao apresenta 100% antes da preparacao real terminar.
++    // O progresso intermediario e visual (o carregamento nao informa percentual).
+     val sessionLoadingProgress by animateFloatAsState(
+         targetValue = if (finishRequested) 1f else 0.76f,
+         animationSpec = tween(
+-            durationMillis = if (finishRequested)
+-                br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningPolicy.finishingMs.toInt()
+-            else br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningPolicy.spinBudgetMs.toInt(),
++            durationMillis = if (finishRequested) 450 else 4_600,
+             easing = LinearEasing
+         ),
+         label = "movie-session-loading-progress"
+     )
+ 
+-    LaunchedEffect(selectedMovieId, errorMessage) {
++    LaunchedEffect(selectedMovieId, orderKey, errorMessage) {
+         if (errorMessage != null) return@LaunchedEffect
+-        val policy = br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningPolicy
++        val count = cards.size.coerceAtLeast(1).toFloat()
++        val chosenIndex = cards.indexOfFirst { it.movieId == selectedMovieId }
++            .coerceAtLeast(0).toFloat()
++        val rotationSpeed = 2.50f // mesma velocidade e direcao aprovadas
+         // Relogio ancorado: nao acumula erros nem perde distancia em frames lentos.
+         // Uma pausa longa (TV em segundo plano) nao faz o anel dar um salto.
+         var rotationOriginNanos = withFrameNanos { it }
+@@ -4652,12 +4644,8 @@
+         var phaseDuration = 0L
+         var initial = 0f
+         var destination = 0f
+-        var finishingVelocity = 0f
+ 
+         while (true) {
+-            val currentCards = animationCards.value
+-            val count = currentCards.size.coerceAtLeast(1).toFloat()
+-            val chosenIndex = currentCards.indexOfFirst { it.movieId == selectedMovieId }.coerceAtLeast(0).toFloat()
+             val now = withFrameNanos { it }
+             val frameGapNanos = (now - priorNanos).coerceAtLeast(0L)
+             priorNanos = now
+@@ -4666,8 +4654,11 @@
+                 0 -> {
+                     if (finishSignal.value) {
+                         initial = trackPosition.floatValue
+-                        destination = initial + policy.alignmentDelta(initial, chosenIndex, count)
+-                        finishingVelocity = policy.spinVelocity((now - rotationOriginNanos).coerceAtLeast(0L) / 1_000_000_000f)
++                        val phase = ((initial % count) + count) % count
++                        var forward = ((chosenIndex - phase) % count + count) % count
++                        // A selecao percorre pelo menos parte do anel. Nunca volta.
++                        if (count > 1f && forward < count * 0.17f) forward += count
++                        destination = initial + forward
+                         phaseStarted = now
+                         phaseDuration = br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningPolicy.alignNanos
+                         mode = if (count > 1f) 1 else 2
+@@ -4685,7 +4676,7 @@
+                         val elapsed = (now - rotationOriginNanos)
+                             .coerceAtLeast(0L) / 1_000_000_000.0
+                         val next = rotationOriginPosition +
+-                                policy.spinDistance(elapsed.toFloat())
++                                rotationSpeed * elapsed.toFloat()
+                         if (next > count * 128f) {
+                             // Evita perda de precisao apos muitos minutos.
+                             rotationOriginPosition = next - count * 128f
+@@ -4700,8 +4691,17 @@
+                 1 -> {
+                     val t = ((now - phaseStarted).toDouble() /
+                             phaseDuration.toDouble()).toFloat().coerceIn(0f, 1f)
+-                    // Shortest alignment, preserving entry velocity and stopping at zero.
+-                    trackPosition.floatValue = policy.alignmentPosition(initial, destination, finishingVelocity, t)
++                    val distance = (destination - initial).coerceAtLeast(0.001f)
++                    val duration = phaseDuration / 1_000_000_000f
++                    // Hermite continua a velocidade anterior; acelera e
++                    // desacelera ate parar exatamente diante da camera.
++                    val slope = (rotationSpeed * duration / distance)
++                        .coerceIn(0.02f, 0.75f)
++                    val t2 = t * t
++                    val t3 = t2 * t
++                    val smoothForward = (-2f * t3 + 3f * t2) +
++                            (t3 - 2f * t2 + t) * slope
++                    trackPosition.floatValue = initial + distance * smoothForward
+                     if (t >= 1f) {
+                         trackPosition.floatValue = destination
+                         mode = 2
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
+@@ -1,35 +1,13 @@
+ package br.com.flaviotorres.iptvpremium.ui.movies
+ 
+-/** Separate data-preparation and bounded visual-presentation budgets. */
++/** One budget for metadata and decoded principal images, reserving the final animation. */
+ internal object MovieOpeningPolicy {
+     const val preparationMs = 3_500L
+     const val remoteMs = 2_500L
+-    const val alignNanos = 1_100_000_000L
+-    const val pressNanos = 160_000_000L
+-    const val expandNanos = 340_000_000L
+-    const val presentationMs = 3_000L
+-    const val finishingMs = (alignNanos + pressNanos + expandNanos) / 1_000_000L
+-    const val spinBudgetMs = presentationMs - finishingMs
+-    const val rotationSpeed = .8f
+-    private const val rampSeconds = .4f
+-    fun spinDistance(seconds: Float): Float {
+-        val t = seconds.coerceAtLeast(0f)
+-        return rotationSpeed * if (t < rampSeconds) t * t / (2f * rampSeconds) else t - rampSeconds / 2f
+-    }
+-    fun spinVelocity(seconds: Float): Float = rotationSpeed * (seconds / rampSeconds).coerceIn(0f, 1f)
+-    fun alignmentDelta(position: Float, chosen: Float, count: Float): Float {
+-        if (count <= 1f) return 0f
+-        val forward = ((chosen - position) % count + count) % count
+-        return if (forward > count / 2f) forward - count else forward
+-    }
+-    fun alignmentPosition(initial: Float, destination: Float, velocity: Float, progress: Float): Float {
+-        val t = progress.coerceIn(0f, 1f)
+-        val t2 = t * t
+-        val t3 = t2 * t
+-        return initial + (destination - initial) * (-2f * t3 + 3f * t2) +
+-            velocity * (alignNanos / 1_000_000_000f) * (t3 - 2f * t2 + t)
+-    }
++    const val alignNanos = 450_000_000L
++    const val pressNanos = 220_000_000L
++    const val expandNanos = 550_000_000L
+     fun remainingMs(elapsedMs: Long): Long = (preparationMs - elapsedMs.coerceAtLeast(0L)).coerceAtLeast(0L)
+     fun minimumWaitMs(elapsedMs: Long, artworkReady: Boolean): Long =
+-        0L // Readiness ends the presentation; no artificial minimum wait.
++        if (artworkReady) 0L else (2_000L - elapsedMs.coerceAtLeast(0L)).coerceAtLeast(0L)
+ }
+--- a/app/src/test/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicyTest.kt
++++ /dev/null
+@@ -1,43 +0,0 @@
+-package br.com.flaviotorres.iptvpremium.ui.movies
+-
+-import org.junit.Assert.*
+-import org.junit.Test
+-
+-class MovieOpeningPolicyTest {
+-    @Test fun finalAnimationFitsInsideThreeSecondPresentation() {
+-        assertEquals(3_000L, MovieOpeningPolicy.spinBudgetMs + MovieOpeningPolicy.finishingMs)
+-        assertTrue(MovieOpeningPolicy.spinBudgetMs > 0)
+-        assertEquals(0L, MovieOpeningPolicy.minimumWaitMs(0, true))
+-        assertEquals(0L, MovieOpeningPolicy.minimumWaitMs(0, false))
+-    }
+-    @Test fun spinStartsAtRestAndAcceleratesGradually() {
+-        assertEquals(0f, MovieOpeningPolicy.spinDistance(0f), 0f)
+-        assertEquals(0f, MovieOpeningPolicy.spinVelocity(0f), 0f)
+-        assertTrue(MovieOpeningPolicy.spinVelocity(.1f) < MovieOpeningPolicy.spinVelocity(.3f))
+-        assertEquals(MovieOpeningPolicy.rotationSpeed, MovieOpeningPolicy.spinVelocity(1f), .001f)
+-        assertTrue(MovieOpeningPolicy.spinDistance(1.4f) < 1f)
+-    }
+-    @Test fun chosenCoverDoesNotRequireAnotherFullOrbit() {
+-        for (count in listOf(1f, 4f, 8f, 20f)) {
+-            for (step in 0..100) {
+-                val position = step * .37f
+-                val delta = MovieOpeningPolicy.alignmentDelta(position, 0f, count)
+-                assertTrue(kotlin.math.abs(delta) <= count / 2f + .001f)
+-                if (count > 1f) {
+-                    val residual = ((position + delta) % count + count) % count
+-                    assertTrue(residual < .001f || count - residual < .001f)
+-                }
+-            }
+-        }
+-        assertEquals(-.8f, MovieOpeningPolicy.alignmentDelta(.8f, 0f, 20f), .001f)
+-    }
+-    @Test fun alignmentPreservesEntryVelocityAndStopsExactlyOnChosenCover() {
+-        val initial = .8f
+-        val duration = MovieOpeningPolicy.alignNanos / 1_000_000_000f
+-        fun sample(t: Float) = MovieOpeningPolicy.alignmentPosition(initial, 0f, .8f, t)
+-        assertEquals(initial, sample(0f), 0f)
+-        assertEquals(0f, sample(1f), .00001f)
+-        assertEquals(.8f, (sample(.001f) - sample(0f)) / (.001f * duration), .02f)
+-        assertEquals(0f, (sample(1f) - sample(.999f)) / (.001f * duration), .02f)
+-    }
+-}
