@@ -1,0 +1,16 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -178,9 +178,10 @@
+                             // without allocating an animation object for each frame.
+                             val delta = motion.advance(distance, dt, step)
+                             val consumed = scrollBy(delta)
+-                            // Preserve subpixel progress rather than rounding the
+-                            // spring back to the integer layout offset every frame.
+-                            position += consumed
++                            // Integrate the continuous trajectory, not LazyGrid's rounded
++                            // consumption. At a boundary, consumed pixels may stop before
++                            // the spring settles; its virtual position must still converge.
++                            position += delta
+                             if (kotlin.math.abs(consumed) < .01f && kotlin.math.abs(delta) > .5f) break
+                         }
+                     }
