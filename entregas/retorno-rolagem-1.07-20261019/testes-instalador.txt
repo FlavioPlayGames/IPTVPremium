@@ -1,0 +1,7 @@
+PASS verification accepts two absent new files without creating them
+PASS applies exact five files
+PASS preserves configuration and history
+PASS backup records originally present files
+PASS idempotent reapplication
+PASS divergent source rejected before any mutation
+PASS rollback restores old files and removes only newly created targets

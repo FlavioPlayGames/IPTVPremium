@@ -1,0 +1,9 @@
+# Retorno à capa e rolagem — 1.07
+
+Ao sair dos detalhes de filme/série, restaura o último card aberto: conserva o estado da área ativa e não interpreta o primeiro filtro restaurado como troca de categoria. O navegador começa pelo índice visível salvo, evitando tentar voltar ao item zero antes de o card reaparecer. Trocas reais de categoria continuam reiniciando a seleção.
+
+Rolagem por controle mantém uma curva contínua e sua velocidade ao receber novos comandos. Mola mais responsiva e limite de seis fileiras por segundo evitam disparadas ao acumular muitas setas. Observação da rolagem ignora mudanças por pixel enquanto ela está em movimento; continua observando deslocamentos instantâneos da roda do mouse quando parada. Foco é transferido assim que o card de destino está pronto. A geometria não muda: duas fileiras completas ao parar, oito capas em quatro colunas ou dez em cinco. Durante a transição, as fileiras passam naturalmente pelo recorte da grade. Mantém coluna, carregadores de imagem, limites de memória e cache.
+
+Onze verificações JVM exercitam a curva real em 24/30/60/120 fps, passos longos, reversão e mudança de destino; não medem FPS real. Dois testes Android usam as telas reais com NavHost/Paging para conferir retorno a uma capa fora das primeiras fileiras. Mantém os oito testes de alinhamento/rolagem existentes. APKs do app e testes compilados; os dez testes nativos não foram executados na nuvem sem emulador. -TestarNavegacao com -Emulador executa esses dez testes no computador do usuário e salva diagnostico-retorno-rolagem.txt. O desempenho real precisa ser conferido na TV.
+
+Cinco arquivos, com hashes, backup e rollback; dois novos. Preserva site, configuração local, listas, histórico, ajuste FECHAR e espera obrigatória dos filmes. Instala por cima. -Verificar não altera e -SomenteAplicar dispensa compilação.

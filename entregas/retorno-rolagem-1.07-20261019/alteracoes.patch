@@ -1,0 +1,239 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -36,7 +36,8 @@
+     private val intent = CatalogVerticalIntent(columns)
+     private var job: Job? = null
+     val host = FocusRequester()
+-    private var currentIndex = 0
++    private var currentIndex = grid.firstVisibleItemIndex
++    private var filterIdentity: Any? = null
+     private var desiredFirstRow: Int? = null
+     private var ownsFocus = false
+     fun gridFocusChanged(focused: Boolean) { ownsFocus = focused }
+@@ -46,7 +47,11 @@
+     fun isMovingSelection(index: Int): Boolean = moving && visualIndex == index
+ 
+     suspend fun observeExternalScroll() {
+-        snapshotFlow { grid.isScrollInProgress to grid.firstVisibleItemScrollOffset }.collectLatest { (scrolling, _) ->
++        snapshotFlow {
++            val scrolling = grid.isScrollInProgress
++            // Ignore per-pixel updates during movement, but observe atomic wheel jumps.
++            scrolling to if (scrolling) 0 else grid.firstVisibleItemScrollOffset
++        }.collectLatest { (scrolling, _) ->
+             if (!scrolling) {
+                 // A wheel/drag may stop between rows. Wait for its next tick,
+                 // then use the same continuous motion to settle on a whole row.
+@@ -94,6 +99,11 @@
+         job?.cancel(); job = null; moving = false; desiredFirstRow = null; intent.clear()
+     }
+     fun reset() { cancel(); currentIndex = 0 }
++    fun filterChanged(key: Any) {
++        // The first key belongs to restored screen state, not a user filter change.
++        if (filterIdentity != null && filterIdentity != key) reset()
++        filterIdentity = key
++    }
+     fun enter() { manual(); host.requestFocus() }
+     fun hostKey(event: KeyEvent): Boolean = key(currentIndex, event)
+ 
+@@ -144,7 +154,7 @@
+                     // A critically damped spring retains its velocity when the target
+                     // changes. Repeated arrows never restart a tween or jump a row.
+                     grid.scroll(MutatePriority.UserInput) {
+-                        var velocity = 0f
++                        val motion = CatalogScrollMotion()
+                         var lastFrame = 0L
+                         var loaded = currentIndex
+                         var position = (grid.firstVisibleItemIndex / columns) * rowStep() + grid.firstVisibleItemScrollOffset
+@@ -158,23 +168,17 @@
+                             val step = rowStep()
+                             if (step <= 0f) break
+                             val distance = (desiredFirstRow ?: 0) * step - position
+-                            if (kotlin.math.abs(distance) < .5f && kotlin.math.abs(velocity) < 12f) {
++                            if (kotlin.math.abs(distance) < .5f && kotlin.math.abs(motion.velocity) < 12f) {
+                                 scrollBy(distance)
+                                 break
+                             }
+-                            // Gentler acceleration and a longer deceleration, without
+-                            // restarting the motion when a held key changes its target.
+-                            val omega = 14f
+-                            val error = -distance
+-                            val decay = kotlin.math.exp(-omega * dt)
+-                            val nextError = (error + (velocity + omega * error) * dt) * decay
+-                            val nextVelocity = (velocity - omega * (velocity + omega * error) * dt) * decay
+-                            val delta = nextError - error
++                            // A bounded continuous spring follows repeated commands
++                            // without allocating an animation object for each frame.
++                            val delta = motion.advance(distance, dt, step)
+                             val consumed = scrollBy(delta)
+                             // Preserve subpixel progress rather than rounding the
+                             // spring back to the integer layout offset every frame.
+                             position += consumed
+-                            velocity = nextVelocity
+                             if (kotlin.math.abs(consumed) < .01f && kotlin.math.abs(delta) > .5f) break
+                         }
+                     }
+@@ -185,8 +189,8 @@
+                     }
+                     if (currentIndex != target) continue
+                     if (ready == null) { intent.clear(); return@launch }
+-                    repeat(3) {
+-                        withFrameNanos { }
++                    repeat(3) { attempt ->
++                        if (attempt > 0) withFrameNanos { }
+                         ensureActive()
+                         if (currentIndex != target) return@repeat
+                         if (transfer(requesters[target])) return@launch
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogScrollMotion.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogScrollMotion.kt
+@@ -0,0 +1,21 @@
++package br.com.flaviotorres.iptvpremium.ui.components
++
++/** Reused for an entire gesture: targets may change without resetting momentum. */
++internal class CatalogScrollMotion {
++    var velocity: Float = 0f
++        private set
++
++    fun advance(distance: Float, elapsedSeconds: Float, rowHeight: Float): Float {
++        val dt = elapsedSeconds.coerceIn(.001f, .05f)
++        val omega = 18f
++        val error = -distance
++        val decay = kotlin.math.exp(-omega * dt)
++        val nextError = (error + (velocity + omega * error) * dt) * decay
++        val nextVelocity = (velocity - omega * (velocity + omega * error) * dt) * decay
++        val limit = rowHeight.coerceAtLeast(1f) * 6f
++        val requested = nextError - error
++        val delta = requested.coerceIn(-limit * dt, limit * dt)
++        velocity = if (delta != requested) delta / dt else nextVelocity.coerceIn(-limit, limit)
++        return delta
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -303,7 +303,7 @@
+     val menuFocusRequester = remember { FocusRequester() }
+     val searchFocusRequester = remember { FocusRequester() }
+     var catalogContentFocused by remember { mutableStateOf(false) }
+-    var categoryMenuActive by remember { mutableStateOf(true) }
++    var categoryMenuActive by rememberSaveable { mutableStateOf(true) }
+     var returningToCategory by remember { mutableStateOf(false) }
+     val selectedCategoryFocus = remember { FocusRequester() }
+     val catalogInputMode = androidx.compose.ui.platform.LocalInputModeManager.current
+@@ -349,6 +349,7 @@
+ 
+     LaunchedEffect(Unit) {
+         selectedMovieId?.let { movieId ->
++            categoryMenuActive = false
+             returningMovieFocusId = movieId
+             returningMovieFocusRequest++
+         }
+@@ -629,7 +630,7 @@
+             onLeft = { categoryMenuActive = true; menuFocusRequester.requestFocus() })
+     }
+     DisposableEffect(gridNavigator) { onDispose { gridNavigator.cancel() } }
+-    LaunchedEffect(currentFilterKey) { gridNavigator.reset() }
++    LaunchedEffect(currentFilterKey) { gridNavigator.filterChanged(currentFilterKey) }
+     LaunchedEffect(searchKeyboardVisible) { gridNavigator.cancel() }
+ 
+     fun handleCatalogBack(): Boolean {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -1170,7 +1170,7 @@
+     val menuFocusRequester = remember { FocusRequester() }
+     val searchFocusRequester = remember { FocusRequester() }
+     var catalogContentFocused by remember { mutableStateOf(false) }
+-    var categoryMenuActive by remember { mutableStateOf(true) }
++    var categoryMenuActive by rememberSaveable { mutableStateOf(true) }
+     var returningToCategory by remember { mutableStateOf(false) }
+     val selectedCategoryFocus = remember { FocusRequester() }
+     val catalogInputMode = androidx.compose.ui.platform.LocalInputModeManager.current
+@@ -1259,6 +1259,7 @@
+     // Com a volta dos detalhes, mantém a posição e restaura o foco da capa.
+     LaunchedEffect(Unit) {
+         selectedSeriesId?.let {
++            categoryMenuActive = false
+             returningSeriesFocusId = it
+             returningSeriesFocusRequest++
+         }
+@@ -1338,7 +1339,9 @@
+         onTop = { searchFocusRequester.requestFocus() },
+         onLeft = { categoryMenuActive = true; menuFocusRequester.requestFocus() }) }
+     DisposableEffect(gridNavigator) { onDispose { gridNavigator.cancel() } }
+-    LaunchedEffect(selectedMenu, selectedProviderId, appliedSearchText, sortMode) { gridNavigator.reset() }
++    LaunchedEffect(selectedMenu, selectedProviderId, appliedSearchText, sortMode) {
++        gridNavigator.filterChanged(listOf(selectedMenu, selectedProviderId, appliedSearchText, sortMode))
++    }
+     LaunchedEffect(searchKeyboardVisible) { gridNavigator.cancel() }
+     fun handleCatalogBack(): Boolean {
+         if (searchKeyboardVisible) {
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogReturnDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogReturnDeviceTest.kt
+@@ -0,0 +1,69 @@
++package br.com.flaviotorres.iptvpremium.data.repository
++
++import androidx.compose.runtime.*
++import androidx.compose.foundation.layout.Box
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.test.*
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.navigation.NavHostController
++import androidx.navigation.compose.*
++import androidx.paging.PagingData
++import androidx.paging.compose.collectAsLazyPagingItems
++import br.com.flaviotorres.iptvpremium.domain.model.Movie
++import br.com.flaviotorres.iptvpremium.domain.model.Series
++import br.com.flaviotorres.iptvpremium.ui.movies.MoviesScreen
++import br.com.flaviotorres.iptvpremium.ui.series.SeriesScreen
++import br.com.flaviotorres.iptvpremium.ui.theme.IPTVPremiumTheme
++import kotlinx.coroutines.flow.flowOf
++import org.junit.Rule
++import org.junit.Test
++
++/** Real catalog composables and NavHost save/restore; no provider/network dependency. */
++class CatalogReturnDeviceTest {
++    @get:Rule val compose = createComposeRule()
++    private lateinit var nav: NavHostController
++
++    private fun returnsToCard(series: Boolean) {
++        val movieFlow = flowOf(PagingData.from((0 until 60).map {
++            Movie("movie-$it", "Return movie $it", null, null, null, "", null, null, null)
++        }))
++        val seriesFlow = flowOf(PagingData.from((0 until 60).map {
++            Series("series-$it", "Return series $it", null, null, null, null, null, null)
++        }))
++        val prefix = if (series) "Return series " else "Return movie "
++        compose.setContent {
++            nav = rememberNavController()
++            IPTVPremiumTheme {
++                NavHost(nav, startDestination = "catalog") {
++                    composable("catalog") {
++                        if (series) SeriesScreen(pagedSeries = seriesFlow.collectAsLazyPagingItems(),
++                            totalSeriesCount = 60, onSeriesClick = { nav.navigate("details") })
++                        else MoviesScreen(pagedMovies = movieFlow.collectAsLazyPagingItems(),
++                            totalMovieCount = 60, onMovieClick = { nav.navigate("details") })
++                    }
++                    composable("details") { Box(Modifier.fillMaxSize().testTag("opened-details")) }
++                }
++            }
++        }
++        val grid = compose.onNode(hasScrollToIndexAction() and hasAnyDescendant(hasText(prefix + "0")))
++        compose.waitUntil(5_000) {
++            compose.onAllNodes(hasScrollToIndexAction() and hasAnyDescendant(hasText(prefix + "0"))).fetchSemanticsNodes().isNotEmpty()
++        }
++        grid.performScrollToIndex(15)
++        val card = compose.onNode(hasClickAction() and hasAnyDescendant(hasText(prefix + "17")))
++        card.performClick()
++        compose.onNodeWithTag("opened-details").assertExists()
++        compose.waitUntil(5_000) {
++            compose.onAllNodes(hasText(prefix + "17")).fetchSemanticsNodes().isEmpty()
++        }
++        compose.runOnIdle { nav.popBackStack() }
++        compose.waitUntil(5_000) {
++            compose.onAllNodes(hasClickAction() and hasAnyDescendant(hasText(prefix + "17")) and isFocused()).fetchSemanticsNodes().isNotEmpty()
++        }
++        compose.onNode(hasClickAction() and hasAnyDescendant(hasText(prefix + "17"))).assertIsFocused()
++    }
++    @Test fun moviesReturnToLastOpenedCardBeyondFirstRows() = returnsToCard(false)
++    @Test fun seriesReturnToLastOpenedCardBeyondFirstRows() = returnsToCard(true)
++}

@@ -1,0 +1,12 @@
+PASS 24 fps, 1 rows: bounded continuous movement and exact settling
+PASS 24 fps, 8 rows: bounded continuous movement and exact settling
+PASS 30 fps, 1 rows: bounded continuous movement and exact settling
+PASS 30 fps, 8 rows: bounded continuous movement and exact settling
+PASS 60 fps, 1 rows: bounded continuous movement and exact settling
+PASS 60 fps, 8 rows: bounded continuous movement and exact settling
+PASS 120 fps, 1 rows: bounded continuous movement and exact settling
+PASS 120 fps, 8 rows: bounded continuous movement and exact settling
+PASS held direction retargets without resetting velocity or teleporting
+PASS reversing direction preserves a continuous path then settles
+PASS slow frames and tiny steps remain finite and bounded
+11 checks passed
