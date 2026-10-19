@@ -1,0 +1,416 @@
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
+@@ -1,5 +1,7 @@
+ package br.com.flaviotorres.iptvpremium.data.repository
+ 
++import androidx.compose.foundation.gestures.scrollBy
++import kotlinx.coroutines.runBlocking
+ import androidx.compose.foundation.focusable
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.lazy.grid.*
+@@ -20,29 +22,36 @@
+ @OptIn(ExperimentalTestApi::class)
+ class CatalogSmoothScrollDeviceTest {
+     @get:Rule val compose = createComposeRule()
++    private lateinit var navigation: CatalogGridNavigator
+     private lateinit var grid: LazyGridState
+     private val focused = AtomicInteger(-1)
+-    private fun setup(columns: Int) {
++    private fun setup(columns: Int, realFrame: Boolean = false) {
+         compose.setContent {
+             grid = rememberLazyGridState()
+             val scope = rememberCoroutineScope()
+             val navigator = remember { CatalogGridNavigator(grid, scope, columns, { 200 }, {}, {}) }
++            SideEffect { navigation = navigator }
+             DisposableEffect(navigator) { onDispose { navigator.cancel() } }
+-            LazyVerticalGrid(GridCells.Fixed(columns), Modifier.width(600.dp).height(226.dp)
++            val content: @Composable () -> Unit = { LazyVerticalGrid(GridCells.Fixed(columns), Modifier.width(600.dp).height(if (realFrame) 343.dp else 226.dp)
+                 .catalogGridHost(navigator).testTag("smooth-grid"), grid,
+-                contentPadding = PaddingValues(8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
++                contentPadding = PaddingValues(8.dp), verticalArrangement = Arrangement.spacedBy(if (realFrame) LocalCatalogRowSpacing.current else 10.dp)) {
+                 items(200, key = { it }) { index ->
+                     val requester = remember { FocusRequester() }
+                     BindCatalogFocus(navigator, index, requester)
+                     LaunchedEffect(index) {
+                         if (index == 2 && focused.get() < 0) { withFrameNanos {}; requester.requestFocus() }
+                     }
+-                    Box(Modifier.height(100.dp).testTag("smooth-$index").focusRequester(requester)
++                    Box(Modifier.height(if (realFrame) LocalCatalogCardHeight.current else 100.dp).testTag("smooth-$index").focusRequester(requester)
+                         .catalogGridNavigation(navigator, index, requester)
+                         .onFocusChanged { if (it.isFocused) { focused.set(index); navigator.focused(index) } }
+                         .focusable())
+                 }
+             }
++            }
++            if (realFrame) Box(Modifier.width(600.dp).height(343.dp)) {
++                CatalogTwoRowFrame(true, columns) { content() }
++            } else content()
++
+         }
+         compose.waitUntil(5_000) { focused.get() == 2 }
+     }
+@@ -59,14 +68,17 @@
+         assertEquals(columns * 2, full)
+         assertEquals(0, grid.firstVisibleItemScrollOffset)
+     }
+-    private fun rowSlides(columns: Int) {
+-        setup(columns)
++    private fun rowSlides(columns: Int, realFrame: Boolean = false) {
++        setup(columns, realFrame)
++        assertTwoRows(columns)
+         compose.mainClock.autoAdvance = false
+         compose.onNodeWithTag("smooth-2").performKeyInput { pressKey(Key.DirectionDown); pressKey(Key.DirectionDown) }
+         compose.mainClock.advanceTimeBy(64)
+         val step = compose.runOnIdle { grid.layoutInfo.visibleItemsInfo.first().size.height + grid.layoutInfo.mainAxisItemSpacing }
+         val middle = position(columns)
+         assertTrue("An intermediate frame must move without jumping the whole row: $middle", middle > 0f && middle < step)
++        compose.runOnIdle { assertTrue("The destination must remain highlighted while sliding",
++            navigation.isMovingSelection(2 + columns * 2)) }
+         compose.mainClock.advanceTimeBy(700)
+         compose.onNodeWithTag("smooth-${2 + columns * 2}").assertIsFocused()
+         assertEquals(columns, compose.runOnIdle { grid.firstVisibleItemIndex })
+@@ -87,6 +99,19 @@
+         assertEquals(0f, position(columns), 1f)
+         assertTwoRows(columns)
+     }
++    private fun wheelSettles(columns: Int) {
++        setup(columns)
++        compose.mainClock.autoAdvance = false
++        compose.runOnIdle { runBlocking { grid.scrollBy(66f) } }
++        assertEquals(66f, position(columns), 1f)
++        compose.mainClock.advanceTimeBy(1000)
++        assertEquals(columns, compose.runOnIdle { grid.firstVisibleItemIndex })
++        assertTwoRows(columns)
++    }
++    @Test fun wheelStopsOnEightWholeCards() = wheelSettles(4)
++    @Test fun wheelStopsOnTenWholeCards() = wheelSettles(5)
++    @Test fun actualFrameFourColumnsNeverStopsWithClippedSecondRow() = rowSlides(4, true)
++    @Test fun actualFrameFiveColumnsNeverStopsWithClippedSecondRow() = rowSlides(5, true)
+     @Test fun fourColumnsSlideAndSettleWithEightCards() = rowSlides(4)
+     @Test fun fiveColumnsSlideAndSettleWithTenCards() = rowSlides(5)
+     @Test fun fourColumnsRetargetRepeatedArrowsWithoutJumping() = repeatAndReverse(4)
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -7,6 +7,7 @@
+ import androidx.compose.foundation.lazy.grid.LazyGridState
+ import androidx.compose.runtime.*
+ import androidx.compose.ui.Modifier
++import androidx.compose.ui.composed
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.focus.FocusRequester
+ import androidx.compose.ui.focus.focusRequester
+@@ -18,6 +19,7 @@
+ import kotlinx.coroutines.*
+ import kotlinx.coroutines.flow.MutableStateFlow
+ import kotlinx.coroutines.flow.first
++import kotlinx.coroutines.flow.collectLatest
+ 
+ /** Width belongs to the poster itself; surplus space is distributed between cells. */
+ internal val LocalCatalogPosterWidth = staticCompositionLocalOf { androidx.compose.ui.unit.Dp.Unspecified }
+@@ -36,7 +38,36 @@
+     val host = FocusRequester()
+     private var currentIndex = 0
+     private var desiredFirstRow: Int? = null
++    private var ownsFocus = false
++    fun gridFocusChanged(focused: Boolean) { ownsFocus = focused }
+     private var transferring = false
++    private var moving by mutableStateOf(false)
++    private var visualIndex by mutableIntStateOf(-1)
++    fun isMovingSelection(index: Int): Boolean = moving && visualIndex == index
++
++    suspend fun observeExternalScroll() {
++        snapshotFlow { grid.isScrollInProgress to grid.firstVisibleItemScrollOffset }.collectLatest { (scrolling, _) ->
++            if (!scrolling) {
++                // A wheel/drag may stop between rows. Wait for its next tick,
++                // then use the same continuous motion to settle on a whole row.
++                delay(100)
++                if (job?.isActive != true && grid.firstVisibleItemScrollOffset > 0 && count() > 0) {
++                    val step = rowStep()
++                    if (step > 0f) {
++                        val nearest = grid.firstVisibleItemIndex / columns +
++                            if (grid.firstVisibleItemScrollOffset >= step / 2f) 1 else 0
++                        val last = ((count() + columns - 1) / columns - viewportRows()).coerceAtLeast(0)
++                        desiredFirstRow = nearest.coerceIn(0, last)
++                        val first = desiredFirstRow!! * columns
++                        val end = minOf(count() - 1, first + viewportRows() * columns - 1)
++                        if (currentIndex !in first..end) currentIndex = (first + currentIndex % columns).coerceAtMost(end)
++                        visualIndex = currentIndex
++                        startMovement(takeFocus = ownsFocus, keepRow = true)
++                    }
++                }
++            }
++        }
++    }
+ 
+     fun hostFocusChanged(focused: Boolean) {
+         if (transferring) return
+@@ -60,7 +91,7 @@
+         intent.focused(index)
+     }
+     fun cancel() {
+-        job?.cancel(); job = null; desiredFirstRow = null; intent.clear()
++        job?.cancel(); job = null; moving = false; desiredFirstRow = null; intent.clear()
+     }
+     fun reset() { cancel(); currentIndex = 0 }
+     fun enter() { manual(); host.requestFocus() }
+@@ -95,63 +126,68 @@
+         finally { transferring = false }
+     }
+ 
+-    private fun startMovement() {
++    private fun startMovement(takeFocus: Boolean = true, keepRow: Boolean = false) {
+         if (job?.isActive == true) return
+-        transfer(host)
++        moving = takeFocus
++        visualIndex = currentIndex
++        if (takeFocus) transfer(host)
+         job = scope.launch {
+-            while (isActive && count() > 0) {
+-                currentIndex = currentIndex.coerceIn(0, count() - 1)
+-                load(currentIndex)
+-                val laidOut = withTimeoutOrNull(2_500L) {
+-                    snapshotFlow { grid.layoutInfo.visibleItemsInfo.isNotEmpty() }.first { it }
++            try {
++                while (isActive && count() > 0) {
++                    currentIndex = currentIndex.coerceIn(0, count() - 1)
++                    load(currentIndex)
++                    val laidOut = withTimeoutOrNull(2_500L) {
++                        snapshotFlow { grid.layoutInfo.visibleItemsInfo.isNotEmpty() }.first { it }
++                    }
++                    if (laidOut == null) return@launch
++                    if (!keepRow) reveal(currentIndex)
++                    // A critically damped spring retains its velocity when the target
++                    // changes. Repeated arrows never restart a tween or jump a row.
++                    grid.scroll(MutatePriority.UserInput) {
++                        var velocity = 0f
++                        var lastFrame = withFrameNanos { it }
++                        var loaded = currentIndex
++                        while (true) {
++                            val now = withFrameNanos { it }
++                            ensureActive()
++                            val dt = ((now - lastFrame) / 1_000_000_000f).coerceIn(.001f, .05f)
++                            lastFrame = now
++                            if (loaded != currentIndex) { load(currentIndex); loaded = currentIndex }
++                            val step = rowStep()
++                            if (step <= 0f) break
++                            val position = (grid.firstVisibleItemIndex / columns) * step + grid.firstVisibleItemScrollOffset
++                            val distance = (desiredFirstRow ?: 0) * step - position
++                            if (kotlin.math.abs(distance) < .5f && kotlin.math.abs(velocity) < 12f) {
++                                scrollBy(distance)
++                                break
++                            }
++                            val omega = 32f
++                            val error = -distance
++                            val decay = kotlin.math.exp(-omega * dt)
++                            val nextError = (error + (velocity + omega * error) * dt) * decay
++                            val nextVelocity = (velocity - omega * (velocity + omega * error) * dt) * decay
++                            val delta = nextError - error
++                            val consumed = scrollBy(delta)
++                            velocity = nextVelocity
++                            if (kotlin.math.abs(consumed) < .01f && kotlin.math.abs(delta) > .5f) break
++                        }
++                    }
++                    if (!takeFocus) return@launch
++                    val target = currentIndex
++                    val ready = withTimeoutOrNull(2_500L) {
++                        revision.first { currentIndex != target || requesters[target] != null }
++                    }
++                    if (currentIndex != target) continue
++                    if (ready == null) { intent.clear(); return@launch }
++                    repeat(3) {
++                        withFrameNanos { }
++                        ensureActive()
++                        if (currentIndex != target) return@repeat
++                        if (transfer(requesters[target])) return@launch
++                    }
++                    if (currentIndex == target) { intent.clear(); return@launch }
+                 }
+-                if (laidOut == null) return@launch
+-                reveal(currentIndex)
+-                // A critically damped spring retains its velocity when the target
+-                // changes. Repeated arrows never restart a tween or jump a row.
+-                grid.scroll(MutatePriority.UserInput) {
+-                    var velocity = 0f
+-                    var lastFrame = withFrameNanos { it }
+-                    var loaded = currentIndex
+-                    while (true) {
+-                        val now = withFrameNanos { it }
+-                        ensureActive()
+-                        val dt = ((now - lastFrame) / 1_000_000_000f).coerceIn(.001f, .05f)
+-                        lastFrame = now
+-                        if (loaded != currentIndex) { load(currentIndex); loaded = currentIndex }
+-                        val step = rowStep()
+-                        if (step <= 0f) break
+-                        val position = (grid.firstVisibleItemIndex / columns) * step + grid.firstVisibleItemScrollOffset
+-                        val distance = (desiredFirstRow ?: 0) * step - position
+-                        if (kotlin.math.abs(distance) < .5f && kotlin.math.abs(velocity) < 12f) {
+-                            scrollBy(distance)
+-                            break
+-                        }
+-                        val omega = 32f
+-                        val error = -distance
+-                        val decay = kotlin.math.exp(-omega * dt)
+-                        val nextError = (error + (velocity + omega * error) * dt) * decay
+-                        val nextVelocity = (velocity - omega * (velocity + omega * error) * dt) * decay
+-                        val delta = nextError - error
+-                        val consumed = scrollBy(delta)
+-                        velocity = nextVelocity
+-                        if (kotlin.math.abs(consumed) < .01f && kotlin.math.abs(delta) > .5f) break
+-                    }
+-                }
+-                val target = currentIndex
+-                val ready = withTimeoutOrNull(2_500L) {
+-                    revision.first { currentIndex != target || requesters[target] != null }
+-                }
+-                if (currentIndex != target) continue
+-                if (ready == null) { intent.clear(); return@launch }
+-                repeat(3) {
+-                    withFrameNanos { }
+-                    ensureActive()
+-                    if (currentIndex != target) return@repeat
+-                    if (transfer(requesters[target])) return@launch
+-                }
+-                if (currentIndex == target) { intent.clear(); return@launch }
+-            }
++            } finally { moving = false }
+         }
+     }
+ 
+@@ -182,6 +218,7 @@
+             else -> null
+         } ?: return true
+         currentIndex = target
++        visualIndex = target
+         revision.value++
+         if (job?.isActive != true) desiredFirstRow = grid.firstVisibleItemIndex / columns
+         reveal(target)
+@@ -198,7 +235,12 @@
+ 
+ /** Parent remains composed even when a held key moves beyond the loaded rows. */
+ internal fun Modifier.catalogGridHost(navigator: CatalogGridNavigator): Modifier =
+-    this.focusRequester(navigator.host).onFocusChanged { navigator.hostFocusChanged(it.isFocused) }.onPreviewKeyEvent { navigator.hostKey(it) }.focusable()
++    this.composed {
++        LaunchedEffect(navigator) { navigator.observeExternalScroll() }
++        Modifier.focusRequester(navigator.host)
++            .onFocusChanged { navigator.gridFocusChanged(it.hasFocus); navigator.hostFocusChanged(it.isFocused) }
++            .onPreviewKeyEvent { navigator.hostKey(it) }.focusable()
++    }
+ 
+ internal fun Modifier.catalogGridNavigation(navigator: CatalogGridNavigator?, index: Int, requester: FocusRequester): Modifier =
+     this.then(if (navigator == null) Modifier else Modifier.onPreviewKeyEvent { navigator.key(index, it) })
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogTwoRowFrame.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogTwoRowFrame.kt
+@@ -1,5 +1,8 @@
+ package br.com.flaviotorres.iptvpremium.ui.components
+ 
++import androidx.compose.foundation.ExperimentalFoundationApi
++import androidx.compose.foundation.gestures.BringIntoViewSpec
++import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
+ import androidx.compose.foundation.background
+ import androidx.compose.foundation.border
+ import androidx.compose.foundation.layout.BoxWithConstraints
+@@ -19,6 +22,7 @@
+ internal val LocalCatalogRowSpacing = staticCompositionLocalOf { 10.dp }
+ 
+ /** Header-free catalog frame shared by movies and series, including local lists. */
++@OptIn(ExperimentalFoundationApi::class)
+ @Composable
+ internal fun CatalogTwoRowFrame(compactLayout: Boolean, columns: Int,
+     content: @Composable (Float) -> Unit) {
+@@ -31,11 +35,27 @@
+         val metadata = if (compactLayout) 26f * scale + 6f else 34f * scale + 10f
+         val geometry = catalogTwoRowGeometry(maxWidth.value, maxHeight.value, columns,
+             if (compactLayout) 10f else 16f, metadata)
++        // Quantize the pair of rows together. Rounding each Dp independently can
++        // otherwise leave a pixel of the second row outside the viewport.
++        val density = LocalDensity.current
++        val cardPx = kotlin.math.floor(with(density) { geometry.cardHeight.dp.toPx() }).toInt()
++        val metadataPx = kotlin.math.ceil(with(density) { metadata.dp.toPx() }).toInt()
++        val paddingPx = with(density) { 8.dp.roundToPx() }
++        val gapPx = (constraints.maxHeight - paddingPx * 2 - cardPx * 2).coerceAtLeast(0)
++        val posterPx = minOf(with(density) { geometry.posterWidth.dp.toPx() },
++            (cardPx - metadataPx).coerceAtLeast(0) * CATALOG_POSTER_ASPECT)
+         CompositionLocalProvider(
+-            LocalCatalogPosterWidth provides geometry.posterWidth.dp,
++            LocalBringIntoViewSpec provides CatalogRowBringIntoViewSpec,
++            LocalCatalogPosterWidth provides with(density) { posterPx.toDp() },
+             LocalCatalogMetadataHeight provides metadata.dp,
+-            LocalCatalogCardHeight provides geometry.cardHeight.dp,
+-            LocalCatalogRowSpacing provides geometry.rowSpacing.dp
++            LocalCatalogCardHeight provides with(density) { cardPx.toDp() },
++            LocalCatalogRowSpacing provides with(density) { gapPx.toDp() }
+         ) { content(CATALOG_POSTER_ASPECT) }
+     }
+ }
++
++/** DPAD navigation owns row alignment; platform focus must not recenter a card. */
++@OptIn(ExperimentalFoundationApi::class)
++private object CatalogRowBringIntoViewSpec : BringIntoViewSpec {
++    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float = 0f
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -2157,7 +2157,8 @@
+     var isFocused by remember {
+         mutableStateOf(false)
+     }
+-    val focusScale by animateFloatAsState(if (isFocused) 1.035f else 1f,
++    val visuallyFocused = isFocused || navigator?.isMovingSelection(gridIndex) == true
++    val focusScale by animateFloatAsState(if (visuallyFocused) 1.035f else 1f,
+         animationSpec = tween(140), label = "PosterFocusScale")
+ 
+     val focusRequester = remember { FocusRequester() }
+@@ -2367,7 +2368,7 @@
+                     ),
+                     shape = shape
+                 )
+-                .premiumGlow(isFocused || isSelected, roundedDp = br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
++                .premiumGlow(visuallyFocused || isSelected, roundedDp = br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
+                 .border(
+                     border = BorderStroke(
+                         width =
+@@ -2488,7 +2489,7 @@
+             // A capa é desenhada depois da borda de fundo do Box. Ao receber
+             // foco, sobrepomos o contorno por último para que os quatro lados
+             // permaneçam visíveis, inclusive a linha superior do primeiro card.
+-            if (isFocused || isSelected) {
++            if (visuallyFocused || isSelected) {
+                 Box(
+                     modifier = Modifier
+                         .matchParentSize()
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -2370,7 +2370,8 @@
+ ) {
+     val fittedPosterWidth = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWidth.current
+     var isFocused by remember { mutableStateOf(false) }
+-    val focusScale by animateFloatAsState(if (isFocused) 1.035f else 1f,
++    val visuallyFocused = isFocused || navigator?.isMovingSelection(gridIndex) == true
++    val focusScale by animateFloatAsState(if (visuallyFocused) 1.035f else 1f,
+         animationSpec = tween(140), label = "PosterFocusScale")
+     val context = LocalContext.current.applicationContext
+     val artworkEpoch by br.com.flaviotorres.iptvpremium.ui.theme.ThemeArtworkEpoch.collectAsState()
+@@ -2531,11 +2532,11 @@
+                     ),
+                     shape = shape
+                 )
+-                .premiumGlow(isFocused || isSelected, roundedDp = br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
++                .premiumGlow(visuallyFocused || isSelected, roundedDp = br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
+                 .border(
+                     border = BorderStroke(
+-                        width = if (isFocused || isSelected) 2.dp else 1.dp,
+-                        brush = if (isFocused || isSelected) {
++                        width = if (visuallyFocused || isSelected) 2.dp else 1.dp,
++                        brush = if (visuallyFocused || isSelected) {
+                             PremiumGoldBorder
+                         } else {
+                             Brush.linearGradient(
+@@ -2588,7 +2589,7 @@
+             }
+             // Foco por cima da arte, com metalizado da paleta ativa.
+             Box(Modifier.matchParentSize().reinforcedCatalogFocus(
+-                isFocused || isSelected, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP
++                visuallyFocused || isSelected, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP
+             ))
+ 
+             Box(
