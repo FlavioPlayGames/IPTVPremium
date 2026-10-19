@@ -1,0 +1,27 @@
+[
+  {
+    "path": "playlist-validation.js",
+    "before": "e8a9280049cd641b9ec9e5877063a80dcb29af99585f26f1d4ac791e7c807195",
+    "after": "7e7ecc210ff59d1a6caac54fb081713198d8df332be10717437d24545ab2716b"
+  },
+  {
+    "path": "worker-atualizacao-abi.js",
+    "before": "9692bea4b12d55495033bb0dfd71355cbc0ee959d01cb87f21fa178fbc3f7c38",
+    "after": "8c9bf4baeeb25561e90303b0a75f33b224a35ac35bcb36d042a9b3577dbed90b"
+  },
+  {
+    "path": "public/app.js",
+    "before": "c6abb39b361c51c5dbdb164d6d1f1df33c0da0f1742921cd893a698d01e4073e",
+    "after": "81ec4b1d77b0a34945ebdff7f608baf12b4800720c0b8843541b54095ce1b77c"
+  },
+  {
+    "path": "public/index.html",
+    "before": "6a82197db0daec73c68d231d38883d767b98beae41c8a1b12cabe58c1554abcd",
+    "after": "ec7934d7f9fc24e8641d309f36fc9323796308d3170b741b2906334b1d9a4656"
+  },
+  {
+    "path": "public/admin/index.html",
+    "before": "2e49efbef6fe363de086ca2131f7aa8bcceebc1fac577d3c25cfe2fe3767cb23",
+    "after": "a9635975aa41dd61c39c4c1d42db99bd4d35fa8785a08c7ed898845272ca80dd"
+  }
+]

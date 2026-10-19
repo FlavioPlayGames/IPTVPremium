@@ -1,0 +1,53 @@
+(node:187722) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/playlist-validation-site/playlist-validation.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/playlist-validation-site/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ get.php -> Xtream configuration, original prefix/port and encoded credentials (27.231726ms)
+✔ HTML and Markdown clipboard links recognized (0.497818ms)
+✔ generic M3U stays M3U, never invents credentials (0.950079ms)
+✔ unsupported API falls back to validated M3U (0.996038ms)
+✔ site 403 preserves pending Xtream; HTTP 401 can still check the M3U link (1.312063ms)
+✔ auth zero does not override a false Active status (0.701204ms)
+✔ expired account is not confirmed as Xtream (1.750793ms)
+✔ invalid responses are rejected without returning raw body or credentials (1.497882ms)
+✔ metadata-only JSON is not an authenticated API (0.623318ms)
+✔ huge M3U probe reads only first valid entry, cancels stream (0.943559ms)
+✔ BOM, CRLF and final stream without newline accepted (0.45221ms)
+✔ playlist without a real stream rejected (0.42541ms)
+✔ oversized probe is bounded (1.501027ms)
+✔ private destinations rejected before any provider request (0.454143ms)
+✔ redirect target checked before following (0.719883ms)
+✔ redirect loop bounded (0.550367ms)
+✔ timeout returns a useful failure without provider exceptions (30.442534ms)
+✔ invalid name and unsupported schemes do not trigger network calls (0.376145ms)
+✔ site HTTP 403 is unverified, preserving Xtream and administrator diagnostics (0.385289ms)
+✔ explicit inactive account cannot be presented as pending validation (0.474683ms)
+✔ verified formats are explicitly marked verified (0.406821ms)
+✔ player_api configuration remains pending Xtream on site refusal (0.350356ms)
+✔ explicit Xtream uses server/user/password and preserves special characters (0.383546ms)
+✔ explicit Xtream stays Xtream when site network is refused (0.29885ms)
+✔ explicit Xtream never silently switches to M3U after unsupported response (0.229005ms)
+✔ M3U input uses M3U when API is actually unavailable (0.280983ms)
+✔ site HTTP 403 does not trigger bulk M3U probe for recognizable Xtream link (0.229375ms)
+✔ invalid explicit formats and private server are rejected before fetch (0.245299ms)
+✔ legacy clients without format still work (0.231037ms)
+(node:187723) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/playlist-validation-site/worker-atualizacao-abi.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/playlist-validation-site/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ validation requires a session before touching provider (27.386774ms)
+✔ validation requires CSRF and same origin (6.833235ms)
+✔ device-scoped validated response, no command persisted, no caching (4.815661ms)
+✔ rate limit stops validation (1.481738ms)
+✔ admin must select an existing device (0.793243ms)
+✔ unsupported links return meaningful validation error (2.492508ms)
+✔ site 403 preserves pending Xtream and restricts technical details: user (2.1611ms)
+✔ site 403 preserves pending Xtream and restricts technical details: admin (2.080618ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 143.495806

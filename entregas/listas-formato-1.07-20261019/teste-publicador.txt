@@ -1,0 +1,1 @@
+PASS: publicador extrai arquivo com hash verificado e os 16 arquivos identicos aos fontes testados. Nenhuma publicacao ao vivo ou migracao foi executada no teste.
