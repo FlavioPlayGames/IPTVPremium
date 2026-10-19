@@ -1,0 +1,217 @@
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/CatalogRemoteBackDeviceTest.kt
+@@ -0,0 +1,119 @@
++package br.com.flaviotorres.iptvpremium
++
++import androidx.activity.compose.BackHandler
++import androidx.compose.foundation.layout.Box
++import androidx.compose.foundation.layout.requiredSize
++import androidx.paging.compose.collectAsLazyPagingItems
++import androidx.compose.ui.graphics.asAndroidBitmap
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.input.key.Key
++import androidx.compose.ui.test.*
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.unit.dp
++import br.com.flaviotorres.iptvpremium.ui.movies.MoviesScreen
++import br.com.flaviotorres.iptvpremium.ui.components.dispatchCatalogBackKey
++import org.junit.Assert.assertEquals
++import org.junit.Rule
++import org.junit.Test
++import org.junit.runner.RunWith
++import java.util.concurrent.atomic.AtomicInteger
++
++@OptIn(ExperimentalTestApi::class)
++class CatalogRemoteBackDeviceTest {
++    @get:Rule val compose = createComposeRule()
++    private fun remoteBack(action: Int, repeat: Int = 0): Boolean = dispatchCatalogBackKey(
++        android.view.KeyEvent(0L, 0L, action, android.view.KeyEvent.KEYCODE_BACK, repeat))
++    @Test fun escapeRestoresTheSelectedCategoryItem() {
++        val outer = AtomicInteger(0)
++        compose.setContent {
++            BackHandler { outer.incrementAndGet() }
++            Box(Modifier.requiredSize(960.dp, 540.dp)) { MoviesScreen() }
++        }
++        compose.onNodeWithText("4K", useUnmergedTree = true).performScrollTo().performClick()
++        compose.waitForIdle()
++        compose.mainClock.advanceTimeBy(500)
++        compose.onAllNodes(isFocused()).onFirst().performKeyInput { pressKey(Key.Back) }
++        try {
++            compose.waitUntil(5_000) {
++                compose.onAllNodesWithTag("movie-category-UHD_4K").filter(isFocused()).fetchSemanticsNodes().isNotEmpty()
++            }
++        } catch (error: Throwable) {
++            println("Outer back count: " + outer.get())
++            println(compose.onRoot(useUnmergedTree = true).printToString(maxDepth = 8))
++            throw error
++        }
++        assertEquals(0, outer.get())
++        compose.mainClock.advanceTimeBy(1_000)
++        compose.onNodeWithTag("movie-category-UHD_4K").assertIsFocused()
++        compose.runOnIdle {
++            check(!remoteBack(android.view.KeyEvent.ACTION_DOWN))
++            check(!remoteBack(android.view.KeyEvent.ACTION_UP))
++        }
++
++    }
++    @Test fun physicalEscapeUsesScreenActionWithoutDependingOnComposeFocusDispatch() {
++        val outer = AtomicInteger(0)
++        compose.setContent {
++            BackHandler { outer.incrementAndGet() }
++            Box(Modifier.requiredSize(960.dp, 540.dp)) { MoviesScreen() }
++        }
++        compose.onNodeWithText("4K", useUnmergedTree = true).performScrollTo().performClick()
++        compose.waitForIdle()
++        compose.mainClock.advanceTimeBy(500)
++        compose.runOnIdle {
++            check(remoteBack(android.view.KeyEvent.ACTION_DOWN))
++            check(remoteBack(android.view.KeyEvent.ACTION_DOWN, 1))
++            check(remoteBack(android.view.KeyEvent.ACTION_UP))
++        }
++        try {
++            compose.waitUntil(5_000) {
++                compose.onAllNodesWithTag("movie-category-UHD_4K").filter(isFocused()).fetchSemanticsNodes().isNotEmpty()
++            }
++        } catch (error: Throwable) {
++            println("Outer back count: " + outer.get())
++            println(compose.onRoot(useUnmergedTree = true).printToString(maxDepth = 8))
++            throw error
++        }
++        assertEquals(0, outer.get())
++    }
++    @Test fun seriesProviderEscapeRestoresItemAndAllowsNextCategory() {
++        val outer = AtomicInteger(0)
++        val chosen = java.util.concurrent.atomic.AtomicReference<String?>(null)
++        val categories = List(30) { index -> br.com.flaviotorres.iptvpremium.domain.model.Category(
++            "series-$index", "Categoria $index",
++            br.com.flaviotorres.iptvpremium.domain.model.CategoryType.SERIES,
++            br.com.flaviotorres.iptvpremium.domain.model.CategorySource.PROVIDER) }
++        fun page() = androidx.paging.PagingData.from(List(20) { index ->
++            br.com.flaviotorres.iptvpremium.domain.model.Series("s$index", "Série $index", null,
++                null, null, 2026, 8.0, null) })
++        val data = kotlinx.coroutines.flow.MutableStateFlow(page())
++        compose.setContent {
++            BackHandler { outer.incrementAndGet() }
++            val paging = data.collectAsLazyPagingItems()
++            Box(Modifier.requiredSize(960.dp, 540.dp)) {
++                br.com.flaviotorres.iptvpremium.ui.series.SeriesScreen(pagedSeries = paging,
++                    pagingCategories = categories, totalSeriesCount = 20,
++                    onSourceCategorySelected = { chosen.set(it); data.value = page() })
++            }
++        }
++        compose.onNodeWithTag("series-category-list").performScrollToKey("provider:series-20")
++        compose.onNodeWithTag("series-category-Categoria 20").performClick()
++        compose.waitForIdle()
++        compose.mainClock.advanceTimeBy(1000)
++        // Physical ESC must also work while a Paging refresh leaves no focused card.
++        compose.runOnIdle {
++            check(remoteBack(android.view.KeyEvent.ACTION_DOWN))
++            check(remoteBack(android.view.KeyEvent.ACTION_UP))
++        }
++        compose.waitUntil(5_000) {
++            compose.onAllNodesWithTag("series-category-Categoria 20").filter(isFocused()).fetchSemanticsNodes().isNotEmpty()
++        }
++        assertEquals(0, outer.get())
++        compose.onNodeWithTag("series-category-Categoria 20").performKeyInput {
++            pressKey(Key.DirectionDown); pressKey(Key.DirectionCenter)
++        }
++        compose.waitForIdle()
++        assertEquals("series-21", chosen.get())
++    }
++
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt
+@@ -17,6 +17,7 @@
+ class MainActivity : ComponentActivity() {
+ 
+     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
++        if (br.com.flaviotorres.iptvpremium.ui.components.dispatchCatalogBackKey(event)) return true
+         if (super.dispatchKeyEvent(event)) return true
+         if (event.keyCode != android.view.KeyEvent.KEYCODE_ESCAPE) return false
+         val escape = br.com.flaviotorres.iptvpremium.ui.components.CatalogHardwareEscape
+@@ -129,6 +130,7 @@
+             enableImmersiveMode()
+         } else {
+             br.com.flaviotorres.iptvpremium.ui.components.CatalogHardwareEscape.reset()
++            br.com.flaviotorres.iptvpremium.ui.components.CatalogHardwareBack.reset()
+         }
+     }
+ 
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogEscapeBack.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogEscapeBack.kt
+@@ -21,10 +21,14 @@
+                 true
+             }
+         }
+-        onDispose { remove() }
++        val removeBack = CatalogHardwareBack.register {
++            owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && currentBack?.invoke() == true
++        }
++        onDispose { removeBack(); remove() }
+     }
+     return onPreviewKeyEvent { event ->
+-        if (event.key != Key.Escape) false
++        if (event.key == Key.Back) dispatchCatalogBackKey(event.nativeKeyEvent)
++        else if (event.key != Key.Escape) false
+         else when (event.type) {
+             KeyEventType.KeyDown -> CatalogHardwareEscape.down(event.nativeKeyEvent.repeatCount > 0)
+             KeyEventType.KeyUp -> CatalogHardwareEscape.up()
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogEscapeRouter.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogEscapeRouter.kt
+@@ -20,3 +20,15 @@
+ }
+ 
+ internal val CatalogHardwareEscape = CatalogEscapeRouter()
++
++/** Android remote BACK is handled before a focused view can consume it. */
++internal val CatalogHardwareBack = CatalogEscapeRouter()
++
++internal fun dispatchCatalogBackKey(event: android.view.KeyEvent): Boolean {
++    if (event.keyCode != android.view.KeyEvent.KEYCODE_BACK) return false
++    return when (event.action) {
++        android.view.KeyEvent.ACTION_DOWN -> CatalogHardwareBack.down(event.repeatCount > 0)
++        android.view.KeyEvent.ACTION_UP -> CatalogHardwareBack.up()
++        else -> false
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -1014,7 +1014,7 @@
+                                     items(continueMovies.size) { index ->
+                                         val entry = continueMovies[index]
+                                         MovieCard(
+-                                            navigator = gridNavigator, gridIndex = index, allowRestoration = !searchKeyboardVisible,
++                                            navigator = gridNavigator, gridIndex = index, allowRestoration = !searchKeyboardVisible && !categoryMenuActive && !returningToCategory,
+                                             name = entry.title,
+                                             posterUrl = entry.posterUrl,
+                                             isSelected = selectedMovieId == entry.contentId,
+@@ -1126,7 +1126,7 @@
+ 
+                                         if (movie != null) {
+                                             MovieCard(
+-                                                navigator = gridNavigator, gridIndex = index, allowRestoration = !searchKeyboardVisible,
++                                                navigator = gridNavigator, gridIndex = index, allowRestoration = !searchKeyboardVisible && !categoryMenuActive && !returningToCategory,
+                                                 name =
+                                                     movie.name,
+                                                 posterUrl =
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -1565,7 +1565,7 @@
+                                     val entry = continueWatchingEntries[index]
+                                     val id = entry.seriesId ?: return@items
+                                     SeriesCard(
+-                                        navigator = gridNavigator, gridIndex = index, allowRestoration = !searchKeyboardVisible,
++                                        navigator = gridNavigator, gridIndex = index, allowRestoration = !searchKeyboardVisible && !categoryMenuActive && !returningToCategory,
+                                         seriesId = id,
+                                         focusRestorationSeriesId = if (firstSeriesFocusReady && index == 0) id else returningSeriesFocusId,
+                                         focusRestorationRequest = if (firstSeriesFocusReady && index == 0) firstSeriesFocusRequest else returningSeriesFocusRequest,
+@@ -1620,7 +1620,7 @@
+                                 val series = pagedSeries[index]
+                                 if (series != null) {
+                                     SeriesCard(
+-                                        navigator = gridNavigator, gridIndex = index, allowRestoration = !searchKeyboardVisible,
++                                        navigator = gridNavigator, gridIndex = index, allowRestoration = !searchKeyboardVisible && !categoryMenuActive && !returningToCategory,
+                                         seriesId = series.id,
+                                         focusRestorationSeriesId =
+                                             if (firstSeriesFocusReady && index == 0) series.id else returningSeriesFocusId ?: favoriteFocusSeriesId,
