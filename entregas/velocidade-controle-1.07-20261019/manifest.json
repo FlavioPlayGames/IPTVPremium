@@ -1,0 +1,32 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt",
+    "allowMissing": false,
+    "allowed": [
+      "a63b9208775d6e3ad2d185e107aaec24a8870ed14772b262d8d91d5e839d4ab0",
+      "a1139d31a5d02fd03727940f5dc9e58cf710656f2baefda91250e9d3c54fdd71",
+      "fba7875392c45f223a8449ffc8f2db4fff97c2a366f7608b4e5dd2a69d98f5e9",
+      "6fb747ee253acd44020437be2b4491abdcb4979ebd349fc152763ef1a8636d92",
+      "52c728bc1d5c7c122df53a887f13b992ea2cca49f13915ac3de4d15268d11b40",
+      "58ad3042d93dddd40146cbc6438106fa90121a735f2ffa28a266cf82cc01d56d",
+      "d9a4e863c5741906b6cfdd4af19e7d3cd476239219f0a472b2d3afd8cee12133",
+      "2700be755be9c3da1d07dc7afb3db99b86d500ad6184d732397778f372774c3e"
+    ],
+    "sha": "52c728bc1d5c7c122df53a887f13b992ea2cca49f13915ac3de4d15268d11b40"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogScrollMotion.kt",
+    "allowMissing": false,
+    "allowed": [
+      "d143c01789d4d96153e2a0c00189be115af894b2085b63d2ca4b04581bad2fe6",
+      "794142211af918dc17ff63e083ebfdce7b87ec1fe747195756008ae0705e7051",
+      "8205c6f879e2552adb4296010364d435855dc2b6a11829c82454bb5c1c4074a9",
+      "e0afc5f6994555ebcaf42236ff43958022ffde45db1be2e76a65d6a773ecdb06",
+      "40633c7d39ece89c4d9db3c4dd093939f6331da19ca5d1bb4a6ce302565ce8c8",
+      "18fc47cb5a6a3b05d43b2623534270a4b4ff120d1d7993024cf4471b8fabcb5c",
+      "47d981c40e23d716f9d8d2f897bd0d0c65afd432c0b4a4b506978fc78146734b",
+      "08de2f84827b061d10e6758a1e7b6b1777c660bf5f2555da3dc8796fe0a81b65"
+    ],
+    "sha": "40633c7d39ece89c4d9db3c4dd093939f6331da19ca5d1bb4a6ce302565ce8c8"
+  }
+]

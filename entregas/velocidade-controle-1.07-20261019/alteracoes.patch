@@ -1,0 +1,32 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -206,7 +206,7 @@
+                             }
+                             // A bounded continuous spring follows repeated commands
+                             // without allocating an animation object for each frame.
+-                            val delta = motion.advance(distance, dt, step)
++                            val delta = motion.advance(distance, dt, step, speedFactor = if (heldDirection != null) 1.25f else 1f)
+                             val consumed = scrollBy(delta)
+                             // Integrate the continuous trajectory, not LazyGrid's rounded
+                             // consumption. At a boundary, consumed pixels may stop before
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogScrollMotion.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogScrollMotion.kt
+@@ -5,14 +5,15 @@
+     var velocity: Float = 0f
+         private set
+ 
+-    fun advance(distance: Float, elapsedSeconds: Float, rowHeight: Float): Float {
++    fun advance(distance: Float, elapsedSeconds: Float, rowHeight: Float, speedFactor: Float = 1f): Float {
+         val dt = elapsedSeconds.coerceIn(.001f, .05f)
+-        val omega = 18f
++        val speed = speedFactor.coerceIn(1f, 1.25f)
++        val omega = 18f * speed
+         val error = -distance
+         val decay = kotlin.math.exp(-omega * dt)
+         val nextError = (error + (velocity + omega * error) * dt) * decay
+         val nextVelocity = (velocity - omega * (velocity + omega * error) * dt) * decay
+-        val limit = rowHeight.coerceAtLeast(1f) * 6f
++        val limit = rowHeight.coerceAtLeast(1f) * 6f * speed
+         val requested = nextError - error
+         val delta = requested.coerceIn(-limit * dt, limit * dt)
+         velocity = if (delta != requested) delta / dt else nextVelocity.coerceIn(-limit, limit)
