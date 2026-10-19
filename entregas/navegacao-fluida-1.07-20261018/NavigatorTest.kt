@@ -60,5 +60,13 @@ fun main()=runBlocking {
  test("novos comandos durante rolagem substituem apenas o destino pendente") {
   val f=Fixture(scope);repeat(10){f.press(Key.DirectionDown)};yield();repeat(5){f.press(Key.DirectionDown)};delay(50);check(f.focus==77&&f.categories==0)
  }
+ test("seta durante entrada da grade substitui restauracao inicial e nao fica presa no host") {
+  val f=Fixture(scope)
+  f.requesters.forEach { (i,r) -> f.nav.detach(i,r) };f.requesters.clear()
+  f.nav.host.requestFocus()
+  f.press(Key.DirectionDown)
+  delay(5);f.show(0);delay(40)
+  check(f.focus==7)
+ }
  scope.cancel();Unit
 }

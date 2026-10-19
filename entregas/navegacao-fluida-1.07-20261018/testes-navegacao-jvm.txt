@@ -9,3 +9,4 @@ PASS voltar cancela destino pendente e nao rouba foco da categoria depois
 PASS fileira final incompleta nao desvia para primeira coluna
 PASS quatro colunas mantem a terceira durante repeticao rapida
 PASS novos comandos durante rolagem substituem apenas o destino pendente
+PASS seta durante entrada da grade substitui restauracao inicial e nao fica presa no host

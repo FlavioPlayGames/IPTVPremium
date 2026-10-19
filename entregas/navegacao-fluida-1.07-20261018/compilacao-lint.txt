@@ -15,8 +15,8 @@ Reusing configuration cache.
 > Task :app:processDebugNavigationResources UP-TO-DATE
 > Task :app:mergeDebugAssets UP-TO-DATE
 > Task :app:compressDebugAssets UP-TO-DATE
-> Task :app:parseDebugLocalResources UP-TO-DATE
 > Task :app:generateDebugGlobalSynthetics UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
 > Task :app:generateDebugRFile UP-TO-DATE
 > Task :app:checkDebugDuplicateClasses UP-TO-DATE
 > Task :app:desugarDebugFileDependencies UP-TO-DATE
@@ -81,17 +81,17 @@ Reusing configuration cache.
 > Task :app:compileDebugAndroidTestKotlin
 > Task :app:compileDebugAndroidTestJavaWithJavac UP-TO-DATE
 > Task :app:processDebugAndroidTestJavaRes UP-TO-DATE
+> Task :app:mergeDebugAndroidTestJavaResource UP-TO-DATE
+> Task :app:dexBuilderDebugAndroidTest UP-TO-DATE
+> Task :app:mergeProjectDexDebugAndroidTest UP-TO-DATE
+> Task :app:packageDebugAndroidTest UP-TO-DATE
+> Task :app:createDebugAndroidTestApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleDebugAndroidTest UP-TO-DATE
+> Task :app:generateDebugAndroidTestLintModel
+> Task :app:generateDebugLintReportModel
 > Task :app:packageDebug
 > Task :app:createDebugApkListingFileRedirect UP-TO-DATE
 > Task :app:assembleDebug
-> Task :app:mergeDebugAndroidTestJavaResource UP-TO-DATE
-> Task :app:generateDebugAndroidTestLintModel
-> Task :app:dexBuilderDebugAndroidTest
-> Task :app:mergeProjectDexDebugAndroidTest
-> Task :app:generateDebugLintReportModel
-> Task :app:packageDebugAndroidTest
-> Task :app:createDebugAndroidTestApkListingFileRedirect UP-TO-DATE
-> Task :app:assembleDebugAndroidTest
 > Task :app:generateDebugUnitTestLintModel
 
 > Task :app:lintAnalyzeDebugAndroidTest
@@ -106,6 +106,6 @@ Wrote SARIF report to file:///workspace/storage-work/app/build/reports/lint-resu
 
 > Task :app:lintDebug
 
-BUILD SUCCESSFUL in 1m 39s
-83 actionable tasks: 18 executed, 65 up-to-date
+BUILD SUCCESSFUL in 1m 38s
+83 actionable tasks: 15 executed, 68 up-to-date
 Configuration cache entry reused.
