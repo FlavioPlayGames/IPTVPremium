@@ -1,0 +1,148 @@
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
+@@ -108,6 +108,29 @@
+         assertEquals(columns, compose.runOnIdle { grid.firstVisibleItemIndex })
+         assertTwoRows(columns)
+     }
++    private fun outlineSurvivesTheOffscreenDestination(columns: Int) {
++        setup(columns, true)
++        compose.mainClock.autoAdvance = false
++        compose.onNodeWithTag("smooth-2").performKeyInput {
++            pressKey(Key.DirectionDown); pressKey(Key.DirectionDown)
++        }
++        repeat(4) {
++            compose.mainClock.advanceTimeBy(16)
++            compose.runOnIdle {
++                val height = grid.layoutInfo.viewportSize.height.toFloat()
++                val rect = navigation.movingOutline(Float.NaN, height)
++                assertNotNull("The outline must remain visible before the destination has fully entered", rect)
++                assertTrue(rect!!.top >= 0f && rect.bottom <= height)
++                assertTrue(rect.width > 0f)
++            }
++        }
++        compose.mainClock.advanceTimeBy(800)
++        compose.onNodeWithTag("smooth-${2 + columns * 2}").assertIsFocused()
++        compose.runOnIdle { assertNull(navigation.movingOutline(Float.NaN, grid.layoutInfo.viewportSize.height.toFloat())) }
++        assertTwoRows(columns)
++    }
++    @Test fun fourColumnsKeepAnOutlineOnEveryTransitionFrame() = outlineSurvivesTheOffscreenDestination(4)
++    @Test fun fiveColumnsKeepAnOutlineOnEveryTransitionFrame() = outlineSurvivesTheOffscreenDestination(5)
+     @Test fun wheelStopsOnEightWholeCards() = wheelSettles(4)
+     @Test fun wheelStopsOnTenWholeCards() = wheelSettles(5)
+     @Test fun actualFrameFourColumnsNeverStopsWithClippedSecondRow() = rowSlides(4, true)
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -45,6 +45,27 @@
+     private var visualIndex by mutableIntStateOf(-1)
+     fun isMovingSelection(index: Int): Boolean = moving && visualIndex == index
+ 
++    /** Keep a full outline in the viewport until the destination card has entered. */
++    fun movingOutline(posterWidth: Float, viewportHeight: Float): androidx.compose.ui.geometry.Rect? {
++        if (!moving) return null
++        val layout = grid.layoutInfo
++        val target = layout.visibleItemsInfo.firstOrNull { it.index == visualIndex }
++        if (target != null && target.offset.y >= 0 &&
++            target.offset.y + target.size.height <= layout.viewportSize.height -
++                layout.beforeContentPadding - layout.afterContentPadding) return null
++        val cell = target ?: layout.visibleItemsInfo.firstOrNull { it.index % columns == visualIndex % columns }
++            ?: return null
++        val width = if (posterWidth.isFinite()) posterWidth else
++            minOf(cell.size.width.toFloat(), cell.size.height * CATALOG_POSTER_ASPECT)
++        val topLimit = layout.beforeContentPadding.toFloat()
++        val bottomLimit = (viewportHeight - layout.afterContentPadding - cell.size.height).coerceAtLeast(topLimit)
++        val naturalTop = if (target != null) target.offset.y + topLimit
++            else if (visualIndex < cell.index) topLimit else bottomLimit
++        val top = naturalTop.coerceIn(topLimit, bottomLimit)
++        val left = cell.offset.x + (cell.size.width - width) / 2f
++        return androidx.compose.ui.geometry.Rect(left, top, left + width, top + width / CATALOG_POSTER_ASPECT)
++    }
++
+     suspend fun observeExternalScroll() {
+         snapshotFlow { grid.isScrollInProgress to grid.firstVisibleItemScrollOffset }.collectLatest { (scrolling, _) ->
+             if (!scrolling) {
+@@ -145,17 +166,18 @@
+                     // changes. Repeated arrows never restart a tween or jump a row.
+                     grid.scroll(MutatePriority.UserInput) {
+                         var velocity = 0f
+-                        var lastFrame = withFrameNanos { it }
++                        var lastFrame = 0L
+                         var loaded = currentIndex
++                        var position = (grid.firstVisibleItemIndex / columns) * rowStep() + grid.firstVisibleItemScrollOffset
+                         while (true) {
+                             val now = withFrameNanos { it }
+                             ensureActive()
+-                            val dt = ((now - lastFrame) / 1_000_000_000f).coerceIn(.001f, .05f)
++                            val dt = if (lastFrame == 0L) 1f / 60f else
++                                ((now - lastFrame) / 1_000_000_000f).coerceIn(.001f, .05f)
+                             lastFrame = now
+                             if (loaded != currentIndex) { load(currentIndex); loaded = currentIndex }
+                             val step = rowStep()
+                             if (step <= 0f) break
+-                            val position = (grid.firstVisibleItemIndex / columns) * step + grid.firstVisibleItemScrollOffset
+                             val distance = (desiredFirstRow ?: 0) * step - position
+                             if (kotlin.math.abs(distance) < .5f && kotlin.math.abs(velocity) < 12f) {
+                                 scrollBy(distance)
+@@ -170,6 +192,9 @@
+                             val nextVelocity = (velocity - omega * (velocity + omega * error) * dt) * decay
+                             val delta = nextError - error
+                             val consumed = scrollBy(delta)
++                            // Preserve subpixel progress rather than rounding the
++                            // spring back to the integer layout offset every frame.
++                            position += consumed
+                             velocity = nextVelocity
+                             if (kotlin.math.abs(consumed) < .01f && kotlin.math.abs(delta) > .5f) break
+                         }
+@@ -242,6 +267,7 @@
+         Modifier.focusRequester(navigator.host)
+             .onFocusChanged { navigator.gridFocusChanged(it.hasFocus); navigator.hostFocusChanged(it.isFocused) }
+             .onPreviewKeyEvent { navigator.hostKey(it) }.focusable()
++            .catalogMovingOutline(navigator)
+     }
+ 
+ internal fun Modifier.catalogGridNavigation(navigator: CatalogGridNavigator?, index: Int, requester: FocusRequester): Modifier =
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogMovingOutline.kt
+@@ -0,0 +1,43 @@
++package br.com.flaviotorres.iptvpremium.ui.components
++
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.drawWithCache
++import androidx.compose.ui.geometry.CornerRadius
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.geometry.Size
++import androidx.compose.ui.graphics.Brush
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.drawscope.Stroke
++import androidx.compose.ui.platform.LocalDensity
++import androidx.compose.ui.unit.dp
++import br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors
++
++/** Draw-phase fallback: no screen recomposition or extra bitmap while a row slides in. */
++@Composable
++internal fun Modifier.catalogMovingOutline(navigator: CatalogGridNavigator): Modifier {
++    val posterWidth = with(LocalDensity.current) { LocalCatalogPosterWidth.current.toPx() }
++    return drawWithCache {
++        val accent = ThemeColors.tone(1f, 1f)
++        val reflection = ThemeColors.tone(1f, .55f)
++        val rim = Brush.linearGradient(listOf(reflection, accent, reflection, accent))
++        val outer = Stroke(2.dp.toPx())
++        val separator = Stroke(1.dp.toPx())
++        val inner = Stroke(.7.dp.toPx())
++        val gap = 1.6.dp.toPx()
++        val inset = 2.5.dp.toPx()
++        val radius = CATALOG_POSTER_CORNER_DP.dp.toPx()
++        onDrawWithContent {
++            drawContent()
++            navigator.movingOutline(posterWidth, size.height)?.let { rect ->
++                drawRoundRect(rim, rect.topLeft, rect.size, CornerRadius(radius), style = outer)
++                drawRoundRect(Color(0xB3000000), rect.topLeft + Offset(gap, gap),
++                    Size((rect.width - 2 * gap).coerceAtLeast(0f), (rect.height - 2 * gap).coerceAtLeast(0f)),
++                    CornerRadius((radius - gap).coerceAtLeast(0f)), style = separator)
++                drawRoundRect(rim, rect.topLeft + Offset(inset, inset),
++                    Size((rect.width - 2 * inset).coerceAtLeast(0f), (rect.height - 2 * inset).coerceAtLeast(0f)),
++                    CornerRadius((radius - inset).coerceAtLeast(0f)), style = inner)
++            }
++        }
++    }
++}
