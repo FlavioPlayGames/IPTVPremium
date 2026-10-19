@@ -1,0 +1,8 @@
+PASS six visible downloads can run concurrently; seventh waits
+PASS anticipation occupies at most two slots and leaves four for visible downloads
+PASS a failed foreground request returns its permit
+PASS a failed anticipation request returns both permits
+PASS cancelling queued work does not consume a connection or run the download
+PASS cancelling an active background request frees capacity
+PASS background cancellation never blocks subsequent visible work
+7 checks passed
