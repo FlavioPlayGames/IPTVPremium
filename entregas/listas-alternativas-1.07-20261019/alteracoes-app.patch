@@ -1,0 +1,389 @@
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/device/AlternativeStorageDeviceTest.kt
+@@ -0,0 +1,18 @@
++package br.com.flaviotorres.iptvpremium.core.device
++import androidx.datastore.preferences.core.PreferenceDataStoreFactory
++import br.com.flaviotorres.iptvpremium.data.storage.PlaylistStorage
++import br.com.flaviotorres.iptvpremium.domain.model.PlaylistSource
++import kotlinx.coroutines.*
++import kotlinx.coroutines.flow.first
++import org.junit.Assert.*
++import org.junit.Test
++import java.io.File
++import java.util.UUID
++class AlternativeStorageDeviceTest {
++ @Test fun suppliedAlternativeSurvivesLocalStorageAndSnapshot()=runBlocking {
++  val root=androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>().cacheDir
++  val file=File(root,"alternative-${UUID.randomUUID()}.preferences_pb");val scope=CoroutineScope(SupervisorJob()+Dispatchers.IO)
++  val store=PreferenceDataStoreFactory.create(scope=scope,produceFile={file})
++  try{val storage=PlaylistStorage(store);val source=PlaylistSource.XtreamCodes("same-id","Same list",true,"https://example.invalid","fixture","fixture","https://example.invalid/list.m3u");storage.applyPortalOperation(source.id,source);assertEquals(listOf(source),PlaylistStorage(store).playlists.first());assertEquals(listOf(source),decodePortalLists(encodePortalLists(PlaylistStorage(store).playlists.first())))}finally{scope.coroutineContext[Job]!!.cancelAndJoin();file.delete()}
++ }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/device/PortalPlaylistCodecDeviceTest.kt
+@@ -0,0 +1,10 @@
++package br.com.flaviotorres.iptvpremium.core.device
++import br.com.flaviotorres.iptvpremium.domain.model.PlaylistSource
++import org.junit.Assert.*
++import org.junit.Test
++class PortalPlaylistCodecDeviceTest {
++ private val source=PlaylistSource.XtreamCodes("same-id","Same list",true,"https://example.invalid","fixture-user","fixture-password","https://example.invalid/get.php?username=fixture-user&password=fixture-password&type=m3u_plus")
++ @Test fun alternativeSurvivesPortalSnapshotRoundTrip(){ assertEquals(listOf(source),decodePortalLists(encodePortalLists(listOf(source)))) }
++ @Test fun oldXtreamAndNativeM3uStayCompatible(){val old=source.copy(fallbackM3uUrl=null);val m3u=PlaylistSource.M3u("m3u","Native",playlistUrl="https://example.invalid/list.m3u");assertEquals(listOf(old,m3u),decodePortalLists(encodePortalLists(listOf(old,m3u))))}
++ @Test fun unsafeAlternativeIsRejected(){val array=encodePortalLists(listOf(source));array.getJSONObject(0).put("fallbackM3uUrl","file:///bad");try{decodePortalLists(array);fail()}catch(expected:IllegalArgumentException){}}
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/sync/ImportAlternativesDeviceTest.kt
+@@ -0,0 +1,15 @@
++package br.com.flaviotorres.iptvpremium.data.sync
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++import java.io.IOException
++class ImportAlternativesDeviceTest {
++ @Test fun successfulPrimaryNeverCallsAlternative() = runBlocking { var calls=0; assertEquals("xtream", ImportAlternatives.run({"xtream"}, {calls++; "m3u"})); assertEquals(0,calls) }
++ @Test fun failureWaitsForPrimaryCleanup() = runBlocking { val events=mutableListOf<String>(); val value=ImportAlternatives.run({try {events.add("primary"); throw IOException()} finally {events.add("cleanup")}}, {events.add("m3u"); "ok"}); assertEquals("ok",value); assertEquals(listOf("primary","cleanup","m3u"),events) }
++ @Test fun bothFailuresKeepOriginalAsSuppressed() = runBlocking { val primary=IOException("first"); val alternative=IOException("second"); try {ImportAlternatives.run({throw primary},{throw alternative}); fail()} catch(e:IOException){assertSame(alternative,e); assertSame(primary,e.suppressed.single())} }
++ @Test fun missingAlternativePreservesFailure() = runBlocking { val primary=IOException(); try {ImportAlternatives.run({throw primary},null); fail()} catch(e:IOException){assertSame(primary,e)} }
++ @Test fun cancellationNeverStartsAlternative() = runBlocking { var calls=0; try {ImportAlternatives.run({throw CancellationException()},{calls++; "bad"}); fail()} catch(e:CancellationException){}; assertEquals(0,calls) }
++ @Test fun cancelledCoroutineCannotStartAlternativeEvenAfterIoFailure() = runBlocking { var calls=0; val task=launch(start=CoroutineStart.UNDISPATCHED) { ImportAlternatives.run({currentCoroutineContext().cancel(); throw IOException()},{calls++; "bad"}) }; task.join(); assertTrue(task.isCancelled); assertEquals(0,calls) }
++ @Test fun localStorageFailureDoesNotDownloadAgain() = runBlocking {var calls=0; val error=IllegalStateException(); try {ImportAlternatives.run({throw error},{calls++;"bad"},eligible={false});fail()}catch(e:IllegalStateException){assertSame(error,e)};assertEquals(0,calls)}
++ @Test fun fatalErrorsAreNotRetried() = runBlocking {var calls=0; val error=AssertionError();try {ImportAlternatives.run({throw error},{calls++;"bad"});fail()}catch(e:AssertionError){assertSame(error,e)};assertEquals(0,calls)}
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/sync/ImportAlternativesRoomDeviceTest.kt
+@@ -0,0 +1,36 @@
++package br.com.flaviotorres.iptvpremium.data.sync
++import androidx.room.Room
++import androidx.test.core.app.ApplicationProvider
++import br.com.flaviotorres.iptvpremium.data.cache.*
++import br.com.flaviotorres.iptvpremium.data.cache.importer.M3uCacheImporter
++import br.com.flaviotorres.iptvpremium.data.remote.PlaylistHttpClient
++import br.com.flaviotorres.iptvpremium.domain.model.*
++import br.com.flaviotorres.iptvpremium.domain.repository.PlaylistRepository
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++import java.io.IOException
++class ImportAlternativesRoomDeviceTest {
++ private class Provider: PlaylistRepository, ProgressiveXtreamRepository {
++  var failure: Exception?=null
++  override suspend fun loadContent(source:PlaylistSource):PlaylistContent=error("Must stream")
++  override suspend fun importXtream(source:PlaylistSource.XtreamCodes,sink:XtreamCatalogSink){
++   sink.append("get_vod_streams",PlaylistContent(movies=listOf(Movie("xtream-only","Fixture",null,null,null,"https://example.invalid/movie.mp4",null,null,null))))
++   failure?.let{throw it}
++  }
++ }
++ private class Client: PlaylistHttpClient {
++  var calls=0; var failure=false
++  override suspend fun get(url:String):String=error("Must stream")
++  override suspend fun readLines(url:String,onLine:suspend(String)->Unit){calls++;if(failure)throw IOException();listOf("#EXTM3U","#EXTINF:-1 group-title=\"Movies\",Alternative","https://example.invalid/movie/u/p/101.mp4").forEach{onLine(it)}}
++ }
++ private fun fixture(check:suspend(Provider,Client,M3uSourceSynchronizer,PlaylistCacheGenerationManager,br.com.flaviotorres.iptvpremium.data.cache.dao.PlaylistCacheDao)->Unit)=runBlocking {
++  val db=Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(),PlaylistCacheDatabase::class.java).build()
++  try { val dao=db.playlistCacheDao();val manager=PlaylistCacheGenerationManager(dao);val provider=Provider();val client=Client();val sync=M3uSourceSynchronizer(provider,M3uCacheImporter(client,dao,manager),dao,manager);check(provider,client,sync,manager,dao) }finally{db.close()}
++ }
++ private val source=PlaylistSource.XtreamCodes("fixture","One list",true,"https://example.invalid","fixture","fixture","https://example.invalid/list.m3u")
++ @Test fun completeXtreamNeverDownloadsM3u()=fixture{_,client,sync,manager,dao->val gen=sync.sync(source);assertEquals(0,client.calls);assertEquals(gen,dao.getReadyGeneration(source.id)!!.generationId);manager.activateReadyGenerationOnStartup(source.id);assertEquals(1,dao.getMovieCount(source.id,gen))}
++ @Test fun partialXtreamIsDiscardedBeforeM3uReplacesCatalog()=fixture{provider,client,sync,manager,dao->val old=sync.sync(source);manager.activateReadyGenerationOnStartup(source.id);provider.failure=IOException();val next=sync.sync(source);assertEquals(1,client.calls);assertEquals(old,dao.getActiveGeneration(source.id)!!.generationId);assertEquals(1,dao.getMovieCount(source.id,next));manager.activateReadyGenerationOnStartup(source.id);assertNull(dao.getActiveMovieById(source.id,"xtream-only"));assertEquals(next,dao.getActiveGeneration(source.id)!!.generationId)}
++ @Test fun bothFailuresPreserveActiveCatalog()=fixture{provider,client,sync,manager,dao->val old=sync.sync(source);manager.activateReadyGenerationOnStartup(source.id);provider.failure=IOException();client.failure=true;try{sync.sync(source);fail()}catch(expected:IOException){};assertEquals(1,client.calls);assertEquals(old,dao.getActiveGeneration(source.id)!!.generationId);assertNull(dao.getReadyGeneration(source.id))}
++ @Test fun cancellationAndStorageFailureDoNotStartM3u()=fixture{provider,client,sync,_,dao->for(error in listOf(CancellationException(),XtreamCatalogWriteException(IOException()))){provider.failure=error;try{sync.sync(source);fail()}catch(expected:Exception){assertSame(error,expected)};assertEquals(0,client.calls);assertNull(dao.getReadyGeneration(source.id))}}
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt
+@@ -347,32 +347,6 @@
+ internal fun fingerprint(text: String): String = MessageDigest.getInstance("SHA-256")
+     .digest(text.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it.toInt() and 255) }
+ 
+-internal fun encodePortalLists(lists: List<PlaylistSource>): JSONArray = JSONArray().apply {
+-    lists.forEach { source ->
+-        put(JSONObject().put("id", source.id).put("name", source.name).put("isEnabled", source.isEnabled).apply {
+-            when (source) {
+-                is PlaylistSource.M3u -> put("type", "m3u").put("playlistUrl", source.playlistUrl)
+-                is PlaylistSource.XtreamCodes -> put("type", "xtream").put("serverUrl", source.serverUrl)
+-                    .put("username", source.username).put("password", source.password)
+-            }
+-        })
+-    }
+-}
+-internal fun decodePortalLists(array: JSONArray): List<PlaylistSource> = buildList {
+-    require(array.length() <= 30)
+-    for (i in 0 until array.length()) {
+-        val x = array.getJSONObject(i)
+-        val id = x.getString("id"); val name = x.getString("name"); val enabled = x.optBoolean("isEnabled", true)
+-        require(id.isNotBlank() && name.isNotBlank())
+-        fun checkedUrl(key: String): String = x.getString(key).also { require(URL(it).protocol in listOf("http", "https")) }
+-        add(when (x.getString("type")) {
+-            "m3u" -> PlaylistSource.M3u(id, name, enabled, checkedUrl("playlistUrl"))
+-            "xtream" -> PlaylistSource.XtreamCodes(id, name, enabled, checkedUrl("serverUrl"), x.getString("username"), x.getString("password"))
+-            else -> error("Tipo de lista inválido")
+-        })
+-    }
+-    require(map { it.id }.distinct().size == size)
+-}
+ internal fun encodePortalStyle(value: SubtitleAppearance): JSONObject = JSONObject()
+     .put("textColor", "%06X".format(value.textArgb and 0xFFFFFF))
+     .put("background", value.background.name).put("sizeSp", value.sizeSp)
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalPlaylistCodec.kt
+@@ -0,0 +1,35 @@
++package br.com.flaviotorres.iptvpremium.core.device
++
++import br.com.flaviotorres.iptvpremium.domain.model.PlaylistSource
++import org.json.JSONArray
++import org.json.JSONObject
++import java.net.URL
++
++internal fun encodePortalLists(lists: List<PlaylistSource>): JSONArray = JSONArray().apply {
++    lists.forEach { source ->
++        put(JSONObject().put("id", source.id).put("name", source.name).put("isEnabled", source.isEnabled).apply {
++            when (source) {
++                is PlaylistSource.M3u -> put("type", "m3u").put("playlistUrl", source.playlistUrl)
++                is PlaylistSource.XtreamCodes -> put("type", "xtream").put("serverUrl", source.serverUrl)
++                    .put("username", source.username).put("password", source.password)
++                    .put("fallbackM3uUrl", source.fallbackM3uUrl)
++            }
++        })
++    }
++}
++internal fun decodePortalLists(array: JSONArray): List<PlaylistSource> = buildList {
++    require(array.length() <= 30)
++    for (i in 0 until array.length()) {
++        val x = array.getJSONObject(i)
++        val id = x.getString("id"); val name = x.getString("name"); val enabled = x.optBoolean("isEnabled", true)
++        require(id.isNotBlank() && name.isNotBlank())
++        fun checkedUrl(key: String): String = x.getString(key).also { require(URL(it).protocol in listOf("http", "https")) }
++        add(when (x.getString("type")) {
++            "m3u" -> PlaylistSource.M3u(id, name, enabled, checkedUrl("playlistUrl"))
++            "xtream" -> PlaylistSource.XtreamCodes(id, name, enabled, checkedUrl("serverUrl"), x.getString("username"), x.getString("password"),
++                if (x.has("fallbackM3uUrl") && !x.isNull("fallbackM3uUrl")) checkedUrl("fallbackM3uUrl") else null)
++            else -> error("Tipo de lista inválido")
++        })
++    }
++    require(map { it.id }.distinct().size == size)
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uCacheImporter.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uCacheImporter.kt
+@@ -106,6 +106,7 @@
+         var seriesEpisodeCount = 0L
+         var databaseWriteMs = 0L
+         var flushCount = 0L
++        var slowestWriteMs = 0L
+ 
+         fun cachedCategoryId(
+             type: String,
+@@ -165,8 +166,9 @@
+                 categoryBatch.clear(); channelBatch.clear(); movieBatch.clear()
+                 seriesBatch.clear(); episodeBatch.clear()
+             } finally {
+-                databaseWriteMs +=
+-                    SystemClock.elapsedRealtime() - writeStartedAt
++                val elapsedWrite = SystemClock.elapsedRealtime() - writeStartedAt
++                databaseWriteMs += elapsedWrite
++                slowestWriteMs = maxOf(slowestWriteMs, elapsedWrite)
+             }
+ 
+             flushCount++
+@@ -397,7 +399,7 @@
+                     "tempoMs=$totalMs " +
+                     "gravacaoRoomMs=$databaseWriteMs " +
+                     "redeEParsingMs=${(totalMs - databaseWriteMs).coerceAtLeast(0L)} " +
+-                    "lotes=$flushCount " +
++                    "lotes=$flushCount gravacaoPicoMs=$slowestWriteMs " +
+                     "entradas=$processedEntries " +
+                     "canais=$channelNumber " +
+                     "filmes=$movieCount " +
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt
+@@ -1056,6 +1056,8 @@
+         var outcome = "FALHA"
+         var parsingMs = 0L
+         var writeMs = 0L
++        var batches = 0L
++        var slowestWriteMs = 0L
+         var sampledPeakKb = 0L
+         fun sampleHeap() {
+             val runtime = Runtime.getRuntime()
+@@ -1071,7 +1073,10 @@
+                     accepted += batch.categories.size + batch.channels.size + batch.movies.size + batch.series.size
+                     val writeStart = SystemClock.elapsedRealtime()
+                     receive(batch)
+-                    writeMs += SystemClock.elapsedRealtime() - writeStart
++                    val elapsedWrite = SystemClock.elapsedRealtime() - writeStart
++                    writeMs += elapsedWrite
++                    slowestWriteMs = maxOf(slowestWriteMs, elapsedWrite)
++                    batches++
+                     sampleHeap()
+                 }
+             }
+@@ -1084,7 +1089,7 @@
+         } catch (cancelled: CancellationException) { outcome = "CANCELADO"; throw cancelled }
+         finally {
+             val runtime = Runtime.getRuntime()
+-            Log.i("XtreamEndpointPerf", "endpoint=$endpoint modo=STREAM aceitos=$accepted parsingMs=$parsingMs gravacaoMs=$writeMs totalMs=${SystemClock.elapsedRealtime()-start} heapKb=${(runtime.totalMemory()-runtime.freeMemory())/1024} heapPicoObservadoKb=$sampledPeakKb status=$outcome")
++            Log.i("XtreamEndpointPerf", "endpoint=$endpoint modo=STREAM aceitos=$accepted parsingMs=$parsingMs gravacaoMs=$writeMs lotes=$batches gravacaoPicoMs=$slowestWriteMs totalMs=${SystemClock.elapsedRealtime()-start} heapKb=${(runtime.totalMemory()-runtime.freeMemory())/1024} heapPicoObservadoKb=$sampledPeakKb status=$outcome")
+         }
+     }
+ 
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/storage/PlaylistStorage.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/storage/PlaylistStorage.kt
+@@ -213,6 +213,7 @@
+                         "password",
+                         playlist.password
+                     )
++                    item.put("fallbackM3uUrl", playlist.fallbackM3uUrl)
+                 }
+ 
+                 is PlaylistSource.M3u -> {
+@@ -284,7 +285,10 @@
+                                     password =
+                                         item.optString(
+                                             "password"
+-                                        )
++                                        ),
++                                    fallbackM3uUrl = item.optString("fallbackM3uUrl").takeIf {
++                                        it.startsWith("https://", true) || it.startsWith("http://", true)
++                                    }
+                                 )
+                             )
+                         }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/ImportAlternatives.kt
+@@ -0,0 +1,26 @@
++package br.com.flaviotorres.iptvpremium.data.sync
++
++import kotlinx.coroutines.CancellationException
++import kotlinx.coroutines.currentCoroutineContext
++import kotlinx.coroutines.ensureActive
++
++/** An alternative is lazy: it is never executed after a successful primary import. */
++internal object ImportAlternatives {
++    suspend fun <T> run(
++        primary: suspend () -> T,
++        alternative: (suspend () -> T)?,
++        eligible: (Exception) -> Boolean = { true },
++        onFallback: (Exception) -> Unit = {}
++    ): T {
++        val failed = try { return primary() }
++        catch (cancelled: CancellationException) { throw cancelled }
++        catch (error: Exception) { error }
++        currentCoroutineContext().ensureActive()
++        if (alternative == null || !eligible(failed)) throw failed
++        onFallback(failed)
++        currentCoroutineContext().ensureActive()
++        try { return alternative() }
++        catch (cancelled: CancellationException) { throw cancelled }
++        catch (error: Exception) { if (error !== failed) error.addSuppressed(failed); throw error }
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
+@@ -53,10 +53,32 @@
+             "Xtream Codes direto; sincronizando catálogo para o Room."
+         )
+ 
+-        syncFromXtream(
+-            playlistId = source.id,
+-            xtreamSource = source
++        val alternative = source.fallbackM3uUrl?.takeIf(String::isNotBlank)?.let { link ->
++            suspend {
++                syncM3u(PlaylistSource.M3u(source.id, source.name, source.isEnabled, link)).also {
++                    Log.i(TAG, "IMPORT_RESULTADO formato=M3U resultado=SUCESSO")
++                }
++            }
++        }
++        ImportAlternatives.run(
++            primary = { syncFromXtream(source.id, source).also { Log.i(TAG, "IMPORT_RESULTADO formato=XTREAM resultado=SUCESSO") } },
++            alternative = alternative,
++            eligible = { !containsStorageFailure(it) },
++            onFallback = { Log.w(TAG, "IMPORT_ALTERNATIVA origem=XTREAM destino=M3U motivo=${it.javaClass.simpleName}") }
+         )
++    }
++
++    private suspend fun <T> localCatalogWrite(action: suspend () -> T): T = try {
++        action()
++    } catch (cancelled: CancellationException) { throw cancelled }
++    catch (error: XtreamCatalogWriteException) { throw error }
++    catch (error: Exception) { throw XtreamCatalogWriteException(error) }
++
++    private fun containsStorageFailure(error: Throwable, depth: Int = 0): Boolean {
++        if (error is XtreamCatalogWriteException || error is android.database.sqlite.SQLiteException) return true
++        if (depth >= 5) return false
++        return error.cause?.let { it !== error && containsStorageFailure(it, depth + 1) } == true ||
++            error.suppressed.any { it !== error && containsStorageFailure(it, depth + 1) }
+     }
+ 
+     private suspend fun sharedSync(source: PlaylistSource, operation: suspend () -> String): String {
+@@ -89,18 +111,18 @@
+         val syncStartedAt = SystemClock.elapsedRealtime()
+         if (playlistRepository is ProgressiveXtreamRepository && playlistRepository.supportsProgressiveXtream) {
+             return withContext(Dispatchers.IO) {
+-                val generation = generationManager.beginImport(playlistId)
++                val generation = localCatalogWrite { generationManager.beginImport(playlistId) }
+                 val writer = XtreamCatalogWriter(cacheDao, generationManager, playlistId, generation)
+                 try {
+                     playlistRepository.importXtream(xtreamSource, writer)
+                     writer.closeStages()
+                     currentCoroutineContext().ensureActive()
+-                    generationManager.markImportReady(playlistId, generation)
++                    localCatalogWrite { generationManager.markImportReady(playlistId, generation) }
+                     Log.i(TAG, "PERF etapa=XTREAM_TOTAL modo=STREAM duracaoMs=${SystemClock.elapsedRealtime()-syncStartedAt}")
+                     generation
+                 } catch (error: Throwable) {
+                     try { writer.closeStages() } catch (cleanup: Throwable) { if (cleanup !== error) error.addSuppressed(cleanup) }
+-                    try { generationManager.discardImport(playlistId, generation) } catch (cleanup: Throwable) { if (cleanup !== error) error.addSuppressed(cleanup) }
++                    try { localCatalogWrite { generationManager.discardImport(playlistId, generation) } } catch (cleanup: Throwable) { if (cleanup !== error) error.addSuppressed(cleanup) }
+                     throw error
+                 }
+             }
+@@ -134,26 +156,17 @@
+         }
+ 
+         val generationId = medirEtapa("ROOM_BEGIN_IMPORT") {
+-            generationManager.beginImport(
+-                playlistId = playlistId
+-            )
++            localCatalogWrite { generationManager.beginImport(playlistId = playlistId) }
+         }
+ 
+         try {
+             medirEtapa("ROOM_GRAVACAO_TOTAL") {
+-                persistContent(
+-                    playlistId = playlistId,
+-                    generationId = generationId,
+-                    content = content
+-                )
++                localCatalogWrite { persistContent(playlistId, generationId, content) }
+             }
+ 
+             currentCoroutineContext().ensureActive()
+             medirEtapa("ROOM_MARK_READY") {
+-                generationManager.markImportReady(
+-                    playlistId = playlistId,
+-                    generationId = generationId
+-                )
++                localCatalogWrite { generationManager.markImportReady(playlistId, generationId) }
+             }
+ 
+             Log.i(
+@@ -179,7 +192,7 @@
+ 
+             return generationId
+         } catch (error: Throwable) {
+-            try { generationManager.discardImport(playlistId, generationId) }
++            try { localCatalogWrite { generationManager.discardImport(playlistId, generationId) } }
+             catch (cleanup: Throwable) { if (cleanup !== error) error.addSuppressed(cleanup) }
+ 
+             throw error
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/domain/model/PlaylistSource.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/domain/model/PlaylistSource.kt
+@@ -12,7 +12,8 @@
+         override val isEnabled: Boolean = true,
+         val serverUrl: String,
+         val username: String,
+-        val password: String
++        val password: String,
++        val fallbackM3uUrl: String? = null
+     ) : PlaylistSource
+ 
+     data class M3u(

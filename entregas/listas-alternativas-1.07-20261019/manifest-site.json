@@ -1,0 +1,17 @@
+[
+  {
+    "path": "playlist-validation.js",
+    "before": "7e7ecc210ff59d1a6caac54fb081713198d8df332be10717437d24545ab2716b",
+    "after": "6b7434ee3feece53b9cbd266e1579a428cf8d263cb65bbf3f0b0c81c4a1c7138"
+  },
+  {
+    "path": "worker-atualizacao-abi.js",
+    "before": "8c9bf4baeeb25561e90303b0a75f33b224a35ac35bcb36d042a9b3577dbed90b",
+    "after": "8d1d47cf57a49a19ad0ba842f324f62d9f726859c708957e241e493a23c005c3"
+  },
+  {
+    "path": "public/app.js",
+    "before": "81ec4b1d77b0a34945ebdff7f608baf12b4800720c0b8843541b54095ce1b77c",
+    "after": "e62cc5cdd9c53526246a9e9b3912afe49e1bd1a65d14fbf949eb822925a2c977"
+  }
+]

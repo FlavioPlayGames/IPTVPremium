@@ -1,0 +1,37 @@
+--- a/playlist-validation.js
++++ b/playlist-validation.js
+@@ -33,7 +33,12 @@
+   const username = credentials.username?.trim(), password = credentials.password;
+   if (!username || username.length > 256 || !password || password.length > 512 || /[\u0000-\u001f]/.test(username + password)) invalid('O link precisa conter usuário e senha Xtream válidos.');
+   const prefix = path.replace(/\/(get|player_api)\.php$/i, '').replace(/\/+$/, '');
+-  return { type: 'xtream', name: name.trim(), isEnabled: true, serverUrl: url.origin + prefix, username, password };
++  const fallback = new URL(url.href);
++  fallback.pathname = prefix + '/get.php';fallback.searchParams.delete('action');
++  if (!fallback.searchParams.has('type')) fallback.searchParams.set('type','m3u_plus');
++  if (!fallback.searchParams.has('output')) fallback.searchParams.set('output','ts');
++  return { type: 'xtream', name: name.trim(), isEnabled: true, serverUrl: url.origin + prefix, username, password,
++    fallbackM3uUrl: fallback.href };
+ }
+ async function boundedJson(response, maxBytes = 65536) {
+   if (!response.body) invalid('O provedor retornou uma resposta vazia.');
+--- a/worker-atualizacao-abi.js
++++ b/worker-atualizacao-abi.js
+@@ -320,6 +320,7 @@
+     r.username = text(b.username, 256, "Usu\xE1rio");
+     if (typeof b.password !== "string" || !b.password.length || b.password.length > 512) fail(422, "Senha inv\xE1lida.");
+     r.password = b.password;
++    if (b.fallbackM3uUrl != null) r.fallbackM3uUrl = sourceUrl(b.fallbackM3uUrl);
+   }
+   return r;
+ }
+--- a/public/app.js
++++ b/public/app.js
+@@ -99,7 +99,7 @@
+   $('list-m3u-input').hidden = xtream;$('list-xtream-input').hidden = !xtream;
+   $('list-url').disabled = xtream;$('list-url').required = !xtream;
+   ['list-xtream-server','list-xtream-user','list-xtream-pass'].forEach(id => { $(id).disabled = !xtream;$(id).required = xtream; });
+-  $('list-format-help').textContent = xtream ? 'Enviaremos como Xtream Codes. Confira os dados antes de enviar.' : 'Identificaremos a configuração Xtream do seu link quando disponível. Caso contrário, enviaremos como M3U.';
++  $('list-format-help').textContent = xtream ? 'Tentaremos Xtream primeiro. A M3U será usada somente se essa tentativa falhar.' : 'Identificaremos a configuração Xtream do link. Quando identificada, a M3U seguirá como alternativa, usada somente se o Xtream falhar.';
+ }
+ $('list-input-format').onchange = () => { invalidatePlaylistValidation();applyListInputFormat(); };
+ ['list-xtream-server','list-xtream-user','list-xtream-pass'].forEach(id => $(id).oninput = invalidatePlaylistValidation);

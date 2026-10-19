@@ -1,0 +1,8 @@
+OK: os arquivos sao compativeis. Nenhuma alteracao aplicada.
+Aplicado. Backup: /workspace/storage-toolchain/tests/alternativas/package-fixture/.navigation-backups/listas-alternativas-20261019-225254-0be98c03
+OK: os arquivos sao compativeis. Nenhuma alteracao aplicada.
+PASS: validar baseline, aplicar com backup, conferir todos os hashes e reaplicar verificacao sem compilar/instalar.
+Pasta da central: /workspace/storage-toolchain/tests/alternativas/central-extraida/Central-IPTV-listas-alternativas-20261019-225255-cd05f727
+Central preparada; nenhuma publicacao ou migracao executada.
+PASS: publicador extraiu o site completo com integridade; nenhuma publicacao ao vivo.
+PASS: medidor com ADB simulado ignora evento antigo, reconhece conclusao nova e remove URLs/segredos do relatorio.
