@@ -1,0 +1,13 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -168,7 +168,9 @@
+                             val step = rowStep()
+                             if (step <= 0f) break
+                             val distance = (desiredFirstRow ?: 0) * step - position
+-                            if (kotlin.math.abs(distance) < .5f && kotlin.math.abs(motion.velocity) < 12f) {
++                            // LazyGrid rounds physical offsets to integers. Below one pixel,
++                            // consumption may stop while the spring still has fractional error.
++                            if (kotlin.math.abs(distance) <= 1.5f && kotlin.math.abs(motion.velocity) < 12f) {
+                                 scrollBy(distance)
+                                 break
+                             }
