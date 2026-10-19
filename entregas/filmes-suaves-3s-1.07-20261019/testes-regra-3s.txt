@@ -1,0 +1,13 @@
+PASS elapsed=0 artwork=false wait=3000
+PASS elapsed=0 artwork=true wait=3000
+PASS elapsed=500 artwork=false wait=2500
+PASS elapsed=500 artwork=true wait=2500
+PASS elapsed=2000 artwork=false wait=1000
+PASS elapsed=2000 artwork=true wait=1000
+PASS elapsed=2999 artwork=false wait=1
+PASS elapsed=2999 artwork=true wait=1
+PASS elapsed=3000 artwork=false wait=0
+PASS elapsed=3000 artwork=true wait=0
+PASS elapsed=4200 artwork=false wait=0
+PASS elapsed=4200 artwork=true wait=0
+PASS slower carousel and smooth transition within two seconds

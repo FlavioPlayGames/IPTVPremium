@@ -1,0 +1,1 @@
+Tres erros RestrictedApi preexistentes no MainActivity.kt, identico ao projeto enviado. Nenhum erro de lint nos dois arquivos alterados.

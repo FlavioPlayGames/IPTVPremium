@@ -1,0 +1,53 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
+@@ -4,10 +4,14 @@
+ internal object MovieOpeningPolicy {
+     const val preparationMs = 3_500L
+     const val remoteMs = 2_500L
+-    const val alignNanos = 450_000_000L
+-    const val pressNanos = 220_000_000L
+-    const val expandNanos = 550_000_000L
++    const val minimumLoadingMs = 3_000L
++    const val rotationCardsPerSecond = 1.5f
++    const val alignNanos = 1_100_000_000L
++    const val pressNanos = 260_000_000L
++    const val expandNanos = 600_000_000L
+     fun remainingMs(elapsedMs: Long): Long = (preparationMs - elapsedMs.coerceAtLeast(0L)).coerceAtLeast(0L)
++    // Artwork readiness never shortens the mandatory three-second loading stage.
++    @Suppress("UNUSED_PARAMETER")
+     fun minimumWaitMs(elapsedMs: Long, artworkReady: Boolean): Long =
+-        if (artworkReady) 0L else (2_000L - elapsedMs.coerceAtLeast(0L)).coerceAtLeast(0L)
++        (minimumLoadingMs - elapsedMs.coerceAtLeast(0L)).coerceAtLeast(0L)
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -213,7 +213,7 @@
+ private const val AUTO_SYNC_CHECK_MS = 30L * 60L * 1000L
+ private const val MOVIE_PREPARATION_ROUTE = "movie_preparation/{movieId}"
+ private const val ACTOR_DETAILS_ROUTE = "actor_details/{personId}"
+-private const val MIN_MOVIE_PREPARATION_MS = 2_000L
++private const val MIN_MOVIE_PREPARATION_MS = 3_000L
+ private const val MAX_CAROUSEL_POSTERS = 20
+ 
+ // Estados da rota de detalhes que devem sobreviver a ida ao player.
+@@ -4632,7 +4632,7 @@
+         val count = cards.size.coerceAtLeast(1).toFloat()
+         val chosenIndex = cards.indexOfFirst { it.movieId == selectedMovieId }
+             .coerceAtLeast(0).toFloat()
+-        val rotationSpeed = 2.50f // mesma velocidade e direcao aprovadas
++        val rotationSpeed = br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningPolicy.rotationCardsPerSecond
+         // Relogio ancorado: nao acumula erros nem perde distancia em frames lentos.
+         // Uma pausa longa (TV em segundo plano) nao faz o anel dar um salto.
+         var rotationOriginNanos = withFrameNanos { it }
+@@ -4655,9 +4655,8 @@
+                     if (finishSignal.value) {
+                         initial = trackPosition.floatValue
+                         val phase = ((initial % count) + count) % count
+-                        var forward = ((chosenIndex - phase) % count + count) % count
+-                        // A selecao percorre pelo menos parte do anel. Nunca volta.
+-                        if (count > 1f && forward < count * 0.17f) forward += count
++                        val forward = ((chosenIndex - phase) % count + count) % count
++                        // Vai direto ao filme escolhido, sem acrescentar uma volta acelerada.
+                         destination = initial + forward
+                         phaseStarted = now
+                         phaseDuration = br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningPolicy.alignNanos
