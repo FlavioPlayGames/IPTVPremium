@@ -1,0 +1,11 @@
+PASS capas visiveis recebem foco sem transferencia intermediaria ou frames extras
+PASS vinte comandos rapidos mantem terceira coluna com um trabalhador de rolagem
+PASS inverter sentido antes da composicao mantem destino mais recente e coluna
+PASS primeira fileira sobe explicitamente ao buscador sem rolagem
+PASS cima em fileira intermediaria move somente uma fileira
+PASS esquerda sai para categorias somente na primeira coluna
+PASS direita na borda nao pula para a linha seguinte
+PASS voltar cancela destino pendente e nao rouba foco da categoria depois
+PASS fileira final incompleta nao desvia para primeira coluna
+PASS quatro colunas mantem a terceira durante repeticao rapida
+PASS novos comandos durante rolagem substituem apenas o destino pendente

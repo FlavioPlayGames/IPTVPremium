@@ -1,0 +1,17 @@
+PASS APK x86 unico do usuario aceito para emulador com suporte x86
+PASS conjunto completo conserva escolha do universal
+PASS somente universal aceito
+PASS arquitetura preferida do emulador vence a alternativa
+PASS APK unico arm64 aceito para emulador arm64
+PASS identificador incorreto bloqueado
+PASS release nao tratado como debug
+PASS numero interno antigo bloqueado
+PASS nome de versao antigo bloqueado
+PASS APK ausente bloqueado
+PASS arquitetura incompativel bloqueada
+PASS arquiteturas duplicadas bloqueadas
+PASS caminho externo bloqueado
+PASS arquivo diferente do filtro bloqueado
+PASS metadados sem APK bloqueados
+PASS payload de fontes corresponde exatamente ao pacote validado da abertura rapida
+PASS treze testes nativos conservados sem duplicacao da suite

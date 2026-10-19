@@ -1,0 +1,16 @@
+PASS verificar nao altera fontes exclusoes versao ou configuracao
+PASS aplica fontes e remove nove arquivos conhecidos de extracao
+PASS preserva dados assinatura configuracao privada e bytes nao UTF8
+PASS arquivos removidos mantem backup integral
+PASS reaplicacao idempotente inclusive exclusoes
+PASS extrator com alteracoes desconhecidas impede toda a aplicacao antes de mutacoes
+PASS downgrade interno bloqueado antes de alterar fontes
+PASS base r2 instalada aceita sem exigir diagnostico intermediario
+PASS src.zip original aceito para aplicacao cumulativa
+PASS todos testes e captura exigem build e alvo emulador antes de mutacoes
+PASS verificar com captura nao inicia testes nem modifica projeto
+PASS Gradle BOM e finais de linha Windows conhecidos aceitos
+PASS rollback restaura arquivos copiados e todos arquivos excluidos apos falha injetada
+PASS pacote sem credenciais fornecidas APKs ou configuracao privada de assinatura
+PASS base anterior altera somente somente controlador de foco, filmes, series e testes nativos
+PASS suite de fluidez unica com treze testes nativos
