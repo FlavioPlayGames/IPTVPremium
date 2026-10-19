@@ -1,0 +1,1 @@
+PASS compatible installer verifies, applies exact two files, preserves configuration and backs up originals

@@ -1,0 +1,30 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "allowed": [
+      "6e2167cb57dd207e26abe6a3d41439d1c4616bc1c9c8eb7e7786b44adf0ab7f1",
+      "12eea10c213b88c8636cd5cb9aef974164aedef2cd5b30afadf8e250e18da4c2",
+      "1d157781791db9d5a4efa7ebe0ad67084264ce164c955ec6bd58f9a59c1ea194",
+      "7fd80747e876257d0fdb52f1f05862e099a9ffe0af69ca2c2b85b5e8dad41cfc",
+      "05a6a24c9f8cfeff4438c280d1c173cd190b7cb6cc1076156cd57e32f150d1b7",
+      "096961fabb97c66afab6cd1f1d0becc07061d24cd72dba95bda1b1051cc68dfd",
+      "149309b8c27e2c607674d91ebf42201ca963260c3cc76d9d7101f7d950fa6a08",
+      "d5fae5de41ebbb8fdfe54602a3e5b54ef195712c7d2143afe64fad947764a093"
+    ],
+    "sha": "05a6a24c9f8cfeff4438c280d1c173cd190b7cb6cc1076156cd57e32f150d1b7"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/AppStartupLoadingScreen.kt",
+    "allowed": [
+      "b5643ea091dd28b4dffb8c9e0ae47670a548277ab5082e7381a9c9b84f905f52",
+      "a89d40669eb42fc71ebe2fcc6bb1b28c8832434fb8f7d8e41ee46511b3b63499",
+      "a82025fc144c854630b47adef3d7246c61b695d96706b5af2412e1dc15171433",
+      "9d2efa9901d5e1de910e7a3ac206e912a87d732fb1fa59890c79e9a3afa8c383",
+      "78d6afb46fe9dd0c6471a1064c93ec3ebeaa97d1de119694f6623480f78e2e96",
+      "fd68eb48cb0b28e7a2ca51e2ef345a8bf100736d1776e796281fbfe415de699c",
+      "81972284208105ec9d2e2c8a3b4405f843345028b1646ab02cedbce960ffde37",
+      "bd07f6f252504844b295d61f52c218542b74a5abd99c245a13a8e09225c003bf"
+    ],
+    "sha": "78d6afb46fe9dd0c6471a1064c93ec3ebeaa97d1de119694f6623480f78e2e96"
+  }
+]

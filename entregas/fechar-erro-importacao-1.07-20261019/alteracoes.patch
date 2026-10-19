@@ -1,0 +1,90 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -1249,12 +1249,6 @@
+ 
+     }
+ 
+-    LaunchedEffect(catalogLoadingState?.phase) {
+-        if (catalogLoadingState?.phase == AppCatalogLoadingPhase.ERROR) {
+-            leaveCatalogImport("Não foi possível importar a lista. Você pode excluir ou cadastrar outra em Minhas listas.")
+-        }
+-    }
+-
+     /*
+      * ATUALIZACAO AUTOMATICA EM PRIMEIRO PLANO
+      *
+@@ -1948,7 +1942,11 @@
+                                 sharedSelectionInFlight = null
+ 
+                                 playlistConnectionError = "Não foi possível conectar à lista."
+-                                leaveCatalogImport("Não foi possível importar a lista. Confira o link ou cadastre outra em Minhas listas.")
++                                catalogLoadingState = AppCatalogLoadingState(
++                                    phase = AppCatalogLoadingPhase.ERROR,
++                                    errorMessage = error.message ?: "Não foi possível importar a lista. Confira o link ou tente outra lista.",
++                                    isPlaylistRefresh = true
++                                )
+                             }
+                         }
+                     },
+@@ -2052,7 +2050,11 @@
+                                 sharedSelectionInFlight = null
+ 
+                                 playlistConnectionError = "Não foi possível conectar à lista."
+-                                leaveCatalogImport("Não foi possível importar a lista. Confira o link ou cadastre outra em Minhas listas.")
++                                catalogLoadingState = AppCatalogLoadingState(
++                                    phase = AppCatalogLoadingPhase.ERROR,
++                                    errorMessage = error.message ?: "Não foi possível importar a lista. Confira o link ou tente outra lista.",
++                                    isPlaylistRefresh = true
++                                )
+                             }
+                         }
+                     }
+@@ -4262,25 +4264,14 @@
+             catalogLoadingState ?: if (portalSyncRequests > 0 || portalLoadRequest != null)
+                 AppCatalogLoadingState() else null
+         BackHandler(enabled = visibleCatalogLoading != null) {
+-            leaveCatalogImport("Importação cancelada. Você pode gerenciar suas listas na Home.")
++            leaveCatalogImport()
+         }
+         visibleCatalogLoading?.let { state ->
+             AppStartupLoadingScreen(
+                 state = state,
+                 modifier = Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures {} },
+-                onOpenHome = { leaveCatalogImport("Importação cancelada.") },
+-                onRetry = if (state.phase == AppCatalogLoadingPhase.ERROR && !state.isPlaylistRefresh) {
+-                    {
+-                        dismissedCatalogPlaylistId = null
+-                        catalogLoadingDismissed = false
+-                        catalogStartupRetry += 1
+-                    }
+-                } else null,
+-                onOpenPlaylists = if (state.phase == AppCatalogLoadingPhase.ERROR) {
+-                    {
+-                        leaveCatalogImport()
+-                        navController.navigate(PLAYLIST_LIST_ROUTE) { launchSingleTop = true }
+-                    }
++                onOpenHome = if (state.phase == AppCatalogLoadingPhase.ERROR) {
++                    { leaveCatalogImport() }
+                 } else null
+             )
+         }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/AppStartupLoadingScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/AppStartupLoadingScreen.kt
+@@ -153,7 +153,7 @@
+                 Spacer(Modifier.height(14.dp))
+                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                     onRetry?.let { LoadingAction("TENTAR NOVAMENTE", it) }
+-                    onOpenHome?.let { LoadingAction("IR PARA HOME", it) }
++                    onOpenHome?.let { LoadingAction("FECHAR", it) }
+                     onOpenPlaylists?.let { LoadingAction("MINHAS LISTAS", it) }
+                 }
+             } else {
+@@ -172,8 +172,6 @@
+                             Offset(size.width * (index + 1) / 4f, size.height / 2f))
+                     }
+                 }
+-                Spacer(Modifier.height(20.dp))
+-                onOpenHome?.let { LoadingAction("CANCELAR E IR PARA HOME", it) }
+             }
+         }
+     }
