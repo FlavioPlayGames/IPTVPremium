@@ -1,0 +1,1 @@
+PASS: compatibilidade, aplicacao de dez arquivos, hashes finais, backup e preservacao de local.properties. Testes Android e medicao na TV pendentes.

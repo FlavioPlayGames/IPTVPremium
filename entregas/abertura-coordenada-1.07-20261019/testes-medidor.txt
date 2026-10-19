@@ -1,0 +1,1 @@
+PASS: medidor inicia captura, marca nova sessao, fecha/abre sem limpar dados, reconhece interface liberada e encerra apenas a captura criada; ADB simulado. Medicao real da TV pendente.

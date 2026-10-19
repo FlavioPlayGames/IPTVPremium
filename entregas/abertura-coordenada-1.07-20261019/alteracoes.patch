@@ -1,0 +1,704 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt
+@@ -29,11 +29,12 @@
+     }
+ 
+     override fun onCreate(savedInstanceState: Bundle?) {
++        br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.begin()
++        br.com.flaviotorres.iptvpremium.core.storage.StorageMaintenance.openingStarted()
+         super.onCreate(savedInstanceState)
+-        br.com.flaviotorres.iptvpremium.ui.theme.ThemeState.initialize(applicationContext)
++        br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measure("init_tema") { br.com.flaviotorres.iptvpremium.ui.theme.ThemeState.initialize(applicationContext) }
+         br.com.flaviotorres.iptvpremium.core.device.PortalAccess.checking.value = true
+-        br.com.flaviotorres.iptvpremium.core.update.AppUpdateManager.initialize(applicationContext)
+-        br.com.flaviotorres.iptvpremium.core.storage.StorageMaintenance.request(applicationContext)
++        br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measure("init_atualizador") { br.com.flaviotorres.iptvpremium.core.update.AppUpdateManager.initialize(applicationContext) }
+         lifecycleScope.launch {
+             try {
+                 br.com.flaviotorres.iptvpremium.core.device.DevicePortalSync(applicationContext).restoreAccessForOpening()
+@@ -74,10 +75,10 @@
+             }
+         }
+ 
+-        br.com.flaviotorres.iptvpremium.core.device.PortalPush.initialize(applicationContext)
++        br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measure("init_push") { br.com.flaviotorres.iptvpremium.core.device.PortalPush.initialize(applicationContext) }
+ 
+-        br.com.flaviotorres.iptvpremium.ui.settings.CategoryOrderSettings.initialize(applicationContext)
+-        br.com.flaviotorres.iptvpremium.ui.settings.ParentalSession.initialize(applicationContext)
++        br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measure("init_categorias") { br.com.flaviotorres.iptvpremium.ui.settings.CategoryOrderSettings.initialize(applicationContext) }
++        br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measure("init_parental") { br.com.flaviotorres.iptvpremium.ui.settings.ParentalSession.initialize(applicationContext) }
+ 
+         enableImmersiveMode()
+ 
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt
+@@ -252,6 +252,9 @@
+             else -> null
+         }
+         PortalRenewalState.receive(if (PortalAccess.message.value == null) state.optJSONObject("renewal") else null)
++        // Release the splash only after the existing access policy has run with
++        // a stored or server-confirmed license. Pull/ack may continue afterwards.
++        if (state.has("mac") && serverNow > 0L) PortalAccess.checking.value = false
+     }
+ 
+     internal suspend fun sendPendingTrialChoice(): Boolean = mutex.withLock {
+@@ -298,6 +301,14 @@
+ 
+     private fun call(path: String, method: String, body: JSONObject?, secret: String?): JSONObject {
+         val connection = URL(BuildConfig.DEVICE_PORTAL_URL + path).openConnection() as HttpURLConnection
++        val start = android.os.SystemClock.elapsedRealtime()
++        val stage = when (path.substringBefore('?')) {
++            "/api/device/register" -> "registro"
++            "/api/device/pull" -> "pedidos"
++            "/api/device/ack" -> "confirmacao"
++            else -> "outro"
++        }
++        var status = -1
+         try {
+             connection.requestMethod = method
+             connection.connectTimeout = 7_000
+@@ -311,7 +322,8 @@
+                 connection.setRequestProperty("Content-Type", "application/json")
+                 connection.outputStream.use { stream -> stream.write(it.toString().toByteArray(Charsets.UTF_8)) }
+             }
+-            check(connection.responseCode in 200..299) { "Portal indisponível (${connection.responseCode})" }
++            status = connection.responseCode
++            check(status in 200..299) { "Portal indisponível ($status)" }
+             val bytes = connection.inputStream.use { stream ->
+                 val output = java.io.ByteArrayOutputStream()
+                 val buffer = ByteArray(8192)
+@@ -324,7 +336,10 @@
+                 output.toByteArray()
+             }
+             return JSONObject(bytes.toString(Charsets.UTF_8))
+-        } finally { connection.disconnect() }
++        } finally {
++            connection.disconnect()
++            android.util.Log.i("StartupPerf", "etapa=central_$stage http=$status duracaoMs=${android.os.SystemClock.elapsedRealtime()-start}")
++        }
+     }
+     companion object { private val mutex = Mutex() }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/StorageMaintenance.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/StorageMaintenance.kt
+@@ -12,6 +12,11 @@
+     private val requests = Channel<Unit>(Channel.CONFLATED)
+     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+     private var worker: Job? = null
++    private val priority = ForegroundStorageGate()
++    fun openingStarted() { priority.openingStarted() }
++    fun homeReady(context: Context) { priority.homeReady(); request(context) }
++    suspend fun <T> foregroundImport(block: suspend () -> T): T = priority.foreground(block)
++
+ 
+     @Synchronized fun request(context: Context) {
+         val app = context.applicationContext
+@@ -20,50 +25,51 @@
+                 var firstPass = true
+                 while (isActive) {
+                     withTimeoutOrNull(15 * 60_000L) { requests.receive() }
+-                    delay(if (firstPass) 15_000L else 5_000L)
+-                    while (requests.tryReceive().isSuccess) { /* coalesce notifications */ }
+-                    try {
+-                        StorageDiagnostics.log(app, "before")
+-                        val images = ImageDiskCache.get(app)
+-                        images.cleanupAbandonedTemporaries(System.currentTimeMillis() - 24L * 60 * 60 * 1000)
+-                        images.maintain()
+-                        val dao = PlaylistCacheDatabase.getInstance(app).playlistCacheDao()
+-                        val manager = PlaylistCacheGenerationManager(dao)
++                    priority.maintenanceAfterIdle(if (firstPass) 60_000L else 5_000L) {
++                        while (requests.tryReceive().isSuccess) { /* coalesce notifications */ }
+                         try {
+-                            br.com.flaviotorres.iptvpremium.data.storage.PlaylistStorage(app)
+-                                .withProtectedCatalogIds { protected, registeredCount ->
+-                                    val catalogIds = dao.catalogPlaylistIds()
+-                                    val retired = manager.retireUnregisteredCatalogs(
+-                                        protected, System.currentTimeMillis() - 15L * 60 * 1000
+-                                    )
+-                                    Log.i("IPTVStorage", "phase=registry registered_lists=$registeredCount " +
+-                                        "catalog_playlists=${catalogIds.size} " +
+-                                        "unregistered_catalogs=${catalogIds.count { it !in protected }} " +
+-                                        "retired_generations=$retired")
++                            StorageDiagnostics.log(app, "before")
++                            val images = ImageDiskCache.get(app)
++                            images.cleanupAbandonedTemporaries(System.currentTimeMillis() - 24L * 60 * 60 * 1000)
++                            images.maintain()
++                            val dao = PlaylistCacheDatabase.getInstance(app).playlistCacheDao()
++                            val manager = PlaylistCacheGenerationManager(dao)
++                            try {
++                                br.com.flaviotorres.iptvpremium.data.storage.PlaylistStorage(app)
++                                    .withProtectedCatalogIds { protected, registeredCount ->
++                                        val catalogIds = dao.catalogPlaylistIds()
++                                        val retired = manager.retireUnregisteredCatalogs(
++                                            protected, System.currentTimeMillis() - 15L * 60 * 1000
++                                        )
++                                        Log.i("IPTVStorage", "phase=registry registered_lists=$registeredCount " +
++                                            "catalog_playlists=${catalogIds.size} " +
++                                            "unregistered_catalogs=${catalogIds.count { it !in protected }} " +
++                                            "retired_generations=$retired")
++                                    }
++                            } catch (cancelled: CancellationException) { throw cancelled }
++                            catch (error: Exception) {
++                                // Continue existing STALE cleanup, but never infer an empty registry from failure.
++                                Log.w("IPTVStorage", "orphan_check_deferred type=${error.javaClass.simpleName}")
++                            }
++                            val cutoff = System.currentTimeMillis() - 24L * 60 * 60 * 1000
++                            for (playlist in dao.playlistsPendingStorageCleanup(cutoff)) {
++                                ensureActive()
++                                try {
++                                    while (manager.cleanupOldestStaleGeneration(playlist)) {
++                                        delay(250L)
++                                    }
++                                } catch (cancelled: CancellationException) { throw cancelled }
++                                catch (error: Exception) {
++                                    Log.w("IPTVStorage", "cleanup_deferred type=${error.javaClass.simpleName}")
+                                 }
++                            }
++                            StorageDiagnostics.log(app, "after")
+                         } catch (cancelled: CancellationException) { throw cancelled }
+                         catch (error: Exception) {
+-                            // Continue existing STALE cleanup, but never infer an empty registry from failure.
+-                            Log.w("IPTVStorage", "orphan_check_deferred type=${error.javaClass.simpleName}")
++                            Log.w("IPTVStorage", "maintenance_deferred type=${error.javaClass.simpleName}")
+                         }
+-                        val cutoff = System.currentTimeMillis() - 24L * 60 * 60 * 1000
+-                        for (playlist in dao.playlistsPendingStorageCleanup(cutoff)) {
+-                            ensureActive()
+-                            try {
+-                                while (manager.cleanupOldestStaleGeneration(playlist)) {
+-                                    delay(250L)
+-                                }
+-                            } catch (cancelled: CancellationException) { throw cancelled }
+-                            catch (error: Exception) {
+-                                Log.w("IPTVStorage", "cleanup_deferred type=${error.javaClass.simpleName}")
+-                            }
+-                        }
+-                        StorageDiagnostics.log(app, "after")
+-                    } catch (cancelled: CancellationException) { throw cancelled }
+-                    catch (error: Exception) {
+-                        Log.w("IPTVStorage", "maintenance_deferred type=${error.javaClass.simpleName}")
++                        firstPass = false
+                     }
+-                    firstPass = false
+                 }
+             }
+         }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/ForegroundStorageGate.kt
+@@ -0,0 +1,49 @@
++package br.com.flaviotorres.iptvpremium.core.storage
++
++import kotlinx.coroutines.delay
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.channelFlow
++import kotlinx.coroutines.flow.collectLatest
++import kotlinx.coroutines.flow.first
++import kotlinx.coroutines.flow.update
++import kotlinx.coroutines.sync.Mutex
++import kotlinx.coroutines.sync.withLock
++
++/** Cleanup yields cooperatively; catalog imports wait only for cleanup cancellation. */
++internal class ForegroundStorageGate {
++    private data class State(val opening: Boolean = true, val imports: Int = 0, val revision: Long = 0) {
++        val idle get() = !opening && imports == 0
++    }
++    private val state = MutableStateFlow(State())
++    private val maintenanceLock = Mutex()
++
++    fun openingStarted() { state.update { it.copy(opening = true, revision = it.revision + 1) } }
++    fun homeReady() { state.update { if (it.opening) it.copy(opening = false, revision = it.revision + 1) else it } }
++
++    suspend fun <T> foreground(block: suspend () -> T): T {
++        state.update { it.copy(imports = it.imports + 1, revision = it.revision + 1) }
++        try {
++            // collectLatest cancels a running maintenance pass when state changes.
++            maintenanceLock.withLock { }
++            return block()
++        } finally {
++            state.update { it.copy(imports = it.imports - 1, revision = it.revision + 1) }
++        }
++    }
++
++    suspend fun maintenanceAfterIdle(quietMillis: Long, block: suspend () -> Unit) {
++        channelFlow {
++            state.collectLatest { observed ->
++                if (observed.idle) {
++                    delay(quietMillis)
++                    maintenanceLock.withLock {
++                        if (state.value == observed) {
++                            block()
++                            send(Unit)
++                        }
++                    }
++                }
++            }
++        }.first()
++    }
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/startup/StartupTiming.kt
+@@ -0,0 +1,29 @@
++package br.com.flaviotorres.iptvpremium.core.startup
++
++import android.os.SystemClock
++import android.util.Log
++import java.util.concurrent.atomic.AtomicBoolean
++
++internal object StartupTiming {
++    @Volatile private var startedAt = 0L
++    private val homeReported = AtomicBoolean(false)
++    fun begin() { startedAt = SystemClock.elapsedRealtime(); homeReported.set(false) }
++    fun checkpoint(stage: String) {
++        Log.i("StartupPerf", "etapa=$stage totalMs=${SystemClock.elapsedRealtime() - startedAt}")
++    }
++    fun homeReady() {
++        if (homeReported.compareAndSet(false, true)) {
++            Log.i("StartupPerf", "etapa=interface_liberada totalMs=${SystemClock.elapsedRealtime() - startedAt}")
++        }
++    }
++    inline fun <T> measure(stage: String, block: () -> T): T {
++        val start = SystemClock.elapsedRealtime()
++        try { return block() }
++        finally { Log.i("StartupPerf", "etapa=$stage duracaoMs=${SystemClock.elapsedRealtime() - start}") }
++    }
++    suspend fun <T> measureSuspend(stage: String, block: suspend () -> T): T {
++        val start = SystemClock.elapsedRealtime()
++        try { return block() }
++        finally { Log.i("StartupPerf", "etapa=$stage duracaoMs=${SystemClock.elapsedRealtime() - start}") }
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -960,6 +960,10 @@
+         mutableIntStateOf(0)
+     }
+ 
++    LaunchedEffect(startupPreferencesResolved) {
++        if (startupPreferencesResolved) br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.checkpoint("preferencias_resolvidas")
++    }
++
+     // O catalogo ja foi importado e ativado antes desta barreira.
+     // Capas sao carregadas pelas telas, sem downloads antecipados na abertura
+     // nem uma fila de pre-carregamento apos a sincronizacao.
+@@ -1134,6 +1138,7 @@
+             phase = AppCatalogLoadingPhase.READING_CATALOG
+         )
+         try {
++            val remoteCatalogReady = remoteRequest?.let { playlistStorage.isPortalCatalogReady(it) } ?: false
+             automaticSyncJob?.cancelAndJoin()
+             automaticSyncJob = null
+             val content = when (activePlaylist) {
+@@ -1149,27 +1154,27 @@
+                      *
+                      * A tela de Canais lerá o Room diretamente via Paging.
+                      */
+-                    playlistCacheGenerationManager
+-                        .activateReadyGenerationOnStartup(
+-                            playlistId = playlistId
+-                        )
+-
+-                    val cacheAvailable = playlistCatalogRepository.hasActiveCache(playlistId)
+-                    Log.i("StartupPerf", "etapa=catalogo_abertura cache=$cacheAvailable remoto=${remoteRequest != null}")
+-                    if (remoteRequest != null || !cacheAvailable) {
+-
+-
+-                        m3uSourceSynchronizer.sync(
+-                            source = activePlaylist
+-                        )
++                    br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("cache_ativacao") {
++                        playlistCacheGenerationManager.activateReadyGenerationOnStartup(playlistId)
++                    }
++
++                    val cacheAvailable = br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("cache_consulta") {
++                        playlistCatalogRepository.hasActiveCache(playlistId)
++                    }
++                    Log.i("StartupPerf", "etapa=catalogo_abertura cache=$cacheAvailable remoto=${remoteRequest != null} pedidoJaImportado=$remoteCatalogReady")
++                    if (!cacheAvailable || remoteRequest != null && !remoteCatalogReady) {
++
++
++                        br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("catalogo_importacao") {
++                            m3uSourceSynchronizer.sync(source = activePlaylist)
++                        }
+                         automaticSyncPreferences.edit()
+                             .putLong("success_$playlistId", System.currentTimeMillis())
+                             .apply()
+ 
+-                        playlistCacheGenerationManager
+-                            .activateReadyGenerationOnStartup(
+-                                playlistId = playlistId
+-                            )
++                        br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("cache_ativacao") {
++                            playlistCacheGenerationManager.activateReadyGenerationOnStartup(playlistId)
++                        }
+                     }
+ 
+                     /*
+@@ -1193,27 +1198,27 @@
+                      * 4. agenda a limpeza STALE fora do caminho crítico;
+                      * 5. a interface passa a ler o catálogo por Paging.
+                      */
+-                    playlistCacheGenerationManager
+-                        .activateReadyGenerationOnStartup(
+-                            playlistId = playlistId
+-                        )
+-
+-                    val cacheAvailable = playlistCatalogRepository.hasActiveCache(playlistId)
+-                    Log.i("StartupPerf", "etapa=catalogo_abertura cache=$cacheAvailable remoto=${remoteRequest != null}")
+-                    if (remoteRequest != null || !cacheAvailable) {
+-
+-
+-                        m3uSourceSynchronizer.sync(
+-                            source = activePlaylist
+-                        )
++                    br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("cache_ativacao") {
++                        playlistCacheGenerationManager.activateReadyGenerationOnStartup(playlistId)
++                    }
++
++                    val cacheAvailable = br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("cache_consulta") {
++                        playlistCatalogRepository.hasActiveCache(playlistId)
++                    }
++                    Log.i("StartupPerf", "etapa=catalogo_abertura cache=$cacheAvailable remoto=${remoteRequest != null} pedidoJaImportado=$remoteCatalogReady")
++                    if (!cacheAvailable || remoteRequest != null && !remoteCatalogReady) {
++
++
++                        br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("catalogo_importacao") {
++                            m3uSourceSynchronizer.sync(source = activePlaylist)
++                        }
+                         automaticSyncPreferences.edit()
+                             .putLong("success_$playlistId", System.currentTimeMillis())
+                             .apply()
+ 
+-                        playlistCacheGenerationManager
+-                            .activateReadyGenerationOnStartup(
+-                                playlistId = playlistId
+-                            )
++                        br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("cache_ativacao") {
++                            playlistCacheGenerationManager.activateReadyGenerationOnStartup(playlistId)
++                        }
+                     }
+ 
+                     scheduleStaleGenerationCleanup(
+@@ -1223,9 +1228,14 @@
+                     null
+                 }
+             }
++            // Record only after ACTIVE has been committed; the request remains pending
++            // until preparation/navigation finishes, without downloading it twice.
++            if (remoteRequest != null) playlistStorage.markPortalCatalogReady(remoteRequest)
+             activePlaylistContent = content
+             activePlaylistContentSourceId = playlistId
+-            prepareCatalogBeforeHome(activePlaylist, isRefresh = false, showHistoryImport = showHistoryImport)
++            br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("catalogo_finalizacao") {
++                prepareCatalogBeforeHome(activePlaylist, isRefresh = false, showHistoryImport = showHistoryImport)
++            }
+             catalogLoadingState = null
+             Log.i("StartupPerf", "etapa=abertura_concluida duracaoMs=${SystemClock.elapsedRealtime()-openingStartedAt}")
+             if (remoteRequest != null) {
+@@ -1247,6 +1257,14 @@
+             )
+         }
+ 
++    }
++
++    LaunchedEffect(startupPreferencesResolved, catalogLoadingState, portalSyncRequests) {
++        if (startupPreferencesResolved && catalogLoadingState == null && portalSyncRequests == 0) {
++            withFrameNanos { }
++            br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.homeReady()
++            br.com.flaviotorres.iptvpremium.core.storage.StorageMaintenance.homeReady(context.applicationContext)
++        }
+     }
+ 
+     /*
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/storage/PlaylistStorage.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/storage/PlaylistStorage.kt
+@@ -7,6 +7,7 @@
+ import br.com.flaviotorres.iptvpremium.domain.model.PlaylistSource
+ import kotlinx.coroutines.flow.Flow
+ import kotlinx.coroutines.flow.map
++import kotlinx.coroutines.flow.first
+ import org.json.JSONArray
+ import org.json.JSONObject
+ 
+@@ -14,9 +15,10 @@
+     name = "playlist_storage"
+ )
+ 
+-class PlaylistStorage(
+-    private val context: Context
++class PlaylistStorage internal constructor(
++    private val store: androidx.datastore.core.DataStore<androidx.datastore.preferences.core.Preferences>
+ ) {
++    constructor(context: Context) : this(context.playlistDataStore)
+ 
+     private val playlistsKey =
+         stringPreferencesKey("playlists")
+@@ -25,15 +27,27 @@
+         stringPreferencesKey("active_playlist_id")
+ 
+     private val portalLoadKey = stringPreferencesKey("portal_load_request")
++    private val completedPortalLoadKey = stringPreferencesKey("portal_catalog_completed_request")
++
++    suspend fun isPortalCatalogReady(request: String): Boolean {
++        val preferences = store.data.first()
++        return preferences[portalLoadKey] == request && preferences[completedPortalLoadKey] == request
++    }
++
++    suspend fun markPortalCatalogReady(request: String) {
++        store.edit { preferences ->
++            if (preferences[portalLoadKey] == request) preferences[completedPortalLoadKey] = request
++        }
++    }
+     data class Selection(val playlists: List<PlaylistSource>, val activeId: String?, val loadRequest: String?)
+     // One emission for all three values: never combine an old active ID with a new list.
+-    val selection: Flow<Selection> = context.playlistDataStore.data.map { preferences ->
++    val selection: Flow<Selection> = store.data.map { preferences ->
+         Selection(decodePlaylists(preferences[playlistsKey].orEmpty()),
+             preferences[activePlaylistIdKey]?.takeIf { it.isNotBlank() }, preferences[portalLoadKey])
+     }
+     /** Serialize the registry check with all local/portal edits. Never modifies preferences. */
+     internal suspend fun withProtectedCatalogIds(action: suspend (Set<String>, Int) -> Unit) {
+-        context.playlistDataStore.edit { preferences ->
++        store.edit { preferences ->
+             val raw = preferences[playlistsKey]
+             val protected = br.com.flaviotorres.iptvpremium.core.storage.RegisteredCatalogIds.parse(
+                 raw, preferences[activePlaylistIdKey], preferences[portalLoadKey]
+@@ -43,7 +57,7 @@
+     }
+ 
+     suspend fun requestActiveCatalogLoad() {
+-        context.playlistDataStore.edit { preferences ->
++        store.edit { preferences ->
+             val id = preferences[activePlaylistIdKey] ?: return@edit
+             if (decodePlaylists(preferences[playlistsKey].orEmpty()).none { it.id == id && it.isEnabled }) return@edit
+             if (preferences[portalLoadKey] == null) preferences[portalLoadKey] = JSONObject().put("id", id)
+@@ -51,16 +65,19 @@
+         }
+     }
+ 
+-    val portalLoadRequest: Flow<String?> = context.playlistDataStore.data.map { it[portalLoadKey] }
++    val portalLoadRequest: Flow<String?> = store.data.map { it[portalLoadKey] }
+ 
+     suspend fun finishPortalLoad(request: String) {
+-        context.playlistDataStore.edit { preferences ->
+-            if (preferences[portalLoadKey] == request) preferences.remove(portalLoadKey)
++        store.edit { preferences ->
++            if (preferences[portalLoadKey] == request) {
++                preferences.remove(portalLoadKey)
++                preferences.remove(completedPortalLoadKey)
++            }
+         }
+     }
+ 
+     val playlists: Flow<List<PlaylistSource>> =
+-        context.playlistDataStore.data.map { preferences ->
++        store.data.map { preferences ->
+             decodePlaylists(
+                 preferences[playlistsKey]
+                     .orEmpty()
+@@ -68,7 +85,7 @@
+         }
+ 
+     val activePlaylistId: Flow<String?> =
+-        context.playlistDataStore.data.map { preferences ->
++        store.data.map { preferences ->
+             preferences[activePlaylistIdKey]
+                 ?.takeIf { it.isNotBlank() }
+         }
+@@ -76,7 +93,7 @@
+     suspend fun savePlaylists(
+         playlists: List<PlaylistSource>
+     ) {
+-        context.playlistDataStore.edit { preferences ->
++        store.edit { preferences ->
+             preferences[playlistsKey] =
+                 encodePlaylists(playlists)
+         }
+@@ -85,7 +102,7 @@
+     /** Apply a portal snapshot only if no local edit happened during its network request. */
+     suspend fun applyPortalSnapshot(expected: List<PlaylistSource>, remote: List<PlaylistSource>): Boolean {
+         var applied = false
+-        context.playlistDataStore.edit { preferences ->
++        store.edit { preferences ->
+             if (decodePlaylists(preferences[playlistsKey].orEmpty()) == expected) {
+                 preferences[playlistsKey] = encodePlaylists(remote)
+                 val active = preferences[activePlaylistIdKey]
+@@ -101,7 +118,7 @@
+ 
+     /** Apply one portal operation atomically against the latest local lists. */
+     suspend fun applyPortalOperation(id: String, source: PlaylistSource?) {
+-        context.playlistDataStore.edit { preferences ->
++        store.edit { preferences ->
+             val current = decodePlaylists(preferences[playlistsKey].orEmpty())
+             val next = if (source == null) current.filterNot { it.id == id }
+                 else if (current.any { it.id == id }) current.map { if (it.id == id) source else it }
+@@ -110,12 +127,14 @@
+             preferences[playlistsKey] = encodePlaylists(next)
+             if (source != null && source.isEnabled) {
+                 preferences[activePlaylistIdKey] = id
++                preferences.remove(completedPortalLoadKey)
+                 preferences[portalLoadKey] = JSONObject().put("id", id)
+                     .put("request", java.util.UUID.randomUUID().toString()).toString()
+             } else if (source == null) {
+                 val pending = preferences[portalLoadKey]
+                 if (pending != null && runCatching { JSONObject(pending).optString("id") == id }.getOrDefault(false)) {
+                     preferences.remove(portalLoadKey)
++                    preferences.remove(completedPortalLoadKey)
+                 }
+             }
+             val active = preferences[activePlaylistIdKey]
+@@ -129,7 +148,7 @@
+     suspend fun saveActivePlaylistId(
+         playlistId: String?
+     ) {
+-        context.playlistDataStore.edit { preferences ->
++        store.edit { preferences ->
+             if (playlistId.isNullOrBlank()) {
+                 preferences.remove(
+                     activePlaylistIdKey
+@@ -142,10 +161,11 @@
+     }
+ 
+     suspend fun clear() {
+-        context.playlistDataStore.edit { preferences ->
++        store.edit { preferences ->
+             preferences.remove(playlistsKey)
+             preferences.remove(activePlaylistIdKey)
+             preferences.remove(portalLoadKey)
++            preferences.remove(completedPortalLoadKey)
+         }
+     }
+ 
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
+@@ -70,7 +70,7 @@
+             val heapBefore = usedHeapKb()
+             var outcome = "ERRO"
+             try {
+-                operation().also { outcome = "SUCESSO" }
++                br.com.flaviotorres.iptvpremium.core.storage.StorageMaintenance.foregroundImport { operation() }.also { outcome = "SUCESSO" }
+             } catch (cancelled: CancellationException) {
+                 outcome = "CANCELADA"; throw cancelled
+             } finally {
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/startup/StartupStorageGateDeviceTest.kt
+@@ -0,0 +1,69 @@
++package br.com.flaviotorres.iptvpremium.core.startup
++
++import br.com.flaviotorres.iptvpremium.core.storage.ForegroundStorageGate
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++
++class StartupStorageGateDeviceTest {
++    @Test fun openingBlocksMaintenance() = runBlocking {
++        val gate = ForegroundStorageGate(); val entered = CompletableDeferred<Unit>()
++        val job = launch { gate.maintenanceAfterIdle(1) { entered.complete(Unit) } }
++        assertNull(withTimeoutOrNull(50) { entered.await() }); job.cancelAndJoin()
++    }
++    @Test fun usableInterfaceReleasesMaintenance() = runBlocking {
++        val gate = ForegroundStorageGate(); val entered = CompletableDeferred<Unit>()
++        val job = launch { gate.maintenanceAfterIdle(1) { entered.complete(Unit) } }
++        gate.homeReady(); withTimeout(2_000) { entered.await(); job.join() }
++    }
++    @Test fun activeImportBlocksMaintenance() = runBlocking {
++        val gate = ForegroundStorageGate(); gate.homeReady()
++        val importStarted = CompletableDeferred<Unit>(); val release = CompletableDeferred<Unit>()
++        val importer = launch { gate.foreground { importStarted.complete(Unit); release.await() } }
++        importStarted.await(); val entered = CompletableDeferred<Unit>()
++        val cleaner = launch { gate.maintenanceAfterIdle(1) { entered.complete(Unit) } }
++        assertNull(withTimeoutOrNull(50) { entered.await() })
++        release.complete(Unit); withTimeout(2_000) { importer.join(); cleaner.join() }; assertTrue(entered.isCompleted)
++    }
++    @Test fun importPreemptsCleanupAndWaitsForCleanupFinally() = runBlocking {
++        val gate = ForegroundStorageGate(); gate.homeReady()
++        val entered = CompletableDeferred<Unit>(); val cancelled = CompletableDeferred<Unit>()
++        val cleaner = launch { gate.maintenanceAfterIdle(1) {
++            entered.complete(Unit)
++            try { awaitCancellation() } finally { cancelled.complete(Unit) }
++        } }
++        withTimeout(2_000) { entered.await() }
++        gate.foreground { assertTrue(cancelled.isCompleted) }
++        cleaner.cancelAndJoin()
++    }
++    @Test fun cancelledImportDoesNotBlockFutureCleanup() = runBlocking {
++        val gate = ForegroundStorageGate(); gate.homeReady()
++        val started = CompletableDeferred<Unit>()
++        val importer = launch { gate.foreground { started.complete(Unit); awaitCancellation() } }
++        started.await(); importer.cancelAndJoin()
++        withTimeout(2_000) { gate.maintenanceAfterIdle(1) { } }
++    }
++    @Test fun failedImportDoesNotBlockFutureCleanup() = runBlocking {
++        val gate = ForegroundStorageGate(); gate.homeReady()
++        runCatching { gate.foreground { throw IllegalStateException("fixture") } }
++        withTimeout(2_000) { gate.maintenanceAfterIdle(1) { } }
++    }
++    @Test fun overlappingImportsMustBothFinishBeforeCleanup() = runBlocking {
++        val gate = ForegroundStorageGate(); gate.homeReady()
++        val a = CompletableDeferred<Unit>(); val b = CompletableDeferred<Unit>()
++        val first = launch(start = CoroutineStart.UNDISPATCHED) { gate.foreground { a.await() } }
++        val second = launch(start = CoroutineStart.UNDISPATCHED) { gate.foreground { b.await() } }
++        val entered = CompletableDeferred<Unit>()
++        val cleaner = launch { gate.maintenanceAfterIdle(1) { entered.complete(Unit) } }
++        a.complete(Unit); first.join(); assertNull(withTimeoutOrNull(50) { entered.await() })
++        b.complete(Unit); withTimeout(2_000) { second.join(); cleaner.join() }; assertTrue(entered.isCompleted)
++    }
++    @Test fun openingAgainPausesCleanupUntilInterfaceIsReadyAgain() = runBlocking {
++        val gate = ForegroundStorageGate(); gate.homeReady()
++        val entered = CompletableDeferred<Unit>(); var passes = 0
++        val cleaner = launch { gate.maintenanceAfterIdle(1) { passes++; entered.complete(Unit); awaitCancellation() } }
++        withTimeout(2_000) { entered.await() }; gate.openingStarted(); delay(30)
++        assertEquals(1, passes); gate.homeReady()
++        withTimeout(2_000) { while (passes < 2) yield() }; cleaner.cancelAndJoin()
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/startup/PortalCatalogReceiptDeviceTest.kt
+@@ -0,0 +1,48 @@
++package br.com.flaviotorres.iptvpremium.core.startup
++
++import androidx.datastore.preferences.core.PreferenceDataStoreFactory
++import br.com.flaviotorres.iptvpremium.data.storage.PlaylistStorage
++import br.com.flaviotorres.iptvpremium.domain.model.PlaylistSource
++import kotlinx.coroutines.*
++import kotlinx.coroutines.flow.first
++import org.junit.Assert.*
++import org.junit.Test
++import java.io.File
++import java.util.UUID
++
++class PortalCatalogReceiptDeviceTest {
++    private fun fixture(check: suspend (PlaylistStorage, PlaylistStorage) -> Unit) = runBlocking {
++        val root = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>().cacheDir
++        val file = File(root, "receipt-${UUID.randomUUID()}.preferences_pb")
++        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
++        val store = PreferenceDataStoreFactory.create(scope = scope, produceFile = { file })
++        try { check(PlaylistStorage(store), PlaylistStorage(store)) }
++        finally { scope.coroutineContext[Job]!!.cancelAndJoin(); file.delete() }
++    }
++    private val source = PlaylistSource.M3u("fixture", "Fixture", playlistUrl = "https://example.invalid/list.m3u")
++    @Test fun completedRequestSurvivesNewStorageInstance() = fixture { storage, reopened ->
++        storage.applyPortalOperation(source.id, source)
++        val request = storage.portalLoadRequest.first()!!
++        assertFalse(storage.isPortalCatalogReady(request)); storage.markPortalCatalogReady(request)
++        assertTrue(reopened.isPortalCatalogReady(request))
++    }
++    @Test fun newCommandInvalidatesOldCompletion() = fixture { storage, _ ->
++        storage.applyPortalOperation(source.id, source); val old = storage.portalLoadRequest.first()!!
++        storage.markPortalCatalogReady(old); storage.applyPortalOperation(source.id, source)
++        val next = storage.portalLoadRequest.first()!!
++        assertNotEquals(old, next); assertFalse(storage.isPortalCatalogReady(next))
++        storage.markPortalCatalogReady(old); assertFalse(storage.isPortalCatalogReady(next))
++    }
++    @Test fun oldFinishCannotDiscardNewPendingCommand() = fixture { storage, _ ->
++        storage.applyPortalOperation(source.id, source); val old = storage.portalLoadRequest.first()!!
++        storage.applyPortalOperation(source.id, source); val next = storage.portalLoadRequest.first()!!
++        storage.finishPortalLoad(old); assertEquals(next, storage.portalLoadRequest.first())
++        storage.markPortalCatalogReady(next); storage.finishPortalLoad(next)
++        assertNull(storage.portalLoadRequest.first()); assertFalse(storage.isPortalCatalogReady(next))
++    }
++    @Test fun clearRemovesPendingAndCompletedReceipt() = fixture { storage, _ ->
++        storage.applyPortalOperation(source.id, source); val request = storage.portalLoadRequest.first()!!
++        storage.markPortalCatalogReady(request); storage.clear()
++        assertNull(storage.portalLoadRequest.first()); assertFalse(storage.isPortalCatalogReady(request))
++    }
++}
