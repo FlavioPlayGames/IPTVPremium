@@ -1,0 +1,1 @@
+PASS: verificacao de compatibilidade, aplicacao dos dois arquivos, hashes finais, backups e preservacao de local.properties. Testes nativos pendentes no emulador.

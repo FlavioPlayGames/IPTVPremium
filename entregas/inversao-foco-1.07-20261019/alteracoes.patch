@@ -1,0 +1,59 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -182,6 +182,18 @@
+                             if (kotlin.math.abs(consumed) < .01f && kotlin.math.abs(delta) > .5f) break
+                         }
+                     }
++                    // Floating-point consumption can leave one physical pixel after
++                    // reversing direction. Commit the exact row before handing focus
++                    // back, otherwise the idle observer may start another host move.
++                    val available = count()
++                    if (available <= 0) return@launch
++                    val settledRow = desiredFirstRow ?: (grid.firstVisibleItemIndex / columns)
++                    val settledIndex = (settledRow * columns).coerceIn(0, available - 1)
++                    if (grid.firstVisibleItemIndex != settledIndex || grid.firstVisibleItemScrollOffset != 0) {
++                        grid.scrollToItem(settledIndex, 0)
++                    }
++                    ensureActive()
++                    if (desiredFirstRow != settledRow) continue
+                     if (!takeFocus) return@launch
+                     val target = currentIndex
+                     val ready = withTimeoutOrNull(2_500L) {
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
+@@ -86,8 +86,8 @@
+         assertEquals(columns, compose.runOnIdle { grid.firstVisibleItemIndex })
+         assertTwoRows(columns)
+     }
+-    private fun repeatAndReverse(columns: Int) {
+-        setup(columns)
++    private fun repeatAndReverse(columns: Int, realFrame: Boolean = false) {
++        setup(columns, realFrame)
+         compose.mainClock.autoAdvance = false
+         compose.onNodeWithTag("smooth-2").performKeyInput { repeat(12) { pressKey(Key.DirectionDown) } }
+         compose.mainClock.advanceTimeBy(64)
+@@ -97,7 +97,16 @@
+         compose.mainClock.advanceTimeBy(16)
+         assertTrue("Retargeting must not snap to the first row", position(columns) > 0f)
+         compose.mainClock.advanceTimeBy(900)
+-        compose.onNodeWithTag("smooth-2").assertIsFocused()
++        try {
++            compose.onNodeWithTag("smooth-2").assertIsFocused()
++        } catch (error: AssertionError) {
++            val state = compose.runOnIdle {
++                "first=${grid.firstVisibleItemIndex} offset=${grid.firstVisibleItemScrollOffset} " +
++                    "scrolling=${grid.isScrollInProgress} lastFocused=${focused.get()} " +
++                    "movingTarget=${navigation.isMovingSelection(2)} realFrame=$realFrame columns=$columns"
++            }
++            throw AssertionError("Focus handoff after reversal: $state", error)
++        }
+         assertEquals(0f, position(columns), 1f)
+         assertTwoRows(columns)
+     }
+@@ -125,4 +134,6 @@
+     @Test fun fiveColumnsSlideAndSettleWithTenCards() = rowSlides(5)
+     @Test fun fourColumnsRetargetRepeatedArrowsWithoutJumping() = repeatAndReverse(4)
+     @Test fun fiveColumnsRetargetRepeatedArrowsWithoutJumping() = repeatAndReverse(5)
++    @Test fun actualFrameFourColumnsReverseAndRestoreFocus() = repeatAndReverse(4, true)
++    @Test fun actualFrameFiveColumnsReverseAndRestoreFocus() = repeatAndReverse(5, true)
+ }
