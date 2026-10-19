@@ -1,0 +1,40 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt",
+    "allowMissing": false,
+    "allowed": [
+      "f76a8f1a37d0d91c728b8530501873d769839ba48ca6147c6b9ab1479148c61c",
+      "5cc354eb1ed99154dd858e2ef2f26213b78d1a5d1eb07d1f47dca8811f431c18",
+      "27a89ea9c3a13dc1380aba89805346dbf64acabca3d080e07db98e5f270ec53b",
+      "b7e1a7908b71924672c0687f287052c8eb2af7aba9217fca558b077b621f6413",
+      "be2ab155fc8dd279b2aaf8e36d824ba11a6664ce1c86981b54fb176f1eab14e9",
+      "067987b61110a55ed0e74b57a349dc7f663414193c8bbc02d597d193a2352712",
+      "7a544c9e28efe05ba2d59421511363cf139220cb6dfdc0ddf6fceb9972fd5201",
+      "1c74e985e0b4dca82797890c180fb8c38ef415820042a0d684ec114ff82c3937",
+      "52c728bc1d5c7c122df53a887f13b992ea2cca49f13915ac3de4d15268d11b40",
+      "58ad3042d93dddd40146cbc6438106fa90121a735f2ffa28a266cf82cc01d56d",
+      "d9a4e863c5741906b6cfdd4af19e7d3cd476239219f0a472b2d3afd8cee12133",
+      "2700be755be9c3da1d07dc7afb3db99b86d500ad6184d732397778f372774c3e"
+    ],
+    "sha": "be2ab155fc8dd279b2aaf8e36d824ba11a6664ce1c86981b54fb176f1eab14e9"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogScrollMotion.kt",
+    "allowMissing": false,
+    "allowed": [
+      "a4c71eb8ef4b76395ccc71d00dd472617908924e20463f875c3e7ab32261e610",
+      "fa8cb76f3f0a5cdd5d6188ad8fae18c143a60835e8ef597e2512f8cc4f5d0e6e",
+      "fbd0925326749108cb03d38ada045cf705876ad2d252edad4ce657027dfa1486",
+      "743802bae17334f305365ea9786a3df23bf71746d4d9d22de0a38ba2db9ddfc5",
+      "2b9829e88c036fc81db2af4673c9b298ab605ba8c3f5c5f9fd96c61cb2aef59f",
+      "8a8c00dfaf3e43f998fa248f8b30c4822b8a8bff38fb3ba4025c619a06ea8df4",
+      "3778cddda502ac8051b02df5ec3aafdde1c4b4c5ff77c2db338862bf7b3b9c3b",
+      "4fa1286bc00f03bc674afbdeb9284fe0789b226777c15fcf925371a08e9b9658",
+      "40633c7d39ece89c4d9db3c4dd093939f6331da19ca5d1bb4a6ce302565ce8c8",
+      "18fc47cb5a6a3b05d43b2623534270a4b4ff120d1d7993024cf4471b8fabcb5c",
+      "47d981c40e23d716f9d8d2f897bd0d0c65afd432c0b4a4b506978fc78146734b",
+      "08de2f84827b061d10e6758a1e7b6b1777c660bf5f2555da3dc8796fe0a81b65"
+    ],
+    "sha": "2b9829e88c036fc81db2af4673c9b298ab605ba8c3f5c5f9fd96c61cb2aef59f"
+  }
+]

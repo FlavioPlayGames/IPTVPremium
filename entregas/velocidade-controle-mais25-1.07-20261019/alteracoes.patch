@@ -1,0 +1,22 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -206,7 +206,7 @@
+                             }
+                             // A bounded continuous spring follows repeated commands
+                             // without allocating an animation object for each frame.
+-                            val delta = motion.advance(distance, dt, step, speedFactor = if (heldDirection != null) 1.4375f else 1f)
++                            val delta = motion.advance(distance, dt, step, speedFactor = if (heldDirection != null) 1.796875f else 1f)
+                             val consumed = scrollBy(delta)
+                             // Integrate the continuous trajectory, not LazyGrid's rounded
+                             // consumption. At a boundary, consumed pixels may stop before
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogScrollMotion.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogScrollMotion.kt
+@@ -7,7 +7,7 @@
+ 
+     fun advance(distance: Float, elapsedSeconds: Float, rowHeight: Float, speedFactor: Float = 1f): Float {
+         val dt = elapsedSeconds.coerceIn(.001f, .05f)
+-        val speed = speedFactor.coerceIn(1f, 1.4375f)
++        val speed = speedFactor.coerceIn(1f, 1.796875f)
+         val omega = 18f * speed
+         val error = -distance
+         val decay = kotlin.math.exp(-omega * dt)
