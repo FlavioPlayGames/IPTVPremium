@@ -1,0 +1,7 @@
+Correção somente da central. Não recompila nem instala APK.
+
+A mensagem anterior apagava o motivo da recusa e tratava falha de consulta remota como lista inválida. Agora mantém HTTP/timeout/rede no aviso. Se a central não concluir a consulta, pode apresentar dados identificados no link com estado device_required, sem afirmar validação. O botão passa a Enviar para validar no aplicativo e exige clique explícito; o aparelho faz a importação/validação normal. API confirmada continua enviando Xtream; M3U confirmada continua enviando M3U. Entrada local inválida, resposta de formato inválido ou conta explicitamente inativa ainda impedem envio. Não contorna bloqueios do provedor nem garante funcionamento de uma lista não verificada.
+
+Não foi possível confirmar a resposta do provedor real a partir da nuvem; a captura enviada não mostra o status HTTP. O ajuste mantém causa e uma escolha explícita em vez de diagnosticar o link incorretamente. Testes: 21 de validação e 10 verificações em Chromium, incluindo HTTP 403 simulado nos dois endpoints e envio com indicação de validação pendente. Wrangler dry-run. Não alegar teste real com esse provedor.
+
+Publicar-Validacao-Provedor-1.07.ps1 prepara a central e publica no Worker existente usando o login Wrangler local, sem migração de banco ou alteração de secrets. -NaoPublicar apenas extrai o projeto. Preserva recursos anteriores e a configuração Cloudflare. Atualize a página após publicar.

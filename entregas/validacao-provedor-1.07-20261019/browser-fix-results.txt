@@ -1,0 +1,10 @@
+PASS Xtream fields prefilled after validation, review before sending
+PASS confirmed Xtream sent as Xtream
+PASS incompatible API falls back to M3U and sends only M3U fields
+PASS editing link invalidates prior validation
+PASS stale response cannot authorize an edited link
+PASS invalid provider never sends a list and remains cancellable
+PASS editing preserves list ID and enabled state
+PASS browser has no JavaScript errors
+PASS HTTP refusal shows unverified state and explicit device-validation send action
+PASS form remains usable on mobile
