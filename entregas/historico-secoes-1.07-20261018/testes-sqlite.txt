@@ -1,0 +1,11 @@
+PASS movies filtra acento maiusculo pontuacao e qualidade entre 45000 itens
+PASS movies consulta ID sem depender do titulo
+PASS movies nenhum item solicitado nao retorna catalogo
+PASS movies paginacao respeita limite de ID e geracao
+PASS series filtra acento maiusculo pontuacao e qualidade entre 45000 itens
+PASS series consulta ID sem depender do titulo
+PASS series nenhum item solicitado nao retorna catalogo
+PASS series paginacao respeita limite de ID e geracao
+PASS series ID externo localiza titulo diferente
+PASS series normaliza zeros do TMDB sem varrer catalogo
+PASS series normaliza caixa e espacos do IMDb
