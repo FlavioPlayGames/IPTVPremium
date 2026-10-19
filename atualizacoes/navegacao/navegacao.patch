@@ -1,0 +1,411 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -25,7 +25,9 @@
+ /** One pending destination for repeated DPAD commands, including not-yet-composed rows. */
+ internal class CatalogGridNavigator(private val grid: LazyGridState, private val scope: CoroutineScope,
+     private val columns: Int, private val count: () -> Int, private val load: (Int) -> Unit,
+-    private val manual: () -> Unit) {
++    private val manual: () -> Unit,
++    private val onTop: (() -> Unit)? = null,
++    private val onLeft: (() -> Unit)? = null) {
+     private val requesters = mutableMapOf<Int, FocusRequester>()
+     private val revision = MutableStateFlow(0L)
+     private val intent = CatalogVerticalIntent(columns)
+@@ -60,6 +62,8 @@
+         intent.focused(index)
+     }
+     fun cancel() { job?.cancel(); job = null; intent.clear() }
++    fun reset() { cancel(); currentIndex = 0 }
++    fun enter() { manual(); host.requestFocus() }
+     fun hostKey(event: KeyEvent): Boolean = key(currentIndex, event)
+     fun key(index: Int, event: KeyEvent): Boolean {
+         val direction = event.key
+@@ -69,10 +73,14 @@
+         val total = count()
+         if (lastCount != total) { currentIndex = currentIndex.coerceIn(0, (total - 1).coerceAtLeast(0)); lastCount = total }
+         val anchor = (intent.desired ?: currentIndex).coerceIn(0, (total - 1).coerceAtLeast(0))
++        if (direction == Key.DirectionUp && anchor < columns && onTop != null) {
++            if (event.type == KeyEventType.KeyDown) { cancel(); manual(); onTop.invoke() }
++            return true
++        }
+         // Only an explicit LEFT at column zero may leave the grid.
+         if (direction == Key.DirectionLeft && anchor % columns == 0) {
+-            if (event.type == KeyEventType.KeyDown) { cancel(); manual() }
+-            return false
++            if (event.type == KeyEventType.KeyDown) { cancel(); manual(); onLeft?.invoke() }
++            return onLeft != null
+         }
+         if (event.type != KeyEventType.KeyDown) return true
+         if (total == 0) return true
+@@ -86,6 +94,15 @@
+         } ?: return true
+         currentIndex = target
+         job?.cancel()
++        // Most key presses stay inside the viewport. Transfer directly instead
++        // of bouncing through the host and waiting several display frames.
++        val layoutNow = grid.layoutInfo
++        val visibleTarget = layoutNow.visibleItemsInfo.firstOrNull { it.index == target }
++        if (visibleTarget != null && visibleTarget.offset.y >= layoutNow.viewportStartOffset &&
++            visibleTarget.offset.y + visibleTarget.size.height <= layoutNow.viewportEndOffset &&
++            runCatching { requesters[target]?.requestFocus() == true }.getOrDefault(false)) {
++            return true
++        }
+         // Keep a stable focus owner while the origin card is recycled by LazyGrid.
+         // Repeated keys are received here, rather than by a category chosen by Android.
+         transferring = true
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -29,6 +29,8 @@
+ import androidx.compose.foundation.border
+ import androidx.compose.foundation.clickable
+ import androidx.compose.foundation.gestures.detectTapGestures
++import androidx.compose.foundation.focusGroup
++import androidx.compose.ui.focus.focusRestorer
+ import androidx.compose.foundation.focusable
+ import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Box
+@@ -293,16 +295,11 @@
+     var selectedCategory by rememberSaveable {
+         mutableStateOf(MovieCategory.ALL)
+     }
++    val movieCategoryListState = rememberLazyListState()
+     val categoryFirstFocusRequester = remember { FocusRequester() }
+-    val movieCategoryListState = rememberLazyListState()
+-    var categoryFocusCommand by remember { mutableIntStateOf(0) }
+-
+-    LaunchedEffect(categoryFocusCommand) {
+-        if (categoryFocusCommand > 0) {
+-            movieCategoryListState.animateScrollToItem(0)
+-            runCatching { categoryFirstFocusRequester.requestFocus() }
+-        }
+-    }
++    val menuFocusRequester = remember { FocusRequester() }
++    val searchFocusRequester = remember { FocusRequester() }
++    var catalogContentFocused by remember { mutableStateOf(false) }
+ 
+     var selectedSourceCategoryId by rememberSaveable {
+         mutableStateOf<String?>(null)
+@@ -548,6 +545,7 @@
+         enabled = searchKeyboardVisible
+     ) {
+         searchKeyboardVisible = false
++        searchFocusRequester.requestFocus()
+     }
+ 
+     val previewMovies = remember {
+@@ -634,10 +632,18 @@
+             posterFocusActivity.value++
+         })
+         val gridNavigator = remember(moviesGridState, gridColumns) {
+-            CatalogGridNavigator(moviesGridState, navScope, gridColumns, { navCount }, { navLoad(it) }, { navManual() })
++            CatalogGridNavigator(moviesGridState, navScope, gridColumns, { navCount }, { navLoad(it) }, { navManual() },
++                onTop = { searchFocusRequester.requestFocus() },
++                onLeft = { menuFocusRequester.requestFocus() })
+         }
+         DisposableEffect(gridNavigator) { onDispose { gridNavigator.cancel() } }
+-        LaunchedEffect(currentFilterKey, searchKeyboardVisible) { gridNavigator.cancel() }
++        LaunchedEffect(currentFilterKey) { gridNavigator.reset() }
++        LaunchedEffect(searchKeyboardVisible) { gridNavigator.cancel() }
++        BackHandler(enabled = catalogContentFocused && !searchKeyboardVisible) {
++            gridNavigator.cancel()
++            navManual()
++            menuFocusRequester.requestFocus()
++        }
+ 
+         val outerHorizontalPadding =
+             if (compactLayout) 18.dp else 28.dp
+@@ -723,7 +729,14 @@
+                 Spacer(modifier = Modifier.height(if (compactLayout) 5.dp else 8.dp))
+ 
+                 LazyColumn(
+-                    modifier = Modifier.fillMaxSize(),
++                    modifier = Modifier.fillMaxSize()
++                        .focusRequester(menuFocusRequester).focusRestorer().focusGroup()
++                        .onPreviewKeyEvent { event ->
++                            if (event.key == Key.DirectionRight) {
++                                if (event.type == KeyEventType.KeyDown) gridNavigator.enter()
++                                true
++                            } else false
++                        },
+                     state = movieCategoryListState,
+                     verticalArrangement = Arrangement.spacedBy(categoryGap)
+                 ) {
+@@ -900,9 +913,12 @@
+             Column(
+                 modifier = Modifier
+                     .weight(1f)
++                    .onFocusChanged { catalogContentFocused = it.hasFocus }.focusGroup()
+                     .fillMaxSize()
+             ) {
+                 TopBar(
++                    searchFocusRequester = searchFocusRequester,
++                    onGridEnter = { gridNavigator.enter() },
+                     searchText = searchText,
+                     searchActive = searchKeyboardVisible,
+                     searchCursorPosition = searchCursorPosition,
+@@ -1356,11 +1372,19 @@
+     onSearchClear: () -> Unit,
+     sortMode: SortMode,
+     onSortClick: () -> Unit,
+-    compactLayout: Boolean
++    compactLayout: Boolean,
++    searchFocusRequester: FocusRequester? = null,
++    onGridEnter: (() -> Unit)? = null
+ ) {
+     val shape = RoundedCornerShape(if (compactLayout) 14.dp else 18.dp)
+     Row(
+         modifier = Modifier
++            .onPreviewKeyEvent { event ->
++                if (event.key == Key.DirectionDown && onGridEnter != null) {
++                    if (event.type == KeyEventType.KeyDown) onGridEnter()
++                    true
++                } else false
++            }
+             .fillMaxWidth()
+             .height(if (compactLayout) 44.dp else 54.dp)
+             .background(PremiumPanelBackground, shape)
+@@ -1381,7 +1405,9 @@
+             cursorPosition = searchCursorPosition,
+             onClick = onSearchClick,
+             onClear = onSearchClear,
+-            modifier = Modifier.weight(1f),
++            modifier = Modifier.weight(1f).then(
++                if (searchFocusRequester != null) Modifier.focusRequester(searchFocusRequester) else Modifier
++            ),
+             compactLayout = compactLayout
+         )
+         ClockDisplay(compactLayout = compactLayout)
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -25,6 +25,8 @@
+ import androidx.compose.foundation.border
+ import androidx.compose.foundation.clickable
+ import androidx.compose.foundation.gestures.detectTapGestures
++import androidx.compose.foundation.focusGroup
++import androidx.compose.ui.focus.focusRestorer
+ import androidx.compose.foundation.focusable
+ import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Box
+@@ -1158,6 +1160,9 @@
+ ) {
+     // O NavHost mantém esta rota e o estado de grade ao abrir detalhes.
+     // rememberSaveable restaura categoria, busca e posição ao voltar.
++    val menuFocusRequester = remember { FocusRequester() }
++    val searchFocusRequester = remember { FocusRequester() }
++    var catalogContentFocused by remember { mutableStateOf(false) }
+     var selectedMenu by rememberSaveable { mutableStateOf("all") }
+     var selectedProviderId by rememberSaveable { mutableStateOf<String?>(null) }
+     var selectedSeriesId by rememberSaveable { mutableStateOf<String?>(null) }
+@@ -1294,6 +1299,7 @@
+ 
+     BackHandler(enabled = searchKeyboardVisible) {
+         searchKeyboardVisible = false
++        searchFocusRequester.requestFocus()
+     }
+ 
+     // Mesmo criterio do catalogo de Filmes: categorias reais, sem
+@@ -1319,9 +1325,17 @@
+         pendingFirstSeriesFocus = false; beforeCategorySnapshot = null
+         returningSeriesFocusId = null; favoriteFocusSeriesId = null; posterFocusActivity.value++
+     })
+-    val gridNavigator = remember(gridState, gridColumns) { CatalogGridNavigator(gridState, navScope, gridColumns, { navCount }, { navLoad(it) }, { navManual() }) }
++    val gridNavigator = remember(gridState, gridColumns) { CatalogGridNavigator(gridState, navScope, gridColumns, { navCount }, { navLoad(it) }, { navManual() },
++        onTop = { searchFocusRequester.requestFocus() },
++        onLeft = { menuFocusRequester.requestFocus() }) }
+     DisposableEffect(gridNavigator) { onDispose { gridNavigator.cancel() } }
+-    LaunchedEffect(selectedMenu, selectedProviderId, appliedSearchText, sortMode, searchKeyboardVisible) { gridNavigator.cancel() }
++    LaunchedEffect(selectedMenu, selectedProviderId, appliedSearchText, sortMode) { gridNavigator.reset() }
++    LaunchedEffect(searchKeyboardVisible) { gridNavigator.cancel() }
++    BackHandler(enabled = catalogContentFocused && !searchKeyboardVisible) {
++        gridNavigator.cancel()
++        navManual()
++        menuFocusRequester.requestFocus()
++    }
+ 
+     BoxWithConstraints(
+         modifier = Modifier.fillMaxSize().background(br.com.flaviotorres.iptvpremium.ui.components.CatalogGlass.surface(0xFF070708))
+@@ -1388,7 +1402,14 @@
+ 
+                 // As categorias reais podem ser numerosas: barra lateral rolavel.
+                 LazyColumn(
+-                    modifier = Modifier.fillMaxSize(),
++                    modifier = Modifier.fillMaxSize()
++                        .focusRequester(menuFocusRequester).focusRestorer().focusGroup()
++                        .onPreviewKeyEvent { event ->
++                            if (event.key == Key.DirectionRight) {
++                                if (event.type == KeyEventType.KeyDown) gridNavigator.enter()
++                                true
++                            } else false
++                        },
+                     verticalArrangement = Arrangement.spacedBy(categoryGap)
+                 ) {
+                     item(key = "all") {
+@@ -1447,8 +1468,11 @@
+             }
+ 
+             Spacer(Modifier.width(sidebarGap))
+-            Column(modifier = Modifier.weight(1f).fillMaxSize()) {
++            Column(modifier = Modifier.weight(1f)
++                .onFocusChanged { catalogContentFocused = it.hasFocus }.focusGroup().fillMaxSize()) {
+                 TopBar(
++                    searchFocusRequester = searchFocusRequester,
++                    onGridEnter = { gridNavigator.enter() },
+                     searchText = searchText,
+                     searchActive = searchKeyboardVisible,
+                     searchCursorPosition = searchCursorPosition,
+@@ -1657,7 +1681,7 @@
+                     onMoveCursorRight = {
+                         searchCursorPosition = tvKeyboardMoveCursor(searchText, searchCursorPosition, 1)
+                     },
+-                    onAction = { searchKeyboardVisible = false }
++                    onAction = { searchKeyboardVisible = false; searchFocusRequester.requestFocus() }
+                 )
+             }
+         }
+@@ -1701,11 +1725,19 @@
+     onSearchClear: () -> Unit,
+     sortMode: SortMode,
+     onSortClick: () -> Unit,
+-    compactLayout: Boolean
++    compactLayout: Boolean,
++    searchFocusRequester: FocusRequester? = null,
++    onGridEnter: (() -> Unit)? = null
+ ) {
+     val shape = RoundedCornerShape(if (compactLayout) 14.dp else 18.dp)
+     Row(
+         modifier = Modifier
++            .onPreviewKeyEvent { event ->
++                if (event.key == Key.DirectionDown && onGridEnter != null) {
++                    if (event.type == KeyEventType.KeyDown) onGridEnter()
++                    true
++                } else false
++            }
+             .fillMaxWidth()
+             .height(if (compactLayout) 44.dp else 54.dp)
+             .background(PremiumPanelBackground, shape)
+@@ -1726,7 +1758,9 @@
+             cursorPosition = searchCursorPosition,
+             onClick = onSearchClick,
+             onClear = onSearchClear,
+-            modifier = Modifier.weight(1f),
++            modifier = Modifier.weight(1f).then(
++                if (searchFocusRequester != null) Modifier.focusRequester(searchFocusRequester) else Modifier
++            ),
+             compactLayout = compactLayout
+         )
+         ClockDisplay(compactLayout = compactLayout)
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogNavigationDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogNavigationDeviceTest.kt
+@@ -1,11 +1,15 @@
+ package br.com.flaviotorres.iptvpremium.data.repository
+ 
++import androidx.compose.foundation.focusGroup
+ import androidx.compose.foundation.focusable
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.lazy.grid.*
+ import androidx.compose.runtime.*
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.focus.*
++import androidx.compose.ui.input.key.onPreviewKeyEvent
++import androidx.compose.ui.input.key.key
++import androidx.compose.ui.input.key.type
+ import androidx.compose.ui.input.key.Key
+ import androidx.compose.ui.platform.testTag
+ import androidx.compose.ui.test.*
+@@ -21,20 +25,50 @@
+ @OptIn(androidx.compose.ui.test.ExperimentalTestApi::class)
+ class CatalogNavigationDeviceTest {
+     @get:Rule val compose = createComposeRule()
+-    private fun grid(count: Int, columns: Int = 5, enterHost: Boolean = false): AtomicInteger {
++    private val hostVisits = AtomicInteger(0)
++    private fun grid(count: Int, columns: Int = 5, enterHost: Boolean = false,
++        regions: Boolean = false): AtomicInteger {
+         val focused = AtomicInteger(-1)
+         compose.setContent {
+             val state = rememberLazyGridState()
+             val scope = rememberCoroutineScope()
+-            val navigator = remember { CatalogGridNavigator(state, scope, columns, { count }, {}, {}) }
++            val menu = remember { FocusRequester() }
++            val lastCategory = remember { FocusRequester() }
++            val search = remember { FocusRequester() }
++            var contentFocused by remember { mutableStateOf(false) }
++            val navigator = remember { CatalogGridNavigator(state, scope, columns, { count }, {}, {},
++                onTop = if (regions) ({ search.requestFocus(); Unit }) else null,
++                onLeft = if (regions) ({ menu.requestFocus(); Unit }) else null) }
++            androidx.activity.compose.BackHandler(enabled = regions && contentFocused) {
++                navigator.cancel()
++                menu.requestFocus()
++            }
+             Row {
+-            Box(Modifier.width(60.dp).height(180.dp).testTag("category").focusable())
+-            LazyVerticalGrid(GridCells.Fixed(columns), Modifier.width(500.dp).height(180.dp).catalogGridHost(navigator).testTag("grid"), state) {
++            Column(Modifier.width(60.dp).height(180.dp)
++                .focusRequester(menu).focusRestorer().focusGroup()) {
++                Box(Modifier.height(60.dp).fillMaxWidth().testTag("category").focusable())
++                Box(Modifier.height(60.dp).fillMaxWidth().testTag("last-category")
++                    .focusRequester(lastCategory).focusable())
++            }
++            Column(Modifier.onFocusChanged { contentFocused = it.hasFocus }.focusGroup()) {
++            Box(Modifier.width(500.dp).height(40.dp).testTag("search")
++                .focusRequester(search).onPreviewKeyEvent { event ->
++                    if (event.key == Key.DirectionDown) {
++                        if (event.type == androidx.compose.ui.input.key.KeyEventType.KeyDown) navigator.enter()
++                        true
++                    } else false
++                }.focusable())
++            LazyVerticalGrid(GridCells.Fixed(columns), Modifier.width(500.dp).height(180.dp)
++                .onFocusChanged { if (it.isFocused) hostVisits.incrementAndGet() }
++                .catalogGridHost(navigator).testTag("grid"), state) {
+                 items(count, key = { it }) { index ->
+                     val requester = remember { FocusRequester() }
+                     BindCatalogFocus(navigator, index, requester)
+                     LaunchedEffect(index) { if (enterHost && index == 0) { withFrameNanos {}; navigator.host.requestFocus() }
+-                        else if (!enterHost && index == 2 && focused.get() < 0) { withFrameNanos {}; requester.requestFocus() } }
++                        else if (!enterHost && index == 2 && focused.get() < 0) {
++                            if (regions) { lastCategory.requestFocus(); withFrameNanos {} }
++                            withFrameNanos {}; requester.requestFocus()
++                        } }
+                     Box(Modifier.height(60.dp).testTag("cell-$index")
+                         .focusRequester(requester)
+                         .catalogGridNavigation(navigator, index, requester)
+@@ -43,9 +77,40 @@
+                 }
+             }
+             }
++            }
+         }
+         compose.waitUntil(5_000) { focused.get() == if (enterHost) 0 else 2 }
+         return focused
++    }
++    @Test fun visibleCardMovesDirectlyWithoutParkingFocusOnHost() {
++        grid(100)
++        compose.onNodeWithTag("cell-2").performKeyInput { pressKey(Key.DirectionRight) }
++        compose.onNodeWithTag("cell-3").assertIsFocused()
++        assertEquals(0, hostVisits.get())
++    }
++    @Test fun upFromFirstRowEntersSearchAndDownRestoresColumn() {
++        grid(100, regions = true)
++        compose.onNodeWithTag("cell-2").performKeyInput { pressKey(Key.DirectionUp) }
++        compose.onNodeWithTag("search").assertIsFocused()
++        compose.onNodeWithTag("search").performKeyInput { pressKey(Key.DirectionDown) }
++        compose.waitUntil(5_000) { compose.onAllNodesWithTag("cell-2").filter(isFocused()).fetchSemanticsNodes().isNotEmpty() }
++        compose.onNodeWithTag("cell-2").assertIsFocused()
++    }
++    @Test fun leftFromFirstColumnRestoresLastCategory() {
++        grid(100, regions = true)
++        compose.onNodeWithTag("cell-2").performKeyInput { repeat(3) { pressKey(Key.DirectionLeft) } }
++        compose.onNodeWithTag("last-category").assertIsFocused()
++    }
++    @Test fun backFromLowerRowRestoresCategoryAndCancelsPendingFocus() {
++        val focused = grid(100, regions = true)
++        compose.onNodeWithTag("cell-2").performKeyInput { repeat(8) { pressKey(Key.DirectionDown) } }
++        compose.waitUntil(5_000) { focused.get() == 42 }
++        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
++            .sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
++        compose.waitForIdle()
++        compose.onNodeWithTag("last-category").assertIsFocused()
++        compose.mainClock.advanceTimeBy(3_000)
++        compose.onNodeWithTag("last-category").assertIsFocused()
+     }
+     @Test fun enteringGridHostTransfersFocusToFirstCard() {
+         grid(100, enterHost = true)
