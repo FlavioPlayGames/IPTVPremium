@@ -1,0 +1,374 @@
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
+@@ -0,0 +1,94 @@
++package br.com.flaviotorres.iptvpremium.data.repository
++
++import androidx.compose.foundation.focusable
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.lazy.grid.*
++import androidx.compose.runtime.*
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.focus.*
++import androidx.compose.ui.input.key.Key
++import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.test.*
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.unit.dp
++import br.com.flaviotorres.iptvpremium.ui.components.*
++import java.util.concurrent.atomic.AtomicInteger
++import org.junit.Assert.*
++import org.junit.Rule
++import org.junit.Test
++
++@OptIn(ExperimentalTestApi::class)
++class CatalogSmoothScrollDeviceTest {
++    @get:Rule val compose = createComposeRule()
++    private lateinit var grid: LazyGridState
++    private val focused = AtomicInteger(-1)
++    private fun setup(columns: Int) {
++        compose.setContent {
++            grid = rememberLazyGridState()
++            val scope = rememberCoroutineScope()
++            val navigator = remember { CatalogGridNavigator(grid, scope, columns, { 200 }, {}, {}) }
++            DisposableEffect(navigator) { onDispose { navigator.cancel() } }
++            LazyVerticalGrid(GridCells.Fixed(columns), Modifier.width(600.dp).height(226.dp)
++                .catalogGridHost(navigator).testTag("smooth-grid"), grid,
++                contentPadding = PaddingValues(8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
++                items(200, key = { it }) { index ->
++                    val requester = remember { FocusRequester() }
++                    BindCatalogFocus(navigator, index, requester)
++                    LaunchedEffect(index) {
++                        if (index == 2 && focused.get() < 0) { withFrameNanos {}; requester.requestFocus() }
++                    }
++                    Box(Modifier.height(100.dp).testTag("smooth-$index").focusRequester(requester)
++                        .catalogGridNavigation(navigator, index, requester)
++                        .onFocusChanged { if (it.isFocused) { focused.set(index); navigator.focused(index) } }
++                        .focusable())
++                }
++            }
++        }
++        compose.waitUntil(5_000) { focused.get() == 2 }
++    }
++    private fun position(columns: Int): Float = compose.runOnIdle {
++        val item = grid.layoutInfo.visibleItemsInfo.first()
++        val step = item.size.height + grid.layoutInfo.mainAxisItemSpacing
++        (grid.firstVisibleItemIndex / columns * step + grid.firstVisibleItemScrollOffset).toFloat()
++    }
++    private fun assertTwoRows(columns: Int) = compose.runOnIdle {
++        val layout = grid.layoutInfo
++        val full = layout.visibleItemsInfo.count {
++            it.offset.y >= layout.viewportStartOffset && it.offset.y + it.size.height <= layout.viewportEndOffset
++        }
++        assertEquals(columns * 2, full)
++        assertEquals(0, grid.firstVisibleItemScrollOffset)
++    }
++    private fun rowSlides(columns: Int) {
++        setup(columns)
++        compose.mainClock.autoAdvance = false
++        compose.onNodeWithTag("smooth-2").performKeyInput { pressKey(Key.DirectionDown); pressKey(Key.DirectionDown) }
++        compose.mainClock.advanceTimeBy(64)
++        val step = compose.runOnIdle { grid.layoutInfo.visibleItemsInfo.first().size.height + grid.layoutInfo.mainAxisItemSpacing }
++        val middle = position(columns)
++        assertTrue("An intermediate frame must move without jumping the whole row: $middle", middle > 0f && middle < step)
++        compose.mainClock.advanceTimeBy(700)
++        compose.onNodeWithTag("smooth-${2 + columns * 2}").assertIsFocused()
++        assertEquals(columns, compose.runOnIdle { grid.firstVisibleItemIndex })
++        assertTwoRows(columns)
++    }
++    private fun repeatAndReverse(columns: Int) {
++        setup(columns)
++        compose.mainClock.autoAdvance = false
++        compose.onNodeWithTag("smooth-2").performKeyInput { repeat(12) { pressKey(Key.DirectionDown) } }
++        compose.mainClock.advanceTimeBy(64)
++        val before = position(columns)
++        assertTrue(before > 0f)
++        compose.onNodeWithTag("smooth-grid").performKeyInput { repeat(12) { pressKey(Key.DirectionUp) } }
++        compose.mainClock.advanceTimeBy(16)
++        assertTrue("Retargeting must not snap to the first row", position(columns) > 0f)
++        compose.mainClock.advanceTimeBy(900)
++        compose.onNodeWithTag("smooth-2").assertIsFocused()
++        assertEquals(0f, position(columns), 1f)
++        assertTwoRows(columns)
++    }
++    @Test fun fourColumnsSlideAndSettleWithEightCards() = rowSlides(4)
++    @Test fun fiveColumnsSlideAndSettleWithTenCards() = rowSlides(5)
++    @Test fun fourColumnsRetargetRepeatedArrowsWithoutJumping() = repeatAndReverse(4)
++    @Test fun fiveColumnsRetargetRepeatedArrowsWithoutJumping() = repeatAndReverse(5)
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsHubPages.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsHubPages.kt
+@@ -121,10 +121,6 @@
+                         }
+                     }
+                 }
+-                Text("Duas fileiras completas: 8 capas grandes ou 10 capas em filmes e séries.",
+-                    color = Color(0xFFB7BBC1), fontSize = 13.sp)
+-                Text("A cor acompanha todo o aplicativo. Legendas têm ajuste próprio.",
+-                    color = Color(0xFFB7BBC1), fontSize = 13.sp)
+             }
+         }
+         if (wide) {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -1,5 +1,6 @@
+ package br.com.flaviotorres.iptvpremium.ui.components
+ 
++import androidx.compose.foundation.MutatePriority
+ import androidx.compose.foundation.background
+ import androidx.compose.foundation.focusable
+ import androidx.compose.foundation.layout.*
+@@ -22,7 +23,7 @@
+ internal val LocalCatalogPosterWidth = staticCompositionLocalOf { androidx.compose.ui.unit.Dp.Unspecified }
+ internal val LocalCatalogMetadataHeight = staticCompositionLocalOf { 34.dp }
+ 
+-/** One pending destination for repeated DPAD commands, including not-yet-composed rows. */
++/** One continuous scroll follows the latest DPAD destination, even while the key repeats. */
+ internal class CatalogGridNavigator(private val grid: LazyGridState, private val scope: CoroutineScope,
+     private val columns: Int, private val count: () -> Int, private val load: (Int) -> Unit,
+     private val manual: () -> Unit,
+@@ -34,50 +35,137 @@
+     private var job: Job? = null
+     val host = FocusRequester()
+     private var currentIndex = 0
+-    private var lastCount = -1
++    private var desiredFirstRow: Int? = null
+     private var transferring = false
+-    private var hostHasFocus = false
++
+     fun hostFocusChanged(focused: Boolean) {
+-        hostHasFocus = focused
+-        if (!focused || transferring || job?.isActive == true || count() == 0) return
+-        val target = currentIndex.coerceIn(0, count() - 1)
+-        job = scope.launch {
+-            load(target)
+-            val ready = withTimeoutOrNull(2_500L) { revision.first { requesters[target] != null } }
+-            if (ready != null) {
+-                withFrameNanos { }
+-                ensureActive()
+-                if (hostHasFocus && currentIndex == target) requesters[target]?.requestFocus()
+-            }
++        if (transferring) return
++        if (!focused) {
++            if (job?.isActive == true) cancel()
++        } else if (job?.isActive != true && count() > 0) {
++            desiredFirstRow = grid.firstVisibleItemIndex / columns
++            reveal(currentIndex)
++            startMovement()
+         }
+     }
+     fun attach(index: Int, requester: FocusRequester) {
+-        requesters[index] = requester; revision.value++
+-        if (hostHasFocus) hostFocusChanged(true)
+-    }
+-    fun detach(index: Int, requester: FocusRequester) { if (requesters[index] === requester) requesters.remove(index) }
++        requesters[index] = requester
++        revision.value++
++    }
++    fun detach(index: Int, requester: FocusRequester) {
++        if (requesters[index] === requester) requesters.remove(index)
++    }
+     fun focused(index: Int) {
+-        // A late focus event from a previous row cannot replace the current command.
+         if (intent.desired == null || intent.desired == index) currentIndex = index
+         intent.focused(index)
+     }
+-    fun cancel() { job?.cancel(); job = null; intent.clear() }
++    fun cancel() {
++        job?.cancel(); job = null; desiredFirstRow = null; intent.clear()
++    }
+     fun reset() { cancel(); currentIndex = 0 }
+     fun enter() { manual(); host.requestFocus() }
+     fun hostKey(event: KeyEvent): Boolean = key(currentIndex, event)
++
++    private fun rowStep(): Float {
++        val layout = grid.layoutInfo
++        return ((layout.visibleItemsInfo.firstOrNull()?.size?.height ?: 0) + layout.mainAxisItemSpacing).toFloat()
++    }
++    private fun viewportRows(): Int {
++        val layout = grid.layoutInfo
++        val step = rowStep()
++        if (step <= 0f) return 2
++        val usable = layout.viewportSize.height - layout.beforeContentPadding - layout.afterContentPadding
++        return ((usable + layout.mainAxisItemSpacing) / step + .001f).toInt().coerceAtLeast(1)
++    }
++    private fun reveal(index: Int) {
++        val rows = viewportRows()
++        val first = desiredFirstRow ?: (grid.firstVisibleItemIndex / columns)
++        val row = index / columns
++        val next = when {
++            row < first -> row
++            row >= first + rows -> row - rows + 1
++            else -> first
++        }
++        val last = ((count() + columns - 1) / columns - rows).coerceAtLeast(0)
++        desiredFirstRow = next.coerceIn(0, last)
++    }
++    private fun transfer(requester: FocusRequester?): Boolean {
++        transferring = true
++        return try { runCatching { requester?.requestFocus() == true }.getOrDefault(false) }
++        finally { transferring = false }
++    }
++
++    private fun startMovement() {
++        if (job?.isActive == true) return
++        transfer(host)
++        job = scope.launch {
++            while (isActive && count() > 0) {
++                currentIndex = currentIndex.coerceIn(0, count() - 1)
++                load(currentIndex)
++                val laidOut = withTimeoutOrNull(2_500L) {
++                    snapshotFlow { grid.layoutInfo.visibleItemsInfo.isNotEmpty() }.first { it }
++                }
++                if (laidOut == null) return@launch
++                reveal(currentIndex)
++                // A critically damped spring retains its velocity when the target
++                // changes. Repeated arrows never restart a tween or jump a row.
++                grid.scroll(MutatePriority.UserInput) {
++                    var velocity = 0f
++                    var lastFrame = withFrameNanos { it }
++                    var loaded = currentIndex
++                    while (true) {
++                        val now = withFrameNanos { it }
++                        ensureActive()
++                        val dt = ((now - lastFrame) / 1_000_000_000f).coerceIn(.001f, .05f)
++                        lastFrame = now
++                        if (loaded != currentIndex) { load(currentIndex); loaded = currentIndex }
++                        val step = rowStep()
++                        if (step <= 0f) break
++                        val position = (grid.firstVisibleItemIndex / columns) * step + grid.firstVisibleItemScrollOffset
++                        val distance = (desiredFirstRow ?: 0) * step - position
++                        if (kotlin.math.abs(distance) < .5f && kotlin.math.abs(velocity) < 12f) {
++                            scrollBy(distance)
++                            break
++                        }
++                        val omega = 32f
++                        val error = -distance
++                        val decay = kotlin.math.exp(-omega * dt)
++                        val nextError = (error + (velocity + omega * error) * dt) * decay
++                        val nextVelocity = (velocity - omega * (velocity + omega * error) * dt) * decay
++                        val delta = nextError - error
++                        val consumed = scrollBy(delta)
++                        velocity = nextVelocity
++                        if (kotlin.math.abs(consumed) < .01f && kotlin.math.abs(delta) > .5f) break
++                    }
++                }
++                val target = currentIndex
++                val ready = withTimeoutOrNull(2_500L) {
++                    revision.first { currentIndex != target || requesters[target] != null }
++                }
++                if (currentIndex != target) continue
++                if (ready == null) { intent.clear(); return@launch }
++                repeat(3) {
++                    withFrameNanos { }
++                    ensureActive()
++                    if (currentIndex != target) return@repeat
++                    if (transfer(requesters[target])) return@launch
++                }
++                if (currentIndex == target) { intent.clear(); return@launch }
++            }
++        }
++    }
++
+     fun key(index: Int, event: KeyEvent): Boolean {
+         val direction = event.key
+         val arrow = direction == Key.DirectionDown || direction == Key.DirectionUp ||
+             direction == Key.DirectionLeft || direction == Key.DirectionRight
+         if (!arrow) return job?.isActive == true && (direction == Key.DirectionCenter || direction == Key.Enter)
+         val total = count()
+-        if (lastCount != total) { currentIndex = currentIndex.coerceIn(0, (total - 1).coerceAtLeast(0)); lastCount = total }
+         val anchor = (intent.desired ?: currentIndex).coerceIn(0, (total - 1).coerceAtLeast(0))
+         if (direction == Key.DirectionUp && anchor < columns && onTop != null) {
+             if (event.type == KeyEventType.KeyDown) { cancel(); manual(); onTop.invoke() }
+             return true
+         }
+-        // Only an explicit LEFT at column zero may leave the grid.
+         if (direction == Key.DirectionLeft && anchor % columns == 0) {
+             if (event.type == KeyEventType.KeyDown) { cancel(); manual(); onLeft?.invoke() }
+             return onLeft != null
+@@ -89,52 +177,21 @@
+             Key.DirectionDown -> intent.request(anchor, total, true)
+             Key.DirectionUp -> intent.request(anchor, total, false)
+             Key.DirectionLeft -> (anchor - 1).also { intent.clear() }
+-            Key.DirectionRight -> if (anchor % columns < columns - 1 && anchor + 1 < total) (anchor + 1).also { intent.clear() } else null
++            Key.DirectionRight -> if (anchor % columns < columns - 1 && anchor + 1 < total)
++                (anchor + 1).also { intent.clear() } else null
+             else -> null
+         } ?: return true
+         currentIndex = target
+-        job?.cancel()
+-        // Most key presses stay inside the viewport. Transfer directly instead
+-        // of bouncing through the host and waiting several display frames.
+-        val layoutNow = grid.layoutInfo
+-        val visibleTarget = layoutNow.visibleItemsInfo.firstOrNull { it.index == target }
+-        if (visibleTarget != null && visibleTarget.offset.y >= layoutNow.viewportStartOffset &&
+-            visibleTarget.offset.y + visibleTarget.size.height <= layoutNow.viewportEndOffset &&
+-            runCatching { requesters[target]?.requestFocus() == true }.getOrDefault(false)) {
++        revision.value++
++        if (job?.isActive != true) desiredFirstRow = grid.firstVisibleItemIndex / columns
++        reveal(target)
++        val layout = grid.layoutInfo
++        val item = layout.visibleItemsInfo.firstOrNull { it.index == target }
++        if (job?.isActive != true && item != null && item.offset.y >= layout.viewportStartOffset &&
++            item.offset.y + item.size.height <= layout.viewportEndOffset && transfer(requesters[target])) {
+             return true
+         }
+-        // Keep a stable focus owner while the origin card is recycled by LazyGrid.
+-        // Repeated keys are received here, rather than by a category chosen by Android.
+-        transferring = true
+-        try { runCatching { host.requestFocus() } } finally { transferring = false }
+-        job = scope.launch {
+-            if (target !in 0 until count()) { intent.clear(); return@launch }
+-            load(target)
+-            val layout = grid.layoutInfo
+-            val visible = layout.visibleItemsInfo
+-            val item = visible.firstOrNull { it.index == target }
+-            val fullyVisible = item != null && item.offset.y >= layout.viewportStartOffset &&
+-                item.offset.y + item.size.height <= layout.viewportEndOffset
+-            if (!fullyVisible) {
+-                val fullRows = visible.filter { it.offset.y >= layout.viewportStartOffset &&
+-                    it.offset.y + it.size.height <= layout.viewportEndOffset }.map { it.index / columns }.distinct()
+-                val rows = fullRows.size.coerceAtLeast(1)
+-                val firstRow = (visible.firstOrNull()?.index ?: target) / columns
+-                val row = target / columns
+-                val startRow = if (row >= firstRow) (row - rows + 1).coerceAtLeast(0) else row
+-                grid.scrollToItem(startRow * columns)
+-            }
+-            val ready = withTimeoutOrNull(2_500L) { revision.first { requesters[target] != null } }
+-            if (ready == null) { intent.clear(); return@launch }
+-            repeat(3) {
+-                withFrameNanos { }
+-                ensureActive()
+-                if (currentIndex != target) return@launch
+-                val focused = runCatching { requesters[target]?.requestFocus() == true }.getOrDefault(false)
+-                if (focused) return@launch
+-            }
+-            intent.clear()
+-        }
++        startMovement()
+         return true
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogLayoutPreview.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogLayoutPreview.kt
+@@ -62,9 +62,7 @@
+     val titles = listOf("Deep", "Vök", "The Fairy", "Cursed", "My Crazy One", "Gone",
+         "A Cold Night to Stay", "The Silence", "Hear the Roar", "Deep")
+     Box(Modifier.fillMaxSize()) {
+-        Image(themePainterResource(R.drawable.home_background), null,
+-            Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+-        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .35f)))
++        CatalogThemeBackdrop(Modifier.matchParentSize())
+         Row(Modifier.fillMaxSize().padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 6.dp),
+             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+             Column(Modifier.width(245.dp).fillMaxHeight().clip(panel)
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogTwoRowFrame.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogTwoRowFrame.kt
+@@ -24,7 +24,7 @@
+     content: @Composable (Float) -> Unit) {
+     val shape = RoundedCornerShape(if (compactLayout) 14.dp else 18.dp)
+     BoxWithConstraints(Modifier.fillMaxSize()
+-        .background(CatalogGlass.surface(0xFF070708), shape)
++        .background(CatalogGlass.surface(0x400B0D10), shape)
+         .border(1.dp, ThemeColors.metallicBorder, shape)
+         .padding(if (compactLayout) 4.dp else 6.dp)) {
+         val scale = LocalDensity.current.fontScale
