@@ -1,0 +1,4 @@
+PASS 24 fps: held faster, bounded speed, reset settles after release
+PASS 30 fps: held faster, bounded speed, reset settles after release
+PASS 60 fps: held faster, bounded speed, reset settles after release
+PASS 120 fps: held faster, bounded speed, reset settles after release
