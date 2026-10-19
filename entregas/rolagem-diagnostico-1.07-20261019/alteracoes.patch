@@ -1,0 +1,100 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -35,6 +35,17 @@
+     private val revision = MutableStateFlow(0L)
+     private val intent = CatalogVerticalIntent(columns)
+     private var job: Job? = null
++    private var diagnosticPhase = "idle"
++    private var diagnosticFrames = 0
++    private var diagnosticDistance = 0f
++    private var diagnosticVelocity = 0f
++    private var diagnosticElapsedNanos = 0L
++    internal fun motionDiagnostic(): String =
++        "build=continuous-trace-1 phase=$diagnosticPhase frames=$diagnosticFrames " +
++            "elapsedMs=${diagnosticElapsedNanos / 1_000_000} distance=$diagnosticDistance " +
++            "velocity=$diagnosticVelocity desiredRow=$desiredFirstRow current=$currentIndex " +
++            "active=${job?.isActive} attached=${requesters.containsKey(currentIndex)}"
++
+     val host = FocusRequester()
+     private var currentIndex = grid.firstVisibleItemIndex
+     private var filterIdentity: Any? = null
+@@ -146,6 +157,7 @@
+                 while (isActive && count() > 0) {
+                     currentIndex = currentIndex.coerceIn(0, count() - 1)
+                     load(currentIndex)
++                    diagnosticPhase = "await-layout"
+                     val laidOut = withTimeoutOrNull(2_500L) {
+                         snapshotFlow { grid.layoutInfo.visibleItemsInfo.isNotEmpty() }.first { it }
+                     }
+@@ -153,7 +165,12 @@
+                     if (!keepRow) reveal(currentIndex)
+                     // A critically damped spring retains its velocity when the target
+                     // changes. Repeated arrows never restart a tween or jump a row.
++                    diagnosticPhase = "await-scroll-lock"
+                     grid.scroll(MutatePriority.UserInput) {
++                        diagnosticPhase = "animate"
++                        diagnosticFrames = 0
++                        diagnosticElapsedNanos = 0L
++                        var firstFrame = 0L
+                         val motion = CatalogScrollMotion()
+                         var lastFrame = 0L
+                         var loaded = currentIndex
+@@ -164,10 +181,15 @@
+                             val dt = if (lastFrame == 0L) 1f / 60f else
+                                 ((now - lastFrame) / 1_000_000_000f).coerceIn(.001f, .05f)
+                             lastFrame = now
++                            if (firstFrame == 0L) firstFrame = now
++                            diagnosticElapsedNanos = now - firstFrame
++                            diagnosticFrames++
+                             if (loaded != currentIndex) { load(currentIndex); loaded = currentIndex }
+                             val step = rowStep()
+                             if (step <= 0f) break
+                             val distance = (desiredFirstRow ?: 0) * step - position
++                            diagnosticDistance = distance
++                            diagnosticVelocity = motion.velocity
+                             // LazyGrid rounds physical offsets to integers. Below one pixel,
+                             // consumption may stop while the spring still has fractional error.
+                             if (kotlin.math.abs(distance) <= 1.5f && kotlin.math.abs(motion.velocity) < 12f) {
+@@ -188,6 +210,7 @@
+                     // Floating-point consumption can leave one physical pixel after
+                     // reversing direction. Commit the exact row before handing focus
+                     // back, otherwise the idle observer may start another host move.
++                    diagnosticPhase = "align-row"
+                     val available = count()
+                     if (available <= 0) return@launch
+                     val settledRow = desiredFirstRow ?: (grid.firstVisibleItemIndex / columns)
+@@ -199,11 +222,13 @@
+                     if (desiredFirstRow != settledRow) continue
+                     if (!takeFocus) return@launch
+                     val target = currentIndex
++                    diagnosticPhase = "await-requester"
+                     val ready = withTimeoutOrNull(2_500L) {
+                         revision.first { currentIndex != target || requesters[target] != null }
+                     }
+                     if (currentIndex != target) continue
+                     if (ready == null) { intent.clear(); return@launch }
++                    diagnosticPhase = "transfer-focus"
+                     repeat(3) { attempt ->
+                         if (attempt > 0) withFrameNanos { }
+                         ensureActive()
+@@ -212,7 +237,7 @@
+                     }
+                     if (currentIndex == target) { intent.clear(); return@launch }
+                 }
+-            } finally { moving = false }
++            } finally { diagnosticPhase = "finished-$diagnosticPhase"; moving = false }
+         }
+     }
+ 
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
+@@ -103,7 +103,8 @@
+             val state = compose.runOnIdle {
+                 "first=${grid.firstVisibleItemIndex} offset=${grid.firstVisibleItemScrollOffset} " +
+                     "scrolling=${grid.isScrollInProgress} lastFocused=${focused.get()} " +
+-                    "movingTarget=${navigation.isMovingSelection(2)} realFrame=$realFrame columns=$columns"
++                    "movingTarget=${navigation.isMovingSelection(2)} realFrame=$realFrame columns=$columns " +
++                    navigation.motionDiagnostic()
+             }
+             throw AssertionError("Focus handoff after reversal: $state", error)
+         }
