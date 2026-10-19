@@ -1,0 +1,302 @@
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportBatchDeviceTest.kt
+@@ -0,0 +1,19 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++import br.com.flaviotorres.iptvpremium.data.parser.XtreamArrayStream
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++import java.io.StringReader
++class ImportBatchDeviceTest {
++ @Test fun everyProfilePreservesRecordsAndUsesItsDefaultBatch()=runBlocking {
++  val original=ImportTuningState.profile
++  try{for(profile in ImportProfile.entries){ImportTuningState.profile=profile;val batches=mutableListOf<Int>();val raw=(1..5001).joinToString(",","[","]"){"{\"stream_id\":$it}"};val stats=XtreamArrayStream.read(StringReader(raw),"get_vod_streams"){_,count->batches.add(count)};assertEquals(5001L,stats.records);assertEquals(5001,batches.sum());assertEquals(profile.batchSize,batches.first());assertTrue(batches.all{it<=profile.batchSize})}}finally{ImportTuningState.profile=original}
++ }
++ @Test fun largeRecordsTriggerTextThresholdBeforeRowThreshold()=runBlocking {
++  val original=ImportTuningState.profile
++  try{ImportTuningState.profile=ImportProfile.LOTES;val batches=mutableListOf<Int>();val record="{\"name\":\""+"x".repeat(400000)+"\"}";XtreamArrayStream.read(StringReader(List(8){record}.joinToString(",","[","]")),"get_vod_streams"){_,n->batches.add(n)};assertEquals(8,batches.sum());assertTrue(batches.first()<ImportProfile.LOTES.batchSize);assertTrue(batches.size>1)}finally{ImportTuningState.profile=original}
++ }
++ @Test fun cancellationStopsProductionAfterCurrentBatch()=runBlocking {
++  var emissions=0;val task=launch{XtreamArrayStream.read(StringReader((1..5000).joinToString(",","[","]"){"{\"stream_id\":$it}"}),"get_vod_streams",batchSize=10){_,_->emissions++;currentCoroutineContext().cancel()}};task.join();assertTrue(task.isCancelled);assertEquals(1,emissions)
++ }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningDeviceTest.kt
+@@ -0,0 +1,59 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++import android.content.Context
++import android.os.Bundle
++import android.os.SystemClock
++import androidx.room.Room
++import androidx.test.core.app.ApplicationProvider
++import androidx.test.platform.app.InstrumentationRegistry
++import br.com.flaviotorres.iptvpremium.data.cache.importer.M3uCacheImporter
++import br.com.flaviotorres.iptvpremium.data.parser.DefaultXtreamParser
++import br.com.flaviotorres.iptvpremium.data.parser.XtreamArrayStream
++import br.com.flaviotorres.iptvpremium.data.remote.PlaylistHttpClient
++import br.com.flaviotorres.iptvpremium.data.sync.*
++import br.com.flaviotorres.iptvpremium.domain.model.*
++import br.com.flaviotorres.iptvpremium.domain.repository.PlaylistRepository
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++import java.io.IOException
++import java.io.StringReader
++import java.util.UUID
++class ImportTuningDeviceTest {
++ private val context get()=ApplicationProvider.getApplicationContext<Context>()
++ private fun report(message:String){InstrumentationRegistry.getInstrumentation().sendStatus(2,Bundle().apply{putString("stream",message+"\n")})}
++ @Test fun configureProfile(){val id=InstrumentationRegistry.getArguments().getString("perfil")?:return;val profile=ImportProfile.requested(id);ImportTuning.saveForDebug(context,profile);assertEquals(profile,ImportTuning.load(context));report("PERFIL_CONFIGURADO=${profile.name}")}
++ @Test fun allProfilesImportRollbackAndReopenBothFormats()=runBlocking(Dispatchers.IO){
++  val original=ImportTuningState.profile
++  try{for(round in 1..2)for(profile in if(round==1)ImportProfile.entries else ImportProfile.entries.reversed())for(format in if(round==1)listOf("XTREAM","M3U")else listOf("M3U","XTREAM")){
++   ImportTuningState.profile=profile
++   val name="bench-import-${UUID.randomUUID()}.db"
++   fun open()=ImportTuning.configure(Room.databaseBuilder(context,PlaylistCacheDatabase::class.java,name),profile).build()
++   var db=open()
++   try{
++    val sql=db.openHelper.writableDatabase
++    val settings=ImportTuning.writerSettings(sql)
++    val journal=settings.first;val syncValue=settings.second.toString()
++    if(profile.forceWal)assertEquals("wal",journal.lowercase())
++    if(profile.normal)assertEquals("1",syncValue)
++    val dao=db.playlistCacheDao();val manager=PlaylistCacheGenerationManager(dao)
++    var failure:Exception?=null
++    val json=(1..5000).joinToString(",","[","]"){"{\"stream_id\":$it,\"name\":\"Fixture $it\",\"category_id\":\"1\",\"container_extension\":\"mp4\"}"}
++    val provider=object:PlaylistRepository,ProgressiveXtreamRepository{
++     override suspend fun loadContent(source:PlaylistSource):PlaylistContent=error("Streaming required")
++     override suspend fun importXtream(source:PlaylistSource.XtreamCodes,sink:XtreamCatalogSink){XtreamArrayStream.read(StringReader(json),"get_vod_streams"){chunk,_->sink.append("get_vod_streams",DefaultXtreamParser().parseCatalogBatch("get_vod_streams",chunk))};failure?.let{throw it}}
++    }
++    val client=object:PlaylistHttpClient{
++     override suspend fun get(url:String):String=error("Streaming required")
++     override suspend fun readLines(url:String,onLine:suspend(String)->Unit){onLine("#EXTM3U");for(i in 1..5000){onLine("#EXTINF:-1 group-title=\"Movies\",Fixture $i");onLine("https://example.invalid/movie/fixture/fixture/$i.mp4")};failure?.let{throw it}}
++    }
++    val synchronizer=M3uSourceSynchronizer(provider,M3uCacheImporter(client,dao,manager),dao,manager)
++    suspend fun import():String=if(format=="XTREAM")synchronizer.sync(PlaylistSource.XtreamCodes("fixture","Fixture",true,"https://example.invalid","fixture","fixture"))else synchronizer.sync(PlaylistSource.M3u("fixture","Fixture",playlistUrl="https://example.invalid/list.m3u"))
++    val started=SystemClock.elapsedRealtime();val ready=import();val duration=SystemClock.elapsedRealtime()-started
++    assertEquals(5000,dao.getMovieCount("fixture",ready));manager.activateReadyGenerationOnStartup("fixture")
++    if(round==2)for(error in listOf(IOException("fixture"),CancellationException("fixture"))){failure=error;try{import();fail("Must fail")}catch(expected:Exception){assertSame(error,expected)};assertEquals(ready,dao.getActiveGeneration("fixture")!!.generationId);assertNull(dao.getReadyGeneration("fixture"));assertEquals(5000,dao.getMovieCount("fixture",ready))}
++    report("BENCH_IMPORT rodada=$round perfil=${profile.name} formato=$format itens=5000 totalMs=$duration journal=$journal synchronous=$syncValue lote=${profile.batchSize}")
++    db.close();db=open();assertEquals(ready,db.playlistCacheDao().getActiveGeneration("fixture")!!.generationId);assertEquals(5000,db.playlistCacheDao().getMovieCount("fixture",ready))
++   }finally{db.close();context.deleteDatabase(name)}
++  }}finally{ImportTuningState.profile=original}
++ }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicyDeviceTest.kt
+@@ -0,0 +1,9 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++import org.junit.Assert.*
++import org.junit.Test
++class ImportTuningPolicyDeviceTest {
++ @Test fun releaseIgnoresEverySavedExperiment(){for(p in ImportProfile.entries)assertEquals(ImportProfile.ATUAL,ImportProfile.stored(p.name,false))}
++ @Test fun invalidPreferencesKeepOriginalProfile(){assertEquals(ImportProfile.ATUAL,ImportProfile.stored("bad",true));assertEquals(ImportProfile.ATUAL,ImportProfile.stored(null,true))}
++ @Test fun individualProfilesChangeOnlyIntendedSettings(){assertFalse(ImportProfile.ATUAL.forceWal);assertTrue(ImportProfile.WAL.forceWal);assertFalse(ImportProfile.WAL.normal);assertEquals(250,ImportProfile.WAL.batchSize);assertTrue(ImportProfile.NORMAL.normal);assertEquals(250,ImportProfile.NORMAL.batchSize);assertEquals(2000,ImportProfile.LOTES.batchSize);assertEquals(2*1024*1024,ImportProfile.LOTES.batchCharacters)}
++ @Test fun invalidRequestedModeDoesNotSilentlySelectAnExperiment(){try{ImportProfile.requested("bad");fail()}catch(expected:IllegalArgumentException){}}
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuning.kt
+@@ -0,0 +1,43 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import android.content.Context
++import android.util.Log
++import androidx.room.RoomDatabase
++import androidx.sqlite.db.SupportSQLiteDatabase
++import br.com.flaviotorres.iptvpremium.BuildConfig
++
++internal object ImportTuning {
++    private const val PREFS = "importacao_diagnostico"
++    fun load(context: Context): ImportProfile = ImportProfile.stored(
++        if (BuildConfig.DEBUG) context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("perfil", null) else null,
++        BuildConfig.DEBUG
++    ).also { ImportTuningState.profile = it }
++    fun saveForDebug(context: Context, profile: ImportProfile) {
++        check(BuildConfig.DEBUG) { "Diagnostico disponivel apenas em debug." }
++        check(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString("perfil", profile.name).commit())
++    }
++    fun <T: RoomDatabase> configure(builder: RoomDatabase.Builder<T>, profile: ImportProfile): RoomDatabase.Builder<T> {
++        if (profile.forceWal) builder.setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
++        return builder.addCallback(object: RoomDatabase.Callback() {
++            override fun onOpen(db: SupportSQLiteDatabase) {
++                if (profile.normal) {
++                    // execSQL executes on the writer connection; no lazy cursor is left unstepped.
++                    db.execSQL("PRAGMA synchronous=NORMAL")
++                }
++                val settings = writerSettings(db)
++                Log.i("DbPerf", "revisao=db-r1 perfil=${profile.name} journal=${settings.first} synchronous=${settings.second} lote=${profile.batchSize} limiteCaracteres=${profile.batchCharacters}")
++            }
++        })
++    }
++    /** A transaction pins reads to the writer; pooled reader settings can differ. */
++    fun writerSettings(db: SupportSQLiteDatabase): Pair<String, Int> {
++        val ownsTransaction = !db.inTransaction()
++        if (ownsTransaction) db.beginTransactionNonExclusive()
++        try {
++            val journal = db.query("PRAGMA journal_mode").use { check(it.moveToFirst()); it.getString(0) }
++            val synchronous = db.query("PRAGMA synchronous").use { check(it.moveToFirst()); it.getInt(0) }
++            return journal to synchronous
++        } finally { if (ownsTransaction) db.endTransaction() }
++    }
++
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicy.kt
+@@ -0,0 +1,18 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++/** Diagnostic profiles; release always uses ATUAL. No full-catalog materialization. */
++internal enum class ImportProfile(val forceWal: Boolean, val normal: Boolean, val batchSize: Int, val batchCharacters: Int) {
++    ATUAL(false, false, 250, 256 * 1024),
++    WAL(true, false, 250, 256 * 1024),
++    NORMAL(true, true, 250, 256 * 1024),
++    LOTES(true, true, 2000, 2 * 1024 * 1024);
++    companion object {
++        fun stored(value: String?, debug: Boolean): ImportProfile =
++            if (debug) entries.firstOrNull { it.name == value } ?: ATUAL else ATUAL
++        fun requested(value: String): ImportProfile = entries.firstOrNull { it.name == value }
++            ?: throw IllegalArgumentException("Perfil de importacao invalido.")
++    }
++}
++internal object ImportTuningState {
++    @Volatile var profile: ImportProfile = ImportProfile.ATUAL
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheDatabase.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheDatabase.kt
+@@ -124,7 +124,7 @@
+             return INSTANCE
+                 ?: synchronized(this) {
+                     INSTANCE
+-                        ?: Room.databaseBuilder(
++                        ?: ImportTuning.configure(Room.databaseBuilder(
+                             context.applicationContext,
+                             PlaylistCacheDatabase::class.java,
+                             "playlist_cache.db"
+@@ -133,7 +133,7 @@
+                                 MIGRATION_1_2,
+                                 MIGRATION_2_3,
+                                 MIGRATION_3_4
+-                            )
++                            ), ImportTuning.load(context))
+                             .build()
+                             .also { database ->
+                                 INSTANCE = database
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uCacheImporter.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uCacheImporter.kt
+@@ -20,7 +20,9 @@
+ class M3uCacheImporter(
+     private val httpClient: PlaylistHttpClient,
+     private val cacheDao: PlaylistCacheDao,
+-    private val generationManager: PlaylistCacheGenerationManager
++    private val generationManager: PlaylistCacheGenerationManager,
++    private val batchSize: Int = br.com.flaviotorres.iptvpremium.data.cache.ImportTuningState.profile.batchSize,
++    private val batchCharacters: Int = br.com.flaviotorres.iptvpremium.data.cache.ImportTuningState.profile.let { if (it == br.com.flaviotorres.iptvpremium.data.cache.ImportProfile.LOTES) it.batchCharacters else Int.MAX_VALUE }
+ ) {
+ 
+     suspend fun import(
+@@ -75,10 +77,10 @@
+             LinkedHashMap<String, CachedCategoryEntity>()
+ 
+         val channelBatch =
+-            ArrayList<CachedChannelEntity>(BATCH_SIZE)
++            ArrayList<CachedChannelEntity>(batchSize)
+ 
+         val movieBatch =
+-            ArrayList<CachedMovieEntity>(BATCH_SIZE)
++            ArrayList<CachedMovieEntity>(batchSize)
+ 
+         val seriesBatch =
+             LinkedHashMap<String, CachedSeriesEntity>()
+@@ -86,7 +88,7 @@
+         val seriesFirstOrder = HashMap<String, Int>()
+ 
+         val episodeBatch =
+-            ArrayList<CachedEpisodeEntity>(BATCH_SIZE)
++            ArrayList<CachedEpisodeEntity>(batchSize)
+ 
+         // Categorias já incluídas nesta importação.
+         // Evita regravá-las a cada lote de 250 itens.
+@@ -105,6 +107,7 @@
+         var movieCount = 0L
+         var seriesEpisodeCount = 0L
+         var databaseWriteMs = 0L
++        var bufferedCharacters = 0L
+         var flushCount = 0L
+         var slowestWriteMs = 0L
+ 
+@@ -171,6 +174,7 @@
+                 slowestWriteMs = maxOf(slowestWriteMs, elapsedWrite)
+             }
+ 
++            bufferedCharacters = 0L
+             flushCount++
+         }
+ 
+@@ -178,6 +182,8 @@
+             url = playlistUrl
+         ) { rawLine ->
+             currentCoroutineContext().ensureActive()
++            if (bufferedCharacters >= batchCharacters) flush()
++            bufferedCharacters += rawLine.length
+             val line = rawLine
+                 .removePrefix("\uFEFF")
+                 .trim()
+@@ -373,11 +379,11 @@
+             }
+ 
+             if (
+-                channelBatch.size >= BATCH_SIZE ||
+-                movieBatch.size >= BATCH_SIZE ||
+-                seriesBatch.size >= BATCH_SIZE ||
+-                episodeBatch.size >= BATCH_SIZE ||
+-                categoryBatch.size >= BATCH_SIZE
++                channelBatch.size >= batchSize ||
++                movieBatch.size >= batchSize ||
++                seriesBatch.size >= batchSize ||
++                episodeBatch.size >= batchSize ||
++                categoryBatch.size >= batchSize
+             ) {
+                 flush()
+             }
+@@ -635,7 +641,6 @@
+ 
+     private companion object {
+         const val PERF_TAG = "M3uImportPerf"
+-        const val BATCH_SIZE = 250
+         const val DEFAULT_CATEGORY_NAME = "Sem categoria"
+ 
+         const val TYPE_LIVE_TV = "LIVE_TV"
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/parser/XtreamArrayStream.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/parser/XtreamArrayStream.kt
+@@ -8,8 +8,8 @@
+ internal object XtreamArrayStream {
+     data class Stats(val records: Long, val characters: Long, val recoveredClosingBracket: Boolean)
+ 
+-    suspend fun read(reader: Reader, endpoint: String, batchSize: Int = 250,
+-                     batchCharacters: Int = 256 * 1024,
++    suspend fun read(reader: Reader, endpoint: String, batchSize: Int = br.com.flaviotorres.iptvpremium.data.cache.ImportTuningState.profile.batchSize,
++                     batchCharacters: Int = br.com.flaviotorres.iptvpremium.data.cache.ImportTuningState.profile.batchCharacters,
+                      emit: suspend (String, Int) -> Unit): Stats {
+         require(batchSize > 0 && batchCharacters > 0)
+         val context = currentCoroutineContext()
+@@ -61,7 +61,9 @@
+         fun invalid(): Nothing = throw IllegalStateException("Resposta Xtream inválida em $endpoint: estrutura JSON incompleta ou inválida.")
+         suspend fun flush() {
+             if (pending.isEmpty()) return
++            context.ensureActive()
+             emit(pending.joinToString(",", "[", "]"), pending.size)
++            context.ensureActive()
+             pending.clear(); pendingCharacters = 0
+         }
+         suspend fun add(value: String) {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/XtreamCatalogWriter.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/XtreamCatalogWriter.kt
+@@ -106,7 +106,7 @@
+         failure?.let { throw it }
+     }
+ 
+-    companion object { private const val BATCH_SIZE = 500; private const val SOURCE_XTREAM = "XTREAM" }
++    companion object { private val BATCH_SIZE: Int get() = br.com.flaviotorres.iptvpremium.data.cache.ImportTuningState.profile.let { if (it == br.com.flaviotorres.iptvpremium.data.cache.ImportProfile.LOTES) it.batchSize else 500 }; private const val SOURCE_XTREAM = "XTREAM" }
+     private suspend fun persistCategories(
+         playlistId: String,
+         generationId: String,

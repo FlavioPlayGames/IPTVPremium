@@ -1,0 +1,5 @@
+OK: os arquivos sao compativeis. Nenhuma alteracao aplicada.
+Aplicado. Backup: /workspace/storage-toolchain/tests/perfis-importacao/package-fixture/.navigation-backups/perfis-importacao-20261019-234021-7d2f58ea
+OK: os arquivos sao compativeis. Nenhuma alteracao aplicada.
+PASS: instalador validado e aplicado com backup em copia; todos os hashes conferidos, sem compilacao/instalacao nessa copia.
+PASS: controlador/medidor com ADB simulado configurou perfil, reiniciou processo, capturou DbPerf e importacao, excluiu linha antiga e removeu segredos. Sem limpar dados ou desinstalar.
