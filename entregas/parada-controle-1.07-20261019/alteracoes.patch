@@ -1,0 +1,131 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -34,6 +34,8 @@
+     private val requesters = mutableMapOf<Int, FocusRequester>()
+     private val revision = MutableStateFlow(0L)
+     private val intent = CatalogVerticalIntent(columns)
++    private var heldDirection: Key? = null
++    private var releaseSerial = 0
+     private var job: Job? = null
+     private var diagnosticPhase = "idle"
+     private var diagnosticFrames = 0
+@@ -107,7 +109,7 @@
+         intent.focused(index)
+     }
+     fun cancel() {
+-        job?.cancel(); job = null; moving = false; desiredFirstRow = null; intent.clear()
++        job?.cancel(); job = null; heldDirection = null; moving = false; desiredFirstRow = null; intent.clear()
+     }
+     fun reset() { cancel(); currentIndex = 0 }
+     fun filterChanged(key: Any) {
+@@ -171,7 +173,8 @@
+                         diagnosticFrames = 0
+                         diagnosticElapsedNanos = 0L
+                         var firstFrame = 0L
+-                        val motion = CatalogScrollMotion()
++                        var motion = CatalogScrollMotion()
++                        var observedRelease = releaseSerial
+                         var lastFrame = 0L
+                         var loaded = currentIndex
+                         var position = (grid.firstVisibleItemIndex / columns) * rowStep() + grid.firstVisibleItemScrollOffset
+@@ -187,12 +190,17 @@
+                             if (loaded != currentIndex) { load(currentIndex); loaded = currentIndex }
+                             val step = rowStep()
+                             if (step <= 0f) break
++                            if (observedRelease != releaseSerial) {
++                                observedRelease = releaseSerial
++                                motion = CatalogScrollMotion()
++                                position = (grid.firstVisibleItemIndex / columns) * step + grid.firstVisibleItemScrollOffset
++                            }
+                             val distance = (desiredFirstRow ?: 0) * step - position
+                             diagnosticDistance = distance
+                             diagnosticVelocity = motion.velocity
+                             // LazyGrid rounds physical offsets to integers. Below one pixel,
+                             // consumption may stop while the spring still has fractional error.
+-                            if (kotlin.math.abs(distance) <= 1.5f && kotlin.math.abs(motion.velocity) < 12f) {
++                            if (kotlin.math.abs(distance) <= 2f && kotlin.math.abs(motion.velocity) < 48f) {
+                                 scrollBy(distance)
+                                 break
+                             }
+@@ -247,6 +255,27 @@
+             direction == Key.DirectionLeft || direction == Key.DirectionRight
+         if (!arrow) return job?.isActive == true && (direction == Key.DirectionCenter || direction == Key.Enter)
+         val total = count()
++        if (event.type == KeyEventType.KeyUp && heldDirection == direction) {
++            heldDirection = null
++            val step = rowStep()
++            if (step > 0f && total > 0) {
++                val last = ((total + columns - 1) / columns - viewportRows()).coerceAtLeast(0)
++                val nearest = (grid.firstVisibleItemIndex / columns +
++                    if (grid.firstVisibleItemScrollOffset >= step / 2f) 1 else 0).coerceIn(0, last)
++                desiredFirstRow = nearest
++                val row = nearest + if (direction == Key.DirectionDown) viewportRows() - 1 else 0
++                currentIndex = (row * columns + currentIndex % columns).coerceAtMost(total - 1)
++                visualIndex = currentIndex
++                intent.clear()
++                releaseSerial++
++                revision.value++
++                startMovement(keepRow = true)
++            }
++            return true
++        }
++        val isHeldRepeat = event.type == KeyEventType.KeyDown && event.nativeKeyEvent.repeatCount > 0 &&
++            (direction == Key.DirectionDown || direction == Key.DirectionUp)
++        if (isHeldRepeat) heldDirection = direction
+         val anchor = (intent.desired ?: currentIndex).coerceIn(0, (total - 1).coerceAtLeast(0))
+         if (direction == Key.DirectionUp && anchor < columns && onTop != null) {
+             if (event.type == KeyEventType.KeyDown) { cancel(); manual(); onTop.invoke() }
+@@ -259,7 +288,7 @@
+         if (event.type != KeyEventType.KeyDown) return true
+         if (total == 0) return true
+         manual()
+-        val target = when (direction) {
++        var target = when (direction) {
+             Key.DirectionDown -> intent.request(anchor, total, true)
+             Key.DirectionUp -> intent.request(anchor, total, false)
+             Key.DirectionLeft -> (anchor - 1).also { intent.clear() }
+@@ -267,6 +296,12 @@
+                 (anchor + 1).also { intent.clear() } else null
+             else -> null
+         } ?: return true
++        if (isHeldRepeat) {
++            val first = grid.firstVisibleItemIndex / columns
++            val targetRow = (target / columns).coerceIn((first - 1).coerceAtLeast(0), first + viewportRows())
++            target = (targetRow * columns + anchor % columns).coerceAtMost(total - 1)
++            intent.clear()
++        }
+         currentIndex = target
+         visualIndex = target
+         revision.value++
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
+@@ -137,4 +137,29 @@
+     @Test fun fiveColumnsRetargetRepeatedArrowsWithoutJumping() = repeatAndReverse(5)
+     @Test fun actualFrameFourColumnsReverseAndRestoreFocus() = repeatAndReverse(4, true)
+     @Test fun actualFrameFiveColumnsReverseAndRestoreFocus() = repeatAndReverse(5, true)
++    private fun heldRelease(columns: Int) {
++        setup(columns, true)
++        compose.mainClock.autoAdvance = false
++        fun send(action: Int, repeat: Int) = compose.runOnIdle {
++            val native = android.view.KeyEvent(0L, 0L, action, android.view.KeyEvent.KEYCODE_DPAD_DOWN, repeat)
++            navigation.key(2, androidx.compose.ui.input.key.KeyEvent(native))
++        }
++        send(android.view.KeyEvent.ACTION_DOWN, 0)
++        repeat(24) { repeat ->
++            send(android.view.KeyEvent.ACTION_DOWN, repeat + 1)
++            compose.mainClock.advanceTimeBy(32)
++        }
++        val before = position(columns)
++        val step = compose.runOnIdle { grid.layoutInfo.visibleItemsInfo.first().size.height + grid.layoutInfo.mainAxisItemSpacing }
++        send(android.view.KeyEvent.ACTION_UP, 0)
++        compose.mainClock.advanceTimeBy(700)
++        val after = position(columns)
++        assertTrue("Release must settle near the visible screen: before=$before after=$after", kotlin.math.abs(after - before) <= step / 2f + 2f)
++        assertEquals(2, focused.get() % columns)
++        compose.onNodeWithTag("smooth-${focused.get()}").assertIsFocused()
++        assertTwoRows(columns)
++    }
++    @Test fun fourColumnsHeldReleaseStopsNearVisibleScreen() = heldRelease(4)
++    @Test fun fiveColumnsHeldReleaseStopsNearVisibleScreen() = heldRelease(5)
++
+ }
