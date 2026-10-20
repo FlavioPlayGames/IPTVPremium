@@ -1,0 +1,433 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -154,7 +154,6 @@
+ // Apenas 5 capas por lote. Nao aumenta a quantidade preparada na Home;
+ // a navegacao ja prioriza as 5 primeiras capas quando entra na categoria.
+ // Ao rolar, a antecipacao avanca de 5 em 5 sem requisitar novas paginas.
+-private const val MOVIE_POSTER_BATCH_SIZE = br.com.flaviotorres.iptvpremium.data.cache.CATEGORY_POSTER_BATCH_SIZE
+ 
+ private val CinzelSemiBold = FontFamily(
+     Font(
+@@ -417,7 +416,7 @@
+ 
+     val posterCacheContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
+     // Intervalo ocioso conservador na Android TV para nao competir com o foco.
+-    // Mantem a qualidade das imagens; a antecipacao foi organizada em 15 capas.
++    // Mantem a pausa da navegacao; grupos de cinco formam a reserva de quinze.
+     val posterIdleDelayMs = remember(posterCacheContext) {
+         val mode = posterCacheContext.resources.configuration.uiMode and
+                 Configuration.UI_MODE_TYPE_MASK
+@@ -467,55 +466,24 @@
+         oldPagingSnapshot = null
+     }
+ 
+-    /*
+-     * Antecipacao leve em modo ocioso (Android TV + celular):
+-     * - ao entrar na categoria, so o lote 0-4 entra nesta fila;
+-     * - ao rolar, a fila avanca para 5-9, 10-14, etc., conforme a posicao;
+-     * - nunca antecipa lotes de 30 ou preenche a grade inteira em background.
+-     *
+-     * A grade solicita imediatamente as 15 primeiras capas da categoria.
+-     * Chamadas duplicadas sao atendidas pelo mesmo arquivo/mutex do carregador.
+-     *
+-     * Ao navegar com o controle, rolar, trocar a categoria ou carregar uma
+-     * pagina, o prefetch em andamento e cancelado pelo collectLatest.
+-     * A abertura inicia imediatamente; na navegacao espera 100 ms TV / 80 ms celular e so usa capas
+-     * JA carregadas pelo Paging: nao provoca leituras/append no Room.
+-     */
+-    LaunchedEffect(
+-        pagedMovies,
+-        selectedCategory,
+-        selectedSourceCategoryId,
+-        searchText,
+-        sortMode
+-    ) {
++    // A fila pertence somente a categoria ativa e e cancelada ao sair desta tela.
++    LaunchedEffect(pagedMovies, selectedCategory, selectedSourceCategoryId, searchText, sortMode) {
+         val paging = pagedMovies ?: return@LaunchedEffect
+-
++        val queue = br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue()
+         val pagingWindow = snapshotFlow {
+-            // Usa o PRIMEIRO indice visivel, nao o ultimo: em TVs 4K,
+-            // muitas capas cabem na mesma tela e usar lastVisible pularia
+-            // o primeiro lote de 5 logo na abertura da categoria.
+-            val firstVisible = moviesGridState.firstVisibleItemIndex.coerceAtLeast(0)
+-            val batch = br.com.flaviotorres.iptvpremium.data.cache.categoryPosterBatch(firstVisible)
+-            val busy = searchKeyboardVisible || awaitingCategoryPage ||
+-                    moviesGridState.isScrollInProgress ||
+-                    paging.loadState.refresh is LoadState.Loading
+-            Triple(batch, paging.itemSnapshotList, busy)
+-        }
+-
++            val visible = moviesGridState.layoutInfo.visibleItemsInfo
++            val afterVisible = (visible.maxOfOrNull { it.index } ?: -1) + 1
++            val busy = visible.isEmpty() || searchKeyboardVisible || awaitingCategoryPage ||
++                moviesGridState.isScrollInProgress || paging.loadState.refresh is LoadState.Loading
++            Triple(afterVisible, paging.itemSnapshotList, busy)
++        }
+         combine(pagingWindow, posterFocusActivity) { window, _ -> window }
+-            .collectLatest { (batch, loaded, busy) ->
++            .collectLatest { (afterVisible, loaded, busy) ->
+                 if (busy) return@collectLatest
+-
+-                // Uma nova tecla de navegacao reinicia a espera sem trabalho
+-                // adicional na thread principal ou na rede.
+-                if (batch > 0) delay(posterIdleDelayMs)
+-
+-                prefetchMoviePosterBatch(
+-                    movies = loaded.items,
+-                    firstLoadedIndex = loaded.placeholdersBefore,
+-                    context = posterCacheContext,
+-                    startIndex = batch * MOVIE_POSTER_BATCH_SIZE,
+-                    endIndex = (batch + 1) * MOVIE_POSTER_BATCH_SIZE
++                delay(posterIdleDelayMs)
++                MoviePosterLoader.prefetchAhead(
++                    posterCacheContext, queue, afterVisible, loaded.placeholdersBefore,
++                    loaded.items.map { it.posterUrl }
+                 )
+             }
+     }
+@@ -2645,33 +2613,13 @@
+     }
+ }
+ 
+-/**
+- * Antecipa somente os filmes que o Paging JA entregou para a grade.
+- * Nao chama paging[index], nao solicita append e nao espera novas paginas:
+- * isso reduz consultas SQLite e evita competir com o controle remoto.
+- * O arquivo comprimido vai para o disco, sem decodificar bitmaps extras.
+- */
+-private suspend fun prefetchMoviePosterBatch(
+-    movies: List<Movie>,
+-    firstLoadedIndex: Int,
+-    context: Context,
+-    startIndex: Int,
+-    endIndex: Int
+-) {
+-    // Converte os indices absolutos do lote para a janela ja recebida.
+-    val from = (startIndex - firstLoadedIndex).coerceAtLeast(0)
+-    val until = (endIndex - firstLoadedIndex).coerceAtMost(movies.size)
+-    if (from >= until) return
+-
+-    MoviePosterLoader.prefetchPriorityBatch(context, movies.subList(from, until).map { it.posterUrl })
+-}
+ 
+ /*
+  * Cache progressivo e persistente de capas, compartilhado por Filmes e Series.
+  *
+- * - RAM: 20 MiB somente para imagens ja exibidas (LRU).
+- * - Disco: orcamento compartilhado de 64 MiB, preservado ao reiniciar.
+- * - Prefetch: 15 arquivos comprimidos por lote, ate duas conexoes de fundo.
++ * - RAM: LRU de 20 MiB para capas exibidas e no maximo cinco futuras.
++ * - Disco: orcamento compartilhado de 100 MB, preservado ao reiniciar.
++ * - Prefetch: grupos de 5 ate 15 adiante; somente os proximos 5 preparados na RAM.
+  * - Rede: ate seis downloads simultaneos, no maximo dois em antecipacao.
+  * - Politica LRU: ao exceder o limite, remove somente os arquivos antigos
+  *   necessarios, evitando apagar todas as capas a cada reinicio.
+@@ -2762,7 +2710,7 @@
+ 
+     /** Compressed-file anticipation leaves decoding/RAM to the visible cards. */
+     suspend fun prefetchPriorityBatch(context: Context, urls: List<String?>) = kotlinx.coroutines.coroutineScope {
+-        val batch = urls.mapNotNull(::validUrl).distinct().take(15)
++        val batch = urls.mapNotNull(::validUrl).distinct().take(br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue.GROUP)
+         val workers = br.com.flaviotorres.iptvpremium.data.cache.PosterNetworkBudget.BACKGROUND_REQUESTS
+         repeat(minOf(workers, batch.size)) { worker ->
+             launch(Dispatchers.IO) {
+@@ -2776,6 +2724,49 @@
+         }
+     }
+ 
++    /** Disco: ate 15 a frente em grupos de 5; RAM: apenas os proximos 5, no LRU existente. */
++    suspend fun prefetchAhead(
++        context: Context,
++        queue: br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue,
++        afterVisible: Int,
++        firstLoaded: Int,
++        posters: List<String?>
++    ) {
++        val loadedEnd = firstLoaded + posters.size
++        suspend fun prepareNextFive() {
++            if (br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value) return
++            val from = (afterVisible - firstLoaded).coerceAtLeast(0)
++            val until = minOf(posters.size, from + br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue.GROUP)
++            for (index in from until until) {
++                currentCoroutineContext().ensureActive()
++                prepareCached(context, posters[index])
++                kotlinx.coroutines.yield()
++            }
++        }
++        prepareNextFive()
++        while (true) {
++            currentCoroutineContext().ensureActive()
++            val batch = queue.nextBatch(afterVisible, firstLoaded, loadedEnd) ?: break
++            prefetchPriorityBatch(context, posters.subList(batch.first - firstLoaded, batch.last + 1 - firstLoaded))
++            queue.completed(batch)
++            prepareNextFive()
++            kotlinx.coroutines.yield()
++        }
++    }
++
++    /** Apenas RAM/disco: nunca abre conexao para preparar uma capa antecipada. */
++    private suspend fun prepareCached(context: Context, rawUrl: String?) {
++        val url = validUrl(rawUrl) ?: return
++        if (memoryCache.get(url) != null) return
++        withContext(Dispatchers.IO) {
++            val directory = persistentDirectory(context) ?: return@withContext
++            val file = File(directory, "${sha256(url)}.img")
++            br.com.flaviotorres.iptvpremium.core.storage.ImageDiskCache.get(context).retain(file).use {
++                if (file.isFile && file.length() > 0L) decodeCachedFile(url, file)
++            }
++        }
++    }
++
+     /** Retry transient failures only while the visible card is still in composition. */
+     suspend fun loadWithRetry(context: Context, rawUrl: String?): ImageBitmap? {
+         if (validUrl(rawUrl) == null) return null
+@@ -2813,7 +2804,11 @@
+         memoryCache.get(url)?.let { return it }
+ 
+         val file = ensureFile(context, url, background = false) ?: return null
+-        return withContext(Dispatchers.Default) {
++        return decodeCachedFile(url, file)
++    }
++
++    private suspend fun decodeCachedFile(url: String, file: File): ImageBitmap? =
++        withContext(Dispatchers.Default) {
+             decodeSlots.withPermit {
+             memoryCache.get(url)?.let { return@withPermit it }
+ 
+@@ -2833,7 +2828,6 @@
+             bitmap
+             }
+         }
+-    }
+ 
+     private suspend fun ensureFile(
+         context: Context,
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -136,7 +136,6 @@
+ // Series utiliza o MoviePosterLoader de Filmes: disco LRU de 250 MB.
+ // Somente 5 capas por lote e 2 posicoes de antecedencia ao rolar.
+ // Os 15 primeiros logos/backdrops ja sao preparados no AppNavigation.
+-private const val SERIES_POSTER_BATCH_SIZE = br.com.flaviotorres.iptvpremium.data.cache.CATEGORY_POSTER_BATCH_SIZE
+ 
+ private val CinzelSemiBold = FontFamily(
+     Font(
+@@ -1218,41 +1217,24 @@
+     DisposableEffect(Unit) { onDispose { onCatalogInteraction(false) } }
+ 
+ 
+-    /*
+-     * Antecipacao leve ao entrar/rolar na categoria: lotes de 15 capas.
+-     * - So le a janela ja entregue pelo Paging (nunca forca append no Room).
+-     * - Espera a navegacao por controle remoto ficar ociosa.
+-     * - Ao rolar, trocar categoria ou iniciar um novo carregamento, a tarefa
+-     *   atual e cancelada por collectLatest.
+-     * - Uma conexao de fundo por vez; sem decodificar bitmaps no prefetch.
+-     * - Backdrops/logos dos 15 titulos permanecem no AppNavigation; esta
+-     *   rotina NAO consulta TMDB, detalhes remotos ou episodios.
+-     */
++    // Mesma fila progressiva dos filmes, somente para a categoria ativa.
+     LaunchedEffect(pagedSeries, selectedMenu, selectedProviderId, searchText, sortMode) {
++        val queue = br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue()
+         val pagingWindow = snapshotFlow {
+-            val firstVisible = gridState.firstVisibleItemIndex.coerceAtLeast(0)
+-            val batch = br.com.flaviotorres.iptvpremium.data.cache.categoryPosterBatch(firstVisible)
+-            val busy = searchKeyboardVisible ||
+-                    selectedMenu == "continue" ||
+-                    gridState.isScrollInProgress ||
+-                    pagedSeries.loadState.refresh is LoadState.Loading
+-            Triple(batch, pagedSeries.itemSnapshotList, busy)
+-        }
+-
++            val visible = gridState.layoutInfo.visibleItemsInfo
++            val afterVisible = (visible.maxOfOrNull { it.index } ?: -1) + 1
++            val busy = visible.isEmpty() || searchKeyboardVisible || selectedMenu == "continue" ||
++                gridState.isScrollInProgress || pagedSeries.loadState.refresh is LoadState.Loading
++            Triple(afterVisible, pagedSeries.itemSnapshotList, busy)
++        }
+         combine(pagingWindow, posterFocusActivity) { window, _ -> window }
+-            .collectLatest { (batch, loaded, busy) ->
++            .collectLatest { (afterVisible, loaded, busy) ->
+                 if (busy) return@collectLatest
+-                if (batch > 0) delay(posterIdleDelayMs)
+-
+-                val start = batch * SERIES_POSTER_BATCH_SIZE
+-                val endExclusive = start + SERIES_POSTER_BATCH_SIZE
+-                val from = (start - loaded.placeholdersBefore).coerceAtLeast(0)
+-                val until = (endExclusive - loaded.placeholdersBefore)
+-                    .coerceAtMost(loaded.items.size)
+-                if (from >= until) return@collectLatest
+-
+-                MoviePosterLoader.prefetchPriorityBatch(posterCacheContext,
+-                    loaded.items.subList(from, until).map { it.posterUrl })
++                delay(posterIdleDelayMs)
++                MoviePosterLoader.prefetchAhead(
++                    posterCacheContext, queue, afterVisible, loaded.placeholdersBefore,
++                    loaded.items.map { it.posterUrl }
++                )
+             }
+     }
+ 
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterAheadQueue.kt
+@@ -0,0 +1,32 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++/** Cursor por categoria: tres grupos de cinco; repoe quando restam dez. */
++internal class PosterAheadQueue {
++    private var completedUntil = 0
++    private var previousAfter = -1
++    private var refillUntil = 0
++
++    fun nextBatch(afterVisible: Int, loadedStart: Int, loadedEnd: Int): IntRange? {
++        val after = afterVisible.coerceAtLeast(0)
++        if (previousAfter < 0 || after < previousAfter || after > completedUntil) {
++            completedUntil = after
++            refillUntil = after
++        }
++        previousAfter = after
++        if (completedUntil - after <= REFILL_AT) {
++            refillUntil = maxOf(refillUntil, (after.toLong() + AHEAD).coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
++        }
++        val start = maxOf(after, completedUntil, loadedStart)
++        val end = minOf((start.toLong() + GROUP).coerceAtMost(Int.MAX_VALUE.toLong()).toInt(), refillUntil, loadedEnd)
++        return if (start < end) start until end else null
++    }
++
++    /** Avanca somente depois da conclusao; cancelamentos nao pulam grupos. */
++    fun completed(batch: IntRange) { completedUntil = maxOf(completedUntil, batch.last + 1) }
++
++    companion object {
++        const val GROUP = 5
++        const val AHEAD = 15
++        const val REFILL_AT = 10
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterAheadQueueDeviceTest.kt
+@@ -0,0 +1,50 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import org.junit.Assert.*
++import org.junit.Test
++
++@org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
++class PosterAheadQueueDeviceTest {
++    private fun fill(queue: PosterAheadQueue, after: Int, start: Int = 0, end: Int = 100): List<IntRange> {
++        val batches = mutableListOf<IntRange>()
++        repeat(20) {
++            val batch = queue.nextBatch(after, start, end) ?: return batches
++            batches.add(batch); queue.completed(batch)
++        }
++        error("Unbounded queue")
++    }
++    @Test fun fillsFifteenInThreeGroupsOfFive() {
++        val queue=PosterAheadQueue()
++        assertEquals(listOf(10..14,15..19,20..24),fill(queue,10))
++        assertNull(queue.nextBatch(10,0,100))
++    }
++    @Test fun refillsExactlyFiveWhenOnlyTenRemain() {
++        val queue=PosterAheadQueue();fill(queue,10)
++        assertTrue(fill(queue,14).isEmpty())
++        assertEquals(listOf(25..29),fill(queue,15))
++        assertTrue(fill(queue,19).isEmpty())
++        assertEquals(listOf(30..34),fill(queue,20))
++    }
++    @Test fun fourColumnLayoutNeedsNoSpecialCase() {
++        val queue=PosterAheadQueue()
++        assertEquals(listOf(8..12,13..17,18..22),fill(queue,8))
++        assertTrue(fill(queue,12).isEmpty())
++        assertEquals(listOf(23..27,28..30),fill(queue,16))
++    }
++    @Test fun cancellationDoesNotAdvanceUncompletedGroup() {
++        val queue=PosterAheadQueue()
++        assertEquals(10..14,queue.nextBatch(10,0,100))
++        assertEquals(10..14,queue.nextBatch(10,0,100))
++    }
++    @Test fun waitsForPagingAndContinuesPartialGroup() {
++        val queue=PosterAheadQueue()
++        assertEquals(listOf(10..14,15..16),fill(queue,10,end=17))
++        assertEquals(listOf(17..21,22..24),fill(queue,10,end=30))
++    }
++    @Test fun categoryEndAndLargeJumpAreBounded() {
++        val queue=PosterAheadQueue()
++        assertEquals(listOf(98..99),fill(queue,98))
++        assertTrue(fill(queue,100).isEmpty())
++        assertEquals(listOf(20..24,25..29,30..34),fill(queue,20))
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/storage/PosterAheadCacheDeviceTest.kt
+@@ -0,0 +1,70 @@
++package br.com.flaviotorres.iptvpremium.core.storage
++
++import android.content.Context
++import android.graphics.Bitmap
++import androidx.test.core.app.ApplicationProvider
++import br.com.flaviotorres.iptvpremium.ui.movies.MoviePosterLoader
++import java.net.ServerSocket
++import java.net.Socket
++import java.util.concurrent.ConcurrentLinkedQueue
++import java.util.concurrent.atomic.AtomicInteger
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++
++@org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
++class PosterAheadCacheDeviceTest {
++    @Test fun progressiveDiskQueuePreparesOnlyFiveAndReusesDiskOnRestart(): Unit = runBlocking {
++        val server=ServerSocket(0);val clients=ConcurrentLinkedQueue<Socket>();val requests=AtomicInteger()
++        val image=java.io.ByteArrayOutputStream().also { out ->
++            Bitmap.createBitmap(16,24,Bitmap.Config.ARGB_8888).apply { eraseColor(android.graphics.Color.BLUE) }
++                .compress(Bitmap.CompressFormat.PNG,100,out)
++        }.toByteArray()
++        // Inicializa o decoder antes dos dois workers de rede.
++        android.graphics.BitmapFactory.decodeByteArray(image,0,image.size)?.recycle()
++        kotlin.concurrent.thread(isDaemon=true) {
++            try { while(!server.isClosed) {
++                val client=server.accept();clients.add(client)
++                kotlin.concurrent.thread(isDaemon=true) {
++                    try { client.use {
++                        val r=it.getInputStream().bufferedReader();r.readLine()
++                        while(!r.readLine().isNullOrEmpty()) { }
++                        requests.incrementAndGet()
++                        it.getOutputStream().apply {
++                            write("HTTP/1.1 200 OK\r\nContent-Length: ${image.size}\r\nContent-Type: image/png\r\nConnection: close\r\n\r\n".toByteArray())
++                            write(image);flush()
++                        }
++                    } } catch (_:Exception) { }
++                }
++            } } catch (_:Exception) { }
++        }
++        val context=ApplicationProvider.getApplicationContext<Context>()
++        val posters=(0 until 40).map { "http://127.0.0.1:${server.localPort}/poster-$it.png" }
++        val queue=br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue()
++        MoviePosterLoader.clearMemory()
++        try {
++            MoviePosterLoader.prefetchAhead(context,queue,10,0,posters)
++            assertEquals(15,requests.get())
++            for(index in 10..14) assertNotNull(MoviePosterLoader.peekBitmap(posters[index]))
++            for(index in 15..24) assertNull(MoviePosterLoader.peekBitmap(posters[index]))
++            val folder=java.io.File(context.cacheDir,"iptv_movie_posters_session")
++            for (url in posters.subList(10,25)) {
++                val hash=java.security.MessageDigest.getInstance("SHA-256").digest(url.toByteArray())
++                    .joinToString("") { "%02x".format(it.toInt() and 255) }
++                assertTrue(java.io.File(folder,"$hash.img").isFile)
++            }
++            MoviePosterLoader.prefetchAhead(context,queue,14,0,posters)
++            assertEquals(15,requests.get())
++            MoviePosterLoader.prefetchAhead(context,queue,15,0,posters)
++            assertEquals(20,requests.get())
++            MoviePosterLoader.clearMemory()
++            MoviePosterLoader.prefetchAhead(context,queue,15,0,posters)
++            assertEquals(20,requests.get())
++            for(index in 15..19) assertNotNull(MoviePosterLoader.peekBitmap(posters[index]))
++            // Nova abertura/categoria: cursor novo, arquivos existentes devem evitar rede.
++            MoviePosterLoader.clearMemory()
++            MoviePosterLoader.prefetchAhead(context,br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue(),10,0,posters)
++            assertEquals(20,requests.get())
++        } finally { server.close();clients.forEach { runCatching { it.close() } } }
++    }
++}
