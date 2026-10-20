@@ -1,0 +1,211 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -2817,27 +2817,9 @@
+             decodeSlots.withPermit {
+             memoryCache.get(url)?.let { return@withPermit it }
+ 
+-            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+-            BitmapFactory.decodeFile(file.absolutePath, bounds)
+-            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+-                file.delete()
+-                return@withPermit null
+-            }
+-
+-            var sampleSize = 1
+-            while (bounds.outWidth / (sampleSize * 2) >= 480 &&
+-                bounds.outHeight / (sampleSize * 2) >= 720
+-            ) {
+-                sampleSize *= 2
+-            }
+-            val options = BitmapFactory.Options().apply {
+-                inSampleSize = sampleSize
+-                inPreferredConfig = Bitmap.Config.ARGB_8888
+-            }
+             val bitmap = try {
+-                BitmapFactory.decodeFile(file.absolutePath, options)?.asImageBitmap()
++                br.com.flaviotorres.iptvpremium.data.cache.PosterResolution.decode(file)?.asImageBitmap()
+             } catch (_: OutOfMemoryError) {
+-                // Libera somente os bitmaps; os arquivos em disco permanecem.
+                 memoryCache.evictAll()
+                 null
+             } catch (_: Exception) {
+@@ -2894,7 +2876,7 @@
+             if (connection.responseCode !in 200..299) return false
+             if (connection.contentLengthLong > MAX_POSTER_BYTES) return false
+             reservation = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context)
+-                .reserve(target, connection.contentLengthLong.takeIf { it > 0 } ?: MAX_POSTER_BYTES) ?: return false
++                .reserve(target, connection.contentLengthLong.takeIf { it > 0 }?.coerceAtLeast(1_000_000L) ?: MAX_POSTER_BYTES) ?: return false
+             val temporary = reservation.temporary
+ 
+             var byteCount = 0L
+@@ -2912,6 +2894,7 @@
+                 }
+             }
+             if (byteCount == 0L) return false
++            if (!br.com.flaviotorres.iptvpremium.data.cache.PosterResolution.prepareDownloaded(temporary, reservation.limit)) return false
+             return temporary.renameTo(target)
+         } catch (cancelled: CancellationException) {
+             throw cancelled
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -5184,20 +5184,8 @@
+     }
+ 
+     private fun decodeSmall(file: File): ImageBitmap? {
+-        val info = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+-        BitmapFactory.decodeFile(file.absolutePath, info)
+-        if (info.outWidth <= 0 || info.outHeight <= 0) return null
+-        var sample = 1
+-        while (info.outWidth / (sample * 2) >= 360 &&
+-            info.outHeight / (sample * 2) >= 360 && sample < 128
+-        ) { sample *= 2 }
+-        return BitmapFactory.decodeFile(
+-            file.absolutePath,
+-            BitmapFactory.Options().apply {
+-                inSampleSize = sample
+-                inPreferredConfig = Bitmap.Config.RGB_565
+-            }
+-        )?.asImageBitmap()
++        return br.com.flaviotorres.iptvpremium.data.cache.PosterResolution
++            .decode(file, Bitmap.Config.RGB_565)?.asImageBitmap()
+     }
+ 
+     private suspend fun download(context: Context, url: String, destination: File): Boolean {
+@@ -5216,7 +5204,7 @@
+                 conn.contentLengthLong > 8L * 1024 * 1024
+             ) return false
+             reservation = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context)
+-                .reserve(destination, conn.contentLengthLong.takeIf { it > 0 } ?: 8L * 1024 * 1024) ?: return false
++                .reserve(destination, conn.contentLengthLong.takeIf { it > 0 }?.coerceAtLeast(1_000_000L) ?: 8L * 1024 * 1024) ?: return false
+             val temp = reservation.temporary
+             partial = temp
+             var total = 0L
+@@ -5233,7 +5221,9 @@
+                     }
+                 }
+             }
+-            total > 0L && (temp.renameTo(destination) || destination.isFile)
++            total > 0L &&
++                br.com.flaviotorres.iptvpremium.data.cache.PosterResolution.prepareDownloaded(temp, reservation.limit) &&
++                (temp.renameTo(destination) || destination.isFile)
+         } catch (cancelled: CancellationException) {
+             throw cancelled
+         } catch (_: Exception) {
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterResolution.kt
+@@ -0,0 +1,60 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import android.graphics.Bitmap
++import android.graphics.BitmapFactory
++import java.io.ByteArrayOutputStream
++import java.io.File
++import kotlin.math.roundToInt
++import kotlinx.coroutines.currentCoroutineContext
++import kotlinx.coroutines.ensureActive
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.sync.Semaphore
++import kotlinx.coroutines.sync.withPermit
++import kotlinx.coroutines.withContext
++
++/** Limita somente posters; fundos, logos e fotos mantem a resolucao anterior. */
++internal object PosterResolution {
++    const val WIDTH = 400
++    const val HEIGHT = 600
++    private val conversions = Semaphore(2)
++
++    fun decode(file: File, config: Bitmap.Config = Bitmap.Config.ARGB_8888): Bitmap? {
++        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
++        BitmapFactory.decodeFile(file.absolutePath, bounds)
++        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
++        var sample = 1
++        while (bounds.outWidth / (sample * 2) >= WIDTH &&
++            bounds.outHeight / (sample * 2) >= HEIGHT && sample < 128) sample *= 2
++        val original = BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply {
++            inSampleSize = sample
++            inPreferredConfig = config
++        }) ?: return null
++        val scale = minOf(1.0, WIDTH.toDouble() / original.width, HEIGHT.toDouble() / original.height)
++        if (scale >= 1.0) return original
++        return try {
++            Bitmap.createScaledBitmap(original, maxOf(1, (original.width * scale).roundToInt()),
++                maxOf(1, (original.height * scale).roundToInt()), true)
++        } finally { original.recycle() }
++    }
++
++    /** A reserva de disco ja protege este temporario; nenhuma copia extra e criada. */
++    suspend fun prepareDownloaded(file: File, limit: Long): Boolean = withContext(Dispatchers.Default) {
++        try { conversions.withPermit {
++            currentCoroutineContext().ensureActive()
++            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
++            BitmapFactory.decodeFile(file.absolutePath, bounds)
++            if (bounds.outWidth in 1..WIDTH && bounds.outHeight in 1..HEIGHT) return@withPermit true
++            val bitmap = decode(file) ?: return@withPermit false
++            try {
++                val bytes = ByteArrayOutputStream().use { output ->
++                    if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 90, output)) return@withPermit false
++                    output.toByteArray()
++                }
++                if (bytes.size.toLong() > limit) return@withPermit false
++                currentCoroutineContext().ensureActive()
++                file.writeBytes(bytes)
++                true
++            } finally { bitmap.recycle() }
++        } } catch (_: OutOfMemoryError) { false }
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterResolutionDeviceTest.kt
+@@ -0,0 +1,52 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import android.graphics.Bitmap
++import android.graphics.BitmapFactory
++import java.io.File
++import kotlinx.coroutines.runBlocking
++import org.junit.Assert.*
++import org.junit.Test
++
++@org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
++class PosterResolutionDeviceTest {
++    private fun image(width: Int, height: Int): File = File.createTempFile("poster-test", ".img").also { file ->
++        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
++        try { file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) } }
++        finally { bitmap.recycle() }
++    }
++    @Test fun decodedLargeCachedPosterFitsExactlyWithoutCropping() {
++        val file = image(1000, 1500)
++        try { val bitmap = PosterResolution.decode(file)!!
++            assertEquals(400, bitmap.width); assertEquals(600, bitmap.height); bitmap.recycle()
++        } finally { file.delete() }
++    }
++    @Test fun newlyDownloadedPosterIsStoredAt400By600(): Unit = runBlocking {
++        val file = image(780, 1170)
++        try {
++            assertTrue(PosterResolution.prepareDownloaded(file, 1_000_000))
++            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
++            BitmapFactory.decodeFile(file.path, bounds)
++            assertEquals(400, bounds.outWidth); assertEquals(600, bounds.outHeight)
++        } finally { file.delete() }
++    }
++    @Test fun smallPosterRemainsUnchangedAndDoesNotUpscale(): Unit = runBlocking {
++        val file = image(200, 300); val original = file.readBytes()
++        try {
++            assertTrue(PosterResolution.prepareDownloaded(file, 1_000_000))
++            assertArrayEquals(original, file.readBytes())
++            val bitmap = PosterResolution.decode(file)!!
++            assertEquals(200, bitmap.width); assertEquals(300, bitmap.height); bitmap.recycle()
++        } finally { file.delete() }
++    }
++    @Test fun nonStandardRatioIsPreserved() {
++        val file = image(800, 800)
++        try { val bitmap = PosterResolution.decode(file)!!
++            assertEquals(400, bitmap.width); assertEquals(400, bitmap.height); bitmap.recycle()
++        } finally { file.delete() }
++    }
++    @Test fun invalidImageIsRejected(): Unit = runBlocking {
++        val file = File.createTempFile("poster-invalid", ".img").apply { writeText("not an image") }
++        try { assertNull(PosterResolution.decode(file)); assertFalse(PosterResolution.prepareDownloaded(file, 1_000_000)) }
++        finally { file.delete() }
++    }
++}
