@@ -8,7 +8,7 @@ Atualização para o projeto **IPTVPremium (8).zip**, com Media3 **1.11.1**. Adi
 - **Leve · nitidez adaptativa:** um passe RCAS, mantendo o escalonamento padrão do player.
 - **FSR 1 + RCAS · experimental:** ampliação EASU em um passe e nitidez RCAS em outro.
 
-Os modos usam shaders, sem rede neural ou interpolação de quadros. A nitidez tem três intensidades: **Suave**, **Média** e **Forte**. O padrão inicial é desativado, com intensidade suave. A escolha é salva nas preferências. Os níveis atuais usam 0,40 / 0,75 / 1,00 do coeficiente RCAS. O painel mostra o modo atual e mantém o motivo de eventual desativação automática durante a sessão do vídeo.
+Os modos usam shaders, sem rede neural ou interpolação de quadros. A nitidez tem três intensidades: **Suave**, **Média** e **Forte**. O padrão inicial é desativado, com intensidade suave. A escolha é salva nas preferências. Os níveis atuais usam 0,25 / 0,50 / 0,80 do coeficiente RCAS. O painel mostra o modo atual e mantém o motivo de eventual desativação automática durante a sessão do vídeo.
 
 Ao trocar o modo ou a intensidade, o mecanismo atual é recriado para inicializar ou remover corretamente a cadeia de efeitos do Media3. A posição de filmes e séries, o estado de pausa, a velocidade e as preferências de faixas são preservados. Pode ocorrer uma breve recarga; canais ao vivo retomam na posição ao vivo da fonte.
 

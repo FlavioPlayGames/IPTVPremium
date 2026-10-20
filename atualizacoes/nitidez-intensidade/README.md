@@ -1,5 +1,7 @@
 # Intensidades da nitidez e modo atual visível
 
+**Atualização posterior:** os níveis pedidos de 25% / 50% / 80% estão em [nitidez-percentuais](../nitidez-percentuais/README.md). Este pacote registra o ajuste anterior.
+
 Atualização para quem já instalou o botão Nitidez de `imagem-player`. Altera somente `PlaybackImageEnhancement.kt` e `PlaybackScreen.kt`; pode ser aplicada antes ou depois da correção do triângulo preto.
 
 Os níveis anteriores multiplicavam o coeficiente RCAS por 0,35 / 0,55 / 0,75. O ajuste era conservador. Agora os níveis são **Suave: 0,40**, **Média: 0,75**, **Forte: 1,00**, levando Forte ao limite original do algoritmo, mantendo a proteção contra excesso de contraste do RCAS. Aplica-se tanto ao modo Leve quanto ao estágio de nitidez do FSR 1. Não acrescenta passes ou leituras de textura.

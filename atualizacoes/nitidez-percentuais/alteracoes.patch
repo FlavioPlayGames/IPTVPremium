@@ -1,0 +1,11 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackImageEnhancement.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackImageEnhancement.kt
+@@ -4,7 +4,7 @@
+     OFF("Desativada"), LIGHT("Leve · nitidez adaptativa"), FSR1("FSR 1 + RCAS · experimental")
+ }
+ enum class PlaybackImageStrength(val title: String, val amount: Float) {
+-    SOFT("Suave", .40f), MEDIUM("Média", .75f), STRONG("Forte", 1.0f)
++    SOFT("Suave · 25%", .25f), MEDIUM("Médio · 50%", .50f), STRONG("Forte · 80%", .80f)
+ }
+ data class PlaybackImageEnhancement(
+     val mode: PlaybackImageMode = PlaybackImageMode.OFF,
