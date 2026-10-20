@@ -219,13 +219,15 @@
  import java.util.Locale
  import kotlin.math.max
  import kotlin.math.cos
-@@ -239,6 +241,19 @@
+@@ -239,6 +241,22 @@
      }
      var interactionTick by remember { mutableIntStateOf(0) }
      var feedback by remember { mutableStateOf<String?>(null) }
-+    LaunchedEffect(controller) {
++    var imageBypassReason by remember(media.id, media.streamUrl) { mutableStateOf<String?>(null) }
++    LaunchedEffect(controller, media.id, media.streamUrl) {
 +        controller.events.collect { event ->
 +            if (event is PlaybackControllerEvent.PlayerEvent && event.event is PlaybackEngineEvent.ImageEnhancementBypassed) {
++                imageBypassReason = event.event.reason
 +                feedback = event.event.reason
 +            }
 +        }
@@ -233,13 +235,14 @@
 +    fun updateImage(value: PlaybackImageEnhancement) {
 +        val result = controller.setImageEnhancement(value)
 +        if (result == PlaybackCommandResult.ACCEPTED) {
++            imageBypassReason = null
 +            br.com.flaviotorres.iptvpremium.ui.settings.SettingsPreferences(context).setImageEnhancement(value)
 +        } else feedback = "Melhoria de imagem disponível no Exo Player."
 +    }
      var speed by remember { mutableFloatStateOf(effectiveSettings.speed) }
      var currentLayout by remember(media.id) { mutableStateOf(effectiveSettings.aspect) }
      var seekFocused by remember { mutableStateOf(false) }
-@@ -853,7 +868,7 @@
+@@ -853,7 +871,7 @@
                          val transportGap = if (isCompactScreen) 8.dp else 13.dp
                          val transportWidth = (if (isCompactScreen) 70.dp else 76.dp) +
                              (buttonWidth + transportGap) * ((if (showEpisodeButtons) 2 else 0) + (if (showSeekButtons) 2 else 0))
@@ -248,7 +251,7 @@
                              (if (isCompactScreen) 8.dp else 13.dp) +
                              (if (isCompactScreen) 5.dp else 13.dp) * ((if (showAudioButton) 1 else 0) + (if (showSubtitleButton) 1 else 0))
                          val narrowControls = maxWidth < transportWidth + (auxiliaryWidth + 12.dp) * 2
-@@ -926,6 +941,7 @@
+@@ -926,6 +944,7 @@
                                          onAudio = { panel = PlayerPanel.AUDIO; reveal() },
                                          onSubtitles = { panel = PlayerPanel.SUBTITLES; reveal() },
                                          onAspect = { panel = PlayerPanel.ASPECT; reveal() },
@@ -256,7 +259,7 @@
                                          onSettings = { panel = PlayerPanel.MAIN; reveal() }
                                      )
                                  }
-@@ -939,6 +955,7 @@
+@@ -939,6 +958,7 @@
                                      onAudio = { panel = PlayerPanel.AUDIO; reveal() },
                                      onSubtitles = { panel = PlayerPanel.SUBTITLES; reveal() },
                                      onAspect = { panel = PlayerPanel.ASPECT; reveal() },
@@ -264,7 +267,7 @@
                                      onSettings = { panel = PlayerPanel.MAIN; reveal() }
                                  )
                              }
-@@ -961,6 +978,7 @@
+@@ -961,6 +981,7 @@
                  ).dp.coerceAtMost(if (panel == PlayerPanel.INFO) 560.dp else 420.dp)
                  val menuTitle = when (panel) {
                      PlayerPanel.MAIN -> "OPÇÕES"
@@ -272,13 +275,23 @@
                      PlayerPanel.ENGINE -> "REPRODUTOR"
                      PlayerPanel.AUDIO -> "FAIXAS DE ÁUDIO"
                      PlayerPanel.SUBTITLES -> "LEGENDAS"
-@@ -1055,6 +1073,39 @@
+@@ -1055,6 +1076,49 @@
                              PlayerMenuItem("Fechar", "Voltar ao vídeo", gold, glyph = PlayerMenuGlyph.CLOSE) {
                                  dismissOverlaysToVideo()
                              }
 +                        }
 +                        PlayerPanel.IMAGE -> {
 +                            val selectedImage = playback.imageEnhancement
++                            Text(
++                                "Modo atual: " + when (selectedImage.mode) {
++                                    PlaybackImageMode.OFF -> "Desativado"
++                                    PlaybackImageMode.LIGHT -> "Leve · ${selectedImage.strength.title}"
++                                    PlaybackImageMode.FSR1 -> "FSR 1 + RCAS · ${selectedImage.strength.title}"
++                                }, color = gold, fontSize = 13.sp
++                            )
++                            if (selectedImage.mode == PlaybackImageMode.OFF) {
++                                imageBypassReason?.let { Text(it, color = Color.LightGray, fontSize = 12.sp) }
++                            }
 +                            Text("Exo Player · SDR até 1080p. FSR 1: até 30 FPS.", color = Color.LightGray, fontSize = 12.sp)
 +                            PlaybackImageMode.entries.forEachIndexed { index, mode ->
 +                                val info = playback.technicalInfo
@@ -312,7 +325,7 @@
                          }
                          PlayerPanel.ENGINE -> {
                              listOf(PlaybackEngine.MEDIA3, PlaybackEngine.VLC).forEachIndexed { index, engine ->
-@@ -1568,7 +1619,7 @@
+@@ -1568,7 +1632,7 @@
  }
  
  @Composable
@@ -321,7 +334,7 @@
      gold: Color,
      compact: Boolean,
      showAudio: Boolean,
-@@ -1577,6 +1628,7 @@
+@@ -1577,6 +1641,7 @@
      onAudio: () -> Unit,
      onSubtitles: () -> Unit,
      onAspect: () -> Unit,
@@ -329,7 +342,7 @@
      onSettings: () -> Unit
  ) {
      Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-@@ -1590,11 +1642,17 @@
+@@ -1590,11 +1655,17 @@
          }
          PlayerIconButton(PlayerGlyph.ASPECT, "Formato de tela", gold, compact = compact, onClick = onAspect)
          Spacer(Modifier.width(if (compact) 8.dp else 13.dp))
@@ -348,7 +361,7 @@
  
  /** Icones vetoriais proprios: nenhuma dependencia extra de Material Icons. */
  @Composable
-@@ -1756,6 +1814,13 @@
+@@ -1756,6 +1827,13 @@
                  drawLine(iconBrush, Offset(w * .62f, h * .91f), Offset(w * .91f, h * .91f), thickness)
                  drawLine(iconBrush, Offset(w * .91f, h * .62f), Offset(w * .91f, h * .91f), thickness)
              }
@@ -362,7 +375,7 @@
              PlayerGlyph.SETTINGS -> {
                  drawCircle(iconBrush, radius = w * .28f, style = Stroke(width = w * .12f))
                  drawCircle(iconBrush, radius = w * .10f)
-@@ -1777,7 +1842,7 @@
+@@ -1777,7 +1855,7 @@
      }
  }
  
@@ -380,7 +393,7 @@
 +    OFF("Desativada"), LIGHT("Leve · nitidez adaptativa"), FSR1("FSR 1 + RCAS · experimental")
 +}
 +enum class PlaybackImageStrength(val title: String, val amount: Float) {
-+    SOFT("Suave", .35f), MEDIUM("Média", .55f), STRONG("Forte", .75f)
++    SOFT("Suave", .40f), MEDIUM("Média", .75f), STRONG("Forte", 1.0f)
 +}
 +data class PlaybackImageEnhancement(
 +    val mode: PlaybackImageMode = PlaybackImageMode.OFF,

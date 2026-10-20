@@ -25,6 +25,9 @@ r=root/'app/src/main/assets/shaders'
 source=(root/'app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackImageEffects.kt').read_text()
 mode=re.search(r'glDrawArrays\(GLES20\.(GL_TRIANGLE_\w+)',source).group(1)
 draw_mode={'GL_TRIANGLE_STRIP':0x0005,'GL_TRIANGLE_FAN':0x0006}[mode]
+strength_source=(root/'app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackImageEnhancement.kt').read_text()
+strengths=[float(value) for value in re.findall(r'(?:SOFT|MEDIUM|STRONG)\("[^"]+", ([.0-9]+)f\)',strength_source)]
+assert len(strengths)==3
 def shader(kind,s):
  sh=createShader(kind);value=C.c_char_p(s.encode());shaderSource(sh,1,C.byref(value),None);compileShader(sh);ok=I();shaderiv(sh,0x8B81,C.byref(ok))
  if not ok.value:
@@ -52,7 +55,7 @@ def render(name,source,w,h,ow,oh,strength=.35):
 cases=0
 for rgb in [(0,0,0),(255,255,255),(64,128,192),(2,3,4),(128,128,128)]:
  data=bytes((*rgb,255))*32*32;source=texture(32,32,data)
- for strength in [.35,.55,.75]:
+ for strength in strengths:
   _,light=render('rcas',source,32,32,32,32,strength)
   expanded,fsr=render('easu',source,32,32,48,48)
   _,fsr=render('rcas',expanded,48,48,48,48,strength)
@@ -79,3 +82,19 @@ for x,y in [(2,2),(45,2),(2,45),(45,45)]:
  actual=out[(y*48+x)*4:(y*48+x)*4+4]
  assert all(abs(a-b)<=2 for a,b in zip(actual,expected)),(actual,expected)
 print('PASS: two-pass FSR preserves color quadrants and image orientation')
+
+# Compare all configured strengths against a gamma round-trip baseline.
+# A blurred edge/texture must produce different responses at each level.
+import math
+w=h=64
+data=bytes(v for y in range(h) for x in range(w) for v in (round(128+55*math.tanh((x-31.5)/1.5)+20*math.sin(y*0.7)),)*3+(255,))
+source=texture(w,h,data)
+_,baseline=render('rcas',source,w,h,w,h,0)
+responses=[]
+for strength in strengths:
+ _,pixels=render('rcas',source,w,h,w,h,strength)
+ delta=[abs(a-b) for i,(a,b) in enumerate(zip(pixels,baseline)) if i%4!=3]
+ responses.append(sum(delta)/len(delta))
+assert 0 < responses[0] < responses[1] < responses[2], responses
+assert responses[2] > 2*responses[0], responses
+print('PASS: configured strengths produce increasing edge/detail response:', [round(x,3) for x in responses])

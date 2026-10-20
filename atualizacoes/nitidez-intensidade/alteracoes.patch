@@ -1,0 +1,51 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackImageEnhancement.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackImageEnhancement.kt
+@@ -4,7 +4,7 @@
+     OFF("Desativada"), LIGHT("Leve · nitidez adaptativa"), FSR1("FSR 1 + RCAS · experimental")
+ }
+ enum class PlaybackImageStrength(val title: String, val amount: Float) {
+-    SOFT("Suave", .35f), MEDIUM("Média", .55f), STRONG("Forte", .75f)
++    SOFT("Suave", .40f), MEDIUM("Média", .75f), STRONG("Forte", 1.0f)
+ }
+ data class PlaybackImageEnhancement(
+     val mode: PlaybackImageMode = PlaybackImageMode.OFF,
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt
+@@ -241,9 +241,11 @@
+     }
+     var interactionTick by remember { mutableIntStateOf(0) }
+     var feedback by remember { mutableStateOf<String?>(null) }
+-    LaunchedEffect(controller) {
++    var imageBypassReason by remember(media.id, media.streamUrl) { mutableStateOf<String?>(null) }
++    LaunchedEffect(controller, media.id, media.streamUrl) {
+         controller.events.collect { event ->
+             if (event is PlaybackControllerEvent.PlayerEvent && event.event is PlaybackEngineEvent.ImageEnhancementBypassed) {
++                imageBypassReason = event.event.reason
+                 feedback = event.event.reason
+             }
+         }
+@@ -251,6 +253,7 @@
+     fun updateImage(value: PlaybackImageEnhancement) {
+         val result = controller.setImageEnhancement(value)
+         if (result == PlaybackCommandResult.ACCEPTED) {
++            imageBypassReason = null
+             br.com.flaviotorres.iptvpremium.ui.settings.SettingsPreferences(context).setImageEnhancement(value)
+         } else feedback = "Melhoria de imagem disponível no Exo Player."
+     }
+@@ -1076,6 +1079,16 @@
+                         }
+                         PlayerPanel.IMAGE -> {
+                             val selectedImage = playback.imageEnhancement
++                            Text(
++                                "Modo atual: " + when (selectedImage.mode) {
++                                    PlaybackImageMode.OFF -> "Desativado"
++                                    PlaybackImageMode.LIGHT -> "Leve · ${selectedImage.strength.title}"
++                                    PlaybackImageMode.FSR1 -> "FSR 1 + RCAS · ${selectedImage.strength.title}"
++                                }, color = gold, fontSize = 13.sp
++                            )
++                            if (selectedImage.mode == PlaybackImageMode.OFF) {
++                                imageBypassReason?.let { Text(it, color = Color.LightGray, fontSize = 12.sp) }
++                            }
+                             Text("Exo Player · SDR até 1080p. FSR 1: até 30 FPS.", color = Color.LightGray, fontSize = 12.sp)
+                             PlaybackImageMode.entries.forEachIndexed { index, mode ->
+                                 val info = playback.technicalInfo
