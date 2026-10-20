@@ -1,0 +1,483 @@
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/media/TrailerReturnDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/media/TrailerReturnDeviceTest.kt
+@@ -24,6 +24,10 @@
+                     else -> emptyList()
+                 }
+                 assertFalse(buttons(activity.window.decorView).any { it.text.toString().contains("Voltar") })
++                activity.window.decorView.measure(View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(540, View.MeasureSpec.EXACTLY))
++                activity.window.decorView.layout(0, 0, 960, 540)
++                val videoFrame = TrailerPlayerActivity::class.java.getDeclaredField("frame").apply { isAccessible = true }.get(activity) as View
++                assertTrue("video frame ${videoFrame.width}x${videoFrame.height}", videoFrame.width > 800 && videoFrame.height > 300)
+                 val surface = android.widget.FrameLayout(activity)
+                 var hidden = false
+                 val callback = android.webkit.WebChromeClient.CustomViewCallback { hidden = true }
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/storage/RotatingPosterCacheDeviceTest.kt
+@@ -0,0 +1,44 @@
++package br.com.flaviotorres.iptvpremium.core.storage
++
++import androidx.test.core.app.ApplicationProvider
++import android.content.Context
++import java.io.File
++import org.junit.Assert.*
++import org.junit.Test
++
++class RotatingPosterCacheDeviceTest {
++    @Test fun keepsTheCurrentWindowAndRotatesOlderFilesAtTheBudget() {
++        val root = File(ApplicationProvider.getApplicationContext<Context>().cacheDir, "rotation-${java.util.UUID.randomUUID()}")
++        val dir = File(root, "iptv_movie_posters_session").apply { mkdirs() }
++        val cache = ImageDiskBudget(root, maxBytes = 12)
++        fun image(name: String, time: Long): File = File(dir, "$name.img").apply {
++            writeBytes(ByteArray(6)); setLastModified(time)
++        }
++        try {
++            val current = image("current", 10_000)
++            val old = image("old", 20_000)
++            val next = image("next", 30_000)
++            cache.prefer(setOf(current.name, next.name))
++            assertEquals(6L, cache.maintain())
++            assertTrue(current.exists()); assertFalse(old.exists()); assertTrue(next.exists())
++            cache.prefer(emptySet())
++            val newer = image("newer", 40_000)
++            assertEquals(6L, cache.maintain())
++            assertFalse(current.exists()); assertTrue(next.exists()); assertTrue(newer.exists())
++            assertEquals(12L, dir.listFiles()!!.sumOf { it.length() })
++        } finally { root.deleteRecursively() }
++    }
++    @Test fun neverDeletesAnImageBeingDecoded() {
++        val root = File(ApplicationProvider.getApplicationContext<Context>().cacheDir, "rotation-${java.util.UUID.randomUUID()}")
++        val dir = File(root, "iptv_movie_posters_session").apply { mkdirs() }
++        val cache = ImageDiskBudget(root, maxBytes = 6)
++        val active = File(dir, "active.img").apply { writeBytes(ByteArray(6)); setLastModified(10_000) }
++        try {
++            cache.retain(active).use {
++                File(dir, "other.img").writeBytes(ByteArray(6))
++                cache.maintain()
++                assertTrue(active.exists())
++            }
++        } finally { root.deleteRecursively() }
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterImagePolicyDeviceTest.kt
+@@ -0,0 +1,22 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import org.junit.Assert.*
++import org.junit.Test
++
++class PosterImagePolicyDeviceTest {
++    @Test fun onlyLargeOfficialTmdbPostersUseTheSmallerTransfer() {
++        assertEquals("https://image.tmdb.org/t/p/w500/movie.jpg", catalogPosterDownloadUrl("https://image.tmdb.org/t/p/original/movie.jpg"))
++        assertEquals("https://image.tmdb.org/t/p/w500/movie.jpg?x=1", catalogPosterDownloadUrl("https://image.tmdb.org/t/p/w780/movie.jpg?x=1"))
++        for (url in listOf("https://image.tmdb.org/t/p/w342/movie.jpg", "https://image.tmdb.org.evil.test/t/p/original/a.jpg", "https://provider.test/t/p/original/a.jpg?token=private", "https://image.tmdb.org/t/p/w500/movie.jpg")) {
++            assertEquals(url, catalogPosterDownloadUrl(url))
++        }
++    }
++    @Test fun decodedPostersFitTheUpcomingRowBudgetWithoutStretching() {
++        assertEquals(512 to 768, catalogPosterBitmapSize(1000, 1500))
++        assertEquals(512 to 256, catalogPosterBitmapSize(2048, 1024))
++        assertEquals(16 to 24, catalogPosterBitmapSize(16, 24))
++        val (width, height) = catalogPosterBitmapSize(780, 1170)
++        assertTrue(width <= 512 && height <= 768)
++        assertTrue(width.toLong() * height * 4 * 10 < 24L * 1024 * 1024)
++    }
++}
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogPreparedRowsDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogPreparedRowsDeviceTest.kt
+@@ -29,7 +29,7 @@
+         val clients = ConcurrentLinkedQueue<Socket>()
+         val paths = ConcurrentLinkedQueue<String>()
+         val image = java.io.ByteArrayOutputStream().also { out ->
+-            Bitmap.createBitmap(16, 24, Bitmap.Config.ARGB_8888).apply { eraseColor(android.graphics.Color.BLUE) }
++            Bitmap.createBitmap(780, 1170, Bitmap.Config.ARGB_8888).apply { eraseColor(android.graphics.Color.BLUE) }
+                 .compress(Bitmap.CompressFormat.PNG, 100, out)
+         }.toByteArray()
+         kotlin.concurrent.thread(isDaemon = true) {
+@@ -56,7 +56,11 @@
+                 val movies = data.collectAsLazyPagingItems()
+                 Box(Modifier.requiredSize(960.dp, 540.dp)) { MoviesScreen(pagedMovies = movies, totalMovieCount = 40) }
+             }
+-            compose.waitUntil(7_000) { (10..14).all { MoviePosterLoader.peekBitmap("$base/$it.png") != null } }
++            compose.waitUntil(7_000) { (10..19).all { MoviePosterLoader.peekBitmap("$base/$it.png") != null } }
++            for (index in 10..19) {
++                val ready = MoviePosterLoader.peekBitmap("$base/$index.png")!!
++                assertTrue(ready.width <= 512 && ready.height <= 768)
++            }
+             compose.waitUntil(7_000) { (10..29).all { paths.contains("/$it.png") } }
+             compose.onNodeWithContentDescription("Filme 10").assertDoesNotExist()
+             assertTrue((10..14).all { paths.contains("/$it.png") })
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/MovieOpeningImagesDeviceTest.kt
+@@ -0,0 +1,77 @@
++package br.com.flaviotorres.iptvpremium.data.repository
++
++import android.content.Context
++import android.graphics.Bitmap
++import androidx.test.core.app.ApplicationProvider
++import br.com.flaviotorres.iptvpremium.ui.movies.preloadMovieDetailsImages
++import br.com.flaviotorres.iptvpremium.ui.movies.MovieDetailsImageLoader
++import java.net.ServerSocket
++import java.net.Socket
++import java.util.concurrent.ConcurrentLinkedQueue
++import java.util.concurrent.CountDownLatch
++import java.util.concurrent.TimeUnit
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++
++class MovieOpeningImagesDeviceTest {
++    @Test fun openingWaitsForCastAfterBothPrincipalImages() = runBlocking {
++        val server = ServerSocket(0)
++        val clients = ConcurrentLinkedQueue<Socket>()
++        val paths = ConcurrentLinkedQueue<String>()
++        val primary = CountDownLatch(2)
++        val artist = CountDownLatch(1)
++        val releasePrimary = CountDownLatch(1)
++        val releaseArtist = CountDownLatch(1)
++        val image = java.io.ByteArrayOutputStream().also { out ->
++            Bitmap.createBitmap(16, 24, Bitmap.Config.ARGB_8888).apply { eraseColor(android.graphics.Color.BLUE) }
++                .compress(Bitmap.CompressFormat.PNG, 100, out)
++        }.toByteArray()
++        kotlin.concurrent.thread(isDaemon = true) {
++            try { while (!server.isClosed) {
++                val client = server.accept(); clients.add(client)
++                kotlin.concurrent.thread(isDaemon = true) {
++                    try { client.use {
++                        val reader = it.getInputStream().bufferedReader()
++                        val path = reader.readLine().split(' ')[1]
++                        while (!reader.readLine().isNullOrEmpty()) { }
++                        paths.add(path)
++                        if (path == "/artist.png") { artist.countDown(); releaseArtist.await(5, TimeUnit.SECONDS) }
++                        else { primary.countDown(); releasePrimary.await(5, TimeUnit.SECONDS) }
++                        it.getOutputStream().apply {
++                            write("HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: ${image.size}\r\nConnection: close\r\n\r\n".toByteArray())
++                            write(image); flush()
++                        }
++                    } } catch (_: Exception) { }
++                }
++            } } catch (_: Exception) { }
++        }
++        val context = ApplicationProvider.getApplicationContext<Context>()
++        val base = "http://127.0.0.1:${server.localPort}"
++        val opening = async(Dispatchers.Default) {
++            preloadMovieDetailsImages(context, "$base/backdrop.png", "$base/logo.png", 960, 540,
++                castProfileUrls = listOf("$base/artist.png"), primaryTimeoutMs = 4_000)
++        }
++        try {
++            assertTrue(primary.await(3, TimeUnit.SECONDS))
++            assertFalse(paths.contains("/artist.png"))
++            releasePrimary.countDown()
++            assertTrue(artist.await(3, TimeUnit.SECONDS))
++            assertFalse("Opening must still wait for the artist photo", opening.isCompleted)
++            releaseArtist.countDown()
++            val result = withTimeout(4_000) { opening.await() }
++            assertTrue(result.backdropReady)
++            assertTrue(result.titleLogoReady)
++            assertEquals(1, result.castPhotosRequested)
++            assertEquals(1, result.castPhotosReady)
++            val density = context.resources.displayMetrics.density
++            val compact = 540 / density < 500 || 960 / density < 800
++            assertNotNull(MovieDetailsImageLoader.peekFromMemory(context, "$base/artist.png",
++                kotlin.math.round((if (compact) 96 else 108) * density).toInt(),
++                kotlin.math.round((if (compact) 132 else 148) * density).toInt()))
++        } finally {
++            releasePrimary.countDown(); releaseArtist.countDown()
++            opening.cancel(); server.close(); clients.forEach { runCatching { it.close() } }
++        }
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt
+@@ -70,7 +70,8 @@
+     private fun resolve() {
+         resolverJob?.cancel(); releaseViews()
+         choices = emptyList(); choiceIndex = 0; position = 0; resumePlaying = true
+-        status.text = "Procurando trailer, com preferência por português…"
++        status.visibility = View.VISIBLE
++        status.text = "Procurando trailer…"
+         retry.visibility = View.GONE
+         loading = ProgressBar(this)
+         frame.addView(loading, FrameLayout.LayoutParams(dp(48), dp(48), android.view.Gravity.CENTER))
+@@ -96,8 +97,8 @@
+         releaseViews()
+         val choice = choices.getOrNull(choiceIndex) ?: return
+         retry.visibility = View.GONE
+-        status.text = if (choice.language == "pt") "Trailer em português priorizado."
+-            else "Legendas em português serão solicitadas quando disponíveis."
++        status.text = ""
++        status.visibility = View.GONE
+         try {
+             if (choice.youtubeId != null) showYouTube(choice.youtubeId) else showDirect(choice.url)
+         } catch (_: Exception) {
+@@ -130,13 +131,15 @@
+         loadingTrailer = true
+         youtubeApiReady = false
+         waitingForGesture = false
++        status.visibility = View.VISIBLE
+         status.text = "Carregando trailer…"
+         val identity = "https://${packageName.lowercase()}/"
+         val view = WebView(this)
+         web = view
+-        view.setBackgroundColor(Color.BLACK)
+-        // Video textures must remain in the hardware compositor.
+-        view.setLayerType(View.LAYER_TYPE_HARDWARE, null)
++        view.setBackgroundColor(Color.TRANSPARENT)
++        // Keep the Activity's hardware acceleration, without an extra offscreen texture.
++        // A forced hardware layer can hide video surfaces on TV/emulator GPU drivers.
++        view.setLayerType(View.LAYER_TYPE_NONE, null)
+         view.settings.apply {
+             javaScriptEnabled = true; domStorageEnabled = true
+             mediaPlaybackRequiresUserGesture = false
+@@ -156,14 +159,15 @@
+                 if (!isDestroyed && generation == token) {
+                     loadingTrailer = false; waitingForGesture = false
+                     startupJob?.cancel(); loading.visibility = View.GONE
+-                    status.text = if (choices.getOrNull(choiceIndex)?.language == "pt")
+-                        "Trailer em português priorizado." else "Legendas em português quando disponíveis."
++                    status.text = ""
++                    status.visibility = View.GONE
+                 }
+             } }
+             @JavascriptInterface fun manual() { runOnUiThread {
+                 if (!isDestroyed && generation == token) {
+                     waitingForGesture = true; loadingTrailer = false
+                     startupJob?.cancel(); loading.visibility = View.GONE
++                    status.visibility = View.VISIBLE
+                     status.text = "Pressione OK ou toque em Reproduzir."
+                     view.requestFocus()
+                 }
+@@ -247,6 +251,7 @@
+     }
+     private fun showError(message: String) {
+         loadingTrailer = false; startupJob?.cancel()
++        status.visibility = View.VISIBLE
+         status.text = message; retry.visibility = View.VISIBLE
+         if (::loading.isInitialized) loading.visibility = View.GONE
+         retry.requestFocus()
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterImagePolicy.kt
+@@ -0,0 +1,19 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++/** Optimize only the official TMDB image service; provider URLs and cache keys stay intact. */
++internal fun catalogPosterDownloadUrl(url: String): String {
++    val uri = runCatching { java.net.URI(url) }.getOrNull() ?: return url
++    if (!uri.host.orEmpty().equals("image.tmdb.org", ignoreCase = true)) return url
++    val parts = uri.rawPath.orEmpty().split('/')
++    if (parts.size != 5 || parts[1] != "t" || parts[2] != "p" || parts[4].isBlank()) return url
++    val size = parts[3]
++    if (size != "original" && (size.removePrefix("w").toIntOrNull() ?: 0) <= 500) return url
++    val start = url.indexOf("/t/p/") + 5
++    return url.replaceRange(start, start + size.length, "w500")
++}
++
++internal fun catalogPosterBitmapSize(width: Int, height: Int): Pair<Int, Int> {
++    require(width > 0 && height > 0)
++    val scale = minOf(1.0, 512.0 / width, 768.0 / height)
++    return (width * scale).toInt().coerceAtLeast(1) to (height * scale).toInt().coerceAtLeast(1)
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
+@@ -158,7 +158,8 @@
+     titleLogoUrl: String?,
+     viewportWidthPx: Int,
+     viewportHeightPx: Int,
+-    castProfileUrls: List<String?> = emptyList()
++    castProfileUrls: List<String?> = emptyList(),
++    primaryTimeoutMs: Long? = null
+ ): MovieDetailsPreloadResult = coroutineScope {
+     val appContext = context.applicationContext
+     val startedAt = SystemClock.elapsedRealtime()
+@@ -189,27 +190,34 @@
+         .take(12)
+         .toList()
+ 
+-    val backdropTask = async {
+-        MovieDetailsImageLoader.load(
+-            context = appContext,
+-            imageUrl = backdropUrl,
+-            targetWidthPx = widthPx,
+-            targetHeightPx = heightPx,
+-            imageType = "preload_backdrop"
+-        ) != null
+-    }
+-    val logoTask = async {
+-        MovieDetailsImageLoader.load(
+-            context = appContext,
+-            imageUrl = titleLogoUrl,
+-            targetWidthPx = logoWidthPx,
+-            targetHeightPx = logoHeightPx,
+-            imageType = "preload_logo"
+-        ) != null
+-    }
+-    // A arte principal tem prioridade sobre as fotos do elenco.
+-    val backdropReady = backdropTask.await()
+-    val titleLogoReady = logoTask.await()
++    var backdropReady = false
++    var titleLogoReady = false
++    suspend fun preparePrimary() = coroutineScope {
++        val backdropTask = async {
++            MovieDetailsImageLoader.load(
++                context = appContext,
++                imageUrl = backdropUrl,
++                targetWidthPx = widthPx,
++                targetHeightPx = heightPx,
++                imageType = "preload_backdrop"
++            ) != null
++        }
++        val logoTask = async {
++            MovieDetailsImageLoader.load(
++                context = appContext,
++                imageUrl = titleLogoUrl,
++                targetWidthPx = logoWidthPx,
++                targetHeightPx = logoHeightPx,
++                imageType = "preload_logo"
++            ) != null
++        }
++        // A arte principal tem prioridade sobre as fotos do elenco.
++        backdropReady = backdropTask.await()
++        titleLogoReady = logoTask.await()
++
++    }
++    if (primaryTimeoutMs == null) preparePrimary()
++    else kotlinx.coroutines.withTimeoutOrNull(primaryTimeoutMs.coerceAtLeast(0L)) { preparePrimary() }
+ 
+     val castTasks = firstCastUrls.map { url ->
+         async {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
+@@ -1,8 +1,9 @@
+ package br.com.flaviotorres.iptvpremium.ui.movies
+ 
+-/** One budget for metadata and decoded principal images, reserving the final animation. */
++/** Principal images retain their budget; the first cast row has its own following stage. */
+ internal object MovieOpeningPolicy {
+     const val preparationMs = 3_500L
++    const val castMs = 3_000L
+     const val remoteMs = 2_500L
+     const val minimumLoadingMs = 3_000L
+     const val rotationCardsPerSecond = 1.5f
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -499,7 +499,7 @@
+                     paging[minOf(window.next.last, paging.itemCount - 1)]
+                 }
+                 val nextUrls = urls(window.next)
+-                MoviePosterLoader.prioritizeUpcoming(nextUrls.take(gridColumns * 2))
++                MoviePosterLoader.prioritizeUpcoming(nextUrls, urls(window.visible), gridColumns * 2)
+                 queue.update(nextUrls, urls(window.visible))
+             }
+         } finally { queue.clear() }
+@@ -2669,11 +2669,13 @@
+     private val upcoming = br.com.flaviotorres.iptvpremium.data.cache.PreparedPosterCache<String, ImageBitmap>(24L * 1024 * 1024) {
+         it.width.toLong() * it.height * 4L
+     }
+-    fun prioritizeUpcoming(urls: List<String?>) {
+-        val keys = urls.mapNotNull(::validUrl).distinct().take(10)
++    fun prioritizeUpcoming(urls: List<String?>, visible: List<String?> = emptyList(), readyCount: Int = 10) {
++        protectedCatalogFiles = (visible + urls).mapNotNull(::validUrl).distinct().take(30)
++            .map { "${sha256(it)}.img" }.toSet()
++        val keys = urls.mapNotNull(::validUrl).distinct().take(readyCount.coerceIn(0, 10))
+         upcoming.window(keys).forEach { (url, image) -> memoryCache.put(url, image) }
+     }
+-    fun releaseUpcoming() { upcoming.clear() }
++    fun releaseUpcoming() { upcoming.clear(); protectedCatalogFiles = emptySet() }
+     fun shouldPrepare(rawUrl: String?): Boolean = validUrl(rawUrl)?.let(upcoming::wants) == true
+     suspend fun prepareUpcoming(context: Context, rawUrl: String?) {
+         val url = validUrl(rawUrl) ?: return
+@@ -2690,6 +2692,7 @@
+     // Mesma pasta dos builds anteriores: nao perde as imagens existentes.
+     private var diskDirectory: File? = null
+     @Volatile private var protectedHomeFiles: Set<String> = emptySet()
++    @Volatile private var protectedCatalogFiles: Set<String> = emptySet()
+ 
+     /**
+      * A Home pode reservar ate dez posters para evitar novos downloads.
+@@ -2744,7 +2747,7 @@
+         withContext(Dispatchers.IO) {
+             val directory = persistentDirectory(context) ?: return@withContext
+             val budget = br.com.flaviotorres.iptvpremium.core.storage.ImageDiskCache.get(context)
+-            budget.prefer(protectedHomeFiles)
++            budget.prefer(protectedHomeFiles + protectedCatalogFiles)
+             budget.retain(File(directory, "${sha256(url)}.img")).use {
+                 ensureFile(context, url, background = !priority)
+             }
+@@ -2784,7 +2787,7 @@
+         return withContext(Dispatchers.IO) {
+             val directory = persistentDirectory(context) ?: return@withContext null
+             val budget = br.com.flaviotorres.iptvpremium.core.storage.ImageDiskCache.get(context)
+-            budget.prefer(protectedHomeFiles)
++            budget.prefer(protectedHomeFiles + protectedCatalogFiles)
+             budget.retain(File(directory, "${sha256(url)}.img")).use {
+                 loadUnmanaged(context, url, background)
+             }
+@@ -2799,7 +2802,10 @@
+             val directory = persistentDirectory(context) ?: return@withContext null
+             val file = File(directory, "${sha256(url)}.img")
+             br.com.flaviotorres.iptvpremium.core.storage.ImageDiskCache.get(context).retain(file).use {
+-                if (!file.isFile || file.length() == 0L) null else decodePoster(url, file)
++                if (!file.isFile || file.length() == 0L) null else {
++                    file.setLastModified(System.currentTimeMillis())
++                    decodePoster(url, file)
++                }
+             }
+         }
+     }
+@@ -2842,7 +2848,13 @@
+                 inPreferredConfig = Bitmap.Config.ARGB_8888
+             }
+             val bitmap = try {
+-                BitmapFactory.decodeFile(file.absolutePath, options)?.asImageBitmap()
++                BitmapFactory.decodeFile(file.absolutePath, options)?.let { decoded ->
++                    val (width, height) = br.com.flaviotorres.iptvpremium.data.cache.catalogPosterBitmapSize(decoded.width, decoded.height)
++                    if (width == decoded.width && height == decoded.height) decoded.asImageBitmap()
++                    else android.graphics.Bitmap.createScaledBitmap(decoded, width, height, true).also {
++                        if (it !== decoded) decoded.recycle()
++                    }.asImageBitmap()
++                }
+             } catch (_: OutOfMemoryError) {
+                 // Libera somente os bitmaps; os arquivos em disco permanecem.
+                 memoryCache.evictAll()
+@@ -2910,7 +2922,7 @@
+                     if (parent == null || (!parent.isDirectory && !parent.mkdirs() && !parent.isDirectory)) {
+                         finish(false); return@FutureTask Unit
+                     }
+-                    connection = URL(url).openConnection() as HttpURLConnection
++                    connection = URL(br.com.flaviotorres.iptvpremium.data.cache.catalogPosterDownloadUrl(url)).openConnection() as HttpURLConnection
+                     current.set(connection)
+                     owner?.track(connection)
+                     if (!continuation.isActive) return@FutureTask Unit
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesViewModel.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesViewModel.kt
+@@ -418,7 +418,7 @@
+         val images =
+             try {
+                 withTimeoutOrNull(
+-                    MovieOpeningPolicy.remainingMs(SystemClock.elapsedRealtime() - startedAt)
++                    MovieOpeningPolicy.remainingMs(SystemClock.elapsedRealtime() - startedAt) + MovieOpeningPolicy.castMs
+                 ) {
+                     preloadMovieDetailsImages(
+                         context =
+@@ -432,7 +432,9 @@
+                         viewportHeightPx =
+                             viewportHeightPx.coerceAtLeast(1),
+                         castProfileUrls =
+-                            emptyList() // Elenco nao bloqueia a entrada; a tela carrega suas fotos.
++                            visibleCastUrls,
++                        primaryTimeoutMs =
++                            MovieOpeningPolicy.remainingMs(SystemClock.elapsedRealtime() - startedAt)
+                     )
+                 }
+             } catch (cancelled: CancellationException) {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -1258,7 +1258,7 @@
+                     paging[minOf(window.next.last, paging.itemCount - 1)]
+                 }
+                 val nextUrls = urls(window.next)
+-                MoviePosterLoader.prioritizeUpcoming(nextUrls.take(gridColumns * 2))
++                MoviePosterLoader.prioritizeUpcoming(nextUrls, urls(window.visible), gridColumns * 2)
+                 queue.update(nextUrls, urls(window.visible))
+             }
+         } finally { queue.clear() }
