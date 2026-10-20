@@ -1,0 +1,175 @@
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogPosterRulesDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogPosterRulesDeviceTest.kt
+@@ -11,17 +11,21 @@
+         val first = catalogPosterWindow(0, 5)
+         assertEquals((0..9).toList(), first.visible.toList())
+         assertEquals((10..29).toList(), first.next.toList())
++        assertEquals(10..14, first.nextRow)
+         val down = catalogPosterWindow(10, 5)
+         assertEquals(first.next.take(10), down.visible.toList())
+         assertEquals((20..39).toList(), down.next.toList())
+     }
+     @Test fun fourColumnsAndSingleRowScrollingFollowTheActualViewport() {
+         assertEquals(8..27, catalogPosterWindow(0, 4).next)
++        assertEquals(8..11, catalogPosterWindow(0, 4).nextRow)
+         assertEquals(5..14, catalogPosterWindow(5, 5).visible)
+         assertEquals(15..34, catalogPosterWindow(5, 5).next)
+         for (columns in 4..5) for (position in 0..1000) {
+             val window = catalogPosterWindow(position, columns)
+             assertTrue(window.size <= 10)
++            assertEquals(columns, window.nextRow.count())
++            assertEquals(window.next.take(columns), window.nextRow.toList())
+             assertTrue(window.visible.intersect(window.next.toSet()).isEmpty())
+             assertEquals(window.visible.last + 1, window.next.first)
+         }
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterImagePolicyDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterImagePolicyDeviceTest.kt
+@@ -5,9 +5,10 @@
+ 
+ class PosterImagePolicyDeviceTest {
+     @Test fun onlyLargeOfficialTmdbPostersUseTheSmallerTransfer() {
+-        assertEquals("https://image.tmdb.org/t/p/w500/movie.jpg", catalogPosterDownloadUrl("https://image.tmdb.org/t/p/original/movie.jpg"))
+-        assertEquals("https://image.tmdb.org/t/p/w500/movie.jpg?x=1", catalogPosterDownloadUrl("https://image.tmdb.org/t/p/w780/movie.jpg?x=1"))
+-        for (url in listOf("https://image.tmdb.org/t/p/w342/movie.jpg", "https://image.tmdb.org.evil.test/t/p/original/a.jpg", "https://provider.test/t/p/original/a.jpg?token=private", "https://image.tmdb.org/t/p/w500/movie.jpg")) {
++        assertEquals("https://image.tmdb.org/t/p/w342/movie.jpg", catalogPosterDownloadUrl("https://image.tmdb.org/t/p/original/movie.jpg"))
++        assertEquals("https://image.tmdb.org/t/p/w342/movie.jpg?x=1", catalogPosterDownloadUrl("https://image.tmdb.org/t/p/w780/movie.jpg?x=1"))
++        assertEquals("https://image.tmdb.org/t/p/w342/movie.jpg", catalogPosterDownloadUrl("https://image.tmdb.org/t/p/w500/movie.jpg"))
++        for (url in listOf("https://image.tmdb.org/t/p/w342/movie.jpg", "https://image.tmdb.org.evil.test/t/p/original/a.jpg", "https://provider.test/t/p/original/a.jpg?token=private", "https://image.tmdb.org/t/p/w185/movie.jpg")) {
+             assertEquals(url, catalogPosterDownloadUrl(url))
+         }
+     }
+@@ -17,6 +18,6 @@
+         assertEquals(16 to 24, catalogPosterBitmapSize(16, 24))
+         val (width, height) = catalogPosterBitmapSize(780, 1170)
+         assertTrue(width <= 512 && height <= 768)
+-        assertTrue(width.toLong() * height * 4 * 10 < 24L * 1024 * 1024)
++        assertTrue(width.toLong() * height * 4 * 5 < 12L * 1024 * 1024)
+     }
+ }
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogPreparedRowsDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogPreparedRowsDeviceTest.kt
+@@ -51,17 +51,21 @@
+         }
+         val base = "http://127.0.0.1:${server.localPort}"
+         val data = flowOf(PagingData.from(List(40) { Movie("m$it", "Filme $it", null, "$base/$it.png", null, "", 2026, 8.0, null) }, sourceLoadStates = androidx.paging.LoadStates(androidx.paging.LoadState.NotLoading(false), androidx.paging.LoadState.NotLoading(true), androidx.paging.LoadState.NotLoading(true))))
++        val mounted = androidx.compose.runtime.mutableStateOf(true)
+         try {
+             compose.setContent {
++                if (mounted.value) {
+                 val movies = data.collectAsLazyPagingItems()
+                 Box(Modifier.requiredSize(960.dp, 540.dp)) { MoviesScreen(pagedMovies = movies, totalMovieCount = 40) }
++                }
+             }
+-            compose.waitUntil(7_000) { (10..19).all { MoviePosterLoader.peekBitmap("$base/$it.png") != null } }
+-            for (index in 10..19) {
++            compose.waitUntil(7_000) { (10..14).all { MoviePosterLoader.peekBitmap("$base/$it.png") != null } }
++            for (index in 10..14) {
+                 val ready = MoviePosterLoader.peekBitmap("$base/$index.png")!!
+                 assertTrue(ready.width <= 512 && ready.height <= 768)
+             }
+             compose.waitUntil(7_000) { (10..29).all { paths.contains("/$it.png") } }
++            assertTrue("Farther posters must be downloaded without decoding", (15..29).all { MoviePosterLoader.peekBitmap("$base/$it.png") == null })
+             compose.onNodeWithContentDescription("Filme 10").assertDoesNotExist()
+             assertTrue((10..14).all { paths.contains("/$it.png") })
+             compose.onNodeWithTag("movie-category-ALL").performKeyInput { pressKey(Key.DirectionRight) }
+@@ -69,6 +73,8 @@
+             compose.onAllNodes(isFocused()).onFirst().performKeyInput { repeat(2) { pressKey(Key.DirectionDown) } }
+             compose.mainClock.advanceTimeBy(700)
+             compose.onNodeWithContentDescription("Filme 10").assertIsDisplayed()
++            compose.waitUntil(7_000) { (15..19).all { MoviePosterLoader.peekBitmap("$base/$it.png") != null } }
++            assertEquals("The next row must decode the already downloaded file", 1, paths.count { it == "/15.png" })
+             assertEquals(1, paths.count { it == "/10.png" })
+             MoviePosterLoader.clearMemory()
+             val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+@@ -79,6 +85,8 @@
+             assertEquals(1, paths.count { it == "/10.png" })
+             assertFalse(paths.contains("/never-downloaded.png"))
+         } finally {
++            compose.runOnIdle { mounted.value = false }
++            compose.waitForIdle()
+             server.close(); clients.forEach { runCatching { it.close() } }
+         }
+     }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterBatchPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterBatchPolicy.kt
+@@ -3,6 +3,7 @@
+ /** Two visible rows and the next twenty posters, regardless of the column count. */
+ internal data class CatalogPosterWindow(val first: Int, val size: Int) {
+     val visible: IntRange get() = first until first + size
++    val nextRow: IntRange get() = first + size until first + size + size / 2
+     val next: IntRange get() = first + size until first + size + 20
+ }
+ internal fun catalogPosterWindow(firstVisibleIndex: Int, columns: Int): CatalogPosterWindow {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterImagePolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterImagePolicy.kt
+@@ -7,9 +7,9 @@
+     val parts = uri.rawPath.orEmpty().split('/')
+     if (parts.size != 5 || parts[1] != "t" || parts[2] != "p" || parts[4].isBlank()) return url
+     val size = parts[3]
+-    if (size != "original" && (size.removePrefix("w").toIntOrNull() ?: 0) <= 500) return url
++    if (size != "original" && (size.removePrefix("w").toIntOrNull() ?: 0) <= 342) return url
+     val start = url.indexOf("/t/p/") + 5
+-    return url.replaceRange(start, start + size.length, "w500")
++    return url.replaceRange(start, start + size.length, "w342")
+ }
+ 
+ internal fun catalogPosterBitmapSize(width: Int, height: Int): Pair<Int, Int> {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -497,7 +497,7 @@
+                     paging[minOf(window.next.last, paging.itemCount - 1)]
+                 }
+                 val nextUrls = urls(window.next)
+-                MoviePosterLoader.prioritizeUpcoming(nextUrls, urls(window.visible), gridColumns * 2)
++                MoviePosterLoader.prioritizeUpcoming(nextUrls, urls(window.visible), gridColumns)
+                 queue.update(nextUrls, urls(window.visible))
+             }
+         } finally { queue.clear() }
+@@ -2149,7 +2149,7 @@
+     val artworkRequests = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterRequests.current
+     val artworkWindow = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWindow.current
+     val artworkEnabled = artworkRequests?.enabled?.collectAsState()?.value ?: true
+-    val loadArtwork = artworkEnabled && (gridIndex < 0 || gridIndex in artworkWindow.visible || gridIndex in artworkWindow.next)
++    val loadArtwork = artworkEnabled && (gridIndex < 0 || gridIndex in artworkWindow.visible || gridIndex in artworkWindow.nextRow)
+     val fittedPosterWidth = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWidth.current
+     var isFocused by remember {
+         mutableStateOf(false)
+@@ -2660,14 +2660,14 @@
+                 .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+     }
+ 
+-    // Only the nearest two future rows are pinned; the other twenty-window files stay on disk.
+-    private val upcoming = br.com.flaviotorres.iptvpremium.data.cache.PreparedPosterCache<String, ImageBitmap>(24L * 1024 * 1024) {
++    // Pin only the nearest future row; the rest of the twenty-file window stays on disk.
++    private val upcoming = br.com.flaviotorres.iptvpremium.data.cache.PreparedPosterCache<String, ImageBitmap>(12L * 1024 * 1024) {
+         it.width.toLong() * it.height * 4L
+     }
+-    fun prioritizeUpcoming(urls: List<String?>, visible: List<String?> = emptyList(), readyCount: Int = 10) {
++    fun prioritizeUpcoming(urls: List<String?>, visible: List<String?> = emptyList(), readyCount: Int = 5) {
+         protectedCatalogFiles = (visible + urls).mapNotNull(::validUrl).distinct().take(30)
+             .map { "${sha256(it)}.img" }.toSet()
+-        val keys = urls.mapNotNull(::validUrl).distinct().take(readyCount.coerceIn(0, 10))
++        val keys = urls.mapNotNull(::validUrl).distinct().take(readyCount.coerceIn(0, 5))
+         upcoming.window(keys).forEach { (url, image) -> memoryCache.put(url, image) }
+     }
+     fun releaseUpcoming() { upcoming.clear(); protectedCatalogFiles = emptySet() }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -1256,7 +1256,7 @@
+                     paging[minOf(window.next.last, paging.itemCount - 1)]
+                 }
+                 val nextUrls = urls(window.next)
+-                MoviePosterLoader.prioritizeUpcoming(nextUrls, urls(window.visible), gridColumns * 2)
++                MoviePosterLoader.prioritizeUpcoming(nextUrls, urls(window.visible), gridColumns)
+                 queue.update(nextUrls, urls(window.visible))
+             }
+         } finally { queue.clear() }
+@@ -2382,7 +2382,7 @@
+     val artworkRequests = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterRequests.current
+     val artworkWindow = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWindow.current
+     val artworkEnabled = artworkRequests?.enabled?.collectAsState()?.value ?: true
+-    val loadArtwork = artworkEnabled && (gridIndex < 0 || gridIndex in artworkWindow.visible || gridIndex in artworkWindow.next)
++    val loadArtwork = artworkEnabled && (gridIndex < 0 || gridIndex in artworkWindow.visible || gridIndex in artworkWindow.nextRow)
+     val fittedPosterWidth = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWidth.current
+     var isFocused by remember { mutableStateOf(false) }
+     val visuallyFocused = isFocused || navigator?.isMovingSelection(gridIndex) == true
