@@ -1,0 +1,6 @@
+OK: os arquivos sao compativeis. Nenhuma alteracao aplicada.
+Aplicado. Backup: /workspace/storage-toolchain/tests/version18/package-fixture/.navigation-backups/versao-1.8-20261020-020551-58866ab4
+PASS: validar e aplicar com backup em copia; hashes conferidos; versao local 9/1.07 migrada para 10/1.8, demais propriedades preservadas e backup exato. Nenhum segredo real usado.
+PASS: codigo superior a 10 impede downgrade sem modificar arquivos.
+PASS: metadados dos 5 APKs debug conferem: versao 1.8 codigo 10.
+PASS: controlador confirmou PADRAO, encerrou o processo sem abrir captura nem limpar dados; ADB simulado.

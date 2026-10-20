@@ -1,0 +1,15 @@
+JUnit version 4.13.2
+.........
+Time: 0.582
+
+OK (9 tests)
+
+
+PASS nested strings, escaped delimiters, Unicode and single-char input boundaries match legacy
+PASS ignored primitives and mixed arrays preserve recognized data
+PASS Android JSON leniency: comments, omitted entries, single quotes and unquoted keys
+PASS BOM and whitespace are accepted
+PASS missing closing bracket recovery and upper character limit
+PASS unfinished object, string, nesting and trailing comma cannot activate partial response
+PASS batch count and text budget are bounded independently of catalog length
+7 framing/legacy-parser scenarios passed using Android JSON

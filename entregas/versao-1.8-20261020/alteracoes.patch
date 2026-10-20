@@ -1,0 +1,99 @@
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicyDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicyDeviceTest.kt
+@@ -2,9 +2,10 @@
+ import org.junit.Assert.*
+ import org.junit.Test
+ class ImportTuningPolicyDeviceTest {
+- @Test fun releaseIgnoresEverySavedExperiment(){for(p in ImportProfile.entries)assertEquals(ImportProfile.ATUAL,ImportProfile.stored(p.name,false))}
+- @Test fun invalidPreferencesKeepOriginalProfile(){assertEquals(ImportProfile.ATUAL,ImportProfile.stored("bad",true));assertEquals(ImportProfile.ATUAL,ImportProfile.stored(null,true))}
++ @Test fun releaseIgnoresEverySavedExperiment(){for(p in ImportProfile.entries)assertEquals(ImportProfile.PADRAO,ImportProfile.stored(p.name,false))}
++ @Test fun invalidPreferencesKeepValidatedDefaults(){assertEquals(ImportProfile.PADRAO,ImportProfile.stored("bad",true));assertEquals(ImportProfile.PADRAO,ImportProfile.stored(null,true))}
+  @Test fun individualProfilesChangeOnlyIntendedSettings(){assertFalse(ImportProfile.ATUAL.forceWal);assertTrue(ImportProfile.WAL.forceWal);assertFalse(ImportProfile.WAL.normal);assertEquals(250,ImportProfile.WAL.batchSize);assertTrue(ImportProfile.NORMAL.normal);assertEquals(250,ImportProfile.NORMAL.batchSize);assertEquals(2000,ImportProfile.LOTES.batchSize);assertEquals(2*1024*1024,ImportProfile.LOTES.batchCharacters)}
+  @Test fun combinedProfilesKeepM3uAt2000WithoutForcingJournalChanges(){for(p in listOf(ImportProfile.XTREAM_1000,ImportProfile.XTREAM_500,ImportProfile.XTREAM_650)){assertEquals(2000,p.m3uBatchSize);assertEquals(2*1024*1024,p.m3uBatchCharacters);assertFalse(p.forceWal);assertFalse(p.normal)};assertEquals(1000,ImportProfile.XTREAM_1000.batchSize);assertEquals(500,ImportProfile.XTREAM_500.batchSize);assertEquals(650,ImportProfile.XTREAM_650.batchSize);assertEquals(ImportProfile.XTREAM_500.batchCharacters,ImportProfile.XTREAM_650.batchCharacters)}
++ @Test fun productionDefaultsAre250And2000(){assertEquals(ImportProfile.PADRAO,ImportProfile.DEFAULT);assertEquals(250,ImportProfile.DEFAULT.batchSize);assertEquals(2000,ImportProfile.DEFAULT.m3uBatchSize);assertFalse(ImportProfile.DEFAULT.forceWal);assertFalse(ImportProfile.DEFAULT.normal)}
+  @Test fun invalidRequestedModeDoesNotSilentlySelectAnExperiment(){try{ImportProfile.requested("bad");fail()}catch(expected:IllegalArgumentException){}}
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuning.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuning.kt
+@@ -7,7 +7,7 @@
+ import br.com.flaviotorres.iptvpremium.BuildConfig
+ 
+ internal object ImportTuning {
+-    private const val PREFS = "importacao_diagnostico"
++    private const val PREFS = "importacao_diagnostico_18"
+     fun load(context: Context): ImportProfile = ImportProfile.stored(
+         if (BuildConfig.DEBUG) context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("perfil", null) else null,
+         BuildConfig.DEBUG
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicy.kt
+@@ -1,10 +1,11 @@
+ package br.com.flaviotorres.iptvpremium.data.cache
+ 
+-/** Diagnostic profiles; release always uses ATUAL. No full-catalog materialization. */
++/** Diagnostic profiles; release always uses the stable 250/2000 defaults. No full-catalog materialization. */
+ internal enum class ImportProfile(val forceWal: Boolean, val normal: Boolean, val batchSize: Int, val batchCharacters: Int,
+     val m3uBatchSize: Int = batchSize,
+     val m3uBatchCharacters: Int = if (batchSize == 2000) batchCharacters else Int.MAX_VALUE
+ ) {
++    PADRAO(false, false, 250, 256 * 1024, 2000, 2 * 1024 * 1024),
+     ATUAL(false, false, 250, 256 * 1024),
+     WAL(true, false, 250, 256 * 1024),
+     NORMAL(true, true, 250, 256 * 1024),
+@@ -13,12 +14,13 @@
+     XTREAM_500(false, false, 500, 256 * 1024, 2000, 2 * 1024 * 1024),
+     XTREAM_650(false, false, 650, 256 * 1024, 2000, 2 * 1024 * 1024);
+     companion object {
++        val DEFAULT: ImportProfile get() = PADRAO
+         fun stored(value: String?, debug: Boolean): ImportProfile =
+-            if (debug) entries.firstOrNull { it.name == value } ?: ATUAL else ATUAL
++            if (debug) entries.firstOrNull { it.name == value } ?: DEFAULT else DEFAULT
+         fun requested(value: String): ImportProfile = entries.firstOrNull { it.name == value }
+             ?: throw IllegalArgumentException("Perfil de importacao invalido.")
+     }
+ }
+ internal object ImportTuningState {
+-    @Volatile var profile: ImportProfile = ImportProfile.ATUAL
++    @Volatile var profile: ImportProfile = ImportProfile.DEFAULT
+ }
+--- a/entregas-locais/perfis-importacao-1.07/Testar-Perfil-Importacao-1.07.ps1
++++ b/entregas-locais/perfis-importacao-1.07/Testar-Perfil-Importacao-1.07.ps1
+@@ -1,5 +1,5 @@
+ param(
+-    [ValidateSet('ATUAL','WAL','NORMAL','LOTES','XTREAM_1000','XTREAM_500','XTREAM_650')][string]$Perfil = 'ATUAL',
++    [ValidateSet('PADRAO','ATUAL','WAL','NORMAL','LOTES','XTREAM_1000','XTREAM_500','XTREAM_650')][string]$Perfil = 'PADRAO',
+     [ValidateSet('M3U','XTREAM')][string]$Formato = 'M3U',
+     [string]$Dispositivo = 'emulator-5554',
+     [string]$PastaSaida = (Get-Location).Path,
+--- a/entregas-locais/perfis-importacao-1.07/Medir-Perfil-Importacao-1.07.ps1
++++ b/entregas-locais/perfis-importacao-1.07/Medir-Perfil-Importacao-1.07.ps1
+@@ -4,7 +4,7 @@
+     [ValidateSet('M3U','XTREAM','Automatico')][string]$Formato = 'Automatico',
+     [ValidateRange(30,900)][int]$TempoMaximoSegundos = 600,
+     [string]$AdbPath = '',
+-    [ValidateSet('ATUAL','WAL','NORMAL','LOTES','XTREAM_1000','XTREAM_500','XTREAM_650')][string]$Perfil = 'ATUAL',
++    [ValidateSet('PADRAO','ATUAL','WAL','NORMAL','LOTES','XTREAM_1000','XTREAM_500','XTREAM_650')][string]$Perfil = 'PADRAO',
+     [switch]$AbrirAplicativo
+ )
+ $ErrorActionPreference = 'Stop'
+@@ -43,7 +43,7 @@
+         foreach ($match in [regex]::Matches($body, '\b([A-Za-z][A-Za-z0-9]*)=([^\s]+)')) {
+             $key=$match.Groups[1].Value; $value=$match.Groups[2].Value
+             if ($key -cin @('duracaoMs','totalMs','tempoMs','tempoTotalMs','gravacaoRoomMs','redeEParsingMs','parsingMs','gravacaoMs','lotes','gravacaoPicoMs','aceitos','entradas','canais','filmes','episodios','seriesDistintas','categoriasDistintas','bytesRede','bytesTexto','heapKb','heapPicoObservadoKb','heapAntesKb','heapDepoisKb','synchronous','lote','limiteCaracteres','loteM3u','limiteCaracteresM3u') -and $value -match '^\d+$') { $fields.Add($key+'='+$value) }
+-            elseif ($key -ceq 'perfil' -and $value -cmatch '^(ATUAL|WAL|NORMAL|LOTES|XTREAM_1000|XTREAM_500|XTREAM_650)$') { $fields.Add($key+'='+$value) }
++            elseif ($key -ceq 'perfil' -and $value -cmatch '^(PADRAO|ATUAL|WAL|NORMAL|LOTES|XTREAM_1000|XTREAM_500|XTREAM_650)$') { $fields.Add($key+'='+$value) }
+             elseif ($key -ceq 'journal' -and $value -cmatch '^(wal|truncate|delete|persist|memory|off)$') { $fields.Add($key+'='+$value) }
+             elseif ($key -ceq 'revisao' -and $value -cmatch '^db-r[12]$') { $fields.Add($key+'='+$value) }
+             elseif ($key -ceq 'endpoint' -and $value -cmatch '^(authenticate|get_live_categories|get_live_streams|get_vod_categories|get_vod_streams|get_series_categories|get_series|XTREAM_AUTH|XTREAM_DATA|M3U_GET)$') { $fields.Add($key+'='+$value) }
+--- a/app/build.gradle.kts
++++ b/app/build.gradle.kts
+@@ -76,8 +76,8 @@
+         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+         minSdk = 28
+         targetSdk = 37
+-        versionCode = localProperties.getProperty("APP_VERSION_CODE", "9").toInt().also { require(it in 2..2_100_000_000) { "APP_VERSION_CODE deve ser pelo menos 2." } }
+-        versionName = localProperties.getProperty("APP_VERSION_NAME", "1.07").also { require(it.isNotBlank() && it.length <= 40) }
++        versionCode = localProperties.getProperty("APP_VERSION_CODE", "10").toInt().also { require(it in 2..2_100_000_000) { "APP_VERSION_CODE deve ser pelo menos 2." } }
++        versionName = localProperties.getProperty("APP_VERSION_NAME", "1.8").also { require(it.isNotBlank() && it.length <= 40) }
+ 
+         buildConfigField(
+             type = "String",

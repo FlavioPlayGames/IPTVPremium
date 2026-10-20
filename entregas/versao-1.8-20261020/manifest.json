@@ -1,0 +1,367 @@
+[
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/device/AlternativeStorageDeviceTest.kt",
+    "allowMissing": true,
+    "allowed": [
+      "96222e829c5d86e70aecaf8ce8671bef761d42ca2f313d384641f80901d2efb0",
+      "ea5da14f3e6645815468d7978e7c484c56e43b319e5b0bd2b87d5789d48ddb87",
+      "c760f154adb2356de9f6d5736787c5facf00e7f751817817f52fd97d2d4b7d8c",
+      "d441b1d4c07d9722f44ad9016ac7728b23a61ed280eb418b388d95bbe51068e7"
+    ],
+    "sha": "96222e829c5d86e70aecaf8ce8671bef761d42ca2f313d384641f80901d2efb0"
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/device/PortalPlaylistCodecDeviceTest.kt",
+    "allowMissing": true,
+    "allowed": [
+      "af05129f45ee4a45083ee4c90a41a393170e899aedf8b7097345fe807684f31f",
+      "7ecb469b9f8c508fe37e2f47dff38d749a54832752c3fedc08110f1833c524c9",
+      "626c777234bdd1799921ccc2c20c80905032ffc2a5eead1a9134f71d3e02307d",
+      "eb6471f6d2aff88a543a2568e9986195049db281895e8ef773cb2d21bfe8b02a"
+    ],
+    "sha": "af05129f45ee4a45083ee4c90a41a393170e899aedf8b7097345fe807684f31f"
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportBatchDeviceTest.kt",
+    "allowMissing": true,
+    "allowed": [
+      "cb4ba04901b3fa3ff6ba5975413cb8e68128262ae4356e4641f782f3d7a9cec5",
+      "f0db935cd570b2c03e921d2b36219747d5c480d7b9119c3be2bc9006608bef62",
+      "2a612bce622d83e1a2a4375beedea00fe8c83d817911e8a53b42ac400cd54214",
+      "deee40258143d556360b5134d088f6fb9ca44a05beaa52e47506095dbdfba57d"
+    ],
+    "sha": "cb4ba04901b3fa3ff6ba5975413cb8e68128262ae4356e4641f782f3d7a9cec5"
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningDeviceTest.kt",
+    "allowMissing": true,
+    "allowed": [
+      "25326337ed3963897fdc399d1f1918a333ed4505de659da54419d931a42279f1",
+      "341c29881b720b869bf9dc56c8c62e322051d76a0444db0ae6173334b174aa03",
+      "501202d45f098690dce1e61d4d87fecb26a23bea68f62266f9b48c2cb5f6af75",
+      "dfb1c51531e3de702b50213c28ab6400fce71589a70abd803f887ed7b62191c5",
+      "511b0953e0d50614c64480f14359db6cd0c9133fa9e1db46ae1cf2ded9cb85f1",
+      "f6e22d3e558308218ad0955f716cfd2bad2b04998422c903c05a1f34648a92e4",
+      "22d9f552877960cddcc2cf917c0e66bbf94137c0be896cc4584efefa48cdd366",
+      "e5c91bb34faaa9d963554590e5996ed9f60f06aa4a3311675e6fe65b66614fb4"
+    ],
+    "sha": "511b0953e0d50614c64480f14359db6cd0c9133fa9e1db46ae1cf2ded9cb85f1"
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicyDeviceTest.kt",
+    "allowMissing": true,
+    "allowed": [
+      "6197f65700d63f9b03439f5388e5b13de9b8901d40f6b9f74a8271a6087cfe96",
+      "fa5299165231b169efa47df789bef393d1aaa6a3769bd2cb4ae728036ae390c2",
+      "cc2c40d7d82bb24769794da6c7be804f6ef642ca8649d4597f90e436ee5c8493",
+      "a8dc1175e8dd601116ee54a048abff544c814732b3f4e18f74aaf43ec2c3ddf7",
+      "82f6b8549c4a3d1232bd9ec4a030f87de5850bb0c4ae81a154f3299b8d90caac",
+      "f1618fa12b565efeaf89b5e3eab08ad0939ac5e088af66ccae72a669139e5d1e",
+      "44a5413b9bd68e43b150c1f8fce65d410a5638601a2c3415a220e6b8c0e94edf",
+      "940a4ecd06dac65f218cbcdeb9b7a67d5aa0fc7c5af6d528f517f57faec6792c",
+      "f2ab4c9c2114f6d47999471ebcb78e5c4725dd9cd60d8063725a2ffe683c9434",
+      "de010ba8bf1ceb9e63cc55882780fea05d5adba26aa6f203ccbfe81c5a593e91",
+      "5972cf7fe9dc12ff7c868662d6a51e383c023994a229f08bb6e727e9c8375042",
+      "c48c2a84176af183646a3fe9b2388408c8846060da7409f381ebc948c373ab66",
+      "94b312adf6f997ac3186d2663097a0e3abfb9d446d60bd8e1af426edcb248792",
+      "3081bb1b0664b90bd793e9c86e1f41d2041502cae8cbec6eca4acbf0a17dd23a",
+      "88517d3216577d1390738eeff287c985728267a2ba272862afec63488b16fd99",
+      "24b554330ee125ef2f54c0e42a3c8b497cbf1e1077a92a2cd0abefdc62a0f76f"
+    ],
+    "sha": "94b312adf6f997ac3186d2663097a0e3abfb9d446d60bd8e1af426edcb248792"
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/sync/ImportAlternativesDeviceTest.kt",
+    "allowMissing": true,
+    "allowed": [
+      "9de7c360b54e7fd6119b7dde947f6f255f396f93106a44228a1c0ff3ae42b522",
+      "112b551e40c580e0969de27e7433270996bd1cbe369330dd8ca697a5581fbd69",
+      "bfbe40e98ab6514abf173210001ceb5d2de14f7a3c90e7011e9872ba3e30c10b",
+      "5180c3966466b264d783296ed8831fc38915ad7644a043e34b6013c26ad9c2b0"
+    ],
+    "sha": "9de7c360b54e7fd6119b7dde947f6f255f396f93106a44228a1c0ff3ae42b522"
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/sync/ImportAlternativesRoomDeviceTest.kt",
+    "allowMissing": true,
+    "allowed": [
+      "7973d705122c83668f4e7fad2051d4647c6d376eb351b6f1f440cc22eef03e49",
+      "5f6af498288d087cdf6999bd547dd5f319ff0adde2e1f2d41da0fefad5409483",
+      "c1362e2dffa67d60b875e3d077208ee44c6a444c8776e1ff30b8bbf9c10ae3db",
+      "ccb07b92465fccb1a19b54cf07b4c8e16e9b8ffd1e1680f555086ec35c3d3ef3"
+    ],
+    "sha": "7973d705122c83668f4e7fad2051d4647c6d376eb351b6f1f440cc22eef03e49"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt",
+    "allowMissing": false,
+    "allowed": [
+      "187f395a00af33673eef40f8401c4ed0913edff5523bb61151c3a92cfee446c8",
+      "fd05f3f087afc2d60b284210bd9d946b5eca31cf4cccd1b852c4d5b34bc161f0",
+      "f9b6e699e8daf564d829919a3b08ae138d7a1267a9016f7cec6c62c222caeb9d",
+      "269cb9d7ba76420e13dada7eaf1744a11126014231154ad66f81abb546f05c7e",
+      "821cbdbce20f994d0cc59baa14e487a9ae7a93d2394e41db4f2c6c37cd1fc56f",
+      "cb888148fc65fa7c985629efd99d02977dac4b8ab920181c87ef4c17eb231134",
+      "2db51effadf65277afd19bc69b7842f0a3cf9aa1d8d6ec24109b48c6d70fb03c",
+      "c6d77b3eb4650da54db17b4bdf10825d60cebbe9a46707f3bb368807f90759b2"
+    ],
+    "sha": "821cbdbce20f994d0cc59baa14e487a9ae7a93d2394e41db4f2c6c37cd1fc56f"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalPlaylistCodec.kt",
+    "allowMissing": true,
+    "allowed": [
+      "9199924da38d24159572f1ff126e3a0f8babaebbe32614d8a28a9ad34d772bd4",
+      "399533016ee2132faa1c0055489f150fc7bf67f64c3ea5239c2d54cd0122c45e",
+      "8c5478d4d98855c219af8b3d712769b77990a76b0b71f4470436c00da49ddcae",
+      "b544d88b69323ab51dcc24b012d3daedea6b619aa23a8c0b02e5567d0576d16c"
+    ],
+    "sha": "9199924da38d24159572f1ff126e3a0f8babaebbe32614d8a28a9ad34d772bd4"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuning.kt",
+    "allowMissing": true,
+    "allowed": [
+      "5229740f8f23cb526909612936062a8948aafe303d64b800c4ba12835ff04427",
+      "c74c8ef4afc221f93b056c90be7ae9605ebdd1852f1e44a5368f31459813b0f0",
+      "243420f6e39de352217b0f389564e038471113d75ffae04ac6787fb5c4c4092b",
+      "11fca85237177a870a4eca8d6a039bcb3edafe2dfe93dcf08e389b528c15e94a",
+      "5295f740f8a465b52ab4bf199e94e928dd34d64f9ba5da539817279450d40fea",
+      "20e7e5be41276f9e317550faaccae842cbca595e1c1db6a705711e01682c5613",
+      "1198abd4a6cbbc6024aa7f3b6c27cd89e42ddf8e0bcfebbf0b64888f1fcbd31d",
+      "7ecaae5be04f5ca8c07d129d99a51dae849409c628ae419cfa8039a83a84617b",
+      "9dca2d9ae21b6485d588491bd82b9b71c2670e42ce75f332497c0b15cc94d981",
+      "1473c84d0bfd4207f31d44676d6f6817d73d5e68549c090b5ab102f884a6a75f",
+      "d15b1088bd03e44cada7777f43d7152e66d42216c5040b4ed4d1a01007c148fc",
+      "cfa5e79607bbff695ebb29f5a1b68c2a1c49fe61e49888ea86f64bad9b7db9a7"
+    ],
+    "sha": "9dca2d9ae21b6485d588491bd82b9b71c2670e42ce75f332497c0b15cc94d981"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicy.kt",
+    "allowMissing": true,
+    "allowed": [
+      "f3e8860086d7f598f93dc46b57b993915a93753373b0dde2474d715981fea7e4",
+      "bba532e93d8b20ac0b8ea890be19b4bdcf5182948f179a0cd20ecd2adbbd61bf",
+      "2beacfb4e7dcf787eae7fa1c612c1da9779e94df6e8836d230160a484de535a9",
+      "7b0acc1c21428b164975cb343960fa2c8d5b6431297287c67b4258d65134f702",
+      "88ae0c1440d69c6e09be581941b0917804500be59903e77ff536301f29e9c14d",
+      "f033e6e3931cd9a7b7d55bdfd2768d65b880bef07ebc946d77cd9c86216c8b7e",
+      "bd68e9ce747bf4f41a04f05dc938e448e1b4eb5046699596f97688b96b80214e",
+      "21581931b520833259d38baefd920f784cd6c3c525c4b722c1949e51befc2837",
+      "66a4952bfe01340fed0871eab14ac7d58b2e3e87c2e0013bae3df8124a33c0db",
+      "1b74c7398f16850d6a8d00c794bebd48ec3349bd02d4aaf062a02fe27dbdeca2",
+      "96336decb773e4c17a3360ec5855fbb7bf7637bb66c14fa77562f681931493db",
+      "ccab2669d8ee8ee22ae5563bfb19117045110e280201ab5f116238a2c4aac875",
+      "988f76e35e53086ce09bda92d4b200f7c9989693c26029a4e2644ae4a4801150",
+      "5aa62f56723fac5fb8d4d0aa7df71ce25f26a14847c24fca8420f22029b1d540",
+      "f5cb14b1e34ce79a9090413a6a9dee3af920755df09c489d3f4c2ddf767d2964",
+      "6a670690562268de234ec7e0d133341b82adc1e15d490d2adb6f57a634ca799a"
+    ],
+    "sha": "988f76e35e53086ce09bda92d4b200f7c9989693c26029a4e2644ae4a4801150"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheDatabase.kt",
+    "allowMissing": false,
+    "allowed": [
+      "1b6f266874c77661ff95d161e4fe32215dbf11bb378136b943b30dd46c922f1c",
+      "c9a1a77b7dbae13e46c00bc1812d66e697b1c93ee9acc5e97ac46823bf623f82",
+      "fef1cdbc00d81e0fb8a0707a5928aeb178d993673a841edfff79c9388bb93a34",
+      "c551dea0321019aefc61d79b00426292c6cd8a301bade3481cb6a7d5279ac334",
+      "f8b2eafa3f1ec7a15595db0f35ef0a0597a3325733bfb89d9ea0977ad4362208",
+      "80e73adcfcb251ad27e76c9c7f886b50724c989bab4758387996d44956d04c31",
+      "9a619f92b35b1a221d9184200215354e82cb3f7b7020848a58b8c6e5269eaae8",
+      "9ec8a28a6dffca0de451326a1d882566f92c9fed7d44c46215b359595b138320"
+    ],
+    "sha": "f8b2eafa3f1ec7a15595db0f35ef0a0597a3325733bfb89d9ea0977ad4362208"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uCacheImporter.kt",
+    "allowMissing": false,
+    "allowed": [
+      "743d0b027730b7a5150b4ad12c2b735dd5ec282d10fdd06bb036e73e990f7775",
+      "63149321be81671f1847784060e7bdf822c42e122a3928c3e1f6eb4285bb9cec",
+      "72ce2fad082ccd809d3d823651e69443d701a20be041816918cf50b0de4ccfbf",
+      "1425bdeae415ce9a02cfab17ad8e930bc57858acd896e9d7713e45b7c9d560d9",
+      "7f1e3172b58cacd5db5d0d4a8df1d3ac2cf6b167e608b543c66df3ae80b4e29e",
+      "b95866f517c5d3df6e4bf3960ff93959a7a6acb3456a63aab50c712a66b877f0",
+      "4115bd0e7f115686ae941ab1fc36610fe6208e71ca0cff2968fb8f7456719175",
+      "28732fb62080318832b2ff58fa5ed31ea44a0f4e20d792318fa4bff8d1eed5d5",
+      "d1e12e446a3628246adab58d27f16f97d0d4dfdf1e080bdee75919e44dd98a2a",
+      "5b266af95e1be5bfc62692c9c95067d1eab2cc0c62035a592985178f6c911d86",
+      "7476dfc9f15c2daad07e40f6a9e954e7184553be8b1b0096dbbb2275e27863b8",
+      "4a82b15e3e33c955cb910fc65bd99d0ec6cb84e7033dbd72ccaaebdba6199b2b",
+      "d2f95cce85b728c33385b89c2a16ededad6be313d1e9c817e8f4eb43bf0e83d7",
+      "fb2c98391c4966c9bdb03296f421bae34a26c88f768969b912610f0a3904ade0",
+      "4dc9f0df42f041a90bed4f672312aee5f4553bea51e6b80eb840aca06f5b408c",
+      "a1aca15261260581e9636963059fa9a0d78deefd94cc78a7c767d83e4c5f5793"
+    ],
+    "sha": "d2f95cce85b728c33385b89c2a16ededad6be313d1e9c817e8f4eb43bf0e83d7"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/parser/XtreamArrayStream.kt",
+    "allowMissing": false,
+    "allowed": [
+      "72c65db2f534d9200ce6891fcb5df23d1ea872b708a443010914361601903f43",
+      "4b2202f10428d8723b82d2c370b9ce8d7984a9d7d7d7da1d41abca2152ff2da6",
+      "1b1290325104772c187c8f059493bb036703c680c60d3887d46dd0485e0d3efb",
+      "ba7b50ffc798bafcf684f5ba27e72f2187bbd6522de416565bda709e88afb631",
+      "c3daabe88c65f4a4e1555d86dc5209b837372d4cb2293f233b42b5a914c6b11f",
+      "85284ee5da3523b0c19ee2c28a050b7ed13cde1432d995a54ea1eadd30f4e05c",
+      "60846e714a54701bc3fe7c5a22c53edb6c13b2598f18c18c715859469b30181a",
+      "d00b52feec039fe8b3184a26a7fc81d0286015c6fc63640273a80049accc9dbd"
+    ],
+    "sha": "c3daabe88c65f4a4e1555d86dc5209b837372d4cb2293f233b42b5a914c6b11f"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt",
+    "allowMissing": false,
+    "allowed": [
+      "29cc40561fa5ec144afcdaaf9377dcbfcff83074112e5c115c34e72ff9ea37c7",
+      "1c1a537aaa480dc4b9b424fb953ed756c388f4adff6282dbe09e86d6330e0aec",
+      "8ec04328f627c0ddc608e9d043c820f21f8104f59d4db1dd65e236db89d49097",
+      "6bc1120caeb86bc75b9774201314e62a1c82191e5ca63362e1c5ac8f335231ae",
+      "09df520a57ef3eb50d5db68fd568668cbb37061822bb518197215fb58527442b",
+      "b6fe11297bb54dfbeca99a1317334159442a12a56c467ca9f4a39bac0b83047c",
+      "c4abb04d73812f3c6ecc71b62c7950669bb5d2db472204f79c1f1f8ecc146b70",
+      "fccd28a3b5c2aad5253b26e67b681a42b8e5e473dc5da65eecaf232a194f12c5"
+    ],
+    "sha": "09df520a57ef3eb50d5db68fd568668cbb37061822bb518197215fb58527442b"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/storage/PlaylistStorage.kt",
+    "allowMissing": false,
+    "allowed": [
+      "c02bf5f6157c73a1166eab4361364e9c3b46535a19ebf82bd92332499f87367a",
+      "55bdcb83fcebbb1ae2d4ea84b3fff761d0818d4ba317760bdd702115bca9c08f",
+      "64625e433a73facdc717e4179988c4b40f5e0de34a282e87a6da8cd3509596a1",
+      "8ddf3a664eaef3c4c27ec18d6b474076b34a27e88b2d8a1ea59642bd7ce86ce9",
+      "07d894cfd3e2f14cbecc4aadd7bf4003a9ef95266e396fbb07bb8f204820cade",
+      "6caec64cd51bcef117ec7e6ef6fe239707eea60df9f98750a34020c673605caf",
+      "fb011b61e889d55277f60609d3ab850cea2d4c0db3914e1c85cd5866337d77df",
+      "3763802ae872987fa229f72680ffe09a7d26e5b8ae2a563455552a97217fe220"
+    ],
+    "sha": "07d894cfd3e2f14cbecc4aadd7bf4003a9ef95266e396fbb07bb8f204820cade"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/ImportAlternatives.kt",
+    "allowMissing": true,
+    "allowed": [
+      "18f5aba29e423ab546c5b8d686439884eabe991e501bd35d3b2a33c2d0de5dfc",
+      "e83bb1d5a06eb44dc6a88ff3b872f347f71360443e1ec7d1c201d7a00e8a9e33",
+      "c05572f4a786643cabf2099372a75aa0ffcea5e2c9827119dcb77216792a98f5",
+      "844773c4254262c6250d64356c7b6bef423c7997f2f565053125fc965bf10d7b"
+    ],
+    "sha": "18f5aba29e423ab546c5b8d686439884eabe991e501bd35d3b2a33c2d0de5dfc"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt",
+    "allowMissing": false,
+    "allowed": [
+      "38e722c857df78bec311a8cdf9de7efc88564e22fafdc19ebcc2f23fabf21d61",
+      "3921a85b345b4fd02a1e70c1771deed9df96f5fc51a7ffed7f3f14762de9b6e3",
+      "cbb568d0b4e7c5e8e8afdbfb5411a4d901928e6fd173a035ff81e5ec15bd57bf",
+      "3949c8073cb9a7be9094d785443e112baa1443fc1f17629be76bf7ba7deb66c6",
+      "50d2913ec1d70edb17c2086afcadcb5a020c14a886e38a4207dad5ecd37e0164",
+      "62f7d108a493b01d066c6bcb28ce2c4efb984e73aae49b99c3f349655529072f",
+      "83f411a9b9f33c33376d1514236e837db356676e0c412c30158be252ff1cf6ed",
+      "9c4feb444234e01156eb5c7417922a25a8e4c1ef641b17cf59f79dd3865b4a42"
+    ],
+    "sha": "50d2913ec1d70edb17c2086afcadcb5a020c14a886e38a4207dad5ecd37e0164"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/XtreamCatalogWriter.kt",
+    "allowMissing": false,
+    "allowed": [
+      "364fcc6a20579114980709e7bac88b2dd1b3599a845e4a573a5c187da570e3d3",
+      "034e232fc832d80abbab766c3c1dd4fb505453db3b2a31e1c007626e66c483b6",
+      "240f43dfb0a8edd8b2dc0ff2fce76f46178c1df76b83adf10cca46f39127d119",
+      "04f5cdf77d37fd2869d7704bce2c65b2d11ff17f3cde7c5a29f363f5858bd2ba",
+      "2f3b1a2586949329d668f9d56314086521ecefc8179691f98e9e9e58478f48e4",
+      "9de5b0a679b446418729ca63bca55ac0600e546bcd247a600be1fd849a1bd8e8",
+      "2d9ee9c615dc32fcb5487bf80225433d8fd7db71c50db59bd375b66b52561cc6",
+      "e469884e856b4bf2a5138567788f244c310dcd5042938d5ffe8fcc07cb4ffe2f",
+      "d2f3db71be1d8e187587be05da0012e4c34eda388089054796dc722065564d5a",
+      "1dc88dfb754bc9de44e8e5834a4dc149148deefe6d1a92053a942be54d610815",
+      "a6d7b1055086d67074e2d76841e8cb16fe3cc229e813307bba22877b0058fc03",
+      "6f39a7eb2af3489d9665768164688912584798e984cbae12c5e304fa5859a101"
+    ],
+    "sha": "d2f3db71be1d8e187587be05da0012e4c34eda388089054796dc722065564d5a"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/domain/model/PlaylistSource.kt",
+    "allowMissing": false,
+    "allowed": [
+      "008247a80b9385102a8a479f78311a4c738aba2fba2939340dfa089d72312bb7",
+      "355c962df13542276632281677d3c039180da2074ada476bedea16e784ee43a5",
+      "3c07284533ab50d88976d186d88bb057e103fd7a33792819efe73bcfe2e2c6d5",
+      "c306fe620c5d89dedeaba872e684217ce518872aa15627d77933a51c56cfd400",
+      "79f64f1720e50709b0708889d540ba2d1e9530474e11ac54e677858906882e7d",
+      "cbecc5d2cba3452971ee39b0ae44b76e0d358328bd3347d459ec18e2bf905db0",
+      "c95ada43205f51a53768276e1961a398689a6f4af5ce35f06c36ad68895c6e9b",
+      "867567c27da5a6c6a31aa68c8717368e84cf3fba39643060fba1dea7da9ec009"
+    ],
+    "sha": "79f64f1720e50709b0708889d540ba2d1e9530474e11ac54e677858906882e7d"
+  },
+  {
+    "path": "entregas-locais/perfis-importacao-1.07/Testar-Perfil-Importacao-1.07.ps1",
+    "allowMissing": true,
+    "allowed": [
+      "9496a4eeed4a8c75d4cfd515cf0c394f32265ac26411662cca5df8a60d48352a",
+      "c525b4743dc9e30e7b1707337b53f20be89062153fcd68648619f745e95eab78",
+      "bdc6808373b440da9c700efabd60932b0a72dd55d414e2e32ae86b010a90c38d",
+      "8b2b3f3054eb6928be1a2e2dc5cbcdb869859142631b136ad2637cf3aa3a0c6b",
+      "8ac1c45abcac2d9cbbb9b419c45c5a8f5a49e83e339e68c0eaca8b5c1edd4a6c",
+      "6fba40282c4293baddee30aad42d233eb348c1b67dc82287ce5e338cafa6c252",
+      "67c2ac3967c42076680222aeccdeda6896c7087c7b9593504ad0caf24b1604e6",
+      "f7f3f90aea16710f11edd809af5e027b15e6427215be7482fafa1edd7eba87ae",
+      "6df6cc47856589b0456ccece64dfc7ff6a7b37b0fb4658f42fcb32733a6ed06d",
+      "b8d81c6afa58129a281cb23b6688a54d97e4071451be565550639748f9f7d6b4",
+      "a2a99488010988536f35f175f1d50aa438c31dbbeef0be6cf2227dddab020a0b",
+      "32199b3d495c82ab5e77dc090f51050370c96f1fcf5d712db072e1923470ddd8",
+      "5b1afe30ff23bf2e1d0cda820f1c4988f766a5dae13ade91c686477dc041246e",
+      "8090f581e4a684c1e6d8b416df84d031d3e30ae98572ee791fd5a97ad5b22d12",
+      "62c0a2afab0bea0da5772ea7f37ae02cc5cedbce6bf413ae751f6d2e99f7f4d3",
+      "c41c28bd9657e73603669d3026d5701e7b7781491f6db2b850a23ad5496ad071"
+    ],
+    "sha": "5b1afe30ff23bf2e1d0cda820f1c4988f766a5dae13ade91c686477dc041246e"
+  },
+  {
+    "path": "entregas-locais/perfis-importacao-1.07/Medir-Perfil-Importacao-1.07.ps1",
+    "allowMissing": true,
+    "allowed": [
+      "d4b8561161097a14ac9de429f0daedeba624e4de7e03e4b44aa1c8760cf7e3be",
+      "0f42bf46a8b02d98303ec4592cb6ea487e3f773b4f439fb23250e37dd8e43ff2",
+      "85db1d526c7d42fb651d0371337fa9e3688187810e6e8ee83ed9e26de33c6d6e",
+      "64407fda3852650f7885b4065c05a35cc685bf860086a40d64b7dcf64c0ae5f4",
+      "0377dcc7672c30e8ab9bfbde1d8280e8928f5b19bc8eba52e0e0d9cab69b85b4",
+      "34fe8297bebb727e5d59149f6550357e7ddc4627a92bdae59e08a0376fcddd66",
+      "6bd6a2698210f3feaf1922e3ae6efe0a3cb473110ccd7ae28932e6018d3b0c02",
+      "4639ef74257f6709fd527f29d65ed80a72130c63f082a2481468eed72f09c56c",
+      "c2cb82c58d104f85614591d05608dd9813c06df22cb11621c67cbbd44e68a3b0",
+      "383815284e45df782d4c195e6e3ff4ecc2039d42fdef2b3fe3e78ea1938b0645",
+      "06a8a21aff4290cd68392ffe273d07fb46c6c805f9d81cc76d626b0fa7b101fb",
+      "e1c22001b5c875d0b153bd91265f3405dc4717e54e170925c3412947d93ed818",
+      "b1013cbc31d8a8e6957c61265ef113c8e63d7346d8908db95a9d9cf8e360816e",
+      "b8c4d599c83fe1712e9f0a63f02b14fa824670878b6c3c390131bd8a3b80e53d",
+      "d3a2d87936a7708d708de8e11752fa2717a6ab94d974236c34fb99a277541bc2",
+      "3f87ff4a58d1fa90e5ec5ae4439eb50c4f4bebf68b9ac7580c548819aaf61146"
+    ],
+    "sha": "b1013cbc31d8a8e6957c61265ef113c8e63d7346d8908db95a9d9cf8e360816e"
+  },
+  {
+    "path": "app/build.gradle.kts",
+    "allowMissing": false,
+    "allowed": [
+      "56aaf2943e3e0aa7dbc4c83d7d566a0c986847045d13d62fbd6e9587ab846528",
+      "7cddce8afa68d476f1497fca35de2c531819f6f6f074642755ac4a320f189922",
+      "e4b58a81df3097cce417d05f509a3ce09524c3901c2228758ab42fbe5ae5e7c2",
+      "2f99215273bfffe9b5dfe91e3e9e99cf2ffb5981f58b7a74e3d4773b577b3332",
+      "3f992671dc5dc06a044d4371e8063af9ca141cfd4349023cf14b1017ff2c53f1",
+      "edb07ea9f1f593fa607ca03192ed0b884d804318db6968d5565cc12302d3b8b7",
+      "8862f84664493d99ecd0499284a30ed89b8f40f0ebd12a214ab94161c6c74ed0",
+      "22c4dbb4dcfc291c7d9273b709a43c678e82316252282d8a7f6cb68759c36cba"
+    ],
+    "sha": "3f992671dc5dc06a044d4371e8063af9ca141cfd4349023cf14b1017ff2c53f1"
+  }
+]
