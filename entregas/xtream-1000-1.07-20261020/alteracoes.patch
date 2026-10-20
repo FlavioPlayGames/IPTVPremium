@@ -1,0 +1,118 @@
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningDeviceTest.kt
+@@ -51,7 +51,7 @@
+     val started=SystemClock.elapsedRealtime();val ready=import();val duration=SystemClock.elapsedRealtime()-started
+     assertEquals(5000,dao.getMovieCount("fixture",ready));manager.activateReadyGenerationOnStartup("fixture")
+     if(round==2)for(error in listOf(IOException("fixture"),CancellationException("fixture"))){failure=error;try{import();fail("Must fail")}catch(expected:Exception){assertSame(error,expected)};assertEquals(ready,dao.getActiveGeneration("fixture")!!.generationId);assertNull(dao.getReadyGeneration("fixture"));assertEquals(5000,dao.getMovieCount("fixture",ready))}
+-    report("BENCH_IMPORT rodada=$round perfil=${profile.name} formato=$format itens=5000 totalMs=$duration journal=$journal synchronous=$syncValue lote=${profile.batchSize}")
++    report("BENCH_IMPORT rodada=$round perfil=${profile.name} formato=$format itens=5000 totalMs=$duration journal=$journal synchronous=$syncValue lote=${if(format=="M3U")profile.m3uBatchSize else profile.batchSize}")
+     db.close();db=open();assertEquals(ready,db.playlistCacheDao().getActiveGeneration("fixture")!!.generationId);assertEquals(5000,db.playlistCacheDao().getMovieCount("fixture",ready))
+    }finally{db.close();context.deleteDatabase(name)}
+   }}finally{ImportTuningState.profile=original}
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicyDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicyDeviceTest.kt
+@@ -5,5 +5,6 @@
+  @Test fun releaseIgnoresEverySavedExperiment(){for(p in ImportProfile.entries)assertEquals(ImportProfile.ATUAL,ImportProfile.stored(p.name,false))}
+  @Test fun invalidPreferencesKeepOriginalProfile(){assertEquals(ImportProfile.ATUAL,ImportProfile.stored("bad",true));assertEquals(ImportProfile.ATUAL,ImportProfile.stored(null,true))}
+  @Test fun individualProfilesChangeOnlyIntendedSettings(){assertFalse(ImportProfile.ATUAL.forceWal);assertTrue(ImportProfile.WAL.forceWal);assertFalse(ImportProfile.WAL.normal);assertEquals(250,ImportProfile.WAL.batchSize);assertTrue(ImportProfile.NORMAL.normal);assertEquals(250,ImportProfile.NORMAL.batchSize);assertEquals(2000,ImportProfile.LOTES.batchSize);assertEquals(2*1024*1024,ImportProfile.LOTES.batchCharacters)}
++ @Test fun combinedProfilesKeepM3uAt2000WithoutForcingJournalChanges(){for(p in listOf(ImportProfile.XTREAM_1000,ImportProfile.XTREAM_500)){assertEquals(2000,p.m3uBatchSize);assertEquals(2*1024*1024,p.m3uBatchCharacters);assertFalse(p.forceWal);assertFalse(p.normal)};assertEquals(1000,ImportProfile.XTREAM_1000.batchSize);assertEquals(500,ImportProfile.XTREAM_500.batchSize)}
+  @Test fun invalidRequestedModeDoesNotSilentlySelectAnExperiment(){try{ImportProfile.requested("bad");fail()}catch(expected:IllegalArgumentException){}}
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuning.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuning.kt
+@@ -25,7 +25,7 @@
+                     db.execSQL("PRAGMA synchronous=NORMAL")
+                 }
+                 val settings = writerSettings(db)
+-                Log.i("DbPerf", "revisao=db-r1 perfil=${profile.name} journal=${settings.first} synchronous=${settings.second} lote=${profile.batchSize} limiteCaracteres=${profile.batchCharacters}")
++                Log.i("DbPerf", "revisao=db-r2 perfil=${profile.name} journal=${settings.first} synchronous=${settings.second} lote=${profile.batchSize} limiteCaracteres=${profile.batchCharacters} loteM3u=${profile.m3uBatchSize} limiteCaracteresM3u=${profile.m3uBatchCharacters}")
+             }
+         })
+     }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicy.kt
+@@ -1,11 +1,16 @@
+ package br.com.flaviotorres.iptvpremium.data.cache
+ 
+ /** Diagnostic profiles; release always uses ATUAL. No full-catalog materialization. */
+-internal enum class ImportProfile(val forceWal: Boolean, val normal: Boolean, val batchSize: Int, val batchCharacters: Int) {
++internal enum class ImportProfile(val forceWal: Boolean, val normal: Boolean, val batchSize: Int, val batchCharacters: Int,
++    val m3uBatchSize: Int = batchSize,
++    val m3uBatchCharacters: Int = if (batchSize == 2000) batchCharacters else Int.MAX_VALUE
++) {
+     ATUAL(false, false, 250, 256 * 1024),
+     WAL(true, false, 250, 256 * 1024),
+     NORMAL(true, true, 250, 256 * 1024),
+-    LOTES(true, true, 2000, 2 * 1024 * 1024);
++    LOTES(true, true, 2000, 2 * 1024 * 1024),
++    XTREAM_1000(false, false, 1000, 512 * 1024, 2000, 2 * 1024 * 1024),
++    XTREAM_500(false, false, 500, 256 * 1024, 2000, 2 * 1024 * 1024);
+     companion object {
+         fun stored(value: String?, debug: Boolean): ImportProfile =
+             if (debug) entries.firstOrNull { it.name == value } ?: ATUAL else ATUAL
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uCacheImporter.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uCacheImporter.kt
+@@ -21,8 +21,8 @@
+     private val httpClient: PlaylistHttpClient,
+     private val cacheDao: PlaylistCacheDao,
+     private val generationManager: PlaylistCacheGenerationManager,
+-    private val batchSize: Int = br.com.flaviotorres.iptvpremium.data.cache.ImportTuningState.profile.batchSize,
+-    private val batchCharacters: Int = br.com.flaviotorres.iptvpremium.data.cache.ImportTuningState.profile.let { if (it == br.com.flaviotorres.iptvpremium.data.cache.ImportProfile.LOTES) it.batchCharacters else Int.MAX_VALUE }
++    private val batchSize: Int = br.com.flaviotorres.iptvpremium.data.cache.ImportTuningState.profile.m3uBatchSize,
++    private val batchCharacters: Int = br.com.flaviotorres.iptvpremium.data.cache.ImportTuningState.profile.m3uBatchCharacters
+ ) {
+ 
+     suspend fun import(
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/XtreamCatalogWriter.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/XtreamCatalogWriter.kt
+@@ -106,7 +106,7 @@
+         failure?.let { throw it }
+     }
+ 
+-    companion object { private val BATCH_SIZE: Int get() = br.com.flaviotorres.iptvpremium.data.cache.ImportTuningState.profile.let { if (it == br.com.flaviotorres.iptvpremium.data.cache.ImportProfile.LOTES) it.batchSize else 500 }; private const val SOURCE_XTREAM = "XTREAM" }
++    companion object { private val BATCH_SIZE: Int get() = maxOf(500, br.com.flaviotorres.iptvpremium.data.cache.ImportTuningState.profile.batchSize); private const val SOURCE_XTREAM = "XTREAM" }
+     private suspend fun persistCategories(
+         playlistId: String,
+         generationId: String,
+--- a/entregas-locais/perfis-importacao-1.07/Testar-Perfil-Importacao-1.07.ps1
++++ b/entregas-locais/perfis-importacao-1.07/Testar-Perfil-Importacao-1.07.ps1
+@@ -1,5 +1,5 @@
+ param(
+-    [ValidateSet('ATUAL','WAL','NORMAL','LOTES')][string]$Perfil = 'ATUAL',
++    [ValidateSet('ATUAL','WAL','NORMAL','LOTES','XTREAM_1000','XTREAM_500')][string]$Perfil = 'ATUAL',
+     [ValidateSet('M3U','XTREAM')][string]$Formato = 'M3U',
+     [string]$Dispositivo = 'emulator-5554',
+     [string]$PastaSaida = (Get-Location).Path,
+@@ -7,6 +7,7 @@
+     [switch]$SomenteConfigurar
+ )
+ $ErrorActionPreference='Stop'
++$Perfil=$Perfil.ToUpperInvariant()
+ if (-not $AdbPath) { $AdbPath=Join-Path $env:LOCALAPPDATA 'Android\Sdk\platform-tools\adb.exe' }
+ if (-not (Test-Path -LiteralPath $AdbPath)) { throw 'ADB nao encontrado.' }
+ $state=& $AdbPath -s $Dispositivo get-state
+--- a/entregas-locais/perfis-importacao-1.07/Medir-Perfil-Importacao-1.07.ps1
++++ b/entregas-locais/perfis-importacao-1.07/Medir-Perfil-Importacao-1.07.ps1
+@@ -4,7 +4,7 @@
+     [ValidateSet('M3U','XTREAM','Automatico')][string]$Formato = 'Automatico',
+     [ValidateRange(30,900)][int]$TempoMaximoSegundos = 600,
+     [string]$AdbPath = '',
+-    [ValidateSet('ATUAL','WAL','NORMAL','LOTES')][string]$Perfil = 'ATUAL',
++    [ValidateSet('ATUAL','WAL','NORMAL','LOTES','XTREAM_1000','XTREAM_500')][string]$Perfil = 'ATUAL',
+     [switch]$AbrirAplicativo
+ )
+ $ErrorActionPreference = 'Stop'
+@@ -42,10 +42,10 @@
+         # Rebuild a strict allowlist of metrics. No URLs, exception texts or credentials.
+         foreach ($match in [regex]::Matches($body, '\b([A-Za-z][A-Za-z0-9]*)=([^\s]+)')) {
+             $key=$match.Groups[1].Value; $value=$match.Groups[2].Value
+-            if ($key -cin @('duracaoMs','totalMs','tempoMs','tempoTotalMs','gravacaoRoomMs','redeEParsingMs','parsingMs','gravacaoMs','lotes','gravacaoPicoMs','aceitos','entradas','canais','filmes','episodios','seriesDistintas','categoriasDistintas','bytesRede','bytesTexto','heapKb','heapPicoObservadoKb','heapAntesKb','heapDepoisKb','synchronous','lote','limiteCaracteres') -and $value -match '^\d+$') { $fields.Add($key+'='+$value) }
+-            elseif ($key -ceq 'perfil' -and $value -cmatch '^(ATUAL|WAL|NORMAL|LOTES)$') { $fields.Add($key+'='+$value) }
++            if ($key -cin @('duracaoMs','totalMs','tempoMs','tempoTotalMs','gravacaoRoomMs','redeEParsingMs','parsingMs','gravacaoMs','lotes','gravacaoPicoMs','aceitos','entradas','canais','filmes','episodios','seriesDistintas','categoriasDistintas','bytesRede','bytesTexto','heapKb','heapPicoObservadoKb','heapAntesKb','heapDepoisKb','synchronous','lote','limiteCaracteres','loteM3u','limiteCaracteresM3u') -and $value -match '^\d+$') { $fields.Add($key+'='+$value) }
++            elseif ($key -ceq 'perfil' -and $value -cmatch '^(ATUAL|WAL|NORMAL|LOTES|XTREAM_1000|XTREAM_500)$') { $fields.Add($key+'='+$value) }
+             elseif ($key -ceq 'journal' -and $value -cmatch '^(wal|truncate|delete|persist|memory|off)$') { $fields.Add($key+'='+$value) }
+-            elseif ($key -ceq 'revisao' -and $value -ceq 'db-r1') { $fields.Add($key+'='+$value) }
++            elseif ($key -ceq 'revisao' -and $value -cmatch '^db-r[12]$') { $fields.Add($key+'='+$value) }
+             elseif ($key -ceq 'endpoint' -and $value -cmatch '^(authenticate|get_live_categories|get_live_streams|get_vod_categories|get_vod_streams|get_series_categories|get_series|XTREAM_AUTH|XTREAM_DATA|M3U_GET)$') { $fields.Add($key+'='+$value) }
+             elseif ($key -cin @('tipo','formato','origem','destino') -and $value -cmatch '^(XTREAM|M3U)$') { $fields.Add($key+'='+$value) }
+             elseif ($key -ceq 'codificacao' -and $value -cmatch '^(gzip|identity|br)$') { $fields.Add($key+'='+$value) }
