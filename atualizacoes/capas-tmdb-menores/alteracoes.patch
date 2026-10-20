@@ -1,0 +1,117 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -2861,6 +2861,12 @@
+     }
+ 
+     private suspend fun download(context: Context, url: String, target: File): Boolean {
++        val smaller = br.com.flaviotorres.iptvpremium.data.cache.PosterDownloadUrl.optimized(url)
++        if (smaller != url && downloadFromUrl(context, smaller, target)) return true
++        return downloadFromUrl(context, url, target)
++    }
++
++    private suspend fun downloadFromUrl(context: Context, url: String, target: File): Boolean {
+         var reservation: br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget.Reservation? = null
+         var connection: HttpURLConnection? = null
+         try {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -5189,6 +5189,12 @@
+     }
+ 
+     private suspend fun download(context: Context, url: String, destination: File): Boolean {
++        val smaller = br.com.flaviotorres.iptvpremium.data.cache.PosterDownloadUrl.optimized(url)
++        if (smaller != url && downloadFromUrl(context, smaller, destination)) return true
++        return downloadFromUrl(context, url, destination)
++    }
++
++    private suspend fun downloadFromUrl(context: Context, url: String, destination: File): Boolean {
+         var reservation: br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget.Reservation? = null
+         var conn: HttpURLConnection? = null
+         var partial: File? = null
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
+@@ -1409,7 +1409,12 @@
+ 
+                         downloadSlots.acquire()
+                         val downloaded = try {
+-                            downloadToDisk(context, normalizedUrl, diskFile)
++                            val smaller = if (imageType == "series_episode") {
++                                br.com.flaviotorres.iptvpremium.data.cache.PosterDownloadUrl
++                                    .optimized(normalizedUrl, width = 300)
++                            } else normalizedUrl
++                            (smaller != normalizedUrl && downloadToDisk(context, smaller, diskFile)) ||
++                                downloadToDisk(context, normalizedUrl, diskFile)
+                         } finally {
+                             downloadSlots.release()
+                         }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterDownloadUrl.kt
+@@ -0,0 +1,22 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import java.net.URI
++
++/** Somente capas do CDN oficial; a chave do cache continua sendo o link da lista. */
++internal object PosterDownloadUrl {
++    fun optimized(raw: String, width: Int = 342): String {
++        if (width != 342 && width != 300) return raw
++        val uri = try { URI(raw) } catch (_: Exception) { return raw }
++        if (!uri.scheme.equals("https", true) && !uri.scheme.equals("http", true)) return raw
++        if (!uri.host.equals("image.tmdb.org", true) || uri.rawUserInfo != null ||
++            uri.port !in listOf(-1, 80, 443)) return raw
++        val path = uri.rawPath ?: return raw
++        val match = Regex("^/t/p/(original|w[0-9]+)/[^/]+$").matchEntire(path) ?: return raw
++        val size = match.groupValues[1]
++        if (size != "original" && (size.drop(1).toIntOrNull() ?: return raw) <= width) return raw
++        val start = raw.indexOf(path, raw.indexOf("://") + 3)
++        if (start < 0) return raw
++        val replacement = path.replaceRange(5, 5 + size.length, "w$width")
++        return raw.replaceRange(start, start + path.length, replacement)
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterDownloadUrlDeviceTest.kt
+@@ -0,0 +1,43 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import org.junit.Assert.assertEquals
++import org.junit.Test
++
++@org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
++class PosterDownloadUrlDeviceTest {
++    @Test fun originalAndLargeSizesUse342() {
++        for (size in listOf("original", "w500", "w780")) {
++            assertEquals("https://image.tmdb.org/t/p/w342/poster.jpg", PosterDownloadUrl.optimized("https://image.tmdb.org/t/p/$size/poster.jpg"))
++        }
++    }
++    @Test fun smallerImagesAreNeverIncreased() {
++        for (size in listOf("w92", "w154", "w185", "w342")) {
++            val url="https://image.tmdb.org/t/p/$size/poster.jpg"
++            assertEquals(url,PosterDownloadUrl.optimized(url))
++        }
++    }
++    @Test fun providerLinksAndSimilarDomainsStayIntact() {
++        for (url in listOf("https://provider.example/t/p/original/poster.jpg", "https://image.tmdb.org.evil.example/t/p/original/poster.jpg", "https://image.tmdb.org@provider.example/t/p/original/poster.jpg", "https://provider.example/poster.jpg?source=https://image.tmdb.org/t/p/original/x.jpg")) {
++            assertEquals(url,PosterDownloadUrl.optimized(url))
++        }
++    }
++    @Test fun queryAndEscapedFilenameArePreserved() {
++        assertEquals("https://image.tmdb.org/t/p/w342/a%20b.jpg?token=abc%2F123#x",PosterDownloadUrl.optimized("https://image.tmdb.org/t/p/original/a%20b.jpg?token=abc%2F123#x"))
++    }
++    @Test fun malformedAndUnknownPathsStayIntact() {
++        for (url in listOf("not a url", "https://image.tmdb.org/other/original/x.jpg", "https://image.tmdb.org/t/p/w9999999999999999999/x.jpg", "https://image.tmdb.org/t/p/original/sub/x.jpg")) assertEquals(url,PosterDownloadUrl.optimized(url))
++    }
++    @Test fun episodeStillsUse300WithoutChangingRatioOrProviderUrls() {
++        assertEquals("https://image.tmdb.org/t/p/w300/episode.jpg",PosterDownloadUrl.optimized("https://image.tmdb.org/t/p/w780/episode.jpg", width = 300))
++        val small="https://image.tmdb.org/t/p/w185/episode.jpg"
++        assertEquals(small,PosterDownloadUrl.optimized(small, width = 300))
++        val provider="https://provider.example/episode.jpg"
++        assertEquals(provider,PosterDownloadUrl.optimized(provider, width = 300))
++    }
++    @Test fun optimizationIsIdempotentAndKeepsHttp() {
++        val url="http://image.tmdb.org/t/p/w500/x.jpg"
++        val result=PosterDownloadUrl.optimized(url)
++        assertEquals("http://image.tmdb.org/t/p/w342/x.jpg",result)
++        assertEquals(result,PosterDownloadUrl.optimized(result))
++    }
++}
