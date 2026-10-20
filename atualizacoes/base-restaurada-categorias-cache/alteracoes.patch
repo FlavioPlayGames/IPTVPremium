@@ -1,0 +1,1678 @@
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/media/RestoredTrailerDeviceTest.kt
+@@ -0,0 +1,86 @@
++package br.com.flaviotorres.iptvpremium.core.media
++
++import androidx.test.core.app.ApplicationProvider
++import kotlinx.coroutines.runBlocking
++import org.json.JSONArray
++import org.junit.Assert.*
++import org.junit.Test
++
++class RestoredTrailerDeviceTest {
++    @Test fun launcherTargetsInternalPlayerRatherThanAnExternalApp() {
++        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
++        val intent = trailerIntent(context, TrailerRequest("Minha série", "dubbed12345", "tv", "42", 2020))
++        assertEquals(TrailerPlayerActivity::class.java.name, intent.component?.className)
++        assertEquals(context.packageName, intent.component?.packageName)
++        assertEquals("tv", intent.getStringExtra("kind"))
++        assertEquals("42", intent.getStringExtra("tmdbId"))
++        assertEquals(2020, intent.getIntExtra("year", 0))
++        assertNull(intent.data)
++    }
++    @Test fun portugueseDubbedAndSubtitledTrailersPrecedeEnglish() {
++        val data = JSONArray("""[
++            {"site":"YouTube","key":"english1234","type":"Trailer","official":true,"iso_639_1":"en","name":"Official trailer"},
++            {"site":"YouTube","key":"subtitl1234","type":"Trailer","official":true,"iso_639_1":"pt","name":"Trailer legendado"},
++            {"site":"YouTube","key":"dubbed12345","type":"Trailer","official":true,"iso_639_1":"pt","name":"Trailer dublado"},
++            {"site":"Other","key":"notyoutube1","type":"Trailer"},
++            {"site":"YouTube","key":"bad<script>","type":"Trailer"}
++        ]""")
++        val choices = TrailerResolver { _, _ -> "{}" }.rank(listOf(data))
++        assertEquals(listOf("dubbed12345", "subtitl1234", "english1234"), choices.map { it.youtubeId })
++    }
++    @Test fun tvSearchUsesCorrectEndpointAndYearWithoutAcceptingUnrelatedTitles() = runBlocking {
++        val calls = mutableListOf<Pair<String, Map<String, String>>>()
++        val resolver = TrailerResolver { path, query ->
++            calls.add(path to query)
++            if (path == "/search/tv") """{"results":[{"id":42,"name":"Minha Série"}]}"""
++            else """{"results":[{"site":"YouTube","key":"dubbed12345","type":"Trailer","iso_639_1":"pt"}]}"""
++        }
++        val result = resolver.resolve(TrailerRequest("Minha Série (2020) [L]", kind = "tv", year = 2020))
++        assertEquals("Minha Série", calls.first().second["query"])
++        assertEquals("2020", calls.first().second["first_air_date_year"])
++        assertTrue(calls.drop(1).all { it.first == "/tv/42/videos" })
++        assertEquals(1, result.size)
++    }
++    @Test fun providerTrailerRemainsAvailableWhenMetadataFails() = runBlocking {
++        val result = TrailerResolver { _, _ -> throw java.io.IOException("offline fixture") }
++            .resolve(TrailerRequest("Teste", "https://youtu.be/dubbed12345", tmdbId = "42"))
++        assertEquals("dubbed12345", result.single().youtubeId)
++    }
++    @Test fun numericMovieTitlesAreNotMistakenForReleaseYears() {
++        assertEquals("1917", trailerSearchTitle("1917"))
++        assertEquals("2001 - Uma Odisseia no Espaço", trailerSearchTitle("2001 - Uma Odisseia no Espaço (1968) [L]"))
++    }
++    @Test fun directVideoAndYoutubeInputsAreValidated() {
++        assertEquals("dubbed12345", providerTrailer("dubbed12345")?.youtubeId)
++        assertNotNull(providerTrailer("https://example.invalid/trailer.mp4?signature=fixture"))
++        assertNull(providerTrailer("javascript:alert(1)"))
++        assertNull(providerTrailer("file:///private/trailer.mp4"))
++        assertNull(providerTrailer("https://example.invalid/watch"))
++    }
++    @Test fun embedRequestsPortugueseCaptionsAndKeepsOfficialPlayerControls() {
++        val html = youtubeTrailerHtml("dubbed12345", "https://br.com.flaviotorres.iptvpremium/")
++        assertTrue(html.contains("https://www.youtube.com/iframe_api"))
++        assertTrue(html.contains("cc_lang_pref=pt"))
++        assertTrue(html.contains("cc_load_policy=1"))
++        assertTrue(html.contains("controls=1"))
++        assertTrue(html.contains("<iframe id=\"player\""))
++        assertTrue(html.contains("https://www.youtube.com/embed/dubbed12345"))
++        assertTrue(html.indexOf("function onYouTubeIframeAPIReady") < html.indexOf("api.src="))
++        assertTrue(html.contains("onStateChange"))
++        assertTrue(html.contains("TrailerHost.playing()"))
++        assertTrue(html.contains("onAutoplayBlocked"))
++
++        assertTrue(html.contains("origin=https%3A%2F%2Fbr.com.flaviotorres.iptvpremium"))
++        try { youtubeTrailerHtml("bad<script>", "https://example.invalid/"); fail("Invalid ID") }
++        catch (_: IllegalArgumentException) { }
++    }
++    @Test fun unrelatedSearchResultDoesNotOpenTheWrongTrailer() = runBlocking {
++        var videosRequested = false
++        val choices = TrailerResolver { path, _ ->
++            if (path.contains("/videos")) videosRequested = true
++            """{"results":[{"id":1,"title":"Outro filme"}]}"""
++        }.resolve(TrailerRequest("Filme esperado"))
++        assertTrue(choices.isEmpty())
++        assertFalse(videosRequested)
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/media/RestoredTrailerHeaderDeviceTest.kt
+@@ -0,0 +1,53 @@
++package br.com.flaviotorres.iptvpremium.core.media
++
++import android.content.Context
++import android.content.Intent
++import android.view.KeyEvent
++import android.view.View
++import android.view.ViewGroup
++import android.widget.Button
++import androidx.test.core.app.ActivityScenario
++import androidx.test.core.app.ApplicationProvider
++import org.junit.Assert.*
++import org.junit.Test
++
++class RestoredTrailerHeaderDeviceTest {
++    @Test fun noBackButtonAndHardwareEscapeClosesTheScreen() {
++        val context = ApplicationProvider.getApplicationContext<Context>()
++        val intent = Intent(context, TrailerPlayerActivity::class.java).putExtra("title", "")
++            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
++        ActivityScenario.launch<TrailerPlayerActivity>(intent).use { scenario ->
++            scenario.onActivity { activity ->
++                fun buttons(view: View): List<Button> = when (view) {
++                    is Button -> listOf(view)
++                    is ViewGroup -> (0 until view.childCount).flatMap { buttons(view.getChildAt(it)) }
++                    else -> emptyList()
++                }
++                assertFalse(buttons(activity.window.decorView).any { it.text.toString().contains("Voltar") })
++                activity.window.decorView.measure(View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(540, View.MeasureSpec.EXACTLY))
++                activity.window.decorView.layout(0,0,960,540)
++                val f = TrailerPlayerActivity::class.java.getDeclaredField("frame").apply { isAccessible = true }.get(activity) as View
++                assertTrue("video frame ${f.width}x${f.height}", f.width > 800 && f.height > 300)
++                val content = activity.findViewById<android.widget.FrameLayout>(android.R.id.content)
++                val layout = content.getChildAt(0) as android.widget.LinearLayout
++                assertEquals("Only title header and video frame", 2, layout.childCount)
++                val header = layout.getChildAt(0) as android.widget.LinearLayout
++                assertEquals(1, header.childCount)
++                assertEquals("Trailer", (header.getChildAt(0) as android.widget.TextView).text.toString())
++                val surface = android.widget.FrameLayout(activity)
++                var hidden = false
++                val callback = android.webkit.WebChromeClient.CustomViewCallback { hidden = true }
++                TrailerPlayerActivity::class.java.getDeclaredMethod("showCustomVideo", View::class.java,
++                    android.webkit.WebChromeClient.CustomViewCallback::class.java).apply { isAccessible = true }
++                    .invoke(activity, surface, callback)
++                assertNotNull(surface.parent)
++                assertEquals(View.VISIBLE, surface.visibility)
++                TrailerPlayerActivity::class.java.getDeclaredMethod("hideCustomVideo").apply { isAccessible = true }.invoke(activity)
++                assertNull(surface.parent)
++                assertTrue(hidden)
++                assertTrue(activity.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ESCAPE)))
++                assertTrue(activity.isFinishing)
++            }
++        }
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/storage/RestoredImageCacheDeviceTest.kt
+@@ -0,0 +1,53 @@
++package br.com.flaviotorres.iptvpremium.core.storage
++
++import android.content.Context
++import android.graphics.Bitmap
++import androidx.test.core.app.ApplicationProvider
++import br.com.flaviotorres.iptvpremium.ui.movies.MoviePosterLoader
++import java.net.ServerSocket
++import java.net.Socket
++import java.util.concurrent.ConcurrentLinkedQueue
++import java.util.concurrent.atomic.AtomicInteger
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++
++class RestoredImageCacheDeviceTest {
++    @Test fun imageDownloadIsReservedCommittedAndReusedFromDisk(): Unit = runBlocking {
++        val server=ServerSocket(0);val clients=ConcurrentLinkedQueue<Socket>();val requests=AtomicInteger()
++        val image=java.io.ByteArrayOutputStream().also { out ->
++            Bitmap.createBitmap(16,24,Bitmap.Config.ARGB_8888).apply { eraseColor(android.graphics.Color.BLUE) }
++                .compress(Bitmap.CompressFormat.PNG,100,out)
++        }.toByteArray()
++        kotlin.concurrent.thread(isDaemon=true) {
++            try { while(!server.isClosed) {
++                val client=server.accept();clients.add(client)
++                kotlin.concurrent.thread(isDaemon=true) {
++                    try { client.use {
++                        val r=it.getInputStream().bufferedReader();r.readLine()
++                        while(!r.readLine().isNullOrEmpty()) { }
++                        requests.incrementAndGet()
++                        it.getOutputStream().apply {
++                            write("HTTP/1.1 200 OK\r\nContent-Length: ${image.size}\r\nContent-Type: image/png\r\nConnection: close\r\n\r\n".toByteArray())
++                            write(image);flush()
++                        }
++                    } } catch (_:Exception) { }
++                }
++            } } catch (_:Exception) { }
++        }
++        val context=ApplicationProvider.getApplicationContext<Context>()
++        val url="http://127.0.0.1:${server.localPort}/poster.png"
++        try {
++            assertNotNull(MoviePosterLoader.load(context,url));assertEquals(1,requests.get())
++            val folder=java.io.File(context.cacheDir,"iptv_movie_posters_session")
++            val hash=java.security.MessageDigest.getInstance("SHA-256").digest(url.toByteArray())
++                .joinToString("") { "%02x".format(it.toInt() and 255) }
++            assertTrue(java.io.File(folder,"$hash.img").isFile)
++            assertFalse(folder.listFiles().orEmpty().any { it.name.startsWith("$hash.img.") && it.extension=="part" })
++            assertTrue(AppCacheStorage.get(context).accountedBytes() in image.size.toLong()..CacheStorageLimits.TOTAL)
++            MoviePosterLoader.clearMemory()
++            assertNotNull(MoviePosterLoader.load(context,url));assertEquals(1,requests.get())
++            assertTrue(AppCacheStorage.get(context).accountedBytes() in image.size.toLong()..CacheStorageLimits.TOTAL)
++        } finally { server.close();clients.forEach { runCatching { it.close() } } }
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/storage/RestoredStorageDeviceTest.kt
+@@ -0,0 +1,118 @@
++package br.com.flaviotorres.iptvpremium.core.storage
++
++import java.io.File
++import java.nio.file.Files
++import java.util.concurrent.*
++import java.util.concurrent.atomic.AtomicInteger
++import org.junit.Assert.*
++import org.junit.Test
++
++class RestoredStorageDeviceTest {
++    private fun fixture(block: (File, File, CacheStorageBudget) -> Unit) {
++        val data = Files.createTempDirectory("restored-cache-").toFile()
++        val cache = File(data,"cache").apply { mkdirs() }
++        val subs = File(data,"files/iptv_subtitles_lru_5mb").apply { mkdirs() }
++        val limits = CacheStorageKind.entries.associateWith { when(it) {
++            CacheStorageKind.IMAGES -> 40L
++            CacheStorageKind.EPISODES, CacheStorageKind.RESPONSES -> 25L
++            CacheStorageKind.SUBTITLES -> 5L
++            CacheStorageKind.OTHER -> 80L
++        } }
++        try { block(cache,subs,CacheStorageBudget(cache,subs,totalLimit=100,limits=limits)) }
++        finally { data.deleteRecursively() }
++    }
++    private fun save(budget: CacheStorageBudget, file: File, size: Int): Boolean {
++        file.parentFile!!.mkdirs()
++        val lease = budget.reserve(file,size.toLong()) ?: return false
++        lease.use { it.temporary.writeBytes(ByteArray(size)); assertTrue(it.temporary.renameTo(file)) }
++        return true
++    }
++    @Test fun decimalStorageBudgetsAreSeparateFromRam() {
++        assertEquals(350_000_000L,CacheStorageLimits.TOTAL)
++        assertEquals(100_000_000L,CacheStorageLimits.IMAGES)
++        assertEquals(25_000_000L,CacheStorageLimits.EPISODES)
++        assertEquals(25_000_000L,CacheStorageLimits.RESPONSES)
++        assertEquals(5_000_000L,CacheStorageLimits.SUBTITLES)
++        assertEquals(CacheStorageLimits.TOTAL,CacheStorageLimits.IMAGES+CacheStorageLimits.EPISODES+CacheStorageLimits.RESPONSES+CacheStorageLimits.SUBTITLES+CacheStorageLimits.OTHER)
++    }
++    @Test fun imageBudgetIsSharedByPostersLogosAndCast() = fixture { root,_,budget ->
++        val poster=File(root,"iptv_movie_posters_session/old.img")
++        assertTrue(save(budget,poster,25))
++        assertTrue(save(budget,File(root,"movie_details_images/cast.img"),25))
++        assertFalse(poster.exists())
++        assertEquals(25L,budget.accountedBytes())
++    }
++    @Test fun eachMetadataBucketHasItsOwnQuota() = fixture { root,subs,budget ->
++        for ((path,amount) in listOf("series_episode_details" to 25,"series_public_artwork_v1" to 25)) {
++            val old=File(root,"$path/old.json");assertTrue(save(budget,old,amount))
++            assertTrue(save(budget,File(root,"$path/new.json"),5));assertFalse(old.exists())
++        }
++        val s=File(subs,"old.srt");assertTrue(save(budget,s,5))
++        assertTrue(save(budget,File(subs,"new.srt"),1));assertFalse(s.exists())
++    }
++    @Test fun totalLimitAppliesEvenWhenEveryIndividualBucketFits() = fixture { root,_,budget ->
++        val image=File(root,"iptv_movie_posters_session/a.img")
++        assertTrue(save(budget,image,30));assertTrue(save(budget,File(root,"series_episode_details/e.json"),25))
++        assertTrue(save(budget,File(root,"series_public_artwork_v1/r.json"),25))
++        assertTrue(save(budget,File(root,"updates/app.apk"),40))
++        assertTrue(budget.accountedBytes()<=100)
++        assertFalse(image.exists())
++    }
++    @Test fun readersAreNeverEvictedAndFullPinnedBucketRefusesNewWrites() = fixture { root,_,budget ->
++        val file=File(root,"iptv_movie_posters_session/a.img");assertTrue(save(budget,file,40))
++        budget.retain(file).use {
++            assertNull(budget.reserve(File(root,"movie_details_images/b.img"),1))
++            assertTrue(file.exists());assertEquals(40L,budget.accountedBytes())
++        }
++        assertTrue(save(budget,File(root,"movie_details_images/b.img"),10))
++        assertFalse(file.exists())
++    }
++    @Test fun failedReplacementKeepsThePreviousFileAndReleasesTemporarySpace() = fixture { root,_,budget ->
++        val target=File(root,"iptv_movie_posters_session/a.img");assertTrue(save(budget,target,10))
++        val lease=budget.reserve(target,15)!!;lease.temporary.writeBytes(ByteArray(8))
++        assertEquals(25L,budget.accountedBytes())
++        lease.close();lease.close()
++        assertEquals(10L,target.length());assertFalse(lease.temporary.exists());assertEquals(10L,budget.accountedBytes())
++    }
++    @Test fun simultaneousWritersReserveTheirWholeMaximumBeforeWriting() = fixture { root,_,budget ->
++        val executor=Executors.newFixedThreadPool(6)
++        val attempted=CountDownLatch(6);val release=CountDownLatch(1);val accepted=AtomicInteger()
++        val pending=(0..5).map { i -> executor.submit {
++            val lease=budget.reserve(File(root,"iptv_movie_posters_session/$i.img"),8)
++            if(lease!=null) accepted.incrementAndGet()
++            attempted.countDown()
++            try { release.await(3,TimeUnit.SECONDS) } finally { lease?.close() }
++        } }
++        try {
++            assertTrue(attempted.await(3,TimeUnit.SECONDS));assertEquals(5,accepted.get());assertEquals(40L,budget.accountedBytes())
++        } finally {release.countDown();pending.forEach { it.get(3,TimeUnit.SECONDS) };executor.shutdownNow()}
++        assertEquals(0L,budget.accountedBytes())
++    }
++    @Test fun maintenanceDoesNotTouchFavoritesCredentialsOrTheCatalogDatabase() = fixture { root,_,budget ->
++        val marker=File(root,"history-session.marker").apply { writeText("keep-marker") }
++        val favorite=File(root.parentFile,"files/favorites.json").apply { parentFile!!.mkdirs();writeText("keep") }
++        val db=File(root.parentFile,"databases/playlist_cache.db").apply { parentFile!!.mkdirs();writeText("keep-db") }
++        val old=File(root,"movie_details_images/legacy.img").apply { parentFile!!.mkdirs();writeBytes(ByteArray(150)) }
++        budget.maintain();assertFalse(old.exists());assertEquals("keep",favorite.readText());assertEquals("keep-db",db.readText());assertEquals("keep-marker",marker.readText())
++        try { budget.reserve(db,2);fail("Persistent data cannot be used as a cache target") } catch (_: IllegalArgumentException) { }
++    }
++    @Test fun legacyOverBudgetIsTrimmedOnTheFirstCacheOperation() = fixture { root,_,budget ->
++        val old=File(root,"iptv_movie_posters_session/oversize.img").apply { parentFile!!.mkdirs();writeBytes(ByteArray(60)) }
++        val apk=File(root,"updates/legacy.apk").apply { parentFile!!.mkdirs();writeBytes(ByteArray(120)) }
++        assertTrue(budget.accountedBytes()<=100)
++        assertFalse(old.exists());assertFalse(apk.exists())
++    }
++    @Test fun abandonedTemporaryIsRemovedButAnActiveReservationIsKept() = fixture { root,_,budget ->
++        val orphan=File(root,"iptv_movie_posters_session/a.img.11111111-1111-1111-1111-111111111111.part")
++            .apply { parentFile!!.mkdirs();writeBytes(ByteArray(4));setLastModified(1) }
++        val lease=budget.reserve(File(root,"iptv_movie_posters_session/current.img"),10)!!
++        lease.temporary.writeBytes(ByteArray(5));lease.temporary.setLastModified(1)
++        budget.maintain()
++        assertFalse(orphan.exists());assertTrue(lease.temporary.exists());assertEquals(10L,budget.accountedBytes())
++        lease.close();assertEquals(0L,budget.accountedBytes())
++    }
++    @Test fun importDefaultsStayAt250And2000() {
++        val p=br.com.flaviotorres.iptvpremium.data.cache.ImportProfile.DEFAULT
++        assertEquals(250,p.batchSize);assertEquals(2000,p.m3uBatchSize)
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/RestoredCatalogEntryDeviceTest.kt
+@@ -0,0 +1,78 @@
++package br.com.flaviotorres.iptvpremium.data.repository
++
++import androidx.compose.foundation.background
++import androidx.compose.foundation.layout.*
++import androidx.compose.runtime.*
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.toPixelMap
++import androidx.compose.ui.graphics.asImageBitmap
++import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.test.*
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.unit.dp
++import androidx.paging.PagingData
++import androidx.paging.compose.collectAsLazyPagingItems
++import br.com.flaviotorres.iptvpremium.domain.model.Movie
++import br.com.flaviotorres.iptvpremium.domain.model.Series
++import br.com.flaviotorres.iptvpremium.ui.components.CatalogFavoriteHeart
++import br.com.flaviotorres.iptvpremium.ui.movies.MoviesScreen
++import br.com.flaviotorres.iptvpremium.ui.series.SeriesScreen
++import kotlinx.coroutines.flow.flowOf
++import org.junit.Assert.*
++import org.junit.Rule
++import org.junit.Test
++
++class RestoredCatalogEntryDeviceTest {
++    @get:Rule val compose = createComposeRule()
++    @Test fun moviesStartInCategorySelectionAndHeartIsBelowTitle() {
++        val data = flowOf(PagingData.from(List(30) { Movie("m$it", "Filme $it", null, null, null, "", 2026, 8.0, null) }))
++        compose.setContent {
++            val movies = data.collectAsLazyPagingItems()
++            Box(Modifier.requiredSize(960.dp, 540.dp)) { MoviesScreen(pagedMovies = movies, totalMovieCount = 30) }
++        }
++        compose.waitUntil(5_000) { compose.onAllNodesWithTag("movie-category-ALL").filter(isFocused()).fetchSemanticsNodes().isNotEmpty() }
++        compose.onNodeWithTag("movie-category-ALL").assertIsFocused()
++        compose.onNodeWithText("Filme 0").assertExists()
++        val title = compose.onNodeWithText("Filme 0").fetchSemanticsNode().boundsInRoot
++        val heart = compose.onAllNodes(hasStateDescription("Não favorito"), useUnmergedTree = true).onFirst().fetchSemanticsNode().boundsInRoot
++        assertTrue(heart.top >= title.bottom)
++    }
++    @Test fun seriesStartInCategorySelection() {
++        val data = flowOf(PagingData.from(List(30) { Series("s$it", "Série $it", null, null, null, 2026, 8.0, null) }))
++        compose.setContent {
++            val series = data.collectAsLazyPagingItems()
++            Box(Modifier.requiredSize(960.dp, 540.dp)) { SeriesScreen(pagedSeries = series, totalSeriesCount = 30) }
++        }
++        compose.waitUntil(5_000) { compose.onAllNodesWithTag("series-category-ALL").filter(isFocused()).fetchSemanticsNodes().isNotEmpty() }
++        compose.onNodeWithTag("series-category-ALL").assertIsFocused()
++    }
++    @Test fun heartFillsWhenFavoritedAndTogglesWithoutASeparateKeyboardFocus() {
++        val favorite = mutableStateOf(false)
++        lateinit var view: android.view.View
++        compose.setContent {
++            val current = androidx.compose.ui.platform.LocalView.current
++            SideEffect { view = current }
++            Box(Modifier.size(40.dp).background(Color.Black).testTag("heart")) {
++                CatalogFavoriteHeart(favorite.value, compact = false) { favorite.value = !favorite.value }
++            }
++        }
++        repeat(2) {
++            val state = if (favorite.value) "Favorito" else "Não favorito"
++            val node = compose.onNode(hasStateDescription(state), useUnmergedTree = true).fetchSemanticsNode()
++            val full = android.graphics.Bitmap.createBitmap(view.width, view.height, android.graphics.Bitmap.Config.ARGB_8888)
++            compose.runOnIdle { view.draw(android.graphics.Canvas(full)) }
++            val bounds = node.boundsInRoot
++            val pixels = android.graphics.Bitmap.createBitmap(full,
++                bounds.left.toInt(), bounds.top.toInt(), bounds.width.toInt(), bounds.height.toInt()).asImageBitmap().toPixelMap()
++            val center = pixels[pixels.width / 2, pixels.height / 2]
++            assertTrue((0 until pixels.height).sumOf { y ->
++                (0 until pixels.width).count { x -> val color = pixels[x, y]; color.red > .2f || color.green > .2f || color.blue > .2f }
++            } > 0)
++            if (favorite.value) assertTrue(center.red > .2f || center.green > .2f)
++            else assertTrue(center.red < .1f && center.green < .1f && center.blue < .1f)
++            compose.onNode(hasStateDescription(state), useUnmergedTree = true).performClick()
++        }
++        assertFalse(favorite.value)
++    }
++}
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -54,6 +54,12 @@
+             android:screenOrientation="sensorLandscape" />
+ 
+         <activity
++            android:name=".core.media.TrailerPlayerActivity"
++            android:exported="false"
++            android:hardwareAccelerated="true"
++            android:screenOrientation="sensorLandscape" />
++
++        <activity
+             android:name=".MainActivity"
+             android:screenOrientation="sensorLandscape"
+             android:banner="@drawable/iptv_premium_tv_banner_320x180"
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerLauncher.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerLauncher.kt
+@@ -2,7 +2,6 @@
+ 
+ import android.content.Context
+ import android.content.Intent
+-import android.net.Uri
+ import android.widget.Toast
+ import java.net.URI
+ import java.net.URLDecoder
+@@ -30,15 +29,14 @@
+     }
+ }
+ 
+-internal fun openTrailer(context: Context, raw: String?, title: String) {
+-    val address=trailerAddress(raw,title)
+-    if (address == null) { Toast.makeText(context,"Trailer indisponível.",Toast.LENGTH_SHORT).show();return }
+-    try {
+-        context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(address)))
+-        if (address.startsWith("https://www.youtube.com/results?")) Toast.makeText(context,"Buscando trailer no YouTube.",Toast.LENGTH_SHORT).show()
+-    } catch (_: android.content.ActivityNotFoundException) {
+-        Toast.makeText(context,"Instale o YouTube ou um navegador para abrir o trailer.",Toast.LENGTH_LONG).show()
+-    } catch (_: SecurityException) {
+-        Toast.makeText(context,"O Android não permitiu abrir o trailer.",Toast.LENGTH_SHORT).show()
+-    }
++internal fun trailerIntent(context: Context, request: TrailerRequest): Intent =
++    Intent(context, TrailerPlayerActivity::class.java)
++        .putExtra("title", request.title).putExtra("raw", request.raw).putExtra("kind", request.kind)
++        .putExtra("tmdbId", request.tmdbId).putExtra("year", request.year ?: 0)
++        .apply { if (context !is android.app.Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
++
++internal fun openTrailer(context: Context, raw: String?, title: String,
++    kind: String = "movie", tmdbId: String? = null, year: Int? = null) {
++    try { context.startActivity(trailerIntent(context, TrailerRequest(title, raw, kind, tmdbId, year))) }
++    catch (_: Exception) { Toast.makeText(context, "Não foi possível iniciar o trailer.", Toast.LENGTH_SHORT).show() }
+ }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt
+@@ -0,0 +1,310 @@
++package br.com.flaviotorres.iptvpremium.core.media
++
++import android.annotation.SuppressLint
++import android.graphics.Color
++import android.os.Bundle
++import android.view.KeyEvent
++import android.view.View
++import android.view.ViewGroup
++import android.webkit.*
++import android.widget.*
++import androidx.activity.ComponentActivity
++import androidx.lifecycle.lifecycleScope
++import androidx.media3.common.MediaItem
++import androidx.media3.common.PlaybackException
++import androidx.media3.common.Player
++import androidx.media3.exoplayer.ExoPlayer
++import androidx.media3.ui.PlayerView
++import kotlinx.coroutines.*
++
++/** Official YouTube embed for YouTube trailers; Media3 for direct provider videos. */
++@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
++class TrailerPlayerActivity : ComponentActivity() {
++    private lateinit var frame: FrameLayout
++    private lateinit var status: TextView
++    private lateinit var retry: Button
++    private lateinit var loading: ProgressBar
++    private var resolverJob: Job? = null
++    private var startupJob: Job? = null
++    private var choices = emptyList<TrailerChoice>()
++    private var choiceIndex = 0
++    private var player: ExoPlayer? = null
++    private var web: WebView? = null
++    private var videoView: View? = null
++    private var videoCallback: WebChromeClient.CustomViewCallback? = null
++    private var position = 0L
++    private var resumePlaying = true
++    private var generation = 0
++    private var loadingTrailer = false
++    private var youtubeApiReady = false
++    private var waitingForGesture = false
++    private val request by lazy {
++        TrailerRequest(intent.getStringExtra("title").orEmpty(), intent.getStringExtra("raw"),
++            intent.getStringExtra("kind") ?: "movie", intent.getStringExtra("tmdbId"),
++            intent.getIntExtra("year", 0).takeIf { it > 0 })
++    }
++    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
++    override fun onCreate(savedInstanceState: Bundle?) {
++        super.onCreate(savedInstanceState)
++        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
++        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.BLACK) }
++        val header = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL }
++        header.addView(TextView(this).apply {
++            text = trailerSearchTitle(request.title).ifBlank { "Trailer" }; setTextColor(Color.WHITE); textSize = 18f
++            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
++            setPadding(dp(12), 0, dp(8), 0)
++        }, LinearLayout.LayoutParams(0, dp(52), 1f))
++        retry = Button(this).apply { text = "Tentar outro"; visibility = View.GONE; setOnClickListener {
++            if (choiceIndex + 1 < choices.size) { choiceIndex++; position = 0; resumePlaying = true; showChoice() }
++            else resolve()
++        } }
++        root.addView(header)
++        status = TextView(this).apply { setTextColor(Color.LTGRAY); textSize = 13f; setPadding(dp(12), 0, dp(12), dp(4)) }
++        frame = FrameLayout(this)
++        root.addView(frame, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
++        setContentView(root)
++        resolve()
++    }
++    private fun resolve() {
++        resolverJob?.cancel(); releaseViews()
++        choices = emptyList(); choiceIndex = 0; position = 0; resumePlaying = true
++        status.visibility = View.VISIBLE
++        status.text = "Procurando trailer…"
++        retry.visibility = View.GONE
++        loading = ProgressBar(this)
++        frame.addView(loading, FrameLayout.LayoutParams(dp(48), dp(48), android.view.Gravity.CENTER))
++        resolverJob = lifecycleScope.launch {
++            val result = TrailerResolver().resolve(request)
++            if (isFinishing || isDestroyed) return@launch
++            choices = result
++            if (result.isEmpty()) showError("Não encontrei um trailer disponível para este título.")
++            else showChoice()
++        }
++    }
++    private fun releaseViews() {
++        generation++; startupJob?.cancel()
++        hideCustomVideo()
++        player?.release(); player = null
++        web?.let { view ->
++            view.clearCache(true)
++            view.stopLoading(); view.onPause(); view.removeJavascriptInterface("TrailerHost")
++            (view.parent as? ViewGroup)?.removeView(view); view.destroy()
++        }
++        web = null; frame.removeAllViews()
++    }
++    private fun showChoice() {
++        releaseViews()
++        val choice = choices.getOrNull(choiceIndex) ?: return
++        retry.visibility = View.GONE
++        status.text = ""
++        status.visibility = View.GONE
++        try {
++            if (choice.youtubeId != null) showYouTube(choice.youtubeId) else showDirect(choice.url)
++        } catch (_: Exception) {
++            showError("O player deste trailer não está disponível no aparelho. Tente outra versão.")
++        }
++    }
++    private fun showDirect(url: String) {
++        val view = PlayerView(this).apply { useController = true }
++        frame.addView(view, FrameLayout.LayoutParams(-1, -1))
++        player = ExoPlayer.Builder(this).build().also { native ->
++            view.player = native
++            native.setAudioAttributes(androidx.media3.common.AudioAttributes.DEFAULT, true)
++            native.setHandleAudioBecomingNoisy(true)
++            native.trackSelectionParameters = native.trackSelectionParameters.buildUpon()
++                .setPreferredAudioLanguages("pt-BR", "pt")
++                .setPreferredTextLanguages("pt-BR", "pt").build()
++            native.addListener(object : Player.Listener {
++                override fun onPlayerError(error: PlaybackException) {
++                    showError("Este trailer não pôde ser reproduzido. Tente outra versão.")
++                }
++            })
++            native.setMediaItem(MediaItem.fromUri(url), position)
++            native.playWhenReady = resumePlaying; native.prepare()
++        }
++        view.requestFocus(); view.showController()
++    }
++    @SuppressLint("SetJavaScriptEnabled")
++    private fun showYouTube(id: String) {
++        val token = generation
++        loadingTrailer = true
++        youtubeApiReady = false
++        waitingForGesture = false
++        status.visibility = View.VISIBLE
++        status.text = "Carregando trailer…"
++        val identity = "https://${packageName.lowercase()}/"
++        val view = WebView(this)
++        view.clearCache(true)
++        web = view
++        view.setBackgroundColor(Color.TRANSPARENT)
++        // Keep the Activity's hardware acceleration, without an extra offscreen texture.
++        // A forced hardware layer can hide video surfaces on TV/emulator GPU drivers.
++        view.setLayerType(View.LAYER_TYPE_NONE, null)
++        view.settings.apply {
++            javaScriptEnabled = true; domStorageEnabled = true
++            cacheMode = WebSettings.LOAD_NO_CACHE
++            mediaPlaybackRequiresUserGesture = false
++            allowFileAccess = false; allowContentAccess = false
++            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
++            javaScriptCanOpenWindowsAutomatically = false
++        }
++        view.addJavascriptInterface(object {
++            @JavascriptInterface fun ready() { runOnUiThread {
++                if (!isDestroyed && generation == token) {
++                    youtubeApiReady = true
++                    status.text = "Iniciando trailer…"
++                    view.requestFocus()
++                }
++            } }
++            @JavascriptInterface fun playing() { runOnUiThread {
++                if (!isDestroyed && generation == token) {
++                    loadingTrailer = false; waitingForGesture = false
++                    startupJob?.cancel(); loading.visibility = View.GONE
++                    status.text = ""
++                    status.visibility = View.GONE
++                }
++            } }
++            @JavascriptInterface fun manual() { runOnUiThread {
++                if (!isDestroyed && generation == token) {
++                    waitingForGesture = true; loadingTrailer = false
++                    startupJob?.cancel(); loading.visibility = View.GONE
++                    status.visibility = View.VISIBLE
++                    status.text = "Pressione OK ou toque em Reproduzir."
++                    view.requestFocus()
++                }
++            } }
++            @JavascriptInterface fun failed(code: Int) { runOnUiThread {
++                if (!isDestroyed && generation == token) showError(
++                    if (code == 101 || code == 150 || code == 100)
++                        "Este trailer não permite reprodução incorporada ou está indisponível. Tente outro."
++                    else "Não foi possível iniciar este trailer no player do YouTube. Tente outro.")
++            } }
++        }, "TrailerHost")
++        view.webViewClient = object : WebViewClient() {
++            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
++                if (!request.isForMainFrame) return false
++                val host = request.url.host.orEmpty().lowercase()
++                return request.url.scheme != "https" ||
++                    !(host == packageName.lowercase() || host in setOf("www.youtube.com", "www.youtube-nocookie.com"))
++            }
++            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
++                if ((request.isForMainFrame || request.url.path.orEmpty().startsWith("/embed/")) && generation == token)
++                    showError("Não foi possível carregar o trailer. Verifique a conexão.")
++            }
++            override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
++                if (generation == token && (request.isForMainFrame || request.url.path.orEmpty().startsWith("/embed/")))
++                    showError("O YouTube não conseguiu carregar este trailer. Tente outro.")
++            }
++            override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: android.net.http.SslError) {
++                handler.cancel()
++                if (generation == token) showError("Não foi possível estabelecer uma conexão segura com o trailer.")
++            }
++            override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
++                if (generation == token) showError("O player de vídeo foi interrompido pelo aparelho. Tente novamente.")
++                return true
++            }
++        }
++        view.webChromeClient = object : WebChromeClient() {
++            override fun onPermissionRequest(request: PermissionRequest) { request.deny() }
++            override fun onShowCustomView(customView: View, callback: CustomViewCallback) {
++                if (generation != token || videoView != null) { callback.onCustomViewHidden(); return }
++                showCustomVideo(customView, callback)
++            }
++            override fun onHideCustomView() { hideCustomVideo() }
++        }
++        view.setOnKeyListener { _, key, event ->
++            if (!youtubeApiReady || waitingForGesture) return@setOnKeyListener false
++            val script = when (key) {
++                KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> "toggleTrailer()"
++                KeyEvent.KEYCODE_DPAD_LEFT -> "seekTrailer(-10)"
++                KeyEvent.KEYCODE_DPAD_RIGHT -> "seekTrailer(10)"
++                else -> null
++            }
++            if (script != null && event.action == KeyEvent.ACTION_DOWN) view.evaluateJavascript(script, null)
++            script != null
++        }
++        frame.addView(view, FrameLayout.LayoutParams(-1, -1))
++        loading = ProgressBar(this)
++        frame.addView(loading, FrameLayout.LayoutParams(dp(48), dp(48), android.view.Gravity.CENTER))
++        view.loadDataWithBaseURL(identity, youtubeTrailerHtml(id, identity), "text/html", "UTF-8", null)
++        startupJob = lifecycleScope.launch {
++            delay(20_000)
++            if (generation == token && loadingTrailer) showError("O trailer demorou para responder. Tente outra versão.")
++        }
++    }
++    private fun showCustomVideo(customView: View, callback: WebChromeClient.CustomViewCallback) {
++        videoView = customView; videoCallback = callback
++        (customView.parent as? ViewGroup)?.removeView(customView)
++        frame.addView(customView, FrameLayout.LayoutParams(-1, -1))
++        customView.bringToFront()
++        // TV WebViews may deliver HTML5 video as a separate native surface.
++        web?.visibility = View.INVISIBLE
++        if (::loading.isInitialized) loading.visibility = View.GONE
++        customView.requestFocus()
++    }
++    private fun hideCustomVideo() {
++        val custom = videoView ?: return
++        videoView = null
++        (custom.parent as? ViewGroup)?.removeView(custom)
++        web?.visibility = View.VISIBLE
++        val callback = videoCallback; videoCallback = null
++        callback?.onCustomViewHidden()
++    }
++    private fun showError(message: String) {
++        loadingTrailer = false; startupJob?.cancel()
++        status.visibility = View.VISIBLE
++        status.text = message; retry.visibility = View.VISIBLE
++        if (status.parent == null) frame.addView(status, FrameLayout.LayoutParams(-1, -2, android.view.Gravity.BOTTOM).apply { bottomMargin = dp(64) })
++        if (retry.parent == null) frame.addView(retry, FrameLayout.LayoutParams(dp(160), dp(52), android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL).apply { bottomMargin = dp(8) })
++        if (::loading.isInitialized) loading.visibility = View.GONE
++        retry.requestFocus()
++    }
++    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
++        if (event.keyCode == KeyEvent.KEYCODE_ESCAPE) {
++            if (event.action == KeyEvent.ACTION_UP) finish()
++            return true
++        }
++        return super.dispatchKeyEvent(event)
++    }
++    override fun onPause() {
++        player?.let { resumePlaying = it.playWhenReady; position = it.currentPosition; it.pause() }
++        web?.evaluateJavascript("if(window.player&&player.pauseVideo)player.pauseVideo()", null)
++        web?.onPause()
++        super.onPause()
++    }
++    override fun onStop() { player?.release(); player = null; super.onStop() }
++    override fun onResume() {
++        super.onResume(); web?.onResume()
++        if (choices.getOrNull(choiceIndex)?.youtubeId == null && choices.isNotEmpty() && player == null) showChoice()
++    }
++    override fun onDestroy() { resolverJob?.cancel(); releaseViews(); super.onDestroy() }
++}
++
++internal fun youtubeTrailerHtml(id: String, identity: String): String {
++    require(id.matches(Regex("[A-Za-z0-9_-]{11}")))
++    require(identity.matches(Regex("https://[a-z0-9.]+/")))
++    val origin = java.net.URLEncoder.encode(identity.trimEnd('/'), "UTF-8")
++    return """<!doctype html><html lang="pt-BR"><head><meta name="viewport" content="width=device-width,initial-scale=1">
++<meta name="referrer" content="strict-origin-when-cross-origin"><style>
++html,body{width:100%;height:100%;margin:0;background:#000;overflow:hidden}
++#player{position:absolute;inset:0;width:100%;height:100%;border:0}
++#play{display:none;position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);padding:18px 32px;font:20px sans-serif;color:#fff;background:#202020;border:2px solid #d4af37;border-radius:8px}
++</style></head><body>
++<iframe id="player" title="Trailer" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"
++src="https://www.youtube.com/embed/$id?enablejsapi=1&amp;origin=$origin&amp;autoplay=1&amp;playsinline=1&amp;controls=1&amp;fs=0&amp;rel=0&amp;hl=pt-BR&amp;cc_lang_pref=pt&amp;cc_load_policy=1"></iframe>
++<button id="play" onclick="startTrailer()">Reproduzir</button>
++<script>
++var player,started=false;
++function askForPlay(){if(started)return;var button=document.getElementById('play');button.style.display='block';button.focus();TrailerHost.manual()}
++function startTrailer(){if(player&&player.playVideo)player.playVideo();document.getElementById('play').style.display='none';setTimeout(function(){if(!started)askForPlay()},4000)}
++function onYouTubeIframeAPIReady(){player=new YT.Player('player',{events:{
++onReady:function(){TrailerHost.ready();player.playVideo();setTimeout(function(){if(!started)askForPlay()},4000)},
++onStateChange:function(e){if(e.data===1){started=true;document.getElementById('play').style.display='none';TrailerHost.playing()}},
++onAutoplayBlocked:askForPlay,onError:function(e){TrailerHost.failed(e.data)}}})}
++function toggleTrailer(){if(player&&player.getPlayerState){if(player.getPlayerState()==1)player.pauseVideo();else player.playVideo()}}
++function seekTrailer(seconds){if(player&&player.getCurrentTime)player.seekTo(Math.max(0,player.getCurrentTime()+seconds),true)}
++// The iframe is already visible. API callbacks are defined before the API is requested.
++var api=document.createElement('script');api.src='https://www.youtube.com/iframe_api';api.async=true;
++api.onerror=function(){document.getElementById('player').focus();TrailerHost.manual()};document.head.appendChild(api);
++</script></body></html>"""
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerResolver.kt
+@@ -0,0 +1,88 @@
++package br.com.flaviotorres.iptvpremium.core.media
++
++import br.com.flaviotorres.iptvpremium.data.remote.TmdbClientProvider
++import java.net.URI
++import java.text.Normalizer
++import kotlinx.coroutines.*
++import org.json.JSONArray
++import org.json.JSONObject
++
++internal data class TrailerRequest(val title: String, val raw: String? = null,
++    val kind: String = "movie", val tmdbId: String? = null, val year: Int? = null)
++internal data class TrailerChoice(val url: String, val youtubeId: String? = null,
++    val language: String? = null, val name: String = "Trailer")
++
++internal fun youtubeTrailerId(raw: String?): String? {
++    val address = trailerAddress(raw, "") ?: return null
++    val uri = runCatching { URI(address) }.getOrNull() ?: return null
++    if (uri.host?.lowercase() !in setOf("youtube.com", "www.youtube.com")) return null
++    return uri.rawQuery?.split('&')?.firstOrNull { it.startsWith("v=") }
++        ?.substringAfter('=')?.takeIf { it.matches(Regex("[A-Za-z0-9_-]{11}")) }
++}
++internal fun providerTrailer(raw: String?): TrailerChoice? {
++    youtubeTrailerId(raw)?.let { return TrailerChoice("https://www.youtube.com/watch?v=$it", it) }
++    val uri = runCatching { URI(raw?.trim().orEmpty()) }.getOrNull() ?: return null
++    if (uri.scheme?.lowercase() !in setOf("http", "https") || uri.host.isNullOrBlank() || uri.rawUserInfo != null) return null
++    if (!uri.path.orEmpty().lowercase().matches(Regex(".*\\.(mp4|m3u8|mpd|webm|mov)$"))) return null
++    return TrailerChoice(uri.toASCIIString())
++}
++internal fun trailerSearchTitle(title: String): String = title
++    .replace(Regex("\\[(?:L|D|LEG|DUB|DUBLADO|LEGENDADO|4K|HDR|HD|FHD)\\]", RegexOption.IGNORE_CASE), " ")
++    .replace(Regex("\\b(?:4K|1080p|720p|2160p|HDR|DUBLADO|LEGENDADO)\\b", RegexOption.IGNORE_CASE), " ")
++    .replace(Regex("\\s*\\((?:19|20)\\d{2}\\)\\s*$"), " ")
++    .trim().trimStart('★', '✽', '*', ' ', '-', '|').replace(Regex("\\s+"), " ").trim()
++private fun titleKey(value: String) = Normalizer.normalize(value, Normalizer.Form.NFD)
++    .replace(Regex("\\p{M}"), "").lowercase().replace(Regex("[^a-z0-9]+"), " ").trim()
++
++internal class TrailerResolver(private val get: suspend (String, Map<String, String>) -> String =
++    { path, query -> TmdbClientProvider.client.get(path, query) }) {
++    suspend fun resolve(request: TrailerRequest): List<TrailerChoice> {
++        val fallback = providerTrailer(request.raw)
++        val kind = if (request.kind == "tv") "tv" else "movie"
++        val title = trailerSearchTitle(request.title)
++        var id = request.tmdbId?.takeIf { it.matches(Regex("[1-9][0-9]*")) }
++        if (id == null && title.isNotBlank()) {
++            val query = mutableMapOf("query" to title, "language" to "pt-BR", "include_adult" to "false")
++            request.year?.takeIf { it in 1888..2100 }?.let { query[if (kind == "tv") "first_air_date_year" else "year"] = it.toString() }
++            val results = json("/search/$kind", query).optJSONArray("results") ?: JSONArray()
++            val wanted = titleKey(title)
++            id = (0 until results.length()).mapNotNull { results.optJSONObject(it) }.firstOrNull { candidate ->
++                val names = listOf(candidate.optString("title"), candidate.optString("original_title"),
++                    candidate.optString("name"), candidate.optString("original_name"))
++                names.any { titleKey(it) == wanted }
++            }?.optLong("id")?.takeIf { it > 0 }?.toString()
++        }
++        if (id == null) return listOfNotNull(fallback)
++        val videos = coroutineScope {
++            listOf("pt-BR", "en-US").map { language -> async {
++                json("/$kind/$id/videos", mapOf("language" to language))
++                    .optJSONArray("results") ?: JSONArray()
++            } }.awaitAll()
++        }
++        return rank(videos).plus(listOfNotNull(fallback)).distinctBy { it.url }.take(10)
++    }
++    private suspend fun json(path: String, query: Map<String, String>): JSONObject = try {
++        JSONObject(get(path, query))
++    } catch (cancelled: CancellationException) { throw cancelled }
++      catch (_: Exception) { JSONObject() }
++
++    internal fun rank(arrays: List<JSONArray>): List<TrailerChoice> = arrays.flatMap { array ->
++        (0 until array.length()).mapNotNull { index ->
++            val video = array.optJSONObject(index) ?: return@mapNotNull null
++            val key = video.optString("key")
++            val type = video.optString("type")
++            if (video.optString("site") != "YouTube" || type !in setOf("Trailer", "Teaser") ||
++                !key.matches(Regex("[A-Za-z0-9_-]{11}"))) return@mapNotNull null
++            val name = video.optString("name")
++            val normalized = titleKey(name)
++            val language = video.optString("iso_639_1").takeIf { it.isNotBlank() }
++            val explicitPortuguese = listOf("dublado", "legendado", "portugues", "pt br").any { normalized.contains(it) }
++            val portuguese = language == "pt" || explicitPortuguese
++            val score = (if (portuguese) 1000 else 0) +
++                (if (normalized.contains("dublado")) 150 else if (normalized.contains("legendado")) 100 else 0) +
++                (if (type == "Trailer") 40 else 0) + (if (video.optBoolean("official")) 20 else 0)
++            score to TrailerChoice("https://www.youtube.com/watch?v=$key", key,
++                if (portuguese) "pt" else language, name)
++        }
++    }.sortedByDescending { it.first }.map { it.second }.distinctBy { it.url }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -399,7 +399,8 @@
+     val seriesEpisodesRepository = remember(playlistHttpClient) {
+         SeriesEpisodesRepository(playlistHttpClient, diskCache =
+             br.com.flaviotorres.iptvpremium.data.repository.SeriesEpisodeDiskCache(
+-                java.io.File(context.cacheDir, "series_episode_details")))
++                java.io.File(context.cacheDir, "series_episode_details"),
++                storage = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context)))
+     }
+ 
+     /*
+@@ -2975,7 +2976,8 @@
+                         },
+                         onTrailerClick = {
+                             br.com.flaviotorres.iptvpremium.core.media.openTrailer(context,
+-                                displayDetails?.trailerUrl, displayMovie?.name.orEmpty())
++                                displayDetails?.trailerUrl, displayMovie?.name.orEmpty(),
++                                tmdbId = displayDetails?.tmdbId, year = displayMovie?.year)
+                         },
+                         onFavoriteClick = {
+                             toggleSharedFavorite("movies", movieId)
+@@ -4187,7 +4189,7 @@
+                         onTrailerClick = {
+                             br.com.flaviotorres.iptvpremium.core.media.openTrailer(context,
+                                 episodeData?.trailerUrl?.takeIf { it.isNotBlank() } ?: series?.trailerUrl,
+-                                series?.name ?: episodeData?.title.orEmpty())
++                                series?.name ?: episodeData?.title.orEmpty(), kind = "tv", tmdbId = series?.tmdbId, year = series?.year)
+                         },
+                         onEpisodeClick = { episodeId ->
+                             val playlistId = activePlaylistId
+@@ -5161,7 +5163,7 @@
+                 val file = File(dir, "$hash.img")
+                 br.com.flaviotorres.iptvpremium.core.storage.ImageDiskCache.get(context).retain(file).use {
+                     if (!file.isFile || file.length() <= 0L) {
+-                        if (!download(url, file)) return@withPermit null
++                        if (!download(context, url, file)) return@withPermit null
+                     }
+                     val bitmap = try {
+                         decodeSmall(file)
+@@ -5198,7 +5200,8 @@
+         )?.asImageBitmap()
+     }
+ 
+-    private suspend fun download(url: String, destination: File): Boolean {
++    private suspend fun download(context: Context, url: String, destination: File): Boolean {
++        var reservation: br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget.Reservation? = null
+         var conn: HttpURLConnection? = null
+         var partial: File? = null
+         return try {
+@@ -5212,7 +5215,9 @@
+             if (conn.responseCode !in 200..299 ||
+                 conn.contentLengthLong > 8L * 1024 * 1024
+             ) return false
+-            val temp = File.createTempFile("carousel_", ".tmp", destination.parentFile)
++            reservation = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context)
++                .reserve(destination, conn.contentLengthLong.takeIf { it > 0 } ?: 8L * 1024 * 1024) ?: return false
++            val temp = reservation.temporary
+             partial = temp
+             var total = 0L
+             conn.inputStream.use { input ->
+@@ -5223,7 +5228,7 @@
+                         val size = input.read(buffer)
+                         if (size < 0) break
+                         total += size
+-                        if (total > 8L * 1024 * 1024) return false
++                        if (total > reservation.limit) return false
+                         output.write(buffer, 0, size)
+                     }
+                 }
+@@ -5234,8 +5239,9 @@
+         } catch (_: Exception) {
+             false
+         } finally {
+-            conn?.disconnect()
++            runCatching { conn?.disconnect() }
+             partial?.delete()
++            reservation?.close()
+         }
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt
+@@ -667,7 +667,9 @@
+         if (file.isFile && file.length() in 1L..MAX_ONE_SUBTITLE_BYTES) {
+             file.setLastModified(System.currentTimeMillis())
+             memoryLru[key]?.let { return@synchronized it }
+-            val data = runCatching { file.readBytes() }.getOrNull()
++            val data = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context).retain(file).use {
++                runCatching { file.readBytes() }.getOrNull()
++            }
+             if (data != null && data.isNotEmpty()) {
+                 putMemory(key, data)
+                 return@synchronized data
+@@ -705,7 +707,9 @@
+         if (data.isEmpty() || data.size.toLong() > MAX_ONE_SUBTITLE_BYTES) return@synchronized false
+         if (!savedDirectory.isDirectory && !savedDirectory.mkdirs()) return@synchronized false
+         val target = savedFile(key)
+-        val temporary = File(savedDirectory, "$key.tmp")
++        val reservation = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context)
++            .reserve(target, data.size.toLong()) ?: return@synchronized false
++        val temporary = reservation.temporary
+         val success = runCatching {
+             FileOutputStream(temporary).use { output ->
+                 output.write(data)
+@@ -719,6 +723,7 @@
+             true
+         }.getOrDefault(false)
+         if (!success) temporary.delete()
++        reservation.close()
+         success
+     }
+ 
+@@ -734,7 +739,7 @@
+         }?.sortedWith(compareBy<File> { it.lastModified() }.thenBy { it.name }).orEmpty()
+         var total = files.sumOf { it.length() }
+         for (file in files) {
+-            if (total <= SUBTITLE_CACHE_BYTES) break
++            if (total <= br.com.flaviotorres.iptvpremium.core.storage.CacheStorageLimits.SUBTITLES) break
+             val size = file.length()
+             if (file.delete()) {
+                 total -= size
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/AppCacheStorage.kt
+@@ -0,0 +1,12 @@
++package br.com.flaviotorres.iptvpremium.core.storage
++
++import android.content.Context
++import java.io.File
++
++internal object AppCacheStorage {
++    @Volatile private var instance: CacheStorageBudget? = null
++    fun get(context: Context): CacheStorageBudget = instance ?: synchronized(this) {
++        instance ?: CacheStorageBudget(context.applicationContext.cacheDir,
++            File(context.applicationContext.filesDir, "iptv_subtitles_lru_5mb")).also { instance = it }
++    }
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheStorageBudget.kt
+@@ -0,0 +1,142 @@
++package br.com.flaviotorres.iptvpremium.core.storage
++
++import java.io.File
++
++/** Decimal MB: storage limits, deliberately separate from the RAM policy. */
++internal object CacheStorageLimits {
++    const val TOTAL = 350_000_000L
++    const val IMAGES = 100_000_000L
++    const val EPISODES = 25_000_000L
++    const val RESPONSES = 25_000_000L
++    const val SUBTITLES = 5_000_000L
++    const val OTHER = 195_000_000L
++}
++internal enum class CacheStorageKind { IMAGES, EPISODES, RESPONSES, SUBTITLES, OTHER }
++
++/** Indexed LRU with pre-write reservations. Only disposable cache roots are ever enumerated. */
++internal class CacheStorageBudget(
++    cacheRoot: File,
++    subtitlesRoot: File,
++    private val totalLimit: Long = CacheStorageLimits.TOTAL,
++    private val limits: Map<CacheStorageKind, Long> = mapOf(
++        CacheStorageKind.IMAGES to CacheStorageLimits.IMAGES,
++        CacheStorageKind.EPISODES to CacheStorageLimits.EPISODES,
++        CacheStorageKind.RESPONSES to CacheStorageLimits.RESPONSES,
++        CacheStorageKind.SUBTITLES to CacheStorageLimits.SUBTITLES,
++        CacheStorageKind.OTHER to CacheStorageLimits.OTHER
++    ),
++    private val clock: () -> Long = System::currentTimeMillis
++) {
++    private val root = cacheRoot.canonicalFile
++    private val subtitles = subtitlesRoot.canonicalFile
++    private data class Entry(val bytes: Long, val accessed: Long, val kind: CacheStorageKind)
++    private val entries = linkedMapOf<File, Entry>()
++    private val readers = mutableMapOf<File, Int>()
++    private val reservations = mutableSetOf<Reservation>()
++    private var preferredNames = emptySet<String>()
++    private val cacheMarkers = setOf("history-session.marker", ".history-session.marker", ".iptv_theme_cache")
++    private var initialized = false
++    private fun child(file: File, directory: File) = file.path.startsWith(directory.path + File.separator)
++    private fun kind(file: File): CacheStorageKind {
++        require(child(file, root) || child(file, subtitles)) { "Not a disposable cache file" }
++        if (child(file, subtitles)) return CacheStorageKind.SUBTITLES
++        return when (file.relativeTo(root).invariantSeparatorsPath.substringBefore('/')) {
++            "iptv_movie_posters_session", "movie_details_images" -> CacheStorageKind.IMAGES
++            "series_episode_details" -> CacheStorageKind.EPISODES
++            "series_public_artwork_v1" -> CacheStorageKind.RESPONSES
++            else -> CacheStorageKind.OTHER
++        }
++    }
++    private fun index(file: File) {
++        if (file.isFile) entries[file] = Entry(file.length(), maxOf(file.lastModified(), entries[file]?.accessed ?: 0L), kind(file))
++        else entries.remove(file)
++    }
++    private fun scan() {
++        entries.clear()
++        val writing = reservations.map { it.temporary }.toSet()
++        fun visit(file: File) {
++            if (java.nio.file.Files.isSymbolicLink(file.toPath())) return
++            if (file.isDirectory) file.listFiles().orEmpty().forEach(::visit)
++            else if (file.isFile && file.canonicalFile !in writing) index(file.canonicalFile)
++        }
++        visit(root); visit(subtitles); initialized = true
++    }
++    private fun ensureIndex() {
++        if (!initialized) {
++            scan()
++            limits.forEach { (bucket, cap) -> trim(bucket, cap) }
++            trim(null, totalLimit)
++        }
++    }
++    @Synchronized fun prefer(names: Set<String>) { preferredNames = names.toSet() }
++    @Synchronized fun retain(file: File): AutoCloseable {
++        ensureIndex()
++        val key = file.canonicalFile; kind(key)
++        index(key)
++        readers[key] = (readers[key] ?: 0) + 1
++        entries[key]?.let { entries[key] = it.copy(accessed = clock()) }
++        return AutoCloseable { synchronized(this) {
++            val count = readers[key] ?: return@synchronized
++            if (count <= 1) readers.remove(key) else readers[key] = count - 1
++            index(key)
++        } }
++    }
++    private fun protected(file: File) = file in readers ||
++        (file.parentFile == root && file.name in cacheMarkers) ||
++        reservations.any { it.target == file || it.temporary == file }
++    private fun used(bucket: CacheStorageKind? = null): Long = entries.values.sumOf { if (bucket == null || it.kind == bucket) it.bytes else 0L } +
++        reservations.sumOf { if (bucket == null || it.kind == bucket) it.limit else 0L }
++    private fun trim(bucket: CacheStorageKind?, maximum: Long): Long {
++        var freed = 0L
++        val candidates = entries.entries.filter { (file, entry) -> (bucket == null || entry.kind == bucket) && !protected(file) }
++            .sortedWith(compareBy<Map.Entry<File, Entry>> { it.key.name in preferredNames }.thenBy { it.value.accessed })
++        for ((file, entry) in candidates) {
++            if (used(bucket) <= maximum) break
++            if (!file.exists() || file.delete()) { entries.remove(file); freed += entry.bytes }
++        }
++        return freed
++    }
++    @Synchronized fun reserve(target: File, maximumBytes: Long): Reservation? {
++        ensureIndex()
++        val file = target.canonicalFile
++        val bucket = kind(file)
++        val cap = limits.getValue(bucket)
++        if (maximumBytes <= 0 || maximumBytes > cap || maximumBytes > totalLimit || reservations.any { it.target == file }) return null
++        index(file)
++        // Existing targets/readers are protected even while preparing their replacement.
++        val guard = retain(file)
++        try {
++            trim(bucket, cap - maximumBytes)
++            trim(null, totalLimit - maximumBytes)
++            if (used(bucket) + maximumBytes > cap || used() + maximumBytes > totalLimit) return null
++            return Reservation(file, File(file.parentFile, file.name + "." + java.util.UUID.randomUUID() + ".part"), maximumBytes, bucket)
++                .also { reservations += it }
++        } finally { guard.close() }
++    }
++    inner class Reservation internal constructor(val target: File, val temporary: File, val limit: Long, internal val kind: CacheStorageKind) : AutoCloseable {
++        private var closed = false
++        override fun close() = synchronized(this@CacheStorageBudget) {
++            if (!closed) {
++                closed = true
++                temporary.delete()
++                reservations.remove(this)
++                index(target); index(temporary)
++            }
++        }
++    }
++    /** Periodic reconciliation runs off the UI thread after navigation/import is idle. */
++    @Synchronized fun maintain(): Long {
++        scan()
++        var freed = 0L
++        val cutoff = clock() - 24L * 60 * 60 * 1000
++        val abandoned = entries.keys.filter { file ->
++            file.name.endsWith(".part") && file.lastModified() < cutoff && !protected(file) &&
++                (file.name.startsWith("download-") || file.name.contains(Regex("[0-9a-f]{8}-[0-9a-f-]{27}")))
++        }
++        abandoned.forEach { file -> if (file.delete()) { freed += entries.remove(file)?.bytes ?: 0L } }
++        limits.forEach { (bucket, cap) -> freed += trim(bucket, cap) }
++        freed += trim(null, totalLimit)
++        return freed
++    }
++    @Synchronized fun accountedBytes(): Long { ensureIndex(); return used() }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/ImageDiskBudget.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/ImageDiskBudget.kt
+@@ -5,8 +5,9 @@
+ /** Shared on-disk budget only. Call on an IO dispatcher, never while drawing the UI. */
+ internal class ImageDiskBudget(
+     private val cacheRoot: File,
+-    private val maxBytes: Long = 64L * 1024 * 1024,
+-    private val clock: () -> Long = System::nanoTime
++    private val maxBytes: Long = CacheStorageLimits.IMAGES,
++    private val clock: () -> Long = System::nanoTime,
++    private val storage: CacheStorageBudget? = null
+ ) {
+     private val directories = listOf("iptv_movie_posters_session", "movie_details_images")
+     private val readers = mutableMapOf<File, Int>()
+@@ -14,24 +15,25 @@
+     private var overBudget = false
+     private var preferredNames: Set<String> = emptySet()
+ 
+-    @Synchronized fun prefer(names: Set<String>) { preferredNames = names.toSet() }
++    @Synchronized fun prefer(names: Set<String>) { preferredNames = names.toSet(); storage?.prefer(names) }
+ 
+     @Synchronized fun retain(file: File): Lease {
+         require(file.parentFile in directories.map { File(cacheRoot, it) })
+         readers[file] = (readers[file] ?: 0) + 1
+-        val lease = Lease(file, file.length())
+-        maintain(false)
++        val lease = Lease(file, file.length(), storage?.retain(file))
++        if (storage == null) maintain(false)
+         return lease
+     }
+ 
+-    inner class Lease internal constructor(private val file: File, private val initialBytes: Long) : AutoCloseable {
++    inner class Lease internal constructor(private val file: File, private val initialBytes: Long, private val guard: AutoCloseable?) : AutoCloseable {
+         private var closed = false
+         override fun close() = synchronized(this@ImageDiskBudget) {
+             if (!closed) {
+                 closed = true
+                 val count = readers.getValue(file)
+                 if (count == 1) readers.remove(file) else readers[file] = count - 1
+-                maintain(file.length() != initialBytes || overBudget)
++                guard?.close()
++                if (storage == null) maintain(file.length() != initialBytes || overBudget)
+             }
+         }
+     }
+@@ -53,6 +55,7 @@
+ 
+     /** Includes partial downloads in accounting, but never deletes an active reader or writer. */
+     @Synchronized fun maintain(force: Boolean = true): Long {
++        if (storage != null) return if (force) storage.maintain() else 0L
+         val now = clock()
+         if (!force && lastScan?.let { now - it < 60_000_000_000L } == true) return 0L
+         lastScan = now
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/ImageDiskCache.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/ImageDiskCache.kt
+@@ -5,6 +5,6 @@
+ internal object ImageDiskCache {
+     @Volatile private var instance: ImageDiskBudget? = null
+     fun get(context: Context): ImageDiskBudget = instance ?: synchronized(this) {
+-        instance ?: ImageDiskBudget(context.applicationContext.cacheDir).also { instance = it }
++        instance ?: ImageDiskBudget(context.applicationContext.cacheDir, storage = AppCacheStorage.get(context)).also { instance = it }
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/update/AppUpdateManager.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/update/AppUpdateManager.kt
+@@ -93,13 +93,18 @@
+         val policy = state.value.policy ?: return
+         if (downloadJob?.isActive == true) return
+         downloadJob = scope.launch {
+-            val pending = File(directory, "download-${policy.versionCode}-${java.util.UUID.randomUUID()}.part")
++            var reservation: br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget.Reservation? = null
++            var pending = File(directory, "download-${policy.versionCode}-${java.util.UUID.randomUUID()}.part")
+             try {
+                 state.update { if (it.policy == policy) it.copy(stage = "downloading", progress = 0f, message = null) else it }
+                 val apk = target(policy)
+                 if (!apk.exists()) {
+                     directory.listFiles()?.filter { it != pending }?.forEach { it.delete() }
+                     require(StatFs(directory.path).availableBytes > policy.sizeBytes + 32L * 1024 * 1024) { "Espaço insuficiente. Libere espaço no aparelho e tente novamente." }
++                    reservation = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(app)
++                        .reserve(apk, policy.sizeBytes)
++                        ?: error("A atualização excede o espaço disponível no limite de cache.")
++                    pending = reservation.temporary
+                     downloadFile(policy, pending)
+                     state.update { if (it.policy == policy) it.copy(stage = "verifying", progress = 1f) else it }
+                     verify(policy, pending)
+@@ -112,7 +117,7 @@
+             catch (error: Exception) {
+                 target(policy).delete()
+                 state.update { if (it.policy == policy) it.copy(stage = "error", message = safeMessage(error)) else it }
+-            } finally { pending.delete() }
++            } finally { pending.delete(); reservation?.close() }
+         }
+     }
+ 
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/ArtworkHttpCache.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/ArtworkHttpCache.kt
+@@ -14,6 +14,7 @@
+ 
+ /** Fixed public endpoints, bounded JSON and expiring cache under cacheDir. No playlist credentials. */
+ internal class ArtworkHttpCache(context: Context) {
++    private val budget = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context)
+     private val directory = File(context.applicationContext.cacheDir, "series_public_artwork_v1")
+     private val locks = Array(16) { Mutex() }
+     private val absentUntil = java.util.concurrent.ConcurrentHashMap<String, Long>()
+@@ -29,10 +30,10 @@
+         return locks[(key.hashCode() and Int.MAX_VALUE) % locks.size].withLock {
+             withContext(Dispatchers.IO) {
+                 val file = File(directory, "$key.json")
+-                val cached = runCatching {
++                val cached = budget.retain(file).use { runCatching {
+                     val age = System.currentTimeMillis() - file.lastModified()
+                     if (file.isFile && file.length() <= MAX_BYTES && age in 0..21_600_000L) file.readText().takeIf { validJson(it) } else null
+-                }.getOrNull()
++                }.getOrNull() }
+                 if (cached != null) return@withContext cached
+                 if ((absentUntil[key] ?: 0L) > android.os.SystemClock.elapsedRealtime()) return@withContext null
+                 val started = System.nanoTime()
+@@ -66,17 +67,11 @@
+                         check(validJson(body)) { "JSON de arte invalido" }
+                         runCatching {
+                             directory.mkdirs()
+-                            val temporary = File.createTempFile("art-", ".tmp", directory)
+-                            try {
+-                                temporary.writeText(body)
+-                                check(temporary.renameTo(file))
+-                            } finally { temporary.delete() }
+-                            directory.listFiles()?.filter { it.isFile }?.sortedByDescending { it.lastModified() }?.let { files ->
+-                                var total = 0L
+-                                files.forEachIndexed { index, cached ->
+-                                    total += cached.length()
+-                                    if (index >= 48 || total > 12L * 1024 * 1024) cached.delete()
+-                                }
++                            val data = body.toByteArray(Charsets.UTF_8)
++                            val reservation = budget.reserve(file, data.size.toLong())
++                            if (reservation != null) reservation.use {
++                                it.temporary.writeBytes(data)
++                                check(it.temporary.renameTo(file))
+                             }
+                         }
+                         body
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesEpisodeDiskCache.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesEpisodeDiskCache.kt
+@@ -7,9 +7,10 @@
+ internal class SeriesEpisodeDiskCache(
+     private val directory: File,
+     private val clock: () -> Long = System::currentTimeMillis,
+-    private val maxBytes: Long = 12L * 1024 * 1024,
++    private val maxBytes: Long = br.com.flaviotorres.iptvpremium.core.storage.CacheStorageLimits.EPISODES,
+     private val maxEntries: Int = 40,
+-    private val ttlMs: Long = 6L * 60 * 60 * 1000
++    private val ttlMs: Long = 6L * 60 * 60 * 1000,
++    private val storage: br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget? = null
+ ) {
+     private fun file(key: String): File {
+         val hash = MessageDigest.getInstance("SHA-256").digest(key.toByteArray()).joinToString("") { "%02x".format(it.toInt() and 255) }
+@@ -17,14 +18,20 @@
+     }
+     @Synchronized fun read(key: String): String? = try {
+         val f = file(key)
++        val guard = storage?.retain(f)
++        try {
+         if (!f.isFile) null
+         else if (clock() - f.lastModified() !in 0..ttlMs || f.length() > MAX_ENTRY_BYTES) { f.delete(); null }
+         else f.readText()
++        } finally { guard?.close() }
+     } catch (_: Exception) { null }
+     @Synchronized fun write(key: String, value: String) {
+         val bytes = value.toByteArray()
+         if (bytes.size > MAX_ENTRY_BYTES || bytes.size > maxBytes) return
+-        val target = file(key); val temp = File(directory, target.name + ".part")
++        val target = file(key)
++        val reservation = storage?.reserve(target, bytes.size.toLong())
++        if (storage != null && reservation == null) return
++        val temp = reservation?.temporary ?: File(directory, target.name + ".part")
+         try {
+             if (!directory.isDirectory && !directory.mkdirs()) return
+             temp.writeBytes(bytes)
+@@ -37,7 +44,7 @@
+                 val n = entry.length(); if (entry.delete()) { total -= n; count-- }
+             }
+         } catch (_: Exception) { /* Cache nao impede a abertura da serie. */ }
+-        finally { temp.delete() }
++        finally { temp.delete(); reservation?.close() }
+     }
+     private companion object { const val MAX_ENTRY_BYTES = 4L * 1024 * 1024 }
+ }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogFavoriteHeart.kt
+@@ -0,0 +1,46 @@
++package br.com.flaviotorres.iptvpremium.ui.components
++
++import androidx.compose.foundation.Canvas
++import androidx.compose.foundation.gestures.detectTapGestures
++import androidx.compose.foundation.layout.Box
++import androidx.compose.foundation.layout.size
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.Path
++import androidx.compose.ui.graphics.drawscope.Stroke
++import androidx.compose.ui.input.pointer.pointerInput
++import androidx.compose.ui.semantics.Role
++import androidx.compose.ui.semantics.onClick
++import androidx.compose.ui.semantics.role
++import androidx.compose.ui.semantics.semantics
++import androidx.compose.ui.semantics.stateDescription
++import androidx.compose.ui.unit.dp
++
++/** Small heart in the metadata row; long OK on the card still toggles favorites. */
++@Composable
++internal fun CatalogFavoriteHeart(isFavorite: Boolean, compact: Boolean, onClick: () -> Unit) {
++    Box(Modifier.size(if (compact) 12.dp else 15.dp)
++        .pointerInput(onClick) { detectTapGestures { onClick() } }
++        .semantics {
++            role = Role.Button
++            stateDescription = if (isFavorite) "Favorito" else "Não favorito"
++            onClick(label = if (isFavorite) "Remover favorito" else "Adicionar favorito") { onClick(); true }
++        }, contentAlignment = Alignment.Center) {
++        Canvas(Modifier.size(if (compact) 10.dp else 12.dp)) {
++            val w = size.width; val h = size.height
++            val heart = Path().apply {
++                moveTo(w * .5f, h * .88f)
++                cubicTo(w * .42f, h * .8f, w * .08f, h * .58f, w * .08f, h * .32f)
++                cubicTo(w * .08f, h * .05f, w * .36f, h * .0f, w * .5f, h * .17f)
++                cubicTo(w * .64f, h * .0f, w * .92f, h * .05f, w * .92f, h * .32f)
++                cubicTo(w * .92f, h * .58f, w * .58f, h * .8f, w * .5f, h * .88f)
++                close()
++            }
++            drawPath(heart, color = if (isFavorite)
++                br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.color(0xFFFFD54A)
++                else Color(0xFF9D9DA3), style = if (isFavorite) androidx.compose.ui.graphics.drawscope.Fill else Stroke(width = 1.dp.toPx()))
++        }
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/ActorDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/ActorDetailsScreen.kt
+@@ -1070,18 +1070,8 @@
+                                 label = "TRAILER",
+                                 compact = compact,
+                                 onClick = {
+-                                    val key = detail.trailerKey
+-                                    if (key == null) {
+-                                        Toast.makeText(context, "Trailer indisponível.", Toast.LENGTH_SHORT).show()
+-                                    } else {
+-                                        try {
+-                                            context.startActivity(
+-                                                Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=$key"))
+-                                            )
+-                                        } catch (_: Exception) {
+-                                            Toast.makeText(context, "Não foi possível abrir o trailer.", Toast.LENGTH_SHORT).show()
+-                                        }
+-                                    }
++                                    br.com.flaviotorres.iptvpremium.core.media.openTrailer(
++                                        context, detail.trailerKey, detail.title, kind = credit.mediaType, tmdbId = credit.tmdbId.toString(), year = credit.year?.toIntOrNull())
+                                 }
+                             )
+                         }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
+@@ -1409,7 +1409,7 @@
+ 
+                         downloadSlots.acquire()
+                         val downloaded = try {
+-                            downloadToDisk(normalizedUrl, diskFile)
++                            downloadToDisk(context, normalizedUrl, diskFile)
+                         } finally {
+                             downloadSlots.release()
+                         }
+@@ -1485,14 +1485,13 @@
+         )
+     }
+ 
+-    private suspend fun downloadToDisk(url: String, destination: File): Boolean {
++    private suspend fun downloadToDisk(context: Context, url: String, destination: File): Boolean {
++        var reservation: br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget.Reservation? = null
+         var connection: HttpURLConnection? = null
+         var partialFile: File? = null
+ 
+         return try {
+             val directory = destination.parentFile ?: return false
+-            val temporary = File.createTempFile("loading_", ".tmp", directory)
+-            partialFile = temporary
+ 
+             connection = (URL(url).openConnection() as HttpURLConnection).apply {
+                 connectTimeout = 8_000
+@@ -1504,6 +1503,10 @@
+             connection.connect()
+             if (connection.responseCode !in 200..299) return false
+             if (connection.contentLengthLong > MAX_DOWNLOAD_BYTES) return false
++            reservation = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context)
++                .reserve(destination, connection.contentLengthLong.takeIf { it > 0 } ?: MAX_DOWNLOAD_BYTES) ?: return false
++            val temporary = reservation.temporary
++            partialFile = temporary
+ 
+             var totalBytes = 0L
+             connection.inputStream.use { input ->
+@@ -1514,7 +1517,7 @@
+                         val count = input.read(buffer)
+                         if (count == -1) break
+                         totalBytes += count
+-                        if (totalBytes > MAX_DOWNLOAD_BYTES) return false
++                        if (totalBytes > reservation.limit) return false
+                         output.write(buffer, 0, count)
+                     }
+                 }
+@@ -1529,8 +1532,9 @@
+             Log.w(TAG, "Download de imagem falhou: ${error.javaClass.simpleName}")
+             false
+         } finally {
+-            connection?.disconnect()
++            runCatching { connection?.disconnect() }
+             partialFile?.delete()
++            reservation?.close()
+         }
+     }
+ 
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -348,6 +348,11 @@
+     var returningMovieFocusRequest by remember { mutableLongStateOf(0L) }
+ 
+     LaunchedEffect(Unit) {
++        if (selectedMovieId == null) {
++            categoryMenuActive = true
++            br.com.flaviotorres.iptvpremium.ui.components.restoreCatalogCategoryFocus(
++                movieCategoryListState, 0, categoryFirstFocusRequester, menuFocusRequester, catalogInputMode)
++        }
+         selectedMovieId?.let { movieId ->
+             categoryMenuActive = false
+             returningMovieFocusId = movieId
+@@ -2441,39 +2446,7 @@
+                 )
+             }
+ 
+-            Box(
+-                modifier = Modifier
+-                    .align(Alignment.TopEnd)
+-                    .padding(
+-                        top = if (compactLayout) 6.dp else 8.dp,
+-                        end = if (compactLayout) 6.dp else 8.dp
+-                    )
+-                    // Área transparente, sem ripple ou foco separado:
+-                    // o coração é o único elemento desenhado.
+-                    .size(if (compactLayout) 30.dp else 34.dp)
+-                    .pointerInput(movieId, holdThreshold) {
+-                        detectTapGestures(
+-                            onTap = { currentOnFavoriteClick(false) }
+-                        )
+-                    }
+-                    .semantics {
+-                        role = Role.Button
+-                        onClick(label = if (isFavorite) "Remover favorito" else "Adicionar favorito") {
+-                            currentOnFavoriteClick(false)
+-                            true
+-                        }
+-                    },
+-                contentAlignment = Alignment.Center
+-            ) {
+-                FavoriteHeart(
+-                    isFavorite = isFavorite,
+-                    size = if (compactLayout) {
+-                        18
+-                    } else {
+-                        20
+-                    }
+-                )
+-            }
++
+ 
+             watchProgress?.takeIf { it > 0f }?.let { fraction ->
+                 Box(
+@@ -2541,30 +2514,19 @@
+             overflow = if (isFocused) TextOverflow.Clip else TextOverflow.Ellipsis
+         )
+ 
+-        if (metadataText.isNotBlank()) {
+-            Spacer(
+-                modifier = Modifier.height(
+-                    if (compactLayout) {
+-                        2.dp
+-                    } else {
+-                        3.dp
+-                    }
+-                )
+-            )
+-
+-            Text(
++        Spacer(Modifier.height(if (compactLayout) 2.dp else 3.dp))
++        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
++            if (metadataText.isNotBlank()) Text(
+                 text = metadataText,
++                modifier = Modifier.weight(1f, fill = false),
+                 lineHeight = if (compactLayout) 12.sp else 16.sp,
+                 color = Color(0xFF9D9DA3),
+-                fontSize =
+-                    if (compactLayout) {
+-                        9.sp
+-                    } else {
+-                        11.sp
+-                    },
+-                maxLines = 1,
+-                overflow = TextOverflow.Ellipsis
++                fontSize = if (compactLayout) 9.sp else 11.sp,
++                maxLines = 1, overflow = TextOverflow.Ellipsis
+             )
++            br.com.flaviotorres.iptvpremium.ui.components.CatalogFavoriteHeart(isFavorite, compactLayout) {
++                currentOnFavoriteClick(false)
++            }
+         }
+     }
+ }
+@@ -2907,7 +2869,7 @@
+                 return@withContext file
+             }
+ 
+-            val downloaded = networkBudget.run(background) { download(url, file) }
++            val downloaded = networkBudget.run(background) { download(context, url, file) }
+             if (!downloaded) return@withContext null
+ 
+             file.takeIf { it.isFile && it.length() > 0L }
+@@ -2916,8 +2878,8 @@
+         }
+     }
+ 
+-    private suspend fun download(url: String, target: File): Boolean {
+-        val temporary = File(target.parentFile, "${target.name}.part")
++    private suspend fun download(context: Context, url: String, target: File): Boolean {
++        var reservation: br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget.Reservation? = null
+         var connection: HttpURLConnection? = null
+         try {
+             currentCoroutineContext().ensureActive()
+@@ -2931,6 +2893,9 @@
+             connection.connect()
+             if (connection.responseCode !in 200..299) return false
+             if (connection.contentLengthLong > MAX_POSTER_BYTES) return false
++            reservation = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context)
++                .reserve(target, connection.contentLengthLong.takeIf { it > 0 } ?: MAX_POSTER_BYTES) ?: return false
++            val temporary = reservation.temporary
+ 
+             var byteCount = 0L
+             connection.inputStream.use { input ->
+@@ -2941,7 +2906,7 @@
+                         val read = input.read(buffer)
+                         if (read < 0) break
+                         byteCount += read
+-                        if (byteCount > MAX_POSTER_BYTES) return false
++                        if (byteCount > reservation.limit) return false
+                         output.write(buffer, 0, read)
+                     }
+                 }
+@@ -2953,7 +2918,7 @@
+         } catch (_: Exception) {
+             return false
+         } finally {
+-            temporary.delete()
++            reservation?.close()
+             connection?.disconnect()
+         }
+     }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -1258,6 +1258,11 @@
+ 
+     // Com a volta dos detalhes, mantém a posição e restaura o foco da capa.
+     LaunchedEffect(Unit) {
++        if (selectedSeriesId == null) {
++            categoryMenuActive = true
++            br.com.flaviotorres.iptvpremium.ui.components.restoreCatalogCategoryFocus(
++                categoryListState, 0, selectedCategoryFocus, menuFocusRequester, catalogInputMode)
++        }
+         selectedSeriesId?.let {
+             categoryMenuActive = false
+             returningSeriesFocusId = it
+@@ -2595,37 +2600,7 @@
+                 visuallyFocused || isSelected, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP
+             ))
+ 
+-            Box(
+-                modifier = Modifier
+-                    .align(Alignment.TopEnd)
+-                    .padding(
+-                        top = if (compactLayout) 6.dp else 8.dp,
+-                        end = if (compactLayout) 6.dp else 8.dp
+-                    )
+-                    // Área transparente: não ocupa um segundo foco na TV
+-                    // e não desenha ripple ou quadrado atrás do coração.
+-                    .size(if (compactLayout) 30.dp else 34.dp)
+-                    .pointerInput(Unit) {
+-                        detectTapGestures(onTap = { currentOnFavoriteClick(false) })
+-                    }
+-                    .semantics {
+-                        role = Role.Button
+-                        onClick(label = if (isFavorite) "Remover favorito" else "Adicionar favorito") {
+-                            currentOnFavoriteClick(false)
+-                            true
+-                        }
+-                    },
+-                contentAlignment = Alignment.Center
+-            ) {
+-                FavoriteHeart(
+-                    isFavorite = isFavorite,
+-                    size = if (compactLayout) {
+-                        18
+-                    } else {
+-                        20
+-                    }
+-                )
+-            }
++
+         }
+ 
+         Spacer(
+@@ -2676,16 +2651,19 @@
+                 add(String.format(Locale.US, "★ %.1f", it))
+             }
+         }.joinToString("  •  ")
+-        if (metadata.isNotBlank()) {
+-            Spacer(Modifier.height(if (compactLayout) 2.dp else 3.dp))
+-            Text(
++        Spacer(Modifier.height(if (compactLayout) 2.dp else 3.dp))
++        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
++            if (metadata.isNotBlank()) Text(
+                 text = metadata,
++                modifier = Modifier.weight(1f, fill = false),
+                 lineHeight = if (compactLayout) 12.sp else 16.sp,
+                 color = Color(0xFF9D9DA3),
+                 fontSize = if (compactLayout) 9.sp else 11.sp,
+-                maxLines = 1,
+-                overflow = TextOverflow.Ellipsis
++                maxLines = 1, overflow = TextOverflow.Ellipsis
+             )
++            br.com.flaviotorres.iptvpremium.ui.components.CatalogFavoriteHeart(isFavorite, compactLayout) {
++                currentOnFavoriteClick(false)
++            }
+         }
+     }
+ }
