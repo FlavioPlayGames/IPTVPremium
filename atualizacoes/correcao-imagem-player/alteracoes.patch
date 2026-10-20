@@ -1,0 +1,12 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackImageEffects.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackImageEffects.kt
+@@ -73,7 +73,8 @@
+                 program.use()
+                 program.setSamplerTexIdUniform("uTexSampler", inputTexId, 0)
+                 program.bindAttributesAndUniforms()
+-                GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4)
++                // GlUtil bounds are ordered for a strip, not a perimeter fan.
++                GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+                 GlUtil.checkGlError()
+             } catch (error: GlUtil.GlException) {
+                 throw VideoFrameProcessingException(error, presentationTimeUs)

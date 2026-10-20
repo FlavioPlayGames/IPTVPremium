@@ -40,6 +40,8 @@ O script confere todos os arquivos antes de alterar o projeto, aceita diferença
 
 O script acrescenta somente a dependência `media3-effect` ao `app/build.gradle.kts` local. O restante desse arquivo e a configuração privada do projeto são preservados; o arquivo completo não está no pacote publicado. O patch `alteracoes.patch` permite revisar as mudanças.
 
+A correção de cobertura do quadro (`GL_TRIANGLE_STRIP`) já está incluída neste atualizador. Para uma instalação anterior que apresente um triângulo preto, use o [atualizador de correção](../correcao-imagem-player/README.md).
+
 ## Validação realizada
 
 - Compilação de `assembleDebug` e `assembleDebugAndroidTest` concluída.
