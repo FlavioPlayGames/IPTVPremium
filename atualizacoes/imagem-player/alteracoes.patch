@@ -1,0 +1,825 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackModels.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackModels.kt
+@@ -229,7 +229,8 @@
+     val nextEpisodeCountdownSeconds: Int = 10,
+     val autoPlayNextEpisode: Boolean = true,
+     val aspect: PlaybackVideoLayout = PlaybackVideoLayout(),
+-    val subtitleStyle: PlaybackSubtitleStyle = PlaybackSubtitleStyle()
++    val subtitleStyle: PlaybackSubtitleStyle = PlaybackSubtitleStyle(),
++    val imageEnhancement: PlaybackImageEnhancement = PlaybackImageEnhancement()
+ ) {
+     init {
+         require(controlsTimeoutSeconds in setOf(3, 5, 8, 10))
+@@ -302,7 +303,8 @@
+     val nextEpgProgram: PlaybackEpgProgram? = null,
+     val technicalInfo: PlaybackTechnicalInfo = PlaybackTechnicalInfo(),
+     val failure: PlaybackFailure? = null,
+-    val automaticEngineSwitchCount: Int = 0
++    val automaticEngineSwitchCount: Int = 0,
++    val imageEnhancement: PlaybackImageEnhancement = PlaybackImageEnhancement()
+ ) {
+     val isBuffering: Boolean
+         get() = status == PlaybackStatus.BUFFERING || status == PlaybackStatus.PREPARING
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackEngineContract.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackEngineContract.kt
+@@ -102,6 +102,8 @@
+ 
+     /** A superfície foi destruída pelo Android e precisa ser recriada. */
+     data object VideoSurfaceLost : PlaybackEngineEvent
++
++    data class ImageEnhancementBypassed(val reason: String) : PlaybackEngineEvent
+ }
+ 
+ /**
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackController.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackController.kt
+@@ -242,6 +242,17 @@
+         result
+     }
+ 
++    /** Recreate only this engine, retaining position, pause state and track preferences. */
++    fun setImageEnhancement(value: PlaybackImageEnhancement): PlaybackCommandResult {
++        if (!usable() || request == null) return PlaybackCommandResult.INVALID_STATE
++        if (activeEngine != PlaybackEngine.MEDIA3 && value.mode != PlaybackImageMode.OFF)
++            return PlaybackCommandResult.UNSUPPORTED
++        val current = request!!
++        if (current.settings.imageEnhancement == value) return PlaybackCommandResult.ACCEPTED
++        request = current.copy(settings = current.settings.copy(imageEnhancement = value))
++        return activate(activeEngine ?: current.settings.preferredEngine, automatic = false)
++    }
++
+     fun setVolume(volume: Float): PlaybackCommandResult = forward {
+         val result = it.setVolume(volume)
+         if (result == PlaybackCommandResult.ACCEPTED) currentVolume = volume
+@@ -314,7 +325,8 @@
+             engine = target,
+             status = PlaybackStatus.PREPARING,
+             positionMs = position,
+-            isLive = original.media.type == PlaybackContentType.LIVE_CHANNEL
++            isLive = original.media.type == PlaybackContentType.LIVE_CHANNEL,
++            imageEnhancement = original.settings.imageEnhancement
+         )
+         mutableCapabilities.value = PlaybackEngineCapabilities()
+ 
+@@ -387,7 +399,15 @@
+                 if (!isCurrent(session, created)) return@collect
+                 // O StateFlow pode confluir um erro rapido com outro estado.
+                 // A geracao deduplica erro publicado tanto no evento como no estado.
+-                if (event is PlaybackEngineEvent.Failure) {
++                if (event is PlaybackEngineEvent.ImageEnhancementBypassed) {
++                    mutableEvents.tryEmit(PlaybackControllerEvent.PlayerEvent(event))
++                    scope.launch {
++                        if (isCurrent(session, created)) {
++                            val image = request?.settings?.imageEnhancement ?: return@launch
++                            setImageEnhancement(image.copy(mode = PlaybackImageMode.OFF))
++                        }
++                    }
++                } else if (event is PlaybackEngineEvent.Failure) {
+                     handleFailure(session, event.failure)
+                 } else {
+                     mutableEvents.tryEmit(PlaybackControllerEvent.PlayerEvent(event))
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/Media3PlaybackAdapter.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/Media3PlaybackAdapter.kt
+@@ -47,6 +47,9 @@
+ 
+     override val engine: PlaybackEngine = PlaybackEngine.MEDIA3
+ 
++    private val applicationContext = context.applicationContext
++    private val contextGlVersion = (context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager)
++        .deviceConfigurationInfo.reqGlEsVersion
+     private val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as android.hardware.display.DisplayManager
+     private fun supportedDisplayFormats() = displayHdrFormats(displayManager.getDisplay(android.view.Display.DEFAULT_DISPLAY))
+     private val mainHandler = Handler(Looper.getMainLooper())
+@@ -76,6 +79,29 @@
+     private var manualVariantId: String? = null
+     private var suppressHdrRefresh = false
+     private var tickerRunning = false
++    private var imageBypassSent = false
++    private fun bypassImage(reason: String) {
++        val mediaId = currentRequest?.media?.id
++        mainHandler.post {
++            if (!released && currentRequest?.media?.id == mediaId && !imageBypassSent &&
++                (currentRequest?.settings?.imageEnhancement?.mode ?: PlaybackImageMode.OFF) != PlaybackImageMode.OFF) {
++                imageBypassSent = true
++                mutableEvents.tryEmit(PlaybackEngineEvent.ImageEnhancementBypassed(reason))
++            }
++        }
++    }
++    private fun validateImageFormat() {
++        val request = currentRequest ?: return
++        if (request.settings.imageEnhancement.mode == PlaybackImageMode.OFF) return
++        val format = player.videoFormat ?: player.currentTracks.groups
++            .firstOrNull { it.type == C.TRACK_TYPE_VIDEO && it.isSelected }?.let { group ->
++                (0 until group.length).firstOrNull { group.isTrackSelected(it) }?.let { group.getTrackFormat(it) }
++            } ?: return
++        val reason = PlaybackImagePolicy.unsupported(request.settings.imageEnhancement.mode,
++            androidx.media3.common.ColorInfo.isTransferHdr(format.colorInfo) || format.sampleMimeType == MimeTypes.VIDEO_DOLBY_VISION,
++            format.drmInitData != null, format.width, format.height, format.frameRate)
++        if (reason != null) bypassImage(reason)
++    }
+ 
+     private val positionTicker = object : Runnable {
+         override fun run() {
+@@ -127,6 +153,7 @@
+         override fun onTracksChanged(tracks: Tracks) {
+             if (released) return
+             refreshTrackInformation(tracks)
++            validateImageFormat()
+             if (!suppressHdrRefresh && manualVariantId == null) {
+                 applyAutomaticHdrSelection()
+             }
+@@ -165,6 +192,12 @@
+         override fun onPlayerError(error: PlaybackException) {
+             if (released) return
+             val failure = classifyFailure(error)
++            if ((currentRequest?.settings?.imageEnhancement?.mode ?: PlaybackImageMode.OFF) != PlaybackImageMode.OFF &&
++                (failure.type in setOf(PlaybackFailureType.DECODER, PlaybackFailureType.DRM, PlaybackFailureType.UNSUPPORTED_FORMAT) ||
++                 generateSequence<Throwable>(error) { it.cause }.any { it is androidx.media3.common.VideoFrameProcessingException })) {
++                bypassImage("Melhoria desativada: o aparelho não conseguiu aplicar o efeito.")
++                return
++            }
+             mutableState.value = mutableState.value.copy(
+                 status = PlaybackStatus.ERROR,
+                 failure = failure
+@@ -185,7 +218,16 @@
+             .setAudioAttributes(AudioAttributes.DEFAULT, true)
+             .setHandleAudioBecomingNoisy(true)
+             .build()
+-            .apply { addListener(playerListener) }
++            .apply {
++                addListener(playerListener)
++                addAnalyticsListener(object : androidx.media3.exoplayer.analytics.AnalyticsListener {
++                    override fun onDroppedVideoFrames(eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime,
++                                                      droppedFrames: Int, elapsedMs: Long) {
++                        if (droppedFrames >= 8 && elapsedMs >= 1_000 && droppedFrames * 1_000L / elapsedMs >= 6)
++                            bypassImage("Melhoria desativada para preservar a fluidez do vídeo.")
++                    }
++                })
++            }
+     }
+ 
+     override fun attachVideoSurface(holder: SurfaceHolder): PlaybackCommandResult {
+@@ -219,6 +261,7 @@
+ 
+         return try {
+             currentRequest = request
++            imageBypassSent = false
+             opened = true
+             manualVariantId = null
+             currentLayout = PlaybackVideoLayout()
+@@ -232,7 +275,8 @@
+                 } else {
+                     request.startPositionMs
+                 },
+-                isLive = request.media.type == PlaybackContentType.LIVE_CHANNEL
++                isLive = request.media.type == PlaybackContentType.LIVE_CHANNEL,
++                imageEnhancement = request.settings.imageEnhancement
+             )
+ 
+             val itemBuilder = MediaItem.Builder().setUri(url)
+@@ -257,6 +301,12 @@
+                         !request.settings.subtitlesEnabled
+                     )
+                 }.build()
++            val image = request.settings.imageEnhancement
++            if (image.mode != PlaybackImageMode.OFF) {
++                val supportedGl = contextGlVersion >= if (image.mode == PlaybackImageMode.FSR1) 0x30000 else 0x20000
++                if (!supportedGl) bypassImage("Melhoria indisponível nesta versão do OpenGL do aparelho.")
++                else player.setVideoEffects(PlaybackImageEffects.create(applicationContext, image, ::bypassImage))
++            }
+             player.setPlaybackSpeed(request.settings.speed)
+             player.setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT)
+             if (request.media.type == PlaybackContentType.LIVE_CHANNEL) {
+@@ -270,6 +320,10 @@
+             startPositionTicker()
+             PlaybackCommandResult.ACCEPTED
+         } catch (_: Exception) {
++            if (request.settings.imageEnhancement.mode != PlaybackImageMode.OFF) {
++                bypassImage("Melhoria desativada: o efeito não pôde ser iniciado.")
++                return PlaybackCommandResult.ACCEPTED
++            }
+             opened = false
+             // Não deixar reprodução iniciada parcialmente após uma exceção.
+             runCatching { player.stop() }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt
+@@ -18,6 +18,7 @@
+ import androidx.compose.foundation.layout.Box
+ import androidx.compose.foundation.layout.BoxWithConstraints
+ import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.offset
+ import androidx.compose.foundation.layout.Row
+ import androidx.compose.foundation.layout.Spacer
+ import androidx.compose.foundation.layout.fillMaxHeight
+@@ -90,6 +91,7 @@
+ import androidx.tv.material3.Text
+ import br.com.flaviotorres.iptvpremium.ui.movies.MovieDetailsImageLoader
+ import kotlinx.coroutines.delay
++import kotlinx.coroutines.flow.collect
+ import java.util.Locale
+ import kotlin.math.max
+ import kotlin.math.cos
+@@ -239,6 +241,19 @@
+     }
+     var interactionTick by remember { mutableIntStateOf(0) }
+     var feedback by remember { mutableStateOf<String?>(null) }
++    LaunchedEffect(controller) {
++        controller.events.collect { event ->
++            if (event is PlaybackControllerEvent.PlayerEvent && event.event is PlaybackEngineEvent.ImageEnhancementBypassed) {
++                feedback = event.event.reason
++            }
++        }
++    }
++    fun updateImage(value: PlaybackImageEnhancement) {
++        val result = controller.setImageEnhancement(value)
++        if (result == PlaybackCommandResult.ACCEPTED) {
++            br.com.flaviotorres.iptvpremium.ui.settings.SettingsPreferences(context).setImageEnhancement(value)
++        } else feedback = "Melhoria de imagem disponível no Exo Player."
++    }
+     var speed by remember { mutableFloatStateOf(effectiveSettings.speed) }
+     var currentLayout by remember(media.id) { mutableStateOf(effectiveSettings.aspect) }
+     var seekFocused by remember { mutableStateOf(false) }
+@@ -853,7 +868,7 @@
+                         val transportGap = if (isCompactScreen) 8.dp else 13.dp
+                         val transportWidth = (if (isCompactScreen) 70.dp else 76.dp) +
+                             (buttonWidth + transportGap) * ((if (showEpisodeButtons) 2 else 0) + (if (showSeekButtons) 2 else 0))
+-                        val auxiliaryWidth = buttonWidth * (2 + (if (showAudioButton) 1 else 0) + (if (showSubtitleButton) 1 else 0)) +
++                        val auxiliaryWidth = buttonWidth * (3 + (if (showAudioButton) 1 else 0) + (if (showSubtitleButton) 1 else 0)) +
+                             (if (isCompactScreen) 8.dp else 13.dp) +
+                             (if (isCompactScreen) 5.dp else 13.dp) * ((if (showAudioButton) 1 else 0) + (if (showSubtitleButton) 1 else 0))
+                         val narrowControls = maxWidth < transportWidth + (auxiliaryWidth + 12.dp) * 2
+@@ -926,6 +941,7 @@
+                                         onAudio = { panel = PlayerPanel.AUDIO; reveal() },
+                                         onSubtitles = { panel = PlayerPanel.SUBTITLES; reveal() },
+                                         onAspect = { panel = PlayerPanel.ASPECT; reveal() },
++                                        onImage = { panel = PlayerPanel.IMAGE; reveal() },
+                                         onSettings = { panel = PlayerPanel.MAIN; reveal() }
+                                     )
+                                 }
+@@ -939,6 +955,7 @@
+                                     onAudio = { panel = PlayerPanel.AUDIO; reveal() },
+                                     onSubtitles = { panel = PlayerPanel.SUBTITLES; reveal() },
+                                     onAspect = { panel = PlayerPanel.ASPECT; reveal() },
++                                    onImage = { panel = PlayerPanel.IMAGE; reveal() },
+                                     onSettings = { panel = PlayerPanel.MAIN; reveal() }
+                                 )
+                             }
+@@ -961,6 +978,7 @@
+                 ).dp.coerceAtMost(if (panel == PlayerPanel.INFO) 560.dp else 420.dp)
+                 val menuTitle = when (panel) {
+                     PlayerPanel.MAIN -> "OPÇÕES"
++                    PlayerPanel.IMAGE -> "IMAGEM E NITIDEZ"
+                     PlayerPanel.ENGINE -> "REPRODUTOR"
+                     PlayerPanel.AUDIO -> "FAIXAS DE ÁUDIO"
+                     PlayerPanel.SUBTITLES -> "LEGENDAS"
+@@ -1055,6 +1073,39 @@
+                             PlayerMenuItem("Fechar", "Voltar ao vídeo", gold, glyph = PlayerMenuGlyph.CLOSE) {
+                                 dismissOverlaysToVideo()
+                             }
++                        }
++                        PlayerPanel.IMAGE -> {
++                            val selectedImage = playback.imageEnhancement
++                            Text("Exo Player · SDR até 1080p. FSR 1: até 30 FPS.", color = Color.LightGray, fontSize = 12.sp)
++                            PlaybackImageMode.entries.forEachIndexed { index, mode ->
++                                val info = playback.technicalInfo
++                                val unavailable = when {
++                                    mode == PlaybackImageMode.OFF -> null
++                                    playback.engine != PlaybackEngine.MEDIA3 -> "Use o Exo Player para ativar."
++                                    else -> PlaybackImagePolicy.unsupported(mode,
++                                        info.hdrFormat !in setOf(PlaybackHdrFormat.SDR, PlaybackHdrFormat.UNKNOWN),
++                                        false, info.width ?: 0, info.height ?: 0, info.framesPerSecond ?: 0f)
++                                }
++                                PlayerMenuItem(
++                                    (if (selectedImage.mode == mode) "✓ " else "") + mode.title,
++                                    unavailable ?: when (mode) {
++                                        PlaybackImageMode.OFF -> "Imagem original do reprodutor"
++                                        PlaybackImageMode.LIGHT -> "Nitidez adaptativa; mantém o escalonamento padrão"
++                                        PlaybackImageMode.FSR1 -> "Ampliação EASU + nitidez RCAS, até 1080p"
++                                    }, gold, if (index == 0) panelFocus else null,
++                                    enabled = unavailable == null
++                                ) { updateImage(selectedImage.copy(mode = mode)); reveal() }
++                            }
++                            if (selectedImage.mode != PlaybackImageMode.OFF) {
++                                Text("Intensidade da nitidez", color = Color.LightGray, fontSize = 13.sp)
++                                PlaybackImageStrength.entries.forEach { strength ->
++                                    PlayerMenuItem((if (selectedImage.strength == strength) "✓ " else "") + strength.title,
++                                        "Aplicar nitidez " + strength.title.lowercase(), gold) {
++                                        updateImage(selectedImage.copy(strength = strength)); reveal()
++                                    }
++                                }
++                            }
++                            PlayerMenuItem("Fechar", "Voltar ao vídeo", gold) { dismissOverlaysToVideo() }
+                         }
+                         PlayerPanel.ENGINE -> {
+                             listOf(PlaybackEngine.MEDIA3, PlaybackEngine.VLC).forEachIndexed { index, engine ->
+@@ -1568,7 +1619,7 @@
+ }
+ 
+ @Composable
+-private fun PlayerAuxiliaryButtons(
++internal fun PlayerAuxiliaryButtons(
+     gold: Color,
+     compact: Boolean,
+     showAudio: Boolean,
+@@ -1577,6 +1628,7 @@
+     onAudio: () -> Unit,
+     onSubtitles: () -> Unit,
+     onAspect: () -> Unit,
++    onImage: () -> Unit,
+     onSettings: () -> Unit
+ ) {
+     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+@@ -1590,11 +1642,17 @@
+         }
+         PlayerIconButton(PlayerGlyph.ASPECT, "Formato de tela", gold, compact = compact, onClick = onAspect)
+         Spacer(Modifier.width(if (compact) 8.dp else 13.dp))
++        Box {
++            PlayerIconButton(PlayerGlyph.IMAGE, "Nitidez e upscaling", gold, compact = compact, onClick = onImage)
++            Text("Nitidez", color = Color.White.copy(alpha = .85f), fontSize = 9.sp,
++                modifier = Modifier.align(Alignment.BottomCenter).offset(y = 13.dp))
++        }
++        Spacer(Modifier.width(if (compact) 8.dp else 13.dp))
+         PlayerIconButton(PlayerGlyph.SETTINGS, "Opções", gold, compact = compact, onClick = onSettings)
+     }
+ }
+ 
+-private enum class PlayerGlyph { PREVIOUS, NEXT, BACK, PLAY, PAUSE, FORWARD, AUDIO, SUBTITLES, ASPECT, SETTINGS }
++private enum class PlayerGlyph { PREVIOUS, NEXT, BACK, PLAY, PAUSE, FORWARD, AUDIO, SUBTITLES, ASPECT, IMAGE, SETTINGS }
+ 
+ /** Icones vetoriais proprios: nenhuma dependencia extra de Material Icons. */
+ @Composable
+@@ -1756,6 +1814,13 @@
+                 drawLine(iconBrush, Offset(w * .62f, h * .91f), Offset(w * .91f, h * .91f), thickness)
+                 drawLine(iconBrush, Offset(w * .91f, h * .62f), Offset(w * .91f, h * .91f), thickness)
+             }
++            PlayerGlyph.IMAGE -> {
++                drawRoundRect(iconBrush, Offset(w * .09f, h * .12f), Size(w * .82f, h * .76f),
++                    CornerRadius(w * .08f), style = Stroke(w * .07f))
++                drawLine(iconBrush, Offset(w * .24f, h * .72f), Offset(w * .48f, h * .36f), w * .08f)
++                drawLine(iconBrush, Offset(w * .48f, h * .36f), Offset(w * .75f, h * .72f), w * .08f)
++                drawCircle(iconBrush, w * .065f, Offset(w * .72f, h * .30f))
++            }
+             PlayerGlyph.SETTINGS -> {
+                 drawCircle(iconBrush, radius = w * .28f, style = Stroke(width = w * .12f))
+                 drawCircle(iconBrush, radius = w * .10f)
+@@ -1777,7 +1842,7 @@
+     }
+ }
+ 
+-private enum class PlayerPanel { NONE, MAIN, ENGINE, AUDIO, SUBTITLES, SPEED, ASPECT, MANUAL, INFO, SUBTITLE_STYLE }
++private enum class PlayerPanel { NONE, MAIN, IMAGE, ENGINE, AUDIO, SUBTITLES, SPEED, ASPECT, MANUAL, INFO, SUBTITLE_STYLE }
+ 
+ @Composable
+ private fun PlayerControlButton(
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackImageEnhancement.kt
+@@ -0,0 +1,31 @@
++package br.com.flaviotorres.iptvpremium.core.player
++
++enum class PlaybackImageMode(val title: String) {
++    OFF("Desativada"), LIGHT("Leve · nitidez adaptativa"), FSR1("FSR 1 + RCAS · experimental")
++}
++enum class PlaybackImageStrength(val title: String, val amount: Float) {
++    SOFT("Suave", .35f), MEDIUM("Média", .55f), STRONG("Forte", .75f)
++}
++data class PlaybackImageEnhancement(
++    val mode: PlaybackImageMode = PlaybackImageMode.OFF,
++    val strength: PlaybackImageStrength = PlaybackImageStrength.SOFT
++)
++
++internal object PlaybackImagePolicy {
++    fun unsupported(mode: PlaybackImageMode, hdr: Boolean, drm: Boolean,
++                    width: Int, height: Int, fps: Float = 0f): String? = when {
++        mode == PlaybackImageMode.OFF -> null
++        drm -> "Melhoria desativada: vídeo protegido."
++        hdr -> "Melhoria desativada neste vídeo HDR/Dolby Vision."
++        maxOf(width, height) > 1920 || minOf(width, height) > 1080 -> "Melhoria disponível até 1080p SDR."
++        mode == PlaybackImageMode.FSR1 && fps > 30.5f -> "FSR 1 disponível para vídeos de até 30 FPS."
++        else -> null
++    }
++    fun outputSize(width: Int, height: Int, displayWidth: Int, displayHeight: Int): Pair<Int, Int> {
++        require(width > 0 && height > 0)
++        val limitW = displayWidth.coerceIn(1, 1920)
++        val limitH = displayHeight.coerceIn(1, 1080)
++        val scale = minOf(2f, limitW.toFloat() / width, limitH.toFloat() / height).coerceAtLeast(1f)
++        return (width * scale).toInt().coerceAtLeast(width) to (height * scale).toInt().coerceAtLeast(height)
++    }
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackImageEffects.kt
+@@ -0,0 +1,86 @@
++package br.com.flaviotorres.iptvpremium.core.player
++
++import android.content.Context
++import android.opengl.GLES20
++import androidx.media3.common.Effect
++import androidx.media3.common.VideoFrameProcessingException
++import androidx.media3.common.util.GlProgram
++import androidx.media3.common.util.GlUtil
++import androidx.media3.common.util.Size
++import androidx.media3.common.util.UnstableApi
++import androidx.media3.effect.BaseGlShaderProgram
++import androidx.media3.effect.GlEffect
++import androidx.media3.effect.GlShaderProgram
++
++/** Frame-driven Media3 processing; it never schedules extra frames at the display refresh rate. */
++@androidx.annotation.OptIn(UnstableApi::class)
++internal object PlaybackImageEffects {
++    fun create(context: Context, value: PlaybackImageEnhancement, unsupported: (String) -> Unit): List<Effect> {
++        if (value.mode == PlaybackImageMode.OFF) return emptyList()
++        val metrics = context.resources.displayMetrics
++        val result = mutableListOf<Effect>()
++        if (value.mode == PlaybackImageMode.FSR1) result += StageEffect(context, true, value,
++            metrics.widthPixels, metrics.heightPixels, unsupported)
++        result += StageEffect(context, false, value, metrics.widthPixels, metrics.heightPixels, unsupported)
++        return result
++    }
++
++    private class StageEffect(val app: Context, val upscale: Boolean, val value: PlaybackImageEnhancement,
++                              val displayWidth: Int, val displayHeight: Int,
++                              val unsupported: (String) -> Unit) : GlEffect {
++        override fun toGlShaderProgram(context: Context, useHdr: Boolean): GlShaderProgram =
++            ImageProgram(app, upscale, value, displayWidth, displayHeight, useHdr, unsupported)
++        override fun isNoOp(inputWidth: Int, inputHeight: Int): Boolean = upscale &&
++            PlaybackImagePolicy.outputSize(inputWidth, inputHeight, displayWidth, displayHeight) == (inputWidth to inputHeight)
++    }
++
++    private class ImageProgram(context: Context, private val upscale: Boolean,
++                               private val value: PlaybackImageEnhancement,
++                               private val displayWidth: Int, private val displayHeight: Int,
++                               private val hdr: Boolean, private val unsupported: (String) -> Unit)
++        : BaseGlShaderProgram(hdr, 1) {
++        private val vertex = context.assets.open("shaders/image_vertex.glsl").bufferedReader().use { it.readText() }
++        private val copy = context.assets.open("shaders/image_copy.glsl").bufferedReader().use { it.readText() }
++        private var passthrough = hdr
++        private var program = GlProgram(vertex, if (hdr) copy else context.assets
++            .open(if (upscale) "shaders/image_easu.glsl" else "shaders/image_rcas.glsl")
++            .bufferedReader().use { it.readText() })
++
++        init {
++            if (hdr) unsupported("Melhoria desativada neste vídeo HDR/Dolby Vision.")
++            program.setBufferAttribute("aPosition", GlUtil.getNormalizedCoordinateBounds(), 4)
++        }
++        override fun configure(inputWidth: Int, inputHeight: Int): Size {
++            val reason = PlaybackImagePolicy.unsupported(value.mode, hdr, false, inputWidth, inputHeight)
++            if (reason != null) {
++                unsupported(reason)
++                if (!passthrough) {
++                    program.delete()
++                    program = GlProgram(vertex, copy)
++                    program.setBufferAttribute("aPosition", GlUtil.getNormalizedCoordinateBounds(), 4)
++                    passthrough = true
++                }
++            }
++            val size = if (upscale && !passthrough)
++                PlaybackImagePolicy.outputSize(inputWidth, inputHeight, displayWidth, displayHeight)
++                else inputWidth to inputHeight
++            program.setFloatsUniformIfPresent("uInputSize", floatArrayOf(inputWidth.toFloat(), inputHeight.toFloat()))
++            program.setFloatsUniformIfPresent("uStrength", floatArrayOf(value.strength.amount))
++            return Size(size.first, size.second)
++        }
++        override fun drawFrame(inputTexId: Int, presentationTimeUs: Long) {
++            try {
++                program.use()
++                program.setSamplerTexIdUniform("uTexSampler", inputTexId, 0)
++                program.bindAttributesAndUniforms()
++                GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4)
++                GlUtil.checkGlError()
++            } catch (error: GlUtil.GlException) {
++                throw VideoFrameProcessingException(error, presentationTimeUs)
++            }
++        }
++        override fun release() {
++            try { program.delete() } finally { super.release() }
++        }
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsPreferences.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsPreferences.kt
+@@ -10,8 +10,19 @@
+     val prefs = context.applicationContext.getSharedPreferences("iptvpremium_settings_v2", Context.MODE_PRIVATE)
+     fun playback(): PlaybackSettings = PlaybackSettings(
+         preferredEngine = if (prefs.getString("engine", "media3") == "vlc") PlaybackEngine.VLC else PlaybackEngine.MEDIA3,
+-        autoPlayNextEpisode = prefs.getBoolean("auto_next", true)
++        autoPlayNextEpisode = prefs.getBoolean("auto_next", true),
++        imageEnhancement = imageEnhancement()
+     )
++    fun imageEnhancement(): br.com.flaviotorres.iptvpremium.core.player.PlaybackImageEnhancement {
++        val mode = runCatching { br.com.flaviotorres.iptvpremium.core.player.PlaybackImageMode.valueOf(prefs.getString("image_mode", "OFF").orEmpty()) }
++            .getOrDefault(br.com.flaviotorres.iptvpremium.core.player.PlaybackImageMode.OFF)
++        val strength = runCatching { br.com.flaviotorres.iptvpremium.core.player.PlaybackImageStrength.valueOf(prefs.getString("image_strength", "SOFT").orEmpty()) }
++            .getOrDefault(br.com.flaviotorres.iptvpremium.core.player.PlaybackImageStrength.SOFT)
++        return br.com.flaviotorres.iptvpremium.core.player.PlaybackImageEnhancement(mode, strength)
++    }
++    fun setImageEnhancement(value: br.com.flaviotorres.iptvpremium.core.player.PlaybackImageEnhancement) {
++        prefs.edit().putString("image_mode", value.mode.name).putString("image_strength", value.strength.name).apply()
++    }
+     fun catalogColumns(): Int = prefs.getInt("catalog_columns", 5).let { if (it == 4) 4 else 5 }
+     fun setCatalogColumns(value: Int) { require(value == 4 || value == 5); prefs.edit().putInt("catalog_columns", value).apply() }
+     fun textScale(): Float = prefs.getFloat("text_scale", 1f).coerceIn(1f, 1.2f)
+--- /dev/null
++++ b/app/src/main/assets/shaders/image_vertex.glsl
+@@ -0,0 +1,3 @@
++attribute vec4 aPosition;
++varying vec2 vTex;
++void main() { gl_Position = aPosition; vTex = aPosition.xy * 0.5 + 0.5; }
+--- /dev/null
++++ b/app/src/main/assets/shaders/image_copy.glsl
+@@ -0,0 +1,4 @@
++precision highp float;
++uniform sampler2D uTexSampler;
++varying vec2 vTex;
++void main() { gl_FragColor = texture2D(uTexSampler, vTex); }
+--- /dev/null
++++ b/app/src/main/assets/shaders/image_rcas.glsl
+@@ -0,0 +1,28 @@
++// Copyright (c) 2021 Advanced Micro Devices, Inc. MIT; see assets/FSR1-NOTICE.txt.
++precision highp float;
++uniform sampler2D uTexSampler;
++uniform vec2 uInputSize;
++uniform float uStrength;
++varying vec2 vTex;
++vec3 sampleGamma(vec2 pixel) {
++    vec2 uv = clamp((pixel + 0.5) / uInputSize, 0.5 / uInputSize, 1.0 - 0.5 / uInputSize);
++    return sqrt(clamp(texture2D(uTexSampler, uv).rgb, 0.0, 1.0));
++}
++float luma(vec3 c) { return c.b * 0.5 + c.r * 0.5 + c.g; }
++
++void main() {
++    vec2 p = floor(vTex * uInputSize);
++    vec3 b=sampleGamma(p+vec2(0.0,-1.0)), d=sampleGamma(p+vec2(-1.0,0.0));
++    vec3 e=sampleGamma(p), f=sampleGamma(p+vec2(1.0,0.0)), h=sampleGamma(p+vec2(0.0,1.0));
++    vec3 mn=min(min(b,d),min(f,h)), mx=max(max(b,d),max(f,h));
++    vec3 hitMin=min(mn,e)/max(4.0*mx,vec3(0.00001));
++    vec3 hitMax=(1.0-max(mx,e))/min(4.0*mn-4.0,vec3(-0.00001));
++    vec3 lobes=max(-hitMin,hitMax);
++    float lobe=max(-0.1875,min(max(lobes.r,max(lobes.g,lobes.b)),0.0))*uStrength;
++    float bL=luma(b),dL=luma(d),eL=luma(e),fL=luma(f),hL=luma(h);
++    float range=max(max(max(bL,dL),max(eL,fL)),hL)-min(min(min(bL,dL),min(eL,fL)),hL);
++    float noise=clamp(abs(0.25*(bL+dL+fL+hL)-eL)/max(range,0.00001),0.0,1.0);
++    lobe*=1.0-0.5*noise;
++    vec3 color=clamp((lobe*(b+d+f+h)+e)/(1.0+4.0*lobe),0.0,1.0);
++    gl_FragColor=vec4(color*color,1.0);
++}
+--- /dev/null
++++ b/app/src/main/assets/shaders/image_easu.glsl
+@@ -0,0 +1,60 @@
++// Copyright (c) 2021 Advanced Micro Devices, Inc. MIT; see assets/FSR1-NOTICE.txt.
++precision highp float;
++uniform sampler2D uTexSampler;
++uniform vec2 uInputSize;
++uniform float uStrength;
++varying vec2 vTex;
++vec3 sampleGamma(vec2 pixel) {
++    vec2 uv = clamp((pixel + 0.5) / uInputSize, 0.5 / uInputSize, 1.0 - 0.5 / uInputSize);
++    return sqrt(clamp(texture2D(uTexSampler, uv).rgb, 0.0, 1.0));
++}
++float luma(vec3 c) { return c.b * 0.5 + c.r * 0.5 + c.g; }
++
++void tap(inout vec3 color,inout float weight,vec2 off,vec2 dir,vec2 len,float lob,float clipPoint,vec3 c) {
++    vec2 v=vec2(dot(off,dir),dot(off,vec2(-dir.y,dir.x)))*len;
++    float d2=min(dot(v,v),clipPoint);
++    float wb=0.4*d2-1.0, wa=lob*d2-1.0;
++    wb=1.5625*wb*wb-0.5625; wa*=wa;
++    float w=wb*wa; color+=c*w; weight+=w;
++}
++void edge(inout vec2 dir,inout float len,float weight,float a,float b,float c,float d,float e) {
++    float dx=d-b, dy=e-a;
++    dir+=vec2(dx,dy)*weight;
++    float lx=clamp(abs(dx)/max(max(abs(d-c),abs(c-b)),0.00001),0.0,1.0);
++    float ly=clamp(abs(dy)/max(max(abs(e-c),abs(c-a)),0.00001),0.0,1.0);
++    len+=(lx*lx+ly*ly)*weight;
++}
++void main() {
++    vec2 pixel=vTex*uInputSize-0.5, fp=floor(pixel), pp=fract(pixel);
++    vec3 b=sampleGamma(fp+vec2(0.0,-1.0)),c=sampleGamma(fp+vec2(1.0,-1.0));
++    vec3 e=sampleGamma(fp+vec2(-1.0,0.0)),f=sampleGamma(fp),g=sampleGamma(fp+vec2(1.0,0.0)),h=sampleGamma(fp+vec2(2.0,0.0));
++    vec3 i=sampleGamma(fp+vec2(-1.0,1.0)),j=sampleGamma(fp+vec2(0.0,1.0)),k=sampleGamma(fp+vec2(1.0,1.0)),l=sampleGamma(fp+vec2(2.0,1.0));
++    vec3 n=sampleGamma(fp+vec2(0.0,2.0)),o=sampleGamma(fp+vec2(1.0,2.0));
++    vec2 dir=vec2(0.0); float len=0.0;
++    edge(dir,len,(1.0-pp.x)*(1.0-pp.y),luma(b),luma(e),luma(f),luma(g),luma(j));
++    edge(dir,len,pp.x*(1.0-pp.y),luma(c),luma(f),luma(g),luma(h),luma(k));
++    edge(dir,len,(1.0-pp.x)*pp.y,luma(f),luma(i),luma(j),luma(k),luma(n));
++    edge(dir,len,pp.x*pp.y,luma(g),luma(j),luma(k),luma(l),luma(o));
++    float dirLength=dot(dir,dir);
++    dir=dirLength<0.000030517578125?vec2(1.0,0.0):dir*inversesqrt(dirLength);
++    len*=0.5; len*=len;
++    float stretch=dot(dir,dir)/max(max(abs(dir.x),abs(dir.y)),0.00001);
++    vec2 len2=vec2(1.0+(stretch-1.0)*len,1.0-0.5*len);
++    float lob=0.5-0.29*len, clipPoint=1.0/lob;
++    vec3 color=vec3(0.0);float weight=0.0;
++    tap(color,weight,vec2(0.0,-1.0)-pp,dir,len2,lob,clipPoint,b);
++    tap(color,weight,vec2(1.0,-1.0)-pp,dir,len2,lob,clipPoint,c);
++    tap(color,weight,vec2(-1.0,1.0)-pp,dir,len2,lob,clipPoint,i);
++    tap(color,weight,vec2(0.0,1.0)-pp,dir,len2,lob,clipPoint,j);
++    tap(color,weight,-pp,dir,len2,lob,clipPoint,f);
++    tap(color,weight,vec2(-1.0,0.0)-pp,dir,len2,lob,clipPoint,e);
++    tap(color,weight,vec2(1.0,1.0)-pp,dir,len2,lob,clipPoint,k);
++    tap(color,weight,vec2(2.0,1.0)-pp,dir,len2,lob,clipPoint,l);
++    tap(color,weight,vec2(2.0,0.0)-pp,dir,len2,lob,clipPoint,h);
++    tap(color,weight,vec2(1.0,0.0)-pp,dir,len2,lob,clipPoint,g);
++    tap(color,weight,vec2(1.0,2.0)-pp,dir,len2,lob,clipPoint,o);
++    tap(color,weight,vec2(0.0,2.0)-pp,dir,len2,lob,clipPoint,n);
++    vec3 lo=min(min(f,g),min(j,k)), hi=max(max(f,g),max(j,k));
++    color=clamp(color/max(weight,0.00001),lo,hi);
++    gl_FragColor=vec4(color*color,1.0);
++}
+--- /dev/null
++++ b/app/src/main/assets/FSR1-NOTICE.txt
+@@ -0,0 +1,22 @@
++AMD FidelityFX Super Resolution Sample
++Copyright (c) 2021 Advanced Micro Devices, Inc. All rights reserved.
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++The above copyright notice and this permission notice shall be included in
++all copies or substantial portions of the Software.
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++THE SOFTWARE.
++
++EASU/RCAS equations adapted to OpenGL ES fragment shaders from:
++https://github.com/GPUOpen-Effects/FidelityFX-FSR/blob/master/ffx-fsr/ffx_fsr1.h
++The port uses explicit texture taps instead of gather, exact reciprocals with
++zero guards, and a reversible gamma-2 working domain around Media3 linear SDR.
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/player/PlaybackImageDeviceTest.kt
+@@ -0,0 +1,119 @@
++package br.com.flaviotorres.iptvpremium.core.player
++
++import android.os.Looper
++import android.view.SurfaceHolder
++import androidx.test.core.app.ApplicationProvider
++import androidx.test.platform.app.InstrumentationRegistry
++import br.com.flaviotorres.iptvpremium.ui.settings.SettingsPreferences
++import kotlinx.coroutines.flow.MutableSharedFlow
++import kotlinx.coroutines.flow.MutableStateFlow
++import org.junit.Assert.*
++import org.junit.Test
++import java.lang.reflect.Proxy
++
++class PlaybackImageDeviceTest {
++    private fun main(action: () -> Unit) = InstrumentationRegistry.getInstrumentation().runOnMainSync(action)
++    private class Fake(val engine: PlaybackEngine) {
++        val state = MutableStateFlow(PlaybackUiState(engine = engine))
++        val capabilities = MutableStateFlow(PlaybackEngineCapabilities())
++        val events = MutableSharedFlow<PlaybackEngineEvent>(extraBufferCapacity = 8)
++        var request: PlaybackOpenRequest? = null
++        var released = false
++        val adapter = Proxy.newProxyInstance(PlaybackEngineAdapter::class.java.classLoader,
++            arrayOf(PlaybackEngineAdapter::class.java)) { _, method, args ->
++            when (method.name) {
++                "getEngine" -> engine
++                "getState" -> state
++                "getCapabilities" -> capabilities
++                "getEvents" -> events
++                "prepare" -> {
++                    request = args!![0] as PlaybackOpenRequest
++                    state.value = PlaybackUiState(media = request!!.media, engine = engine,
++                        status = if (request!!.playWhenReady) PlaybackStatus.PLAYING else PlaybackStatus.PAUSED,
++                        positionMs = request!!.startPositionMs, durationMs = 600_000,
++                        imageEnhancement = request!!.settings.imageEnhancement)
++                    PlaybackCommandResult.ACCEPTED
++                }
++                "release" -> { released = true; null }
++                "detachVideoSurface" -> null
++                else -> PlaybackCommandResult.ACCEPTED
++            }
++        } as PlaybackEngineAdapter
++    }
++    private val media = PlaybackMedia("movie", PlaybackContentType.MOVIE, "Test", "https://example.invalid/movie.mp4")
++    @Test fun defaultsAreOffAndPreferencesRoundTripBothModesAndStrengths() {
++        val settings = SettingsPreferences(ApplicationProvider.getApplicationContext())
++        settings.prefs.edit().remove("image_mode").remove("image_strength").commit()
++        assertEquals(PlaybackImageMode.OFF, settings.playback().imageEnhancement.mode)
++        for (mode in PlaybackImageMode.entries) for (strength in PlaybackImageStrength.entries) {
++            val expected = PlaybackImageEnhancement(mode, strength)
++            settings.setImageEnhancement(expected)
++            assertEquals(expected, settings.playback().imageEnhancement)
++        }
++        settings.prefs.edit().putString("image_mode", "unknown").putString("image_strength", "unknown").commit()
++        assertEquals(PlaybackImageEnhancement(), settings.playback().imageEnhancement)
++    }
++    @Test fun fsrOutputRespectsAspect1080pCapAndTwoTimesMaximumScale() {
++        assertEquals(1920 to 1080, PlaybackImagePolicy.outputSize(1280,720,3840,2160))
++        assertEquals(1920 to 816, PlaybackImagePolicy.outputSize(1280,544,1920,1080))
++        assertEquals(1280 to 720, PlaybackImagePolicy.outputSize(640,360,1920,1080))
++        assertEquals(1920 to 1080, PlaybackImagePolicy.outputSize(1920,1080,1280,720))
++    }
++    @Test fun compatibilityProtectsHdrDrm4kAndHighFrameRateFsr() {
++        assertNotNull(PlaybackImagePolicy.unsupported(PlaybackImageMode.LIGHT,true,false,1280,720))
++        assertNotNull(PlaybackImagePolicy.unsupported(PlaybackImageMode.FSR1,false,true,1280,720))
++        assertNotNull(PlaybackImagePolicy.unsupported(PlaybackImageMode.LIGHT,false,false,3840,2160))
++        assertNotNull(PlaybackImagePolicy.unsupported(PlaybackImageMode.FSR1,false,false,1280,720,60f))
++        assertNull(PlaybackImagePolicy.unsupported(PlaybackImageMode.FSR1,false,false,1280,720,24f))
++        assertNull(PlaybackImagePolicy.unsupported(PlaybackImageMode.LIGHT,false,false,1280,720,60f))
++        assertTrue(PlaybackImageEffects.create(ApplicationProvider.getApplicationContext(), PlaybackImageEnhancement(), {}).isEmpty())
++    }
++    @Test fun changingModeRetainsPositionPauseSpeedAndAudioAndReleasesOldDecoderFirst() = main {
++        val fakes = mutableListOf<Fake>()
++        val controller = PlaybackController(ApplicationProvider.getApplicationContext(), factory = PlaybackEngineAdapterFactory { engine ->
++            assertTrue(fakes.all { it.released })
++            Fake(engine).also { fakes += it }.adapter
++        })
++        try {
++            controller.open(PlaybackOpenRequest(media,180_000,false,PlaybackSettings(speed=1.25f,audioLanguageTag="pt")))
++            for (mode in listOf(PlaybackImageMode.LIGHT, PlaybackImageMode.FSR1, PlaybackImageMode.OFF)) {
++                assertEquals(PlaybackCommandResult.ACCEPTED,controller.setImageEnhancement(PlaybackImageEnhancement(mode)))
++                val request = fakes.last().request!!
++                assertEquals(180_000L,request.startPositionMs)
++                assertFalse(request.playWhenReady)
++                assertEquals(1.25f,request.settings.speed,0f)
++                assertEquals("pt",request.settings.audioLanguageTag)
++                assertEquals(mode,request.settings.imageEnhancement.mode)
++            }
++        } finally { controller.release() }
++    }
++    @Test fun vlcDoesNotPretendToApplyTheMedia3Shaders() = main {
++        val fakes=mutableListOf<Fake>()
++        val controller=PlaybackController(ApplicationProvider.getApplicationContext(),factory=PlaybackEngineAdapterFactory { e -> Fake(e).also{fakes+=it}.adapter })
++        try {
++            controller.open(PlaybackOpenRequest(media,settings=PlaybackSettings(preferredEngine=PlaybackEngine.VLC)))
++            assertEquals(PlaybackCommandResult.UNSUPPORTED,controller.setImageEnhancement(PlaybackImageEnhancement(PlaybackImageMode.FSR1)))
++            assertEquals(1,fakes.size)
++        } finally {controller.release()}
++    }
++    @Test fun repeatedBypassEventsNeverCreateAnotherShaderSession() {
++        val fakes=mutableListOf<Fake>()
++        lateinit var controller: PlaybackController
++        main {
++            controller=PlaybackController(ApplicationProvider.getApplicationContext(),factory=PlaybackEngineAdapterFactory { e -> Fake(e).also{fakes+=it}.adapter })
++            controller.open(PlaybackOpenRequest(media,60_000,false,PlaybackSettings(imageEnhancement=PlaybackImageEnhancement(PlaybackImageMode.FSR1))))
++            fakes.first().events.tryEmit(PlaybackEngineEvent.ImageEnhancementBypassed("test"))
++        }
++        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
++        main {
++            try {
++                assertEquals(2,fakes.size)
++                assertEquals(PlaybackImageMode.OFF,fakes.last().request!!.settings.imageEnhancement.mode)
++                assertEquals(60_000L,fakes.last().request!!.startPositionMs)
++                assertFalse(fakes.last().request!!.playWhenReady)
++                fakes.first().events.tryEmit(PlaybackEngineEvent.ImageEnhancementBypassed("stale"))
++                assertEquals(2,fakes.size)
++            } finally {controller.release()}
++        }
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/player/PlaybackImageButtonDeviceTest.kt
+@@ -0,0 +1,44 @@
++package br.com.flaviotorres.iptvpremium.core.player
++
++import androidx.compose.foundation.layout.*
++import androidx.compose.runtime.SideEffect
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.platform.LocalView
++import androidx.compose.ui.test.*
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.unit.dp
++import java.util.concurrent.atomic.AtomicInteger
++import org.junit.Assert.*
++import org.junit.Rule
++import org.junit.Test
++
++class PlaybackImageButtonDeviceTest {
++    @get:Rule val compose = createComposeRule()
++    private fun checkButton(compact: Boolean) {
++        val image = AtomicInteger()
++        val settings = AtomicInteger()
++        lateinit var view: android.view.View
++        compose.setContent {
++            val local = LocalView.current
++            SideEffect { view = local }
++            Box(Modifier.width(520.dp).height(100.dp)) {
++                PlayerAuxiliaryButtons(Color(0xFFFFD54A), compact, true, true,
++                    onAudio = {}, onSubtitles = {}, onAspect = {},
++                    onImage = { image.incrementAndGet() }, onSettings = { settings.incrementAndGet() })
++            }
++        }
++        compose.onNodeWithText("Nitidez").assertExists()
++        compose.onNodeWithContentDescription("Nitidez e upscaling").assertHasClickAction().performClick()
++        assertEquals(1, image.get())
++        assertEquals(0, settings.get())
++        compose.onNodeWithContentDescription("Opções").performClick()
++        assertEquals(1, settings.get())
++        val imageBounds = compose.onNodeWithContentDescription("Nitidez e upscaling").fetchSemanticsNode().boundsInRoot
++        val menuBounds = compose.onNodeWithContentDescription("Opções").fetchSemanticsNode().boundsInRoot
++        assertTrue("The new front-row button must not overlap the menu", imageBounds.right <= menuBounds.left)
++
++    }
++    @Test fun compactPlayerHasADirectImageButtonBeforeTheMenu() = checkButton(true)
++    @Test fun widePlayerHasADirectImageButtonBeforeTheMenu() = checkButton(false)
++}
+--- a/app/build.gradle.kts
++++ b/app/build.gradle.kts
+@@ -182 +182,2 @@
+     implementation("androidx.media3:media3-ui:$media3Version")
++    implementation("androidx.media3:media3-effect:$media3Version")
