@@ -1,0 +1,1309 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -136,7 +136,6 @@
+ // Series utiliza o MoviePosterLoader de Filmes: disco LRU de 250 MB.
+ // Somente 5 capas por lote e 2 posicoes de antecedencia ao rolar.
+ // Os 15 primeiros logos/backdrops ja sao preparados no AppNavigation.
+-private const val SERIES_POSTER_BATCH_SIZE = br.com.flaviotorres.iptvpremium.data.cache.CATEGORY_POSTER_BATCH_SIZE
+ 
+ private val CinzelSemiBold = FontFamily(
+     Font(
+@@ -1167,6 +1166,14 @@
+ ) {
+     // O NavHost mantém esta rota e o estado de grade ao abrir detalhes.
+     // rememberSaveable restaura categoria, busca e posição ao voltar.
++    val posterRequests = br.com.flaviotorres.iptvpremium.ui.components.rememberCatalogPosterRequests()
++    val posterRequestsEnabled by posterRequests.enabled.collectAsState()
++    fun openCatalogItem(id: String) {
++        posterRequests.stop()
++        onCatalogInteraction(true)
++        onSeriesClick(id)
++    }
++    val gridColumns = br.com.flaviotorres.iptvpremium.ui.settings.rememberSettingsPreferences().catalogColumns()
+     val menuFocusRequester = remember { FocusRequester() }
+     val searchFocusRequester = remember { FocusRequester() }
+     var catalogContentFocused by remember { mutableStateOf(false) }
+@@ -1197,6 +1204,9 @@
+ 
+     // Mesmo carregador compartilhado por Filmes e Series. Esta tela antecipa
+     // apenas as capas de series JA presentes na janela do Paging/Room.
++    val posterWindow by remember(gridState, gridColumns) {
++        androidx.compose.runtime.derivedStateOf { br.com.flaviotorres.iptvpremium.data.cache.catalogPosterWindow(gridState.firstVisibleItemIndex, gridColumns) }
++    }
+     val posterCacheContext = LocalContext.current.applicationContext
+     val posterIdleDelayMs = remember(posterCacheContext) {
+         val mode = posterCacheContext.resources.configuration.uiMode and
+@@ -1218,46 +1228,45 @@
+     DisposableEffect(Unit) { onDispose { onCatalogInteraction(false) } }
+ 
+ 
+-    /*
+-     * Antecipacao leve ao entrar/rolar na categoria: lotes de 15 capas.
+-     * - So le a janela ja entregue pelo Paging (nunca forca append no Room).
+-     * - Espera a navegacao por controle remoto ficar ociosa.
+-     * - Ao rolar, trocar categoria ou iniciar um novo carregamento, a tarefa
+-     *   atual e cancelada por collectLatest.
+-     * - Uma conexao de fundo por vez; sem decodificar bitmaps no prefetch.
+-     * - Backdrops/logos dos 15 titulos permanecem no AppNavigation; esta
+-     *   rotina NAO consulta TMDB, detalhes remotos ou episodios.
+-     */
+-    LaunchedEffect(pagedSeries, selectedMenu, selectedProviderId, searchText, sortMode) {
+-        val pagingWindow = snapshotFlow {
+-            val firstVisible = gridState.firstVisibleItemIndex.coerceAtLeast(0)
+-            val batch = br.com.flaviotorres.iptvpremium.data.cache.categoryPosterBatch(firstVisible)
+-            val busy = searchKeyboardVisible ||
+-                    selectedMenu == "continue" ||
+-                    gridState.isScrollInProgress ||
+-                    pagedSeries.loadState.refresh is LoadState.Loading
+-            Triple(batch, pagedSeries.itemSnapshotList, busy)
+-        }
+-
+-        combine(pagingWindow, posterFocusActivity) { window, _ -> window }
+-            .collectLatest { (batch, loaded, busy) ->
+-                if (busy) return@collectLatest
+-                if (batch > 0) delay(posterIdleDelayMs)
+-
+-                val start = batch * SERIES_POSTER_BATCH_SIZE
+-                val endExclusive = start + SERIES_POSTER_BATCH_SIZE
+-                val from = (start - loaded.placeholdersBefore).coerceAtLeast(0)
+-                val until = (endExclusive - loaded.placeholdersBefore)
+-                    .coerceAtMost(loaded.items.size)
+-                if (from >= until) return@collectLatest
+-
+-                MoviePosterLoader.prefetchPriorityBatch(posterCacheContext,
+-                    loaded.items.subList(from, until).map { it.posterUrl })
+-            }
++    val continueWatchingEntries = remember(watchHistoryEntries) {
++        watchHistoryEntries
++            .filter { it.contentType == PlaybackContentType.EPISODE &&
++                    !it.seriesId.isNullOrBlank() && it.inProgress }
++            .sortedByDescending { it.updatedAtMs }
++            .distinctBy { it.seriesId }
++    }
++
++    // Only the next two rows are anticipated; layout precomposition cannot download more.
++    LaunchedEffect(pagedSeries, selectedMenu, selectedProviderId, searchText, sortMode, gridColumns, continueWatchingEntries) {
++        val paging = pagedSeries
++        combine(snapshotFlow {
++            val window = br.com.flaviotorres.iptvpremium.data.cache.catalogPosterWindow(gridState.firstVisibleItemIndex, gridColumns)
++            val busy = !posterRequestsEnabled || searchKeyboardVisible ||
++                gridState.isScrollInProgress || (!(selectedMenu == "continue") && paging.loadState.refresh is LoadState.Loading)
++            Triple(window, paging.itemSnapshotList, busy)
++        }, posterFocusActivity) { window, _ -> window }.collectLatest { (window, loaded, busy) ->
++            if (busy) return@collectLatest
++            delay(posterIdleDelayMs)
++            val urls = if (selectedMenu == "continue") {
++                continueWatchingEntries.drop(window.next.first).take(window.size).map { it.posterUrl }
++            } else {
++                val from = (window.next.first - loaded.placeholdersBefore).coerceAtLeast(0)
++                val until = (window.next.last + 1 - loaded.placeholdersBefore).coerceAtMost(loaded.items.size)
++                if (from < until) loaded.items.subList(from, until).map { it.posterUrl } else emptyList()
++            }
++            if (urls.isNotEmpty()) posterRequests.run {
++                MoviePosterLoader.prefetchPriorityBatch(posterCacheContext, urls)
++            }
++        }
+     }
+ 
+     // Com a volta dos detalhes, mantém a posição e restaura o foco da capa.
+     LaunchedEffect(Unit) {
++        if (selectedSeriesId == null) {
++            categoryMenuActive = true
++            br.com.flaviotorres.iptvpremium.ui.components.restoreCatalogCategoryFocus(
++                categoryListState, 0, selectedCategoryFocus, menuFocusRequester, catalogInputMode)
++        }
+         selectedSeriesId?.let {
+             categoryMenuActive = false
+             returningSeriesFocusId = it
+@@ -1296,7 +1305,7 @@
+             "continue" -> onContinueWatchingSelected()
+             else -> onSourceCategorySelected(categoryId)
+         }
+-    
++
+         }
+     }
+ 
+@@ -1316,15 +1325,7 @@
+     // descartar IDs nem modificar a ordem entregue pelo provedor.
+     val realCategories = pagingCategories
+     val continueWatchingPlaceholder = selectedMenu == "continue"
+-    val continueWatchingEntries = remember(watchHistoryEntries) {
+-        watchHistoryEntries
+-            .filter { it.contentType == PlaybackContentType.EPISODE &&
+-                    !it.seriesId.isNullOrBlank() && it.inProgress }
+-            .sortedByDescending { it.updatedAtMs }
+-            .distinctBy { it.seriesId }
+-    }
+-
+-    val gridColumns = br.com.flaviotorres.iptvpremium.ui.settings.rememberSettingsPreferences().catalogColumns()
++
+     val firstSeriesFocusReady = pendingFirstSeriesFocus &&
+         (beforeCategorySnapshot == null || beforeCategorySnapshot !== pagedSeries.itemSnapshotList) &&
+         (selectedMenu == "continue" || pagedSeries.loadState.refresh !is LoadState.Loading)
+@@ -1373,6 +1374,10 @@
+         handleCatalogBack()
+     }
+ 
++    CompositionLocalProvider(
++        br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterRequests provides posterRequests,
++        br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWindow provides posterWindow
++    ) {
+     BoxWithConstraints(
+         modifier = Modifier.catalogEscapeBack(onBack = ::handleCatalogBack).fillMaxSize().background(br.com.flaviotorres.iptvpremium.ui.components.CatalogGlass.surface(0xFF070708))
+     ) {
+@@ -1583,7 +1588,7 @@
+                                             onSeriesFocused(id)
+                                         },
+                                         onBlurred = { onSeriesBlurred(id) },
+-                                        onSelect = { selectedSeriesId = id; onSeriesClick(id) },
++                                        onSelect = { selectedSeriesId = id; openCatalogItem(id) },
+                                         onFavoriteClick = { _ -> onFavoriteClick(id) }
+                                     )
+                                 }
+@@ -1653,7 +1658,7 @@
+                                         compactLayout = compactLayout,
+                                         onSelect = {
+                                             selectedSeriesId = series.id
+-                                            onSeriesClick(series.id)
++                                            openCatalogItem(series.id)
+                                         },
+                                         onFavoriteClick = { fromFocusedCard ->
+                                             if (fromFocusedCard) {
+@@ -1714,6 +1719,7 @@
+                 )
+             }
+         }
++    }
+     }
+ }
+ 
+@@ -2371,6 +2377,10 @@
+     gridIndex: Int = -1,
+     allowRestoration: Boolean = true
+ ) {
++    val artworkRequests = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterRequests.current
++    val artworkWindow = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWindow.current
++    val artworkEnabled = artworkRequests?.enabled?.collectAsState()?.value ?: true
++    val loadArtwork = artworkEnabled && (gridIndex < 0 || gridIndex in artworkWindow.visible)
+     val fittedPosterWidth = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWidth.current
+     var isFocused by remember { mutableStateOf(false) }
+     val visuallyFocused = isFocused || navigator?.isMovingSelection(gridIndex) == true
+@@ -2379,8 +2389,9 @@
+     val context = LocalContext.current.applicationContext
+     val artworkEpoch by br.com.flaviotorres.iptvpremium.ui.theme.ThemeArtworkEpoch.collectAsState()
+     val initialPoster = remember(posterUrl) { MoviePosterLoader.peekBitmap(posterUrl) }
+-    val poster by produceState<ImageBitmap?>(initialValue = initialPoster, key1 = posterUrl, key2 = artworkEpoch) {
+-        value = MoviePosterLoader.loadWithRetry(context, posterUrl)
++    val poster by produceState<ImageBitmap?>(initialValue = initialPoster, key1 = posterUrl, key2 = artworkEpoch, key3 = loadArtwork) {
++        if (loadArtwork) value = if (artworkRequests == null) MoviePosterLoader.loadWithRetry(context, posterUrl)
++            else artworkRequests.run { MoviePosterLoader.loadWithRetry(context, posterUrl) }
+     }
+     val focusRequester = remember { FocusRequester() }
+     BindCatalogFocus(navigator, gridIndex, focusRequester)
+@@ -2595,37 +2606,7 @@
+                 visuallyFocused || isSelected, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP
+             ))
+ 
+-            Box(
+-                modifier = Modifier
+-                    .align(Alignment.TopEnd)
+-                    .padding(
+-                        top = if (compactLayout) 6.dp else 8.dp,
+-                        end = if (compactLayout) 6.dp else 8.dp
+-                    )
+-                    // Área transparente: não ocupa um segundo foco na TV
+-                    // e não desenha ripple ou quadrado atrás do coração.
+-                    .size(if (compactLayout) 30.dp else 34.dp)
+-                    .pointerInput(Unit) {
+-                        detectTapGestures(onTap = { currentOnFavoriteClick(false) })
+-                    }
+-                    .semantics {
+-                        role = Role.Button
+-                        onClick(label = if (isFavorite) "Remover favorito" else "Adicionar favorito") {
+-                            currentOnFavoriteClick(false)
+-                            true
+-                        }
+-                    },
+-                contentAlignment = Alignment.Center
+-            ) {
+-                FavoriteHeart(
+-                    isFavorite = isFavorite,
+-                    size = if (compactLayout) {
+-                        18
+-                    } else {
+-                        20
+-                    }
+-                )
+-            }
++
+         }
+ 
+         Spacer(
+@@ -2676,15 +2657,20 @@
+                 add(String.format(Locale.US, "★ %.1f", it))
+             }
+         }.joinToString("  •  ")
+-        if (metadata.isNotBlank()) {
+-            Spacer(Modifier.height(if (compactLayout) 2.dp else 3.dp))
+-            Text(
++        Spacer(Modifier.height(if (compactLayout) 2.dp else 3.dp))
++        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
++            if (metadata.isNotBlank()) Text(
+                 text = metadata,
++                modifier = Modifier.weight(1f, fill = false),
+                 lineHeight = if (compactLayout) 12.sp else 16.sp,
+                 color = Color(0xFF9D9DA3),
+                 fontSize = if (compactLayout) 9.sp else 11.sp,
+                 maxLines = 1,
+                 overflow = TextOverflow.Ellipsis
++            )
++            br.com.flaviotorres.iptvpremium.ui.components.CatalogFavoriteHeart(
++                isFavorite = isFavorite, compact = compactLayout,
++                onClick = { currentOnFavoriteClick(false) }
+             )
+         }
+     }
+@@ -2747,99 +2733,6 @@
+     }
+ }
+ 
+-@Composable
+-private fun FavoriteHeart(
+-    isFavorite: Boolean,
+-    size: Int
+-) {
+-    Canvas(
+-        modifier = Modifier.size(
+-            size.dp
+-        )
+-    ) {
+-        val path = Path()
+-
+-        val width = this.size.width
+-        val height = this.size.height
+-
+-        path.moveTo(
+-            width * 0.50f,
+-            height * 0.88f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.42f,
+-            height * 0.80f,
+-            width * 0.08f,
+-            height * 0.58f,
+-            width * 0.08f,
+-            height * 0.32f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.08f,
+-            height * 0.12f,
+-            width * 0.23f,
+-            height * 0.05f,
+-            width * 0.36f,
+-            height * 0.05f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.44f,
+-            height * 0.05f,
+-            width * 0.49f,
+-            height * 0.10f,
+-            width * 0.50f,
+-            height * 0.17f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.51f,
+-            height * 0.10f,
+-            width * 0.56f,
+-            height * 0.05f,
+-            width * 0.64f,
+-            height * 0.05f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.77f,
+-            height * 0.05f,
+-            width * 0.92f,
+-            height * 0.12f,
+-            width * 0.92f,
+-            height * 0.32f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.92f,
+-            height * 0.58f,
+-            width * 0.58f,
+-            height * 0.80f,
+-            width * 0.50f,
+-            height * 0.88f
+-        )
+-
+-        path.close()
+-
+-        if (isFavorite) {
+-            drawPath(
+-                path = path,
+-                brush = PremiumGoldBorder
+-            )
+-        } else {
+-            drawPath(
+-                path = path,
+-                brush = PremiumGoldBorder,
+-                style = Stroke(
+-                    width = 1.6.dp.toPx()
+-                )
+-            )
+-        }
+-    }
+-}
+-
+ 
+ // IPTV_GLOBAL_GRAPHITE_V1
+ 
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -154,7 +154,6 @@
+ // Apenas 5 capas por lote. Nao aumenta a quantidade preparada na Home;
+ // a navegacao ja prioriza as 5 primeiras capas quando entra na categoria.
+ // Ao rolar, a antecipacao avanca de 5 em 5 sem requisitar novas paginas.
+-private const val MOVIE_POSTER_BATCH_SIZE = br.com.flaviotorres.iptvpremium.data.cache.CATEGORY_POSTER_BATCH_SIZE
+ 
+ private val CinzelSemiBold = FontFamily(
+     Font(
+@@ -300,6 +299,14 @@
+     }
+     val movieCategoryListState = rememberLazyListState()
+     val categoryFirstFocusRequester = remember { FocusRequester() }
++    val posterRequests = br.com.flaviotorres.iptvpremium.ui.components.rememberCatalogPosterRequests()
++    val posterRequestsEnabled by posterRequests.enabled.collectAsState()
++    fun openCatalogItem(id: String) {
++        posterRequests.stop()
++        onCatalogInteraction(true)
++        onMovieClick(id)
++    }
++    val gridColumns = br.com.flaviotorres.iptvpremium.ui.settings.rememberSettingsPreferences().catalogColumns()
+     val menuFocusRequester = remember { FocusRequester() }
+     val searchFocusRequester = remember { FocusRequester() }
+     var catalogContentFocused by remember { mutableStateOf(false) }
+@@ -348,6 +355,11 @@
+     var returningMovieFocusRequest by remember { mutableLongStateOf(0L) }
+ 
+     LaunchedEffect(Unit) {
++        if (selectedMovieId == null) {
++            categoryMenuActive = true
++            br.com.flaviotorres.iptvpremium.ui.components.restoreCatalogCategoryFocus(
++                movieCategoryListState, 0, selectedCategoryFocus, menuFocusRequester, catalogInputMode)
++        }
+         selectedMovieId?.let { movieId ->
+             categoryMenuActive = false
+             returningMovieFocusId = movieId
+@@ -410,9 +422,12 @@
+     val moviesGridState =
+         rememberLazyGridState()
+ 
++    val posterWindow by remember(moviesGridState, gridColumns) {
++        androidx.compose.runtime.derivedStateOf { br.com.flaviotorres.iptvpremium.data.cache.catalogPosterWindow(moviesGridState.firstVisibleItemIndex, gridColumns) }
++    }
+     val posterCacheContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
+     // Intervalo ocioso conservador na Android TV para nao competir com o foco.
+-    // Mantem a qualidade das imagens; a antecipacao foi organizada em 15 capas.
++    // Mantem a qualidade; a antecipacao respeita duas fileiras.
+     val posterIdleDelayMs = remember(posterCacheContext) {
+         val mode = posterCacheContext.resources.configuration.uiMode and
+                 Configuration.UI_MODE_TYPE_MASK
+@@ -462,57 +477,28 @@
+         oldPagingSnapshot = null
+     }
+ 
+-    /*
+-     * Antecipacao leve em modo ocioso (Android TV + celular):
+-     * - ao entrar na categoria, so o lote 0-4 entra nesta fila;
+-     * - ao rolar, a fila avanca para 5-9, 10-14, etc., conforme a posicao;
+-     * - nunca antecipa lotes de 30 ou preenche a grade inteira em background.
+-     *
+-     * A grade solicita imediatamente as 15 primeiras capas da categoria.
+-     * Chamadas duplicadas sao atendidas pelo mesmo arquivo/mutex do carregador.
+-     *
+-     * Ao navegar com o controle, rolar, trocar a categoria ou carregar uma
+-     * pagina, o prefetch em andamento e cancelado pelo collectLatest.
+-     * A abertura inicia imediatamente; na navegacao espera 100 ms TV / 80 ms celular e so usa capas
+-     * JA carregadas pelo Paging: nao provoca leituras/append no Room.
+-     */
+-    LaunchedEffect(
+-        pagedMovies,
+-        selectedCategory,
+-        selectedSourceCategoryId,
+-        searchText,
+-        sortMode
+-    ) {
++    // Only the next two rows are anticipated; layout precomposition cannot download more.
++    LaunchedEffect(pagedMovies, selectedCategory, selectedSourceCategoryId, searchText, sortMode, gridColumns, continueMovies) {
+         val paging = pagedMovies ?: return@LaunchedEffect
+-
+-        val pagingWindow = snapshotFlow {
+-            // Usa o PRIMEIRO indice visivel, nao o ultimo: em TVs 4K,
+-            // muitas capas cabem na mesma tela e usar lastVisible pularia
+-            // o primeiro lote de 5 logo na abertura da categoria.
+-            val firstVisible = moviesGridState.firstVisibleItemIndex.coerceAtLeast(0)
+-            val batch = br.com.flaviotorres.iptvpremium.data.cache.categoryPosterBatch(firstVisible)
+-            val busy = searchKeyboardVisible || awaitingCategoryPage ||
+-                    moviesGridState.isScrollInProgress ||
+-                    paging.loadState.refresh is LoadState.Loading
+-            Triple(batch, paging.itemSnapshotList, busy)
+-        }
+-
+-        combine(pagingWindow, posterFocusActivity) { window, _ -> window }
+-            .collectLatest { (batch, loaded, busy) ->
+-                if (busy) return@collectLatest
+-
+-                // Uma nova tecla de navegacao reinicia a espera sem trabalho
+-                // adicional na thread principal ou na rede.
+-                if (batch > 0) delay(posterIdleDelayMs)
+-
+-                prefetchMoviePosterBatch(
+-                    movies = loaded.items,
+-                    firstLoadedIndex = loaded.placeholdersBefore,
+-                    context = posterCacheContext,
+-                    startIndex = batch * MOVIE_POSTER_BATCH_SIZE,
+-                    endIndex = (batch + 1) * MOVIE_POSTER_BATCH_SIZE
+-                )
+-            }
++        combine(snapshotFlow {
++            val window = br.com.flaviotorres.iptvpremium.data.cache.catalogPosterWindow(moviesGridState.firstVisibleItemIndex, gridColumns)
++            val busy = !posterRequestsEnabled || searchKeyboardVisible || awaitingCategoryPage ||
++                moviesGridState.isScrollInProgress || (!(selectedCategory == MovieCategory.CONTINUE_WATCHING && selectedSourceCategoryId == null) && paging.loadState.refresh is LoadState.Loading)
++            Triple(window, paging.itemSnapshotList, busy)
++        }, posterFocusActivity) { window, _ -> window }.collectLatest { (window, loaded, busy) ->
++            if (busy) return@collectLatest
++            delay(posterIdleDelayMs)
++            val urls = if (selectedCategory == MovieCategory.CONTINUE_WATCHING && selectedSourceCategoryId == null) {
++                continueMovies.drop(window.next.first).take(window.size).map { it.posterUrl }
++            } else {
++                val from = (window.next.first - loaded.placeholdersBefore).coerceAtLeast(0)
++                val until = (window.next.last + 1 - loaded.placeholdersBefore).coerceAtMost(loaded.items.size)
++                if (from < until) loaded.items.subList(from, until).map { it.posterUrl } else emptyList()
++            }
++            if (urls.isNotEmpty()) posterRequests.run {
++                MoviePosterLoader.prefetchPriorityBatch(posterCacheContext, urls)
++            }
++        }
+     }
+ 
+     // A chave anterior e salva junto ao NavBackStackEntry, para distinguir
+@@ -616,7 +602,6 @@
+             SortMode.Z_A -> searchedMovies.sortedByDescending { it.name.lowercase() }
+         }
+ 
+-    val gridColumns = br.com.flaviotorres.iptvpremium.ui.settings.rememberSettingsPreferences().catalogColumns()
+     val navScope = androidx.compose.runtime.rememberCoroutineScope()
+     val navCount by rememberUpdatedState(if (selectedCategory == MovieCategory.CONTINUE_WATCHING) continueMovies.size else pagedMovies?.itemCount ?: displayedMovies.size)
+     val navLoad by rememberUpdatedState<(Int) -> Unit>({ index -> if (selectedCategory != MovieCategory.CONTINUE_WATCHING) { pagedMovies?.get(index); Unit } })
+@@ -663,6 +648,10 @@
+         handleCatalogBack()
+     }
+ 
++    CompositionLocalProvider(
++        br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterRequests provides posterRequests,
++        br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWindow provides posterWindow
++    ) {
+     BoxWithConstraints(
+         modifier = Modifier
+             .catalogEscapeBack(onBack = ::handleCatalogBack)
+@@ -907,7 +896,7 @@
+                                     onSourceCategorySelected(
+                                         category.id
+                                     )
+-                                
++
+                                     }
+                                 }
+                             )
+@@ -1029,7 +1018,7 @@
+                                             watchProgress = entry.fraction,
+                                             onSelect = {
+                                                 selectedMovieId = entry.contentId
+-                                                onMovieClick(entry.contentId)
++                                                openCatalogItem(entry.contentId)
+                                             },
+                                             onFavoriteClick = { _ -> onFavoriteClick(entry.contentId) },
+                                             onRemoveFromContinue = { onRemoveFromContinue(entry.contentId) }
+@@ -1153,7 +1142,7 @@
+                                                     selectedMovieId =
+                                                         movie.id
+ 
+-                                                    onMovieClick(
++                                                    openCatalogItem(
+                                                         movie.id
+                                                     )
+                                                 },
+@@ -1247,7 +1236,7 @@
+                                         compactLayout,
+                                     onSelect = {
+                                         selectedMovieId = movie.id
+-                                        onMovieClick(movie.id)
++                                        openCatalogItem(movie.id)
+                                     },
+                                     movieId = movie.id,
+                                     focusRestorationMovieId = when {
+@@ -1350,6 +1339,7 @@
+                 )
+             }
+         }
++    }
+     }
+ }
+ 
+@@ -2154,6 +2144,10 @@
+     gridIndex: Int = -1,
+     allowRestoration: Boolean = true
+ ) {
++    val artworkRequests = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterRequests.current
++    val artworkWindow = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWindow.current
++    val artworkEnabled = artworkRequests?.enabled?.collectAsState()?.value ?: true
++    val loadArtwork = artworkEnabled && (gridIndex < 0 || gridIndex in artworkWindow.visible)
+     val fittedPosterWidth = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWidth.current
+     var isFocused by remember {
+         mutableStateOf(false)
+@@ -2237,9 +2231,11 @@
+         produceState<ImageBitmap?>(
+             initialValue = MoviePosterLoader.peekBitmap(posterUrl),
+             key1 = posterUrl,
+-            key2 = artworkEpoch
++            key2 = artworkEpoch,
++            key3 = loadArtwork
+         ) {
+-            value = MoviePosterLoader.loadWithRetry(posterContext, posterUrl)
++            if (loadArtwork) value = if (artworkRequests == null) MoviePosterLoader.loadWithRetry(posterContext, posterUrl)
++                else artworkRequests.run { MoviePosterLoader.loadWithRetry(posterContext, posterUrl) }
+         }
+     }
+ 
+@@ -2441,39 +2437,6 @@
+                 )
+             }
+ 
+-            Box(
+-                modifier = Modifier
+-                    .align(Alignment.TopEnd)
+-                    .padding(
+-                        top = if (compactLayout) 6.dp else 8.dp,
+-                        end = if (compactLayout) 6.dp else 8.dp
+-                    )
+-                    // Área transparente, sem ripple ou foco separado:
+-                    // o coração é o único elemento desenhado.
+-                    .size(if (compactLayout) 30.dp else 34.dp)
+-                    .pointerInput(movieId, holdThreshold) {
+-                        detectTapGestures(
+-                            onTap = { currentOnFavoriteClick(false) }
+-                        )
+-                    }
+-                    .semantics {
+-                        role = Role.Button
+-                        onClick(label = if (isFavorite) "Remover favorito" else "Adicionar favorito") {
+-                            currentOnFavoriteClick(false)
+-                            true
+-                        }
+-                    },
+-                contentAlignment = Alignment.Center
+-            ) {
+-                FavoriteHeart(
+-                    isFavorite = isFavorite,
+-                    size = if (compactLayout) {
+-                        18
+-                    } else {
+-                        20
+-                    }
+-                )
+-            }
+ 
+             watchProgress?.takeIf { it > 0f }?.let { fraction ->
+                 Box(
+@@ -2541,29 +2504,20 @@
+             overflow = if (isFocused) TextOverflow.Clip else TextOverflow.Ellipsis
+         )
+ 
+-        if (metadataText.isNotBlank()) {
+-            Spacer(
+-                modifier = Modifier.height(
+-                    if (compactLayout) {
+-                        2.dp
+-                    } else {
+-                        3.dp
+-                    }
+-                )
+-            )
+-
+-            Text(
++        Spacer(Modifier.height(if (compactLayout) 2.dp else 3.dp))
++        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
++            if (metadataText.isNotBlank()) Text(
+                 text = metadataText,
++                modifier = Modifier.weight(1f, fill = false),
+                 lineHeight = if (compactLayout) 12.sp else 16.sp,
+                 color = Color(0xFF9D9DA3),
+-                fontSize =
+-                    if (compactLayout) {
+-                        9.sp
+-                    } else {
+-                        11.sp
+-                    },
++                fontSize = if (compactLayout) 9.sp else 11.sp,
+                 maxLines = 1,
+                 overflow = TextOverflow.Ellipsis
++            )
++            br.com.flaviotorres.iptvpremium.ui.components.CatalogFavoriteHeart(
++                isFavorite = isFavorite, compact = compactLayout,
++                onClick = { currentOnFavoriteClick(false) }
+             )
+         }
+     }
+@@ -2683,33 +2637,12 @@
+     }
+ }
+ 
+-/**
+- * Antecipa somente os filmes que o Paging JA entregou para a grade.
+- * Nao chama paging[index], nao solicita append e nao espera novas paginas:
+- * isso reduz consultas SQLite e evita competir com o controle remoto.
+- * O arquivo comprimido vai para o disco, sem decodificar bitmaps extras.
+- */
+-private suspend fun prefetchMoviePosterBatch(
+-    movies: List<Movie>,
+-    firstLoadedIndex: Int,
+-    context: Context,
+-    startIndex: Int,
+-    endIndex: Int
+-) {
+-    // Converte os indices absolutos do lote para a janela ja recebida.
+-    val from = (startIndex - firstLoadedIndex).coerceAtLeast(0)
+-    val until = (endIndex - firstLoadedIndex).coerceAtMost(movies.size)
+-    if (from >= until) return
+-
+-    MoviePosterLoader.prefetchPriorityBatch(context, movies.subList(from, until).map { it.posterUrl })
+-}
+-
+ /*
+  * Cache progressivo e persistente de capas, compartilhado por Filmes e Series.
+  *
+  * - RAM: 20 MiB somente para imagens ja exibidas (LRU).
+  * - Disco: orcamento compartilhado de 64 MiB, preservado ao reiniciar.
+- * - Prefetch: 15 arquivos comprimidos por lote, ate duas conexoes de fundo.
++ * - Prefetch: somente as proximas duas fileiras, no maximo dez arquivos comprimidos.
+  * - Rede: ate seis downloads simultaneos, no maximo dois em antecipacao.
+  * - Politica LRU: ao exceder o limite, remove somente os arquivos antigos
+  *   necessarios, evitando apagar todas as capas a cada reinicio.
+@@ -2800,7 +2733,7 @@
+ 
+     /** Compressed-file anticipation leaves decoding/RAM to the visible cards. */
+     suspend fun prefetchPriorityBatch(context: Context, urls: List<String?>) = kotlinx.coroutines.coroutineScope {
+-        val batch = urls.mapNotNull(::validUrl).distinct().take(15)
++        val batch = urls.mapNotNull(::validUrl).distinct().take(10)
+         val workers = br.com.flaviotorres.iptvpremium.data.cache.PosterNetworkBudget.BACKGROUND_REQUESTS
+         repeat(minOf(workers, batch.size)) { worker ->
+             launch(Dispatchers.IO) {
+@@ -2924,6 +2857,8 @@
+             val parent = target.parentFile ?: return false
+             if (!parent.isDirectory && !parent.mkdirs() && !parent.isDirectory) return false
+             connection = URL(url).openConnection() as HttpURLConnection
++            val owner = currentCoroutineContext()[br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterRequests]
++            owner?.track(connection)
+             connection.connectTimeout = 8_000
+             connection.readTimeout = 10_000
+             connection.instanceFollowRedirects = true
+@@ -2954,6 +2889,7 @@
+             return false
+         } finally {
+             temporary.delete()
++            connection?.let { currentCoroutineContext()[br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterRequests]?.untrack(it) }
+             connection?.disconnect()
+         }
+     }
+@@ -3029,98 +2965,6 @@
+     }
+ }
+ 
+-@Composable
+-private fun FavoriteHeart(
+-    isFavorite: Boolean,
+-    size: Int
+-) {
+-    Canvas(
+-        modifier = Modifier.size(
+-            size.dp
+-        )
+-    ) {
+-        val path = Path()
+-
+-        val width = this.size.width
+-        val height = this.size.height
+-
+-        path.moveTo(
+-            width * 0.50f,
+-            height * 0.88f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.42f,
+-            height * 0.80f,
+-            width * 0.08f,
+-            height * 0.58f,
+-            width * 0.08f,
+-            height * 0.32f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.08f,
+-            height * 0.12f,
+-            width * 0.23f,
+-            height * 0.05f,
+-            width * 0.36f,
+-            height * 0.05f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.44f,
+-            height * 0.05f,
+-            width * 0.49f,
+-            height * 0.10f,
+-            width * 0.50f,
+-            height * 0.17f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.51f,
+-            height * 0.10f,
+-            width * 0.56f,
+-            height * 0.05f,
+-            width * 0.64f,
+-            height * 0.05f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.77f,
+-            height * 0.05f,
+-            width * 0.92f,
+-            height * 0.12f,
+-            width * 0.92f,
+-            height * 0.32f
+-        )
+-
+-        path.cubicTo(
+-            width * 0.92f,
+-            height * 0.58f,
+-            width * 0.58f,
+-            height * 0.80f,
+-            width * 0.50f,
+-            height * 0.88f
+-        )
+-
+-        path.close()
+-
+-        if (isFavorite) {
+-            drawPath(
+-                path = path,
+-                brush = PremiumGoldBorder
+-            )
+-        } else {
+-            drawPath(
+-                path = path,
+-                brush = PremiumGoldBorder,
+-                style = Stroke(
+-                    width = 1.6.dp.toPx()
+-                )
+-            )
+-        }
+-    }
+-}
+ 
+ // IPTV_GLOBAL_GRAPHITE_V1
+ 
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogPosterLoading.kt
+@@ -0,0 +1,29 @@
++package br.com.flaviotorres.iptvpremium.ui.components
++
++import androidx.compose.runtime.*
++import androidx.lifecycle.Lifecycle
++import androidx.lifecycle.LifecycleEventObserver
++import androidx.lifecycle.compose.LocalLifecycleOwner
++import br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterRequests
++import br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterWindow
++
++internal val LocalCatalogPosterRequests = staticCompositionLocalOf<CatalogPosterRequests?> { null }
++internal val LocalCatalogPosterWindow = staticCompositionLocalOf { CatalogPosterWindow(0, Int.MAX_VALUE / 2) }
++
++@Composable
++internal fun rememberCatalogPosterRequests(): CatalogPosterRequests {
++    val requests = remember { CatalogPosterRequests() }
++    val lifecycle = LocalLifecycleOwner.current.lifecycle
++    DisposableEffect(lifecycle, requests) {
++        val observer = LifecycleEventObserver { _, event ->
++            when (event) {
++                Lifecycle.Event.ON_RESUME -> requests.resume()
++                Lifecycle.Event.ON_PAUSE, Lifecycle.Event.ON_STOP, Lifecycle.Event.ON_DESTROY -> requests.stop()
++                else -> Unit
++            }
++        }
++        lifecycle.addObserver(observer)
++        onDispose { lifecycle.removeObserver(observer); requests.stop() }
++    }
++    return requests
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogFavoriteHeart.kt
+@@ -0,0 +1,46 @@
++package br.com.flaviotorres.iptvpremium.ui.components
++
++import androidx.compose.foundation.Canvas
++import androidx.compose.foundation.gestures.detectTapGestures
++import androidx.compose.foundation.layout.Box
++import androidx.compose.foundation.layout.size
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.Path
++import androidx.compose.ui.graphics.drawscope.Stroke
++import androidx.compose.ui.input.pointer.pointerInput
++import androidx.compose.ui.semantics.Role
++import androidx.compose.ui.semantics.onClick
++import androidx.compose.ui.semantics.role
++import androidx.compose.ui.semantics.semantics
++import androidx.compose.ui.semantics.stateDescription
++import androidx.compose.ui.unit.dp
++
++/** Small hollow heart in the metadata row; long OK on the card still toggles favorites. */
++@Composable
++internal fun CatalogFavoriteHeart(isFavorite: Boolean, compact: Boolean, onClick: () -> Unit) {
++    Box(Modifier.size(if (compact) 12.dp else 15.dp)
++        .pointerInput(onClick) { detectTapGestures { onClick() } }
++        .semantics {
++            role = Role.Button
++            stateDescription = if (isFavorite) "Favorito" else "Não favorito"
++            onClick(label = if (isFavorite) "Remover favorito" else "Adicionar favorito") { onClick(); true }
++        }, contentAlignment = Alignment.Center) {
++        Canvas(Modifier.size(if (compact) 10.dp else 12.dp)) {
++            val w = size.width; val h = size.height
++            val heart = Path().apply {
++                moveTo(w * .5f, h * .88f)
++                cubicTo(w * .42f, h * .8f, w * .08f, h * .58f, w * .08f, h * .32f)
++                cubicTo(w * .08f, h * .05f, w * .36f, h * .0f, w * .5f, h * .17f)
++                cubicTo(w * .64f, h * .0f, w * .92f, h * .05f, w * .92f, h * .32f)
++                cubicTo(w * .92f, h * .58f, w * .58f, h * .8f, w * .5f, h * .88f)
++                close()
++            }
++            drawPath(heart, color = if (isFavorite)
++                br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.color(0xFFFFD54A)
++                else Color(0xFF9D9DA3), style = Stroke(width = 1.dp.toPx()))
++        }
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -2293,66 +2293,6 @@
+                     moviesViewModel.movies
+                         .collectAsLazyPagingItems()
+ 
+-                // Cache por categoria: ate 15 titulos, sem segurar a grade.
+-                // As 5 primeiras capas sao baixadas antes das imagens de detalhes.
+-                // Logo/titulo e backdrop tem prioridade; fotos de elenco e
+-                // episodios nao fazem parte desse pre-carregamento.
+-                val movieCatalogBusy = remember { kotlinx.coroutines.flow.MutableStateFlow(false) }
+-                val categoryMovieWindow = pagedMovies.itemSnapshotList.items.take(3)
+-                val categoryMovieIds = categoryMovieWindow.map { it.id }
+-                LaunchedEffect(activePlaylistId, categoryMovieIds) {
+-                    val source = playlists.firstOrNull { it.id == activePlaylistId }
+-                        ?: return@LaunchedEffect
+-                    val generation = playlistCacheDao
+-                        .observeActiveGenerationId(source.id).first()
+-                        ?.takeIf(String::isNotBlank) ?: return@LaunchedEffect
+-                    val appContext = context.applicationContext
+-                    kotlinx.coroutines.flow.combine(movieCatalogBusy, br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured) { navigating, pressured -> navigating || pressured }
+-                        .collectLatest { paused ->
+-                        if (paused) return@collectLatest
+-                        withContext(Dispatchers.IO) {
+-                        delay(800L)
+-                        for (item in categoryMovieWindow) {
+-                            currentCoroutineContext().ensureActive()
+-                            if (item.id.isBlank()) continue
+-                            try {
+-                                // Evita consultar o provedor se ja existe detalhe pronto.
+-                                val cached = CatalogDetailsWarmupCache.getMovie(
+-                                    source.id, generation, item.id
+-                                )
+-                                if (cached == null) {
+-                                    withTimeoutOrNull(5_000L) {
+-                                        CatalogDetailsWarmupCache.prefetchMovie(
+-                                            source.id, generation, item.id
+-                                        ) { playlistRepository.loadMovieDetails(source, item.id) }
+-                                    }
+-                                }
+-                                val details = CatalogDetailsWarmupCache.getMovie(
+-                                    source.id, generation, item.id
+-                                )
+-                                val backdrop = details?.backdropUrl?.takeIf(String::isNotBlank)
+-                                    ?: item.backdropUrl
+-                                withTimeoutOrNull(3_000L) {
+-                                    MovieDetailsImageLoader.load(
+-                                        appContext, backdrop, 960, 540, "category_movie_backdrop"
+-                                    )
+-                                }
+-                                withTimeoutOrNull(2_000L) {
+-                                    MovieDetailsImageLoader.load(
+-                                        appContext, details?.titleLogoUrl, 320, 100,
+-                                        "category_movie_logo"
+-                                    )
+-                                }
+-                            } catch (cancelled: CancellationException) {
+-                                throw cancelled
+-                            } catch (_: Exception) {
+-                                // Falhas individuais nao impedem a navegacao.
+-                            }
+-                        }
+-                    }
+-                    }
+-                }
+-
+                 // Mesma area disponivel da rota de detalhes, para usar
+                 // dimensoes identicas ao decodificar backdrop e logo no cache RAM.
+                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+@@ -2365,7 +2305,6 @@
+                     }
+ 
+                     MoviesScreen(
+-                        onCatalogInteraction = { movieCatalogBusy.value = it },
+                     onCategoryAccessRequested = { id, title, proceed -> requestParentalCategory("MOVIES", id, title, proceed) },
+                         onRemoveFromContinue = { movieId ->
+                             val playlistId = activePlaylistId
+@@ -3772,56 +3711,7 @@
+ 
+                 // Series: 5 capas imediatas e ate 15 logos/backdrops, sem baixar
+                 // episodios de todas as series antes de navegar.
+-                val seriesCatalogBusy = remember { kotlinx.coroutines.flow.MutableStateFlow(false) }
+-                val categorySeriesWindow = pagedSeries.itemSnapshotList.items.take(3)
+-                val categorySeriesIds = categorySeriesWindow.map { it.id }
+-                LaunchedEffect(activePlaylistId, categorySeriesIds) {
+-                    val source = playlists.firstOrNull { it.id == activePlaylistId }
+-                        ?: return@LaunchedEffect
+-                    val appContext = context.applicationContext
+-                    kotlinx.coroutines.flow.combine(seriesCatalogBusy, br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured) { navigating, pressured -> navigating || pressured }
+-                        .collectLatest { paused ->
+-                        if (paused) return@collectLatest
+-                        withContext(Dispatchers.IO) {
+-                        delay(800L)
+-                        for (item in categorySeriesWindow) {
+-                            currentCoroutineContext().ensureActive()
+-                            if (item.id.isBlank()) continue
+-                            try {
+-                                withTimeoutOrNull(3_000L) {
+-                                    MovieDetailsImageLoader.load(
+-                                        appContext, item.backdropUrl, 960, 540,
+-                                        "category_series_backdrop"
+-                                    )
+-                                }
+-                                withTimeoutOrNull(2_000L) {
+-                                    MovieDetailsImageLoader.load(
+-                                        appContext, item.titleLogoUrl, 320, 100,
+-                                        "category_series_logo"
+-                                    )
+-                                }
+-                            } catch (cancelled: CancellationException) {
+-                                throw cancelled
+-                            } catch (_: Exception) {
+-                                // Episodios sao carregados sob demanda.
+-                            }
+-                        }
+-                    }
+-                    }
+-                }
+-
+-                val focusWarmup = remember(activePlaylistId) {
+-                    val source = playlists.firstOrNull { it.id == activePlaylistId }
+-                    br.com.flaviotorres.iptvpremium.data.cache.SeriesFocusPreloader(coroutineScope) { id ->
+-                        if (source != null) prefetchSeriesForFocus(playlistCacheDao, seriesEpisodesRepository, source, id)
+-                    }
+-                }
+-                DisposableEffect(focusWarmup) { onDispose { focusWarmup.dispose() } }
+                 SeriesScreen(
+-                    onCatalogInteraction = { seriesCatalogBusy.value = it },
+-                    onSeriesFocused = { focusWarmup.focus(it) },
+-                    onSeriesBlurred = { focusWarmup.blur(it) },
+-                    onContinueWatchingSelected = { focusWarmup.clear() },
+                     onCategoryAccessRequested = { id, title, proceed -> requestParentalCategory("SERIES", id, title, proceed) },
+                     watchHistoryEntries = watchHistoryEntries,
+                     pagedSeries = pagedSeries,
+@@ -3829,30 +3719,24 @@
+                     totalSeriesCount = totalSeriesCount,
+                     pagingCategoryCounts = seriesCountsByCategory,
+                     onSourceCategorySelected = { categoryId ->
+-                        focusWarmup.clear()
+                         seriesViewModel.selectCategory(categoryId)
+                     },
+                     onFavoritesSelected = {
+-                        focusWarmup.clear()
+                         seriesViewModel.selectFavorites()
+                     },
+                     onSearchQueryChanged = { query ->
+-                        focusWarmup.clear()
+                         seriesViewModel.setSearchQuery(query)
+                     },
+                     onSortModeChanged = { mode ->
+-                        focusWarmup.clear()
+                         seriesViewModel.setSortMode(mode)
+                     },
+                     favoriteSeriesIds = favoriteSeriesIds,
+                     onSeriesClick = { seriesId ->
+-                        focusWarmup.commit(seriesId)
+                         // Somente a serie selecionada, ja carregada pelo Paging.
+                         // Nenhum SELECT extra nem reconstrução de toda a lista.
+                         selectedSeriesForDetails = pagedSeries.itemSnapshotList.items
+                             .firstOrNull { it.id == seriesId }
+-                        // A tela de detalhes e dona da abertura. O foco ja iniciado
+-                        // e reutilizado pelo cache; nao cria outra tarefa solta no clique.
++                        // Somente a tela de detalhes carrega a serie selecionada.
+                         navController.navigate(
+                             AppDestination.SeriesDetails.createRoute(seriesId)
+                         ) { launchSingleTop = true }
+@@ -5064,12 +4948,11 @@
+     modifier: Modifier = Modifier
+ ) {
+     val context = LocalContext.current
+-    val bitmap by produceState<ImageBitmap?>(null, poster.posterUrl) {
+-        // O carregador da grade ja tem as capas dos lotes antecipados.
+-        // Reutiliza o mesmo cache RAM/disco e a mesma fila de downloads,
+-        // evitando baixar novamente a URL no inicio do carrossel.
+-        // Mantem o carregador anterior como fallback de compatibilidade.
+-        value = MoviePosterLoader.load(context.applicationContext, poster.posterUrl)
++    val cachedPoster = remember(poster.posterUrl) { MoviePosterLoader.peekBitmap(poster.posterUrl) }
++    val bitmap by produceState<ImageBitmap?>(cachedPoster, poster.posterUrl, selectedMovie) {
++        // During opening, only the chosen title can request or decode artwork.
++        // Other carousel cards reuse RAM artwork already drawn in the catalog.
++        if (selectedMovie) value = MoviePosterLoader.load(context.applicationContext, poster.posterUrl)
+             ?: FilmstripPosterCache.load(context, poster.posterUrl)
+     }
+     val shape = RoundedCornerShape(6.dp)
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogPosterRequests.kt
+@@ -0,0 +1,47 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import java.net.HttpURLConnection
++import kotlin.coroutines.AbstractCoroutineContextElement
++import kotlin.coroutines.CoroutineContext
++import kotlinx.coroutines.*
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.asStateFlow
++
++/** Owned by a catalog entry. Detail artwork uses independent, unaffected requests. */
++internal class CatalogPosterRequests : AbstractCoroutineContextElement(Key) {
++    companion object Key : CoroutineContext.Key<CatalogPosterRequests> {
++        private val cleanup = CoroutineScope(SupervisorJob() + Dispatchers.IO)
++    }
++    private val lock = Any()
++    private val active = MutableStateFlow(true)
++    val enabled = active.asStateFlow()
++    private val jobs = mutableSetOf<Job>()
++    private val connections = mutableSetOf<HttpURLConnection>()
++
++    suspend fun <T> run(block: suspend () -> T): T = coroutineScope {
++        val job = currentCoroutineContext().job
++        synchronized(lock) {
++            if (!active.value) throw CancellationException("Catalog artwork paused")
++            jobs.add(job)
++        }
++        try { withContext(this@CatalogPosterRequests) { block() } }
++        finally { synchronized(lock) { jobs.remove(job) } }
++    }
++    fun track(connection: HttpURLConnection) {
++        synchronized(lock) {
++            if (!active.value) throw CancellationException("Catalog artwork paused")
++            connections.add(connection)
++        }
++    }
++    fun untrack(connection: HttpURLConnection) { synchronized(lock) { connections.remove(connection) } }
++    fun resume() { synchronized(lock) { active.value = true } }
++    fun stop() {
++        val pending: Pair<List<Job>, List<HttpURLConnection>> = synchronized(lock) {
++            active.value = false
++            (jobs.toList() to connections.toList()).also { connections.clear() }
++        }
++        // Cancellation happens before navigation. Socket closure never blocks the UI thread.
++        pending.first.forEach { it.cancel() }
++        pending.second.forEach { connection -> cleanup.launch { runCatching { connection.disconnect() } } }
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterBatchPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterBatchPolicy.kt
+@@ -1,8 +1,11 @@
+ package br.com.flaviotorres.iptvpremium.data.cache
+ 
+-internal const val CATEGORY_POSTER_BATCH_SIZE = 15
+-/** Antecipacao de uma linha antes de chegar ao proximo bloco. */
+-internal fun categoryPosterBatch(firstVisibleIndex: Int): Int {
+-    val index = firstVisibleIndex.coerceAtLeast(0)
+-    return (index + if (index == 0) 0 else 5) / CATEGORY_POSTER_BATCH_SIZE
++/** Exactly two visible rows, with at most one further two-row window anticipated. */
++internal data class CatalogPosterWindow(val first: Int, val size: Int) {
++    val visible: IntRange get() = first until first + size
++    val next: IntRange get() = first + size until first + size * 2
+ }
++internal fun catalogPosterWindow(firstVisibleIndex: Int, columns: Int): CatalogPosterWindow {
++    val count = columns.coerceIn(4, 5)
++    return CatalogPosterWindow(firstVisibleIndex.coerceAtLeast(0) / count * count, count * 2)
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogEntryRulesDeviceTest.kt
+@@ -0,0 +1,77 @@
++package br.com.flaviotorres.iptvpremium.data.repository
++
++import androidx.compose.foundation.background
++import androidx.compose.foundation.layout.*
++import androidx.compose.runtime.*
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.toPixelMap
++import androidx.compose.ui.graphics.asImageBitmap
++import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.test.*
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.unit.dp
++import androidx.paging.PagingData
++import androidx.paging.compose.collectAsLazyPagingItems
++import br.com.flaviotorres.iptvpremium.domain.model.Movie
++import br.com.flaviotorres.iptvpremium.domain.model.Series
++import br.com.flaviotorres.iptvpremium.ui.components.CatalogFavoriteHeart
++import br.com.flaviotorres.iptvpremium.ui.movies.MoviesScreen
++import br.com.flaviotorres.iptvpremium.ui.series.SeriesScreen
++import kotlinx.coroutines.flow.flowOf
++import org.junit.Assert.*
++import org.junit.Rule
++import org.junit.Test
++
++class CatalogEntryRulesDeviceTest {
++    @get:Rule val compose = createComposeRule()
++    @Test fun moviesStartInCategorySelectionAndHeartIsBelowTitle() {
++        val data = flowOf(PagingData.from(List(30) { Movie("m$it", "Filme $it", null, null, null, "", 2026, 8.0, null) }))
++        compose.setContent {
++            val movies = data.collectAsLazyPagingItems()
++            Box(Modifier.requiredSize(960.dp, 540.dp)) { MoviesScreen(pagedMovies = movies, totalMovieCount = 30) }
++        }
++        compose.waitUntil(5_000) { compose.onAllNodesWithTag("movie-category-ALL").filter(isFocused()).fetchSemanticsNodes().isNotEmpty() }
++        compose.onNodeWithTag("movie-category-ALL").assertIsFocused()
++        compose.onNodeWithText("Filme 0").assertExists()
++        val title = compose.onNodeWithText("Filme 0").fetchSemanticsNode().boundsInRoot
++        val heart = compose.onAllNodes(hasStateDescription("Não favorito"), useUnmergedTree = true).onFirst().fetchSemanticsNode().boundsInRoot
++        assertTrue(heart.top >= title.bottom)
++    }
++    @Test fun seriesStartInCategorySelection() {
++        val data = flowOf(PagingData.from(List(30) { Series("s$it", "Série $it", null, null, null, 2026, 8.0, null) }))
++        compose.setContent {
++            val series = data.collectAsLazyPagingItems()
++            Box(Modifier.requiredSize(960.dp, 540.dp)) { SeriesScreen(pagedSeries = series, totalSeriesCount = 30) }
++        }
++        compose.waitUntil(5_000) { compose.onAllNodesWithTag("series-category-ALL").filter(isFocused()).fetchSemanticsNodes().isNotEmpty() }
++        compose.onNodeWithTag("series-category-ALL").assertIsFocused()
++    }
++    @Test fun heartRemainsHollowAndTogglesWithoutASeparateKeyboardFocus() {
++        val favorite = mutableStateOf(false)
++        lateinit var view: android.view.View
++        compose.setContent {
++            val current = androidx.compose.ui.platform.LocalView.current
++            SideEffect { view = current }
++            Box(Modifier.size(40.dp).background(Color.Black).testTag("heart")) {
++                CatalogFavoriteHeart(favorite.value, compact = false) { favorite.value = !favorite.value }
++            }
++        }
++        repeat(2) {
++            val state = if (favorite.value) "Favorito" else "Não favorito"
++            val node = compose.onNode(hasStateDescription(state), useUnmergedTree = true).fetchSemanticsNode()
++            val full = android.graphics.Bitmap.createBitmap(view.width, view.height, android.graphics.Bitmap.Config.ARGB_8888)
++            compose.runOnIdle { view.draw(android.graphics.Canvas(full)) }
++            val bounds = node.boundsInRoot
++            val pixels = android.graphics.Bitmap.createBitmap(full,
++                bounds.left.toInt(), bounds.top.toInt(), bounds.width.toInt(), bounds.height.toInt()).asImageBitmap().toPixelMap()
++            val center = pixels[pixels.width / 2, pixels.height / 2]
++            assertTrue((0 until pixels.height).sumOf { y ->
++                (0 until pixels.width).count { x -> val color = pixels[x, y]; color.red > .2f || color.green > .2f || color.blue > .2f }
++            } > 0)
++            assertTrue(center.red < .1f && center.green < .1f && center.blue < .1f)
++            compose.onNode(hasStateDescription(state), useUnmergedTree = true).performClick()
++        }
++        assertFalse(favorite.value)
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogPosterRulesDeviceTest.kt
+@@ -0,0 +1,69 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import java.net.HttpURLConnection
++import java.net.URL
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++
++class CatalogPosterRulesDeviceTest {
++    @Test fun fiveColumnsKeepTenVisibleAndOnlyTheNextTen() {
++        val first = catalogPosterWindow(0, 5)
++        assertEquals((0..9).toList(), first.visible.toList())
++        assertEquals((10..19).toList(), first.next.toList())
++        val down = catalogPosterWindow(10, 5)
++        assertEquals(first.next, down.visible)
++        assertEquals((20..29).toList(), down.next.toList())
++    }
++    @Test fun fourColumnsAndSingleRowScrollingFollowTheActualViewport() {
++        assertEquals(8..15, catalogPosterWindow(0, 4).next)
++        assertEquals(5..14, catalogPosterWindow(5, 5).visible)
++        assertEquals(15..24, catalogPosterWindow(5, 5).next)
++        for (columns in 4..5) for (position in 0..1000) {
++            val window = catalogPosterWindow(position, columns)
++            assertTrue(window.size <= 10)
++            assertTrue(window.visible.intersect(window.next.toSet()).isEmpty())
++            assertEquals(window.visible.last + 1, window.next.first)
++        }
++    }
++    @Test fun stopCancelsVisibleAndAnticipatedJobsAndClosesTheirConnections() = runBlocking {
++        val requests = CatalogPosterRequests()
++        val started = List(2) { CompletableDeferred<Unit>() }
++        val disconnected = List(2) { CompletableDeferred<Unit>() }
++        val work = List(2) { index -> launch {
++            requests.run {
++                requests.track(object : HttpURLConnection(URL("http://127.0.0.1/unused")) {
++                    override fun disconnect() { disconnected[index].complete(Unit) }
++                    override fun usingProxy() = false
++                    override fun connect() = Unit
++                })
++                started[index].complete(Unit)
++                awaitCancellation()
++            }
++        } }
++        started.forEach { it.await() }
++        requests.stop()
++        assertFalse(requests.enabled.value)
++        withTimeout(2_000) { work.joinAll(); disconnected.forEach { it.await() } }
++        assertTrue(work.all { it.isCancelled })
++    }
++    @Test fun stoppingCatalogCannotCancelTheChosenDetailRequest() = runBlocking {
++        val requests = CatalogPosterRequests()
++        val detailReady = CompletableDeferred<Unit>()
++        val detail = async { detailReady.await(); "chosen item ready" }
++        requests.stop()
++        detailReady.complete(Unit)
++        assertEquals("chosen item ready", detail.await())
++    }
++    @Test fun stoppedCatalogRejectsNewWorkAndCanResumeOnReturn() = runBlocking {
++        val requests = CatalogPosterRequests()
++        var executed = false
++        requests.stop()
++        try { requests.run { executed = true }; fail("Stopped requests must not start") }
++        catch (_: CancellationException) { }
++        assertFalse(executed)
++        requests.resume()
++        assertEquals(42, requests.run { 42 })
++        requests.stop()
++    }
++}
