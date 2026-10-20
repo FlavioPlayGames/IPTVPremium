@@ -1,0 +1,722 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -18,6 +18,7 @@
+ import androidx.compose.foundation.gestures.detectTapGestures
+ import android.content.Context
+ import android.content.ContextWrapper
++import androidx.compose.ui.graphics.asAndroidBitmap
+ import android.graphics.BitmapFactory
+ import android.graphics.Bitmap
+ import android.util.LruCache
+@@ -604,27 +605,44 @@
+                 .orEmpty().toSet()
+         )
+     }
++    DisposableEffect(context.applicationContext) {
++        val app = context.applicationContext
++        br.com.flaviotorres.iptvpremium.data.cache.ImageRamPolicy.forContext(app)
++        val callback = object : android.content.ComponentCallbacks2 {
++            override fun onConfigurationChanged(config: android.content.res.Configuration) = Unit
++            @Suppress("OVERRIDE_DEPRECATION")
++            override fun onLowMemory() { onTrimMemory(80) }
++            override fun onTrimMemory(level: Int) {
++                br.com.flaviotorres.iptvpremium.data.cache.ImageRamPolicy.signal(level)
++                if (level >= 5 && level != 20)
++                    br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value = true
++                val fraction = br.com.flaviotorres.iptvpremium.data.cache.ImageRamPolicy.retainedFraction(level)
++                MoviePosterLoader.trimMemory(fraction)
++                MovieDetailsImageLoader.trimMemory(fraction)
++                FilmstripPosterCache.trimMemory(fraction)
++            }
++        }
++        app.registerComponentCallbacks(callback)
++        onDispose { app.unregisterComponentCallbacks(callback) }
++    }
+     LaunchedEffect(Unit) {
+         withContext(Dispatchers.Default) {
+             var lastTrim = 0L
+-            var peakMb = 0
+             while (true) {
+                 delay(5_000L)
+-                val info = android.os.Debug.MemoryInfo()
+-                android.os.Debug.getMemoryInfo(info)
+-                val pssMb = (info.totalPss + 1023) / 1024
+-                peakMb = maxOf(peakMb, pssMb)
+-                val pressured = pssMb >= br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressureMb
++                val previous = br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value
++                val pressured = br.com.flaviotorres.iptvpremium.data.cache.ImageRamPolicy.pressured(context, previous)
+                 br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value = pressured
+                 val now = SystemClock.elapsedRealtime()
+                 if (pressured && now - lastTrim >= 30_000L) {
+-                    MoviePosterLoader.clearMemory()
++                    MoviePosterLoader.trimMemory()
+                     MovieDetailsImageLoader.trimMemory()
+                     FilmstripPosterCache.trimMemory()
+                     lastTrim = now
+                 }
+                 if (br.com.flaviotorres.iptvpremium.BuildConfig.DEBUG) {
+-                    Log.d("CatalogMemory", "pssMb=$pssMb picoMb=$peakMb alvoMb=350 antecipacaoPausada=$pressured")
++                    val budget = br.com.flaviotorres.iptvpremium.data.cache.ImageRamPolicy.forContext(context)
++                    Log.d("CatalogMemory", "cacheBudgetMb=${budget.totalMb} antecipacaoPausada=$pressured")
+                 }
+             }
+         }
+@@ -720,6 +738,10 @@
+     // Ate 20 posters unicos da pagina ja carregada (sem buscar o catalogo inteiro).
+     var loadingCarouselPosters by remember {
+         mutableStateOf<List<CinematicCarouselPoster>>(emptyList())
++    }
++
++    LaunchedEffect(loadingCarouselPosters) {
++        MoviePosterLoader.protectHomePosters(loadingCarouselPosters.map { it.posterUrl })
+     }
+ 
+     /*
+@@ -1538,6 +1560,14 @@
+             composable(
+                 route = AppDestination.Home.route
+             ) {
++                LaunchedEffect(activePlaylistId, catalogLoadingState, loadingPlaylistId) {
++                    if (activePlaylistId == null || catalogLoadingState != null || loadingPlaylistId != null)
++                        return@LaunchedEffect
++                    delay(350L)
++                    try { MoviePosterLoader.prepareRecentCachedPosters(context.applicationContext) }
++                    catch (cancelled: CancellationException) { throw cancelled }
++                    catch (_: Exception) { /* Preparo opcional nao impede a abertura. */ }
++                }
+                 HomeScreen(
+                     onLiveTvClick = {
+                         navController.navigate(
+@@ -5066,7 +5096,7 @@
+     modifier: Modifier = Modifier
+ ) {
+     val context = LocalContext.current
+-    val bitmap by produceState<ImageBitmap?>(null, poster.posterUrl) {
++    val bitmap by produceState<ImageBitmap?>(MoviePosterLoader.peekBitmap(poster.posterUrl), poster.posterUrl) {
+         // O carregador da grade ja tem as capas dos lotes antecipados.
+         // Reutiliza o mesmo cache RAM/disco e a mesma fila de downloads,
+         // evitando baixar novamente a URL no inicio do carrossel.
+@@ -5136,15 +5166,19 @@
+  * Nenhuma consulta TMDB em massa; apenas imagens dos cards ja carregados.
+  */
+ private object FilmstripPosterCache {
+-    fun trimMemory() { memory.evictAll() }
++    fun trimMemory(fraction: Float = .5f) {
++        memory.trimToSize((memory.maxSize() * fraction.coerceIn(0f, 1f)).toInt())
++    }
+     private val slots = Semaphore(3)
+     private val memory = object : LruCache<String, ImageBitmap>(br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.carouselMb * 1024 * 1024) {
+         override fun sizeOf(key: String, value: ImageBitmap): Int {
+-            return value.width * value.height * 4
++            return value.asAndroidBitmap().allocationByteCount
+         }
+     }
+ 
+     suspend fun load(context: Context, rawUrl: String?): ImageBitmap? {
++        val budget = br.com.flaviotorres.iptvpremium.data.cache.ImageRamPolicy.forContext(context).carouselMb * 1024 * 1024
++        if (memory.maxSize() != budget) memory.resize(budget)
+         val url = rawUrl?.trim()?.takeIf {
+             it.startsWith("https://", true) || it.startsWith("http://", true)
+         } ?: return null
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -1227,7 +1227,9 @@
+                 gridState.isScrollInProgress || pagedSeries.loadState.refresh is LoadState.Loading
+             Triple(afterVisible, pagedSeries.itemSnapshotList, busy)
+         }
+-        combine(pagingWindow, posterFocusActivity) { window, _ -> window }
++        combine(pagingWindow, posterFocusActivity,
++            br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured
++        ) { window, _, pressured -> window.copy(third = window.third || pressured) }
+             .collectLatest { (afterVisible, loaded, busy) ->
+                 if (busy) return@collectLatest
+                 delay(posterIdleDelayMs)
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
+@@ -1257,62 +1257,23 @@
+     @Volatile
+     private var memoryCache: LruCache<String, Bitmap>? = null
+ 
+-    fun trimMemory() { memoryCache?.evictAll() }
++    fun trimMemory(fraction: Float = .5f) {
++        memoryCache?.let { it.trimToSize((it.maxSize() * fraction.coerceIn(0f, 1f)).toInt()) }
++    }
+ 
+     private fun getMemoryCache(context: Context): LruCache<String, Bitmap> {
+         memoryCache?.let { return it }
+ 
+         return synchronized(initLock) {
+             memoryCache ?: run {
+-                val maxHeapBytes = Runtime.getRuntime().maxMemory()
+-                // Android TVs compartilham um orcamento de RAM mais restrito
+-                // com a grade de Filmes, a Home e o carrossel. Mantemos
+-                // as dimensoes/qualidade das imagens e limitamos apenas
+-                // quantos bitmaps antigos permanecem guardados na RAM.
+-                val isAndroidTv =
+-                    (context.resources.configuration.uiMode and
+-                            Configuration.UI_MODE_TYPE_MASK) ==
+-                            Configuration.UI_MODE_TYPE_TELEVISION
+-
+-                val cacheBytes = if (isAndroidTv) {
+-                    (maxHeapBytes / 6L)
+-                        .coerceAtLeast(MIN_MEMORY_CACHE_BYTES.toLong())
+-                        .coerceAtMost(MAX_TV_MEMORY_CACHE_BYTES.toLong())
+-                        .toInt()
+-                } else {
+-                    // No celular, preservamos exatamente a politica anterior.
+-                    (maxHeapBytes / 4L)
+-                        .coerceAtLeast(MIN_MEMORY_CACHE_BYTES.toLong())
+-                        .coerceAtMost(MAX_MEMORY_CACHE_BYTES.toLong())
+-                        .toInt()
+-                }
++                val cacheBytes = br.com.flaviotorres.iptvpremium.data.cache.ImageRamPolicy
++                    .forContext(context).detailsMb * MEGABYTE
+ 
+                 val cache = object : LruCache<String, Bitmap>(cacheBytes) {
+                     override fun sizeOf(key: String, value: Bitmap): Int {
+                         return value.allocationByteCount
+                     }
+                 }
+-
+-                // O Android sinaliza quando a interface sai de primeiro plano
+-                // ou quando precisa recuperar memória para o sistema.
+-                context.applicationContext.registerComponentCallbacks(
+-                    object : ComponentCallbacks2 {
+-                        override fun onConfigurationChanged(newConfig: Configuration) = Unit
+-
+-                        // Obrigatorio pela interface, mas nao e chamado no Android 14+.
+-                        // A liberacao do cache passa pelo evento atual onTrimMemory.
+-                        @Suppress("OVERRIDE_DEPRECATION")
+-                        override fun onLowMemory() = Unit
+-
+-                        override fun onTrimMemory(level: Int) {
+-                            // Ao ocultar o aplicativo, libera os bitmaps antigos.
+-                            // O disco preserva os originais para uso posterior.
+-                            if (level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
+-                                cache.evictAll()
+-                            }
+-                        }
+-                    }
+-                )
+ 
+                 memoryCache = cache
+                 Log.i(TAG, "Cache RAM adaptativo: ${cacheBytes / MEGABYTE} MB")
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -20,6 +20,7 @@
+ import android.content.pm.PackageManager
+ import android.content.res.Configuration
+ import android.os.SystemClock
++import androidx.compose.ui.graphics.asAndroidBitmap
+ import android.util.LruCache
+ import androidx.activity.compose.BackHandler
+ import androidx.compose.foundation.BorderStroke
+@@ -477,7 +478,9 @@
+                 moviesGridState.isScrollInProgress || paging.loadState.refresh is LoadState.Loading
+             Triple(afterVisible, paging.itemSnapshotList, busy)
+         }
+-        combine(pagingWindow, posterFocusActivity) { window, _ -> window }
++        combine(pagingWindow, posterFocusActivity,
++            br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured
++        ) { window, _, pressured -> window.copy(third = window.third || pressured) }
+             .collectLatest { (afterVisible, loaded, busy) ->
+                 if (busy) return@collectLatest
+                 delay(posterIdleDelayMs)
+@@ -2617,7 +2620,7 @@
+ /*
+  * Cache progressivo e persistente de capas, compartilhado por Filmes e Series.
+  *
+- * - RAM: LRU de 20 MiB para capas exibidas e no maximo cinco futuras.
++ * - RAM: LRU adaptativo coordenado com detalhes/carrossel, com cinco futuras.
+  * - Disco: orcamento compartilhado de 100 MB, preservado ao reiniciar.
+  * - Prefetch: grupos de 5 ate 15 adiante; somente os proximos 5 preparados na RAM.
+  * - Rede: ate seis downloads simultaneos, no maximo dois em antecipacao.
+@@ -2633,12 +2636,19 @@
+ 
+     private val memoryCache = object : LruCache<String, ImageBitmap>(RAM_CACHE_KB) {
+         override fun sizeOf(key: String, value: ImageBitmap): Int =
+-            ((value.width.toLong() * value.height * 4L) / 1024L)
++            ((value.asAndroidBitmap().allocationByteCount.toLong() + 1023L) / 1024L)
+                 .coerceAtLeast(1L)
+                 .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+     }
+ 
+     fun clearMemory() { memoryCache.evictAll() }
++    fun trimMemory(fraction: Float = .5f) {
++        memoryCache.trimToSize((memoryCache.maxSize() * fraction.coerceIn(0f, 1f)).toInt())
++    }
++    private fun configureRam(context: Context) {
++        val size = br.com.flaviotorres.iptvpremium.data.cache.ImageRamPolicy.forContext(context).postersMb * 1024
++        if (memoryCache.maxSize() != size) memoryCache.resize(size)
++    }
+ 
+     private val decodeSlots = Semaphore(2)
+     private val networkBudget = br.com.flaviotorres.iptvpremium.data.cache.PosterNetworkBudget()
+@@ -2659,7 +2669,7 @@
+             .distinct()
+             .take(10)
+             .map { "${sha256(it)}.img" }
+-            .toSet()
++            .toSet() + ".recent-posters"
+     }
+ 
+     @Synchronized
+@@ -2684,20 +2694,27 @@
+                     it.startsWith("http://", ignoreCase = true)
+         }
+ 
+-    private fun sha256(value: String): String =
+-        MessageDigest.getInstance("SHA-256")
+-            .digest(value.toByteArray(Charsets.UTF_8))
+-            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
++    private fun sha256(value: String): String {
++        val digest = MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8))
++        val alphabet = "0123456789abcdef"
++        return buildString(64) {
++            for (byte in digest) {
++                val value = byte.toInt() and 255
++                append(alphabet[value ushr 4]); append(alphabet[value and 15])
++            }
++        }
++    }
+ 
+     /** Consulta instantanea ao cache RAM, sem rede ou acesso ao disco. */
+     fun peekBitmap(rawUrl: String?): ImageBitmap? {
+         val url = validUrl(rawUrl) ?: return null
+-        return memoryCache.get(url)
++        return memoryCache.get(sha256(url))
+     }
+ 
+     suspend fun prefetch(context: Context, rawUrl: String?, priority: Boolean = false) {
++        configureRam(context)
+         val url = validUrl(rawUrl) ?: return
+-        if (memoryCache.get(url) != null) return
++        if (memoryCache.get(sha256(url)) != null) return
+         withContext(Dispatchers.IO) {
+             val directory = persistentDirectory(context) ?: return@withContext
+             val budget = br.com.flaviotorres.iptvpremium.core.storage.ImageDiskCache.get(context)
+@@ -2732,6 +2749,15 @@
+         firstLoaded: Int,
+         posters: List<String?>
+     ) {
++        configureRam(context)
++        if (br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value) return
++        val recentFrom = (afterVisible - firstLoaded - 10).coerceAtLeast(0)
++        val recentUntil = (afterVisible - firstLoaded).coerceAtMost(posters.size)
++        if (recentFrom < recentUntil) {
++            try { saveRecent(context, posters.subList(recentFrom, recentUntil)) }
++            catch (cancelled: CancellationException) { throw cancelled }
++            catch (_: Exception) { /* Metadado opcional: a fila continua. */ }
++        }
+         val loadedEnd = firstLoaded + posters.size
+         suspend fun prepareNextFive() {
+             if (br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value) return
+@@ -2746,6 +2772,7 @@
+         prepareNextFive()
+         while (true) {
+             currentCoroutineContext().ensureActive()
++            if (br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value) break
+             val batch = queue.nextBatch(afterVisible, firstLoaded, loadedEnd) ?: break
+             prefetchPriorityBatch(context, posters.subList(batch.first - firstLoaded, batch.last + 1 - firstLoaded))
+             queue.completed(batch)
+@@ -2754,10 +2781,59 @@
+         }
+     }
+ 
++    private suspend fun saveRecent(context: Context, urls: List<String?>) = withContext(Dispatchers.IO) {
++        val keys = urls.mapNotNull(::validUrl).map(::sha256)
++        val text = br.com.flaviotorres.iptvpremium.data.cache.RecentPosterKeys.encode(keys)
++        if (text.isEmpty()) return@withContext
++        val directory = persistentDirectory(context) ?: return@withContext
++        val file = File(directory, ".recent-posters")
++        val storage = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context)
++        storage.retain(file).use {
++            if (file.isFile && file.length() <= 1024 && runCatching { file.readText() }.getOrNull() == text) return@withContext
++            val bytes = text.toByteArray(Charsets.UTF_8)
++            val lease = storage.reserve(file, bytes.size.toLong()) ?: return@withContext
++            lease.use {
++                lease.temporary.writeBytes(bytes)
++                currentCoroutineContext().ensureActive()
++                lease.temporary.renameTo(file)
++            }
++        }
++    }
++
++    /** Abertura: cinco arquivos conhecidos, sem varrer capas nem consultar a rede. */
++    suspend fun prepareRecentCachedPosters(context: Context) = withContext(Dispatchers.IO) {
++        configureRam(context)
++        val directory = persistentDirectory(context) ?: return@withContext
++        val file = File(directory, ".recent-posters")
++        if (!file.isFile || file.length() > 1024) return@withContext
++        val storage = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context)
++        val keys = br.com.flaviotorres.iptvpremium.data.cache.RecentPosterKeys.decode(file.readText())
++        protectHomeKeys(keys)
++        storage.prefer(protectedHomeFiles)
++        storage.retain(file).close()
++        for (key in keys) {
++            currentCoroutineContext().ensureActive()
++            if (br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value) break
++            val poster = File(directory, "$key.img")
++            storage.retain(poster).use {
++                if (poster.isFile && poster.length() > 0) {
++                    decodeCachedKey(key, poster)
++                    poster.setLastModified(System.currentTimeMillis())
++                }
++            }
++            kotlinx.coroutines.yield()
++        }
++    }
++
++    private fun protectHomeKeys(keys: List<String>) {
++        protectedHomeFiles = keys.map { "$it.img" }.toSet() + ".recent-posters"
++        // A preferencia atua dentro da cota, sem impedir a rotacao quando necessario.
++    }
++
+     /** Apenas RAM/disco: nunca abre conexao para preparar uma capa antecipada. */
+     private suspend fun prepareCached(context: Context, rawUrl: String?) {
+         val url = validUrl(rawUrl) ?: return
+-        if (memoryCache.get(url) != null) return
++        if (memoryCache.get(sha256(url)) != null) return
+         withContext(Dispatchers.IO) {
+             val directory = persistentDirectory(context) ?: return@withContext
+             val file = File(directory, "${sha256(url)}.img")
+@@ -2779,8 +2855,9 @@
+     }
+ 
+     suspend fun load(context: Context, rawUrl: String?): ImageBitmap? {
++        configureRam(context)
+         val url = validUrl(rawUrl) ?: return null
+-        memoryCache.get(url)?.let { return it }
++        memoryCache.get(sha256(url))?.let { return it }
+         return withContext(Dispatchers.IO) {
+             val directory = persistentDirectory(context) ?: return@withContext null
+             val budget = br.com.flaviotorres.iptvpremium.core.storage.ImageDiskCache.get(context)
+@@ -2794,26 +2871,29 @@
+     /** Antecipa o arquivo comprimido sem alocar bitmap extra na RAM. */
+     private suspend fun prefetchUnmanaged(context: Context, rawUrl: String?) {
+         val url = validUrl(rawUrl) ?: return
+-        if (memoryCache.get(url) != null) return
++        if (memoryCache.get(sha256(url)) != null) return
+         ensureFile(context, url, background = true)
+     }
+ 
+     /** Usado por Filmes, Series e carrossel: RAM -> disco persistente -> rede. */
+     private suspend fun loadUnmanaged(context: Context, rawUrl: String?): ImageBitmap? {
+         val url = validUrl(rawUrl) ?: return null
+-        memoryCache.get(url)?.let { return it }
++        memoryCache.get(sha256(url))?.let { return it }
+ 
+         val file = ensureFile(context, url, background = false) ?: return null
+         return decodeCachedFile(url, file)
+     }
+ 
+     private suspend fun decodeCachedFile(url: String, file: File): ImageBitmap? =
++        decodeCachedKey(sha256(url), file)
++
++    private suspend fun decodeCachedKey(key: String, file: File): ImageBitmap? =
+         withContext(Dispatchers.Default) {
+             decodeSlots.withPermit {
+-            memoryCache.get(url)?.let { return@withPermit it }
++            memoryCache.get(key)?.let { return@withPermit it }
+ 
+             val bitmap = try {
+-                br.com.flaviotorres.iptvpremium.data.cache.PosterResolution.decode(file)?.asImageBitmap()
++                br.com.flaviotorres.iptvpremium.data.cache.PosterResolution.decode(file, Bitmap.Config.RGB_565)?.asImageBitmap()
+             } catch (_: OutOfMemoryError) {
+                 memoryCache.evictAll()
+                 null
+@@ -2821,7 +2901,7 @@
+                 null
+             }
+             if (bitmap != null) {
+-                memoryCache.put(url, bitmap)
++                memoryCache.put(key, bitmap)
+             } else {
+                 file.delete()
+             }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterResolution.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterResolution.kt
+@@ -14,8 +14,8 @@
+ 
+ /** Limita somente posters; fundos, logos e fotos mantem a resolucao anterior. */
+ internal object PosterResolution {
+-    const val WIDTH = 400
+-    const val HEIGHT = 600
++    const val WIDTH = 300
++    const val HEIGHT = 450
+     private val conversions = Semaphore(2)
+ 
+     fun decode(file: File, config: Bitmap.Config = Bitmap.Config.ARGB_8888): Bitmap? {
+@@ -25,10 +25,16 @@
+         var sample = 1
+         while (bounds.outWidth / (sample * 2) >= WIDTH &&
+             bounds.outHeight / (sample * 2) >= HEIGHT && sample < 128) sample *= 2
+-        val original = BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply {
++        var original = BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply {
+             inSampleSize = sample
+-            inPreferredConfig = config
++            // Nao remove transparencia de PNG/WebP ao solicitar RGB_565.
++            inPreferredConfig = if (config == Bitmap.Config.RGB_565 && bounds.outMimeType != "image/jpeg")
++                Bitmap.Config.ARGB_8888 else config
+         }) ?: return null
++        if (config == Bitmap.Config.RGB_565 && !original.hasAlpha() && original.config != Bitmap.Config.RGB_565) {
++            val compact = original.copy(Bitmap.Config.RGB_565, false)
++            if (compact != null) { original.recycle(); original = compact }
++        }
+         val scale = minOf(1.0, WIDTH.toDouble() / original.width, HEIGHT.toDouble() / original.height)
+         if (scale >= 1.0) return original
+         return try {
+@@ -47,7 +53,8 @@
+             val bitmap = decode(file) ?: return@withPermit false
+             try {
+                 val bytes = ByteArrayOutputStream().use { output ->
+-                    if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 90, output)) return@withPermit false
++                    val format = if (bitmap.hasAlpha()) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
++                    if (!bitmap.compress(format, 90, output)) return@withPermit false
+                     output.toByteArray()
+                 }
+                 if (bytes.size.toLong() > limit) return@withPermit false
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImageRamPolicy.kt
+@@ -0,0 +1,60 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import android.app.ActivityManager
++import android.content.Context
++
++internal data class ImageRamBudget(val postersMb: Int, val detailsMb: Int, val carouselMb: Int) {
++    val totalMb get() = postersMb + detailsMb + carouselMb
++}
++
++/** Orcamento dos tres caches juntos; memoryClass e heap, nunca um limite de PSS. */
++internal object ImageRamPolicy {
++    @Volatile private var configured: ImageRamBudget? = null
++    @Volatile private var signalUntil = 0L
++
++    fun calculate(heapMb: Int, lowRam: Boolean): ImageRamBudget {
++        val total = (heapMb.coerceAtLeast(16) / 5).coerceIn(3, if (lowRam) 24 else 56)
++        val posters = (total * 5 / 12).coerceIn(1, 20)
++        val details = (total * 5 / 12).coerceIn(1, 24)
++        val carousel = (total - posters - details).coerceIn(1, 12)
++        return ImageRamBudget(posters, details, carousel)
++    }
++
++    fun forContext(context: Context): ImageRamBudget = configured ?: synchronized(this) {
++        configured ?: run {
++            val manager = context.applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
++            val heap = (Runtime.getRuntime().maxMemory() / (1024 * 1024)).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
++            val info = ActivityManager.MemoryInfo()
++            manager?.getMemoryInfo(info)
++            val low = manager?.isLowRamDevice == true || (info.totalMem in 1..1_610_612_736L)
++            calculate(minOf(heap, manager?.memoryClass ?: heap), low).also { configured = it }
++        }
++    }
++
++    /** Fracao do limite que permanece; ocultar o app nao esvazia os caches. */
++    fun retainedFraction(level: Int): Float = when {
++        level >= 80 -> 0f
++        level >= 60 -> .25f
++        level >= 40 -> .5f
++        level == 20 -> .75f
++        level >= 15 -> .25f
++        level >= 10 -> .5f
++        level >= 5 -> .75f
++        else -> 1f
++    }
++
++    fun signal(level: Int) {
++        if (level >= 5 && level != 20) signalUntil = android.os.SystemClock.elapsedRealtime() + 15_000L
++    }
++
++    fun heapPressure(previous: Boolean, used: Long, maximum: Long, systemLow: Boolean): Boolean =
++        systemLow || (maximum > 0 && used.toDouble() / maximum >= if (previous) .65 else .80)
++
++    fun pressured(context: Context, previous: Boolean): Boolean {
++        val manager = context.applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
++        val info = ActivityManager.MemoryInfo(); manager?.getMemoryInfo(info)
++        val runtime = Runtime.getRuntime()
++        return android.os.SystemClock.elapsedRealtime() < signalUntil ||
++            heapPressure(previous, runtime.totalMemory() - runtime.freeMemory(), runtime.maxMemory(), info.lowMemory)
++    }
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/RecentPosterKeys.kt
+@@ -0,0 +1,9 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++/** Apenas hashes, nunca enderecos, credenciais ou conteudo da lista. */
++internal object RecentPosterKeys {
++    private val key = Regex("[a-f0-9]{64}")
++    fun decode(text: String): List<String> =
++        if (text.length > 1024) emptyList() else text.lineSequence().filter { key.matches(it) }.distinct().take(5).toList()
++    fun encode(keys: List<String>): String = keys.filter { key.matches(it) }.distinct().take(5).joinToString("\n")
++}
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterResolutionDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterResolutionDeviceTest.kt
+@@ -17,16 +17,16 @@
+     @Test fun decodedLargeCachedPosterFitsExactlyWithoutCropping() {
+         val file = image(1000, 1500)
+         try { val bitmap = PosterResolution.decode(file)!!
+-            assertEquals(400, bitmap.width); assertEquals(600, bitmap.height); bitmap.recycle()
++            assertEquals(300, bitmap.width); assertEquals(450, bitmap.height); bitmap.recycle()
+         } finally { file.delete() }
+     }
+-    @Test fun newlyDownloadedPosterIsStoredAt400By600(): Unit = runBlocking {
++    @Test fun newlyDownloadedPosterIsStoredAt300By450(): Unit = runBlocking {
+         val file = image(780, 1170)
+         try {
+             assertTrue(PosterResolution.prepareDownloaded(file, 1_000_000))
+             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+             BitmapFactory.decodeFile(file.path, bounds)
+-            assertEquals(400, bounds.outWidth); assertEquals(600, bounds.outHeight)
++            assertEquals(300, bounds.outWidth); assertEquals(450, bounds.outHeight)
+         } finally { file.delete() }
+     }
+     @Test fun smallPosterRemainsUnchangedAndDoesNotUpscale(): Unit = runBlocking {
+@@ -41,7 +41,7 @@
+     @Test fun nonStandardRatioIsPreserved() {
+         val file = image(800, 800)
+         try { val bitmap = PosterResolution.decode(file)!!
+-            assertEquals(400, bitmap.width); assertEquals(400, bitmap.height); bitmap.recycle()
++            assertEquals(300, bitmap.width); assertEquals(300, bitmap.height); bitmap.recycle()
+         } finally { file.delete() }
+     }
+     @Test fun invalidImageIsRejected(): Unit = runBlocking {
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/storage/PosterAheadCacheDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/storage/PosterAheadCacheDeviceTest.kt
+@@ -39,7 +39,8 @@
+             } } catch (_:Exception) { }
+         }
+         val context=ApplicationProvider.getApplicationContext<Context>()
+-        val posters=(0 until 40).map { "http://127.0.0.1:${server.localPort}/poster-$it.png" }
++        val unique=java.util.UUID.randomUUID().toString()
++        val posters=(0 until 40).map { "http://127.0.0.1:${server.localPort}/$unique/poster-$it.png" }
+         val queue=br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue()
+         MoviePosterLoader.clearMemory()
+         try {
+@@ -65,6 +66,33 @@
+             MoviePosterLoader.clearMemory()
+             MoviePosterLoader.prefetchAhead(context,br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue(),10,0,posters)
+             assertEquals(20,requests.get())
++            for (url in posters.take(5)) assertNotNull(MoviePosterLoader.load(context,url))
++            assertEquals(25,requests.get())
++            br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value=true
++            try {
++                MoviePosterLoader.prefetchAhead(context,br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue(),30,0,posters)
++                assertEquals(25,requests.get())
++            } finally { br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value=false }
++            val recent=java.io.File(folder,".recent-posters").readText()
++            assertFalse(recent.contains("http"));assertFalse(recent.contains("127.0.0.1"))
++            MoviePosterLoader.clearMemory()
++            server.close()
++            MoviePosterLoader.prepareRecentCachedPosters(context)
++            for (url in posters.take(5)) assertNotNull(MoviePosterLoader.peekBitmap(url))
++            assertEquals(25,requests.get())
++            val field=MoviePosterLoader::class.java.getDeclaredField("memoryCache").apply { isAccessible=true }
++            val cache=field.get(null) as android.util.LruCache<*,*>
++            val maximum=cache.maxSize()
++            try {
++                cache.resize(16)
++                MoviePosterLoader.trimMemory(.5f)
++                assertTrue(cache.size()<=8);assertTrue(cache.size()>0)
++                assertNotNull(MoviePosterLoader.peekBitmap(posters[4]))
++                MoviePosterLoader.trimMemory(0f)
++                assertEquals(0,cache.size())
++            } finally { cache.resize(maximum) }
++            assertNotNull(MoviePosterLoader.load(context,posters[0]))
++            assertEquals(25,requests.get())
+         } finally { server.close();clients.forEach { runCatching { it.close() } } }
+     }
+ }
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImageRamPolicyDeviceTest.kt
+@@ -0,0 +1,42 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import org.junit.Assert.*
++import org.junit.Test
++
++@org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
++class ImageRamPolicyDeviceTest {
++    @Test fun lowRamUsesOneShared24MbBudget() {
++        val budget=ImageRamPolicy.calculate(128,true)
++        assertEquals(ImageRamBudget(10,10,4),budget)
++        assertEquals(24,budget.totalMb)
++    }
++    @Test fun budgetsNeverExceedOneFifthOfHeapOrTheirCaps() {
++        for(heap in listOf(16,32,64,128,256,512,1024)) for(low in listOf(false,true)) {
++            val b=ImageRamPolicy.calculate(heap,low)
++            assertTrue(b.totalMb<=heap/5)
++            assertTrue(b.totalMb<=if(low)24 else 56)
++            assertTrue(b.postersMb in 1..20);assertTrue(b.detailsMb in 1..24);assertTrue(b.carouselMb in 1..12)
++        }
++    }
++    @Test fun backgroundTrimIsPartialAndCriticalTrimIsComplete() {
++        assertEquals(.75f,ImageRamPolicy.retainedFraction(20),0f)
++        assertEquals(.5f,ImageRamPolicy.retainedFraction(10),0f)
++        assertEquals(.25f,ImageRamPolicy.retainedFraction(15),0f)
++        assertEquals(0f,ImageRamPolicy.retainedFraction(80),0f)
++        assertEquals(1f,ImageRamPolicy.retainedFraction(0),0f)
++    }
++    @Test fun heapPressureHasHysteresisAndSystemPressureWins() {
++        assertFalse(ImageRamPolicy.heapPressure(false,79,100,false))
++        assertTrue(ImageRamPolicy.heapPressure(false,80,100,false))
++        assertTrue(ImageRamPolicy.heapPressure(true,70,100,false))
++        assertFalse(ImageRamPolicy.heapPressure(true,64,100,false))
++        assertTrue(ImageRamPolicy.heapPressure(false,1,100,true))
++    }
++    @Test fun recentKeysAreBoundedAndRejectPathsAndAddresses() {
++        val keys=(0..9).map { it.toString().padStart(64,'0') }
++        val encoded=RecentPosterKeys.encode(keys+keys+listOf("../secret","https://user:password@host/cover"))
++        assertEquals(keys.take(5),RecentPosterKeys.decode(encoded))
++        assertFalse(encoded.contains("secret"));assertFalse(encoded.contains("http"))
++        assertTrue(RecentPosterKeys.decode("x".repeat(1025)).isEmpty())
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterCompactDeviceTest.kt
+@@ -0,0 +1,44 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import android.graphics.Bitmap
++import android.graphics.BitmapFactory
++import android.graphics.Color
++import java.io.File
++import kotlinx.coroutines.runBlocking
++import org.junit.Assert.*
++import org.junit.Test
++
++@org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
++class PosterCompactDeviceTest {
++    private fun image(format: Bitmap.CompressFormat, alpha: Boolean):File {
++        val file=File.createTempFile("compact-poster", ".img")
++        val bitmap=Bitmap.createBitmap(780,1170,Bitmap.Config.ARGB_8888)
++        bitmap.eraseColor(if(alpha)Color.argb(100,20,40,60) else Color.BLUE)
++        bitmap.setHasAlpha(alpha)
++        try { file.outputStream().use { bitmap.compress(format,90,it) } }
++        finally { bitmap.recycle() }
++        return file
++    }
++    @Test fun opaqueJpegUses565AndRealAllocationIsHalf() {
++        val file=image(Bitmap.CompressFormat.JPEG,false)
++        try {
++            val compact=PosterResolution.decode(file,Bitmap.Config.RGB_565)!!
++            val full=PosterResolution.decode(file,Bitmap.Config.ARGB_8888)!!
++            assertEquals(300,compact.width);assertEquals(450,compact.height)
++            assertEquals(Bitmap.Config.RGB_565,compact.config)
++            assertEquals(full.allocationByteCount/2,compact.allocationByteCount)
++            compact.recycle();full.recycle()
++        } finally { file.delete() }
++    }
++    @Test fun transparentPngKeepsAlphaInRamAndAfterDiskReduction():Unit=runBlocking {
++        val file=image(Bitmap.CompressFormat.PNG,true)
++        try {
++            assertTrue(PosterResolution.prepareDownloaded(file,1_000_000))
++            val bitmap=PosterResolution.decode(file,Bitmap.Config.RGB_565)!!
++            assertEquals(Bitmap.Config.ARGB_8888,bitmap.config)
++            assertTrue(bitmap.hasAlpha());assertTrue(Color.alpha(bitmap.getPixel(0,0)) in 90..110)
++            assertEquals(300,bitmap.width);assertEquals(450,bitmap.height);bitmap.recycle()
++            assertEquals("image/png",BitmapFactory.Options().apply {inJustDecodeBounds=true;BitmapFactory.decodeFile(file.path,this)}.outMimeType)
++        } finally { file.delete() }
++    }
++}
