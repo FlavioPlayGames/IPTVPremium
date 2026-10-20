@@ -1,0 +1,1240 @@
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -54,6 +54,12 @@
+             android:screenOrientation="sensorLandscape" />
+ 
+         <activity
++            android:name=".core.media.TrailerPlayerActivity"
++            android:exported="false"
++            android:hardwareAccelerated="true"
++            android:screenOrientation="sensorLandscape" />
++
++        <activity
+             android:name=".MainActivity"
+             android:screenOrientation="sensorLandscape"
+             android:banner="@drawable/iptv_premium_tv_banner_320x180"
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -1208,13 +1208,6 @@
+         androidx.compose.runtime.derivedStateOf { br.com.flaviotorres.iptvpremium.data.cache.catalogPosterWindow(gridState.firstVisibleItemIndex, gridColumns) }
+     }
+     val posterCacheContext = LocalContext.current.applicationContext
+-    val posterIdleDelayMs = remember(posterCacheContext) {
+-        val mode = posterCacheContext.resources.configuration.uiMode and
+-                Configuration.UI_MODE_TYPE_MASK
+-        val isTv = mode == Configuration.UI_MODE_TYPE_TELEVISION ||
+-                posterCacheContext.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+-        if (isTv) 100L else 80L
+-    }
+ 
+     // O foco do controle remoto reinicia a pausa da fila sem recompor a grade.
+     val posterFocusActivity = remember { MutableStateFlow(0L) }
+@@ -1236,28 +1229,29 @@
+             .distinctBy { it.seriesId }
+     }
+ 
+-    // Only the next two rows are anticipated; layout precomposition cannot download more.
++    // Keep overlapping downloads alive; focus and scrolling never restart the same URLs.
+     LaunchedEffect(pagedSeries, selectedMenu, selectedProviderId, searchText, sortMode, gridColumns, continueWatchingEntries) {
+         val paging = pagedSeries
+-        combine(snapshotFlow {
+-            val window = br.com.flaviotorres.iptvpremium.data.cache.catalogPosterWindow(gridState.firstVisibleItemIndex, gridColumns)
+-            val busy = !posterRequestsEnabled || searchKeyboardVisible ||
+-                gridState.isScrollInProgress || (!(selectedMenu == "continue") && paging.loadState.refresh is LoadState.Loading)
+-            Triple(window, paging.itemSnapshotList, busy)
+-        }, posterFocusActivity) { window, _ -> window }.collectLatest { (window, loaded, busy) ->
+-            if (busy) return@collectLatest
+-            delay(posterIdleDelayMs)
+-            val urls = if (selectedMenu == "continue") {
+-                continueWatchingEntries.drop(window.next.first).take(window.size).map { it.posterUrl }
+-            } else {
+-                val from = (window.next.first - loaded.placeholdersBefore).coerceAtLeast(0)
+-                val until = (window.next.last + 1 - loaded.placeholdersBefore).coerceAtMost(loaded.items.size)
+-                if (from < until) loaded.items.subList(from, until).map { it.posterUrl } else emptyList()
+-            }
+-            if (urls.isNotEmpty()) posterRequests.run {
+-                MoviePosterLoader.prefetchPriorityBatch(posterCacheContext, urls)
+-            }
+-        }
++        val queue = br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterPreloader(this) { url ->
++            posterRequests.run { MoviePosterLoader.prefetch(posterCacheContext, url) }
++        }
++        try {
++            snapshotFlow {
++                val window = br.com.flaviotorres.iptvpremium.data.cache.catalogPosterWindow(gridState.firstVisibleItemIndex, gridColumns)
++                val paused = !posterRequestsEnabled || searchKeyboardVisible || 
++                    (!(selectedMenu == "continue") && paging.loadState.refresh is LoadState.Loading)
++                Triple(window, paging.itemSnapshotList, paused)
++            }.collect { (window, loaded, paused) ->
++                if (paused) { queue.clear(); return@collect }
++                fun urls(range: IntRange): List<String?> {
++                    if (selectedMenu == "continue") return continueWatchingEntries.drop(range.first).take(range.count()).map { it.posterUrl }
++                    val from = (range.first - loaded.placeholdersBefore).coerceAtLeast(0)
++                    val until = (range.last + 1 - loaded.placeholdersBefore).coerceAtMost(loaded.items.size)
++                    return if (from < until) loaded.items.subList(from, until).map { it.posterUrl } else emptyList()
++                }
++                queue.update(urls(window.next), urls(window.visible))
++            }
++        } finally { queue.clear() }
+     }
+ 
+     // Com a volta dos detalhes, mantém a posição e restaura o foco da capa.
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt
+@@ -491,10 +491,12 @@
+ 
+     // Consulta as fotos somente da temporada selecionada. O still oficial
+     // tem prioridade; só usamos miniatura específica do provedor como alternativa.
++    var primaryArtReady by remember(seriesName, tmdbId) { mutableStateOf(false) }
+     val seasonArtworks = remember(seriesName, tmdbId, tmdbVisuals?.resolvedTmdbId) {
+         mutableStateMapOf<Int, SeriesTmdbSeasonArtwork>()
+     }
+-    LaunchedEffect(tmdbVisuals?.resolvedTmdbId, currentSeason, displayedEpisodes.isNotEmpty()) {
++    LaunchedEffect(primaryArtReady, tmdbVisuals?.resolvedTmdbId, currentSeason, displayedEpisodes.isNotEmpty()) {
++        if (!primaryArtReady) return@LaunchedEffect
+         val resolvedId = tmdbVisuals?.resolvedTmdbId ?: return@LaunchedEffect
+         if (currentSeason < 0 || displayedEpisodes.isEmpty() ||
+             seasonArtworks.containsKey(currentSeason)
+@@ -524,8 +526,7 @@
+     var primaryLogoFailed by remember(seriesName, tmdbVisuals?.logoUrls, titleLogoUrl) { mutableStateOf(false) }
+     var primaryBackdropFailed by remember(seriesName, tmdbVisuals?.backdropUrl, backdropUrl) { mutableStateOf(false) }
+     val primaryPhotoFailures = remember(episodeImageKey, currentSeason) { mutableStateMapOf<String, Boolean>() }
+-    val primaryMetadataSettled = tmdbLoadState is SeriesTmdbLoadState.Ready &&
+-        (tmdbVisuals?.resolvedTmdbId == null || currentSeasonArtwork != null)
++    val primaryMetadataSettled = tmdbLoadState is SeriesTmdbLoadState.Ready
+     val missingEpisodeNumbers = displayedEpisodes.filter {
+         br.com.flaviotorres.iptvpremium.data.repository.episodeReferenceImages(
+             currentSeasonArtwork?.episodeStills?.get(it.episodeNumber), it.thumbnailUrl).isEmpty() ||
+@@ -534,10 +535,10 @@
+     val needExtraLogo = (titleLogoUrl.isNullOrBlank() && tmdbVisuals?.logoUrls.isNullOrEmpty()) || primaryLogoFailed
+     val needExtraBackdrop = (backdropUrl.isNullOrBlank() && tmdbVisuals?.backdropUrl.isNullOrBlank()) || primaryBackdropFailed
+     LaunchedEffect(episodeImageKey, currentSeason, primaryMetadataSettled, missingEpisodeNumbers.isNotEmpty(),
+-        needExtraLogo, needExtraBackdrop, tmdbVisuals?.originalTitle) {
++        needExtraLogo, needExtraBackdrop, tmdbVisuals?.originalTitle, primaryArtReady) {
+         extraSettled = false
+         if (!primaryMetadataSettled) return@LaunchedEffect
+-        if (missingEpisodeNumbers.isEmpty() && !needExtraLogo && !needExtraBackdrop) {
++        if ((!primaryArtReady || missingEpisodeNumbers.isEmpty()) && !needExtraLogo && !needExtraBackdrop) {
+             extraSettled = true
+             return@LaunchedEffect
+         }
+@@ -547,7 +548,7 @@
+                 (tmdbVisuals?.searchNames.orEmpty() + seriesName).distinct(),
+                 year ?: tmdbVisuals?.year, imdbId ?: tmdbVisuals?.imdb),
+                 currentSeason,
+-                if (missingEpisodeNumbers.isNotEmpty()) displayedEpisodes.map { it.episodeNumber }.filter { it > 0 }.toSet() else emptySet(),
++                if (primaryArtReady && missingEpisodeNumbers.isNotEmpty()) displayedEpisodes.map { it.episodeNumber }.filter { it > 0 }.toSet() else emptySet(),
+                 needExtraLogo, needExtraBackdrop)
+         }
+         if (result != null) extraArt = extraArt.copy(
+@@ -639,20 +640,17 @@
+         logoFinishedFor = logoCandidates
+     }
+ 
+-    val tmdbSettled = tmdbLoadState is SeriesTmdbLoadState.Ready
+-    val seasonSettled = tmdbVisuals?.resolvedTmdbId == null || currentSeasonArtwork != null
+-    val visiblePhotosSettled = displayedEpisodes.isEmpty() || (visibleEpisodeIds.isNotEmpty() &&
+-        visibleEpisodeIds.all { id ->
+-            val episode = displayedEpisodes.firstOrNull { it.id == id }
+-            episode != null && completedEpisodeImages[id] ==
+-                br.com.flaviotorres.iptvpremium.data.repository.episodeReferenceImages(
+-                    currentSeasonArtwork?.episodeStills?.get(episode.episodeNumber), episode.thumbnailUrl, extraArt.episodeStills[episode.episodeNumber])
+-        })
+-    val artworkReady = tmdbSettled && seasonSettled && extraSettled && logoFinishedFor == logoCandidates &&
+-        (effectiveBackdropUrl.isNullOrBlank() || backdropFinishedFor == effectiveBackdropUrl) && visiblePhotosSettled
++    val primaryAttemptsFinished = tmdbLoadState is SeriesTmdbLoadState.Ready &&
++        logoFinishedFor == logoCandidates &&
++        (effectiveBackdropUrl.isNullOrBlank() || backdropFinishedFor == effectiveBackdropUrl) &&
++        (!(needExtraLogo || needExtraBackdrop) || extraSettled)
++    LaunchedEffect(primaryAttemptsFinished) { if (primaryAttemptsFinished) primaryArtReady = true }
+     val latestArtworkReady by rememberUpdatedState(onArtworkReady)
+-    LaunchedEffect(artworkReady) { latestArtworkReady(artworkReady) }
+-
++    LaunchedEffect(primaryArtReady) { latestArtworkReady(primaryArtReady) }
++
++    androidx.compose.runtime.CompositionLocalProvider(
++        br.com.flaviotorres.iptvpremium.ui.components.LocalSecondaryArtworkAllowed provides primaryArtReady
++    ) {
+     Box(
+         modifier = Modifier.fillMaxSize().background(br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.surface(0xFF070708))
+     ) {
+@@ -948,6 +946,7 @@
+             }
+         }
+     }
++    }
+ }
+ 
+ @Composable
+@@ -1281,12 +1280,14 @@
+         br.com.flaviotorres.iptvpremium.data.repository.episodeReferenceImages(tmdbEpisodeStillUrl, thumbnailUrl, supplementalStillUrl)
+     }
+     val latestPhotoResolved by rememberUpdatedState(onPhotoResolved)
+-    val thumbnail: ImageBitmap? = key(specificImages, imageWidthPx, imageHeightPx, imageKey) {
++    val secondaryArtworkAllowed = br.com.flaviotorres.iptvpremium.ui.components.LocalSecondaryArtworkAllowed.current
++    val thumbnail: ImageBitmap? = key(specificImages, imageWidthPx, imageHeightPx, imageKey, secondaryArtworkAllowed) {
+         val loaded by produceState<ImageBitmap?>(
+             initialValue = specificImages.firstNotNullOfOrNull { url ->
+                 MovieDetailsImageLoader.peekFromMemory(context, url, imageWidthPx, imageHeightPx)
+             }
+         ) {
++            if (!secondaryArtworkAllowed) return@produceState
+             br.com.flaviotorres.iptvpremium.data.repository.loadEpisodeThumbnail(
+                 images = specificImages,
+                 image = { url -> MovieDetailsImageLoader.load(context, url, imageWidthPx, imageHeightPx,
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
+@@ -285,6 +285,9 @@
+             mutableStateOf(br.com.flaviotorres.iptvpremium.data.repository.MovieFanartArtwork())
+         }
+         val needsFanart = titleLogoUrl.isNullOrBlank() || backdropUrl.isNullOrBlank() || primaryLogoFailed || primaryBackdropFailed
++        var fanartLookupFinished by remember(needsFanart, tmdbId, imdbId) {
++            mutableStateOf(!needsFanart || (tmdbId.isNullOrBlank() && imdbId.isNullOrBlank()))
++        }
+         androidx.compose.runtime.LaunchedEffect(needsFanart, tmdbId, imdbId) {
+             if (needsFanart && (!tmdbId.isNullOrBlank() || !imdbId.isNullOrBlank())) {
+                 fanart = kotlinx.coroutines.withTimeoutOrNull(8_000L) {
+@@ -292,6 +295,7 @@
+                         br.com.flaviotorres.iptvpremium.data.remote.ArtworkHttpCache.getInstance(context)::get)
+                 } ?: br.com.flaviotorres.iptvpremium.data.repository.MovieFanartArtwork()
+             }
++            fanartLookupFinished = true
+         }
+         val backdropCandidates = (listOfNotNull(backdropUrl?.takeUnless { primaryBackdropFailed }) + fanart.backdrops).distinct()
+         val logoCandidates = (listOfNotNull(titleLogoUrl?.takeUnless { primaryLogoFailed }) + fanart.logos).distinct()
+@@ -320,6 +324,8 @@
+             titleLogoHeight.roundToPx().coerceAtLeast(1)
+         }
+ 
++        var backdropAttemptFinished by remember(backdropCandidates) { mutableStateOf(false) }
++        var logoAttemptFinished by remember(logoCandidates) { mutableStateOf(false) }
+         val backdropBitmap by androidx.compose.runtime.key(backdropCandidates, backdropWidthPx, backdropHeightPx) {
+             produceState<ImageBitmap?>(
+             initialValue = backdropCandidates.firstNotNullOfOrNull {
+@@ -331,6 +337,7 @@
+                 if (bitmap != null) { value = bitmap; break }
+             }
+             if (value == null && !backdropUrl.isNullOrBlank()) primaryBackdropFailed = true
++            backdropAttemptFinished = true
+         }
+         }
+         val titleLogoBitmap by androidx.compose.runtime.key(logoCandidates, titleLogoWidthPx, titleLogoHeightPx) {
+@@ -344,9 +351,14 @@
+                 if (bitmap != null) { value = bitmap; break }
+             }
+             if (value == null && !titleLogoUrl.isNullOrBlank()) primaryLogoFailed = true
+-        }
+-        }
+-
++            logoAttemptFinished = true
++        }
++        }
++
++        androidx.compose.runtime.CompositionLocalProvider(
++            br.com.flaviotorres.iptvpremium.ui.components.LocalSecondaryArtworkAllowed provides
++                (fanartLookupFinished && backdropAttemptFinished && logoAttemptFinished)
++        ) {
+         Box(
+             modifier = Modifier.fillMaxSize().then(
+                 if (showFullSynopsis) Modifier.blur(16.dp) else Modifier
+@@ -678,6 +690,7 @@
+                 )
+             }
+         }
++        }
+     }
+ }
+ 
+@@ -1026,12 +1039,14 @@
+             context, member.profileUrl, imageWidthPx, imageHeightPx
+         )
+     }
++    val secondaryArtworkAllowed = br.com.flaviotorres.iptvpremium.ui.components.LocalSecondaryArtworkAllowed.current
+     val profileBitmap by produceState<ImageBitmap?>(
+         initialValue = initialProfile,
+         key1 = member.profileUrl,
+-        key2 = imageWidthPx to imageHeightPx
++        key2 = imageWidthPx to imageHeightPx,
++        key3 = secondaryArtworkAllowed
+     ) {
+-        value = MovieDetailsImageLoader.load(
++        if (secondaryArtworkAllowed) value = MovieDetailsImageLoader.load(
+             context = context,
+             imageUrl = member.profileUrl,
+             targetWidthPx = imageWidthPx,
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -428,13 +428,6 @@
+     val posterCacheContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
+     // Intervalo ocioso conservador na Android TV para nao competir com o foco.
+     // Mantem a qualidade; a antecipacao respeita duas fileiras.
+-    val posterIdleDelayMs = remember(posterCacheContext) {
+-        val mode = posterCacheContext.resources.configuration.uiMode and
+-                Configuration.UI_MODE_TYPE_MASK
+-        val isTv = mode == Configuration.UI_MODE_TYPE_TELEVISION ||
+-                posterCacheContext.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+-        if (isTv) 100L else 80L
+-    }
+ 
+     // Sinal fora do estado de composicao: mover o foco pelo controle remoto
+     // cancela imediatamente a antecipacao, sem recompor toda a tela.
+@@ -477,28 +470,29 @@
+         oldPagingSnapshot = null
+     }
+ 
+-    // Only the next two rows are anticipated; layout precomposition cannot download more.
++    // Keep overlapping downloads alive; focus and scrolling never restart the same URLs.
+     LaunchedEffect(pagedMovies, selectedCategory, selectedSourceCategoryId, searchText, sortMode, gridColumns, continueMovies) {
+         val paging = pagedMovies ?: return@LaunchedEffect
+-        combine(snapshotFlow {
+-            val window = br.com.flaviotorres.iptvpremium.data.cache.catalogPosterWindow(moviesGridState.firstVisibleItemIndex, gridColumns)
+-            val busy = !posterRequestsEnabled || searchKeyboardVisible || awaitingCategoryPage ||
+-                moviesGridState.isScrollInProgress || (!(selectedCategory == MovieCategory.CONTINUE_WATCHING && selectedSourceCategoryId == null) && paging.loadState.refresh is LoadState.Loading)
+-            Triple(window, paging.itemSnapshotList, busy)
+-        }, posterFocusActivity) { window, _ -> window }.collectLatest { (window, loaded, busy) ->
+-            if (busy) return@collectLatest
+-            delay(posterIdleDelayMs)
+-            val urls = if (selectedCategory == MovieCategory.CONTINUE_WATCHING && selectedSourceCategoryId == null) {
+-                continueMovies.drop(window.next.first).take(window.size).map { it.posterUrl }
+-            } else {
+-                val from = (window.next.first - loaded.placeholdersBefore).coerceAtLeast(0)
+-                val until = (window.next.last + 1 - loaded.placeholdersBefore).coerceAtMost(loaded.items.size)
+-                if (from < until) loaded.items.subList(from, until).map { it.posterUrl } else emptyList()
+-            }
+-            if (urls.isNotEmpty()) posterRequests.run {
+-                MoviePosterLoader.prefetchPriorityBatch(posterCacheContext, urls)
+-            }
+-        }
++        val queue = br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterPreloader(this) { url ->
++            posterRequests.run { MoviePosterLoader.prefetch(posterCacheContext, url) }
++        }
++        try {
++            snapshotFlow {
++                val window = br.com.flaviotorres.iptvpremium.data.cache.catalogPosterWindow(moviesGridState.firstVisibleItemIndex, gridColumns)
++                val paused = !posterRequestsEnabled || searchKeyboardVisible || awaitingCategoryPage || 
++                    (!(selectedCategory == MovieCategory.CONTINUE_WATCHING && selectedSourceCategoryId == null) && paging.loadState.refresh is LoadState.Loading)
++                Triple(window, paging.itemSnapshotList, paused)
++            }.collect { (window, loaded, paused) ->
++                if (paused) { queue.clear(); return@collect }
++                fun urls(range: IntRange): List<String?> {
++                    if (selectedCategory == MovieCategory.CONTINUE_WATCHING && selectedSourceCategoryId == null) return continueMovies.drop(range.first).take(range.count()).map { it.posterUrl }
++                    val from = (range.first - loaded.placeholdersBefore).coerceAtLeast(0)
++                    val until = (range.last + 1 - loaded.placeholdersBefore).coerceAtMost(loaded.items.size)
++                    return if (from < until) loaded.items.subList(from, until).map { it.posterUrl } else emptyList()
++                }
++                queue.update(urls(window.next), urls(window.visible))
++            }
++        } finally { queue.clear() }
+     }
+ 
+     // A chave anterior e salva junto ao NavBackStackEntry, para distinguir
+@@ -2642,8 +2636,8 @@
+  *
+  * - RAM: 20 MiB somente para imagens ja exibidas (LRU).
+  * - Disco: orcamento compartilhado de 64 MiB, preservado ao reiniciar.
+- * - Prefetch: somente as proximas duas fileiras, no maximo dez arquivos comprimidos.
+- * - Rede: ate seis downloads simultaneos, no maximo dois em antecipacao.
++ * - Prefetch: somente as proximas vinte capas, em arquivos comprimidos.
++ * - Rede: ate oito downloads simultaneos, no maximo quatro em antecipacao.
+  * - Politica LRU: ao exceder o limite, remove somente os arquivos antigos
+  *   necessarios, evitando apagar todas as capas a cada reinicio.
+  * - As dez capas da Home recebem prioridade de retencao dentro do limite.
+@@ -2733,7 +2727,7 @@
+ 
+     /** Compressed-file anticipation leaves decoding/RAM to the visible cards. */
+     suspend fun prefetchPriorityBatch(context: Context, urls: List<String?>) = kotlinx.coroutines.coroutineScope {
+-        val batch = urls.mapNotNull(::validUrl).distinct().take(10)
++        val batch = urls.mapNotNull(::validUrl).distinct().take(20)
+         val workers = br.com.flaviotorres.iptvpremium.data.cache.PosterNetworkBudget.BACKGROUND_REQUESTS
+         repeat(minOf(workers, batch.size)) { worker ->
+             launch(Dispatchers.IO) {
+@@ -2849,50 +2843,81 @@
+         }
+     }
+ 
++    private fun posterPool(size: Int, name: String) = java.util.concurrent.ThreadPoolExecutor(
++        size, size, 30L, java.util.concurrent.TimeUnit.SECONDS,
++        java.util.concurrent.ArrayBlockingQueue<Runnable>(48),
++        java.util.concurrent.ThreadFactory { action -> Thread(action, name).apply { isDaemon = true } }
++    ).apply { allowCoreThreadTimeOut(true) }
++    private val posterDownloads = posterPool(8, "catalog-poster")
++    private val posterCleanup = posterPool(2, "catalog-poster-close")
++
++    /** Cancelling a window releases its coroutine/URL lock without waiting for socket timeouts. */
+     private suspend fun download(url: String, target: File): Boolean {
+-        val temporary = File(target.parentFile, "${target.name}.part")
+-        var connection: HttpURLConnection? = null
+-        try {
+-            currentCoroutineContext().ensureActive()
+-            val parent = target.parentFile ?: return false
+-            if (!parent.isDirectory && !parent.mkdirs() && !parent.isDirectory) return false
+-            connection = URL(url).openConnection() as HttpURLConnection
+-            val owner = currentCoroutineContext()[br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterRequests]
+-            owner?.track(connection)
+-            connection.connectTimeout = 8_000
+-            connection.readTimeout = 10_000
+-            connection.instanceFollowRedirects = true
+-            connection.setRequestProperty("User-Agent", "Mozilla/5.0")
+-            connection.connect()
+-            if (connection.responseCode !in 200..299) return false
+-            if (connection.contentLengthLong > MAX_POSTER_BYTES) return false
+-
+-            var byteCount = 0L
+-            connection.inputStream.use { input ->
+-                FileOutputStream(temporary).buffered().use { output ->
+-                    val buffer = ByteArray(16 * 1024)
+-                    while (true) {
+-                        currentCoroutineContext().ensureActive()
+-                        val read = input.read(buffer)
+-                        if (read < 0) break
+-                        byteCount += read
+-                        if (byteCount > MAX_POSTER_BYTES) return false
+-                        output.write(buffer, 0, read)
++        val owner = currentCoroutineContext()[br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterRequests]
++        return kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
++            val current = java.util.concurrent.atomic.AtomicReference<HttpURLConnection?>()
++            val task = java.util.concurrent.FutureTask<Unit> {
++                // A cancelled transfer must never delete the next transfer's temporary file.
++                val temporary = File(target.parentFile, "${target.name}.${java.util.UUID.randomUUID()}.part")
++                var connection: HttpURLConnection? = null
++                fun finish(value: Boolean) {
++                    if (continuation.isActive) continuation.resumeWith(Result.success(value))
++                }
++                try {
++                    if (!continuation.isActive) return@FutureTask Unit
++                    val parent = target.parentFile
++                    if (parent == null || (!parent.isDirectory && !parent.mkdirs() && !parent.isDirectory)) {
++                        finish(false); return@FutureTask Unit
+                     }
++                    connection = URL(url).openConnection() as HttpURLConnection
++                    current.set(connection)
++                    owner?.track(connection)
++                    if (!continuation.isActive) return@FutureTask Unit
++                    connection.connectTimeout = 8_000
++                    connection.readTimeout = 10_000
++                    connection.instanceFollowRedirects = true
++                    connection.setRequestProperty("User-Agent", "Mozilla/5.0")
++                    if (connection.responseCode !in 200..299 || connection.contentLengthLong > MAX_POSTER_BYTES) {
++                        finish(false); return@FutureTask Unit
++                    }
++                    var byteCount = 0L
++                    connection.inputStream.use { input ->
++                        FileOutputStream(temporary).buffered().use { output ->
++                            val buffer = ByteArray(16 * 1024)
++                            while (continuation.isActive) {
++                                val read = input.read(buffer)
++                                if (read < 0) break
++                                byteCount += read
++                                if (byteCount > MAX_POSTER_BYTES) { finish(false); return@FutureTask Unit }
++                                output.write(buffer, 0, read)
++                            }
++                        }
++                    }
++                    if (!continuation.isActive) return@FutureTask Unit
++                    finish(byteCount > 0L && temporary.renameTo(target))
++                } catch (cancelled: CancellationException) {
++                    continuation.cancel(cancelled)
++                } catch (_: Exception) {
++                    finish(false)
++                } finally {
++                    temporary.delete()
++                    connection?.let { owner?.untrack(it); runCatching { it.disconnect() } }
+                 }
+             }
+-            if (byteCount == 0L) return false
+-            return temporary.renameTo(target)
+-        } catch (cancelled: CancellationException) {
+-            throw cancelled
+-        } catch (_: Exception) {
+-            return false
+-        } finally {
+-            temporary.delete()
+-            connection?.let { currentCoroutineContext()[br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterRequests]?.untrack(it) }
+-            connection?.disconnect()
+-        }
+-    }
++            continuation.invokeOnCancellation {
++                task.cancel(true)
++                posterDownloads.remove(task)
++                current.get()?.let { connection ->
++                    runCatching { posterCleanup.execute { runCatching { connection.disconnect() } } }
++                }
++            }
++            try { posterDownloads.execute(task) }
++            catch (_: java.util.concurrent.RejectedExecutionException) {
++                if (continuation.isActive) continuation.resumeWith(Result.success(false))
++            }
++        }
++    }
++
+ 
+ 
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/ActorDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/ActorDetailsScreen.kt
+@@ -1070,18 +1070,10 @@
+                                 label = "TRAILER",
+                                 compact = compact,
+                                 onClick = {
+-                                    val key = detail.trailerKey
+-                                    if (key == null) {
+-                                        Toast.makeText(context, "Trailer indisponível.", Toast.LENGTH_SHORT).show()
+-                                    } else {
+-                                        try {
+-                                            context.startActivity(
+-                                                Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=$key"))
+-                                            )
+-                                        } catch (_: Exception) {
+-                                            Toast.makeText(context, "Não foi possível abrir o trailer.", Toast.LENGTH_SHORT).show()
+-                                        }
+-                                    }
++                                    br.com.flaviotorres.iptvpremium.core.media.openTrailer(
++                                        context, detail.trailerKey, detail.title,
++                                        kind = credit.mediaType, tmdbId = credit.tmdbId.toString(),
++                                        year = detail.year?.toIntOrNull())
+                                 }
+                             )
+                         }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/DetailsArtworkPriority.kt
+@@ -0,0 +1,4 @@
++package br.com.flaviotorres.iptvpremium.ui.components
++
++/** Secondary images only start after the primary title/background attempts settle. */
++internal val LocalSecondaryArtworkAllowed = androidx.compose.runtime.compositionLocalOf { true }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogFavoriteHeart.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogFavoriteHeart.kt
+@@ -18,7 +18,7 @@
+ import androidx.compose.ui.semantics.stateDescription
+ import androidx.compose.ui.unit.dp
+ 
+-/** Small hollow heart in the metadata row; long OK on the card still toggles favorites. */
++/** Small heart in the metadata row; long OK on the card still toggles favorites. */
+ @Composable
+ internal fun CatalogFavoriteHeart(isFavorite: Boolean, compact: Boolean, onClick: () -> Unit) {
+     Box(Modifier.size(if (compact) 12.dp else 15.dp)
+@@ -40,7 +40,7 @@
+             }
+             drawPath(heart, color = if (isFavorite)
+                 br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.color(0xFFFFD54A)
+-                else Color(0xFF9D9DA3), style = Stroke(width = 1.dp.toPx()))
++                else Color(0xFF9D9DA3), style = if (isFavorite) androidx.compose.ui.graphics.drawscope.Fill else Stroke(width = 1.dp.toPx()))
+         }
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -2914,7 +2914,8 @@
+                         },
+                         onTrailerClick = {
+                             br.com.flaviotorres.iptvpremium.core.media.openTrailer(context,
+-                                displayDetails?.trailerUrl, displayMovie?.name.orEmpty())
++                                displayDetails?.trailerUrl, displayMovie?.name.orEmpty(),
++                                tmdbId = displayDetails?.tmdbId, year = displayDetails?.year ?: displayMovie?.year)
+                         },
+                         onFavoriteClick = {
+                             toggleSharedFavorite("movies", movieId)
+@@ -4071,7 +4072,8 @@
+                         onTrailerClick = {
+                             br.com.flaviotorres.iptvpremium.core.media.openTrailer(context,
+                                 episodeData?.trailerUrl?.takeIf { it.isNotBlank() } ?: series?.trailerUrl,
+-                                series?.name ?: episodeData?.title.orEmpty())
++                                series?.name ?: episodeData?.title.orEmpty(), kind = "tv",
++                                tmdbId = series?.tmdbId, year = series?.year)
+                         },
+                         onEpisodeClick = { episodeId ->
+                             val playlistId = activePlaylistId
+@@ -4950,10 +4952,8 @@
+     val context = LocalContext.current
+     val cachedPoster = remember(poster.posterUrl) { MoviePosterLoader.peekBitmap(poster.posterUrl) }
+     val bitmap by produceState<ImageBitmap?>(cachedPoster, poster.posterUrl, selectedMovie) {
+-        // During opening, only the chosen title can request or decode artwork.
+-        // Other carousel cards reuse RAM artwork already drawn in the catalog.
+-        if (selectedMovie) value = MoviePosterLoader.load(context.applicationContext, poster.posterUrl)
+-            ?: FilmstripPosterCache.load(context, poster.posterUrl)
++        // The opening carousel reuses RAM artwork only; logo and backdrop have priority.
++        value = cachedPoster
+     }
+     val shape = RoundedCornerShape(6.dp)
+     Box(
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerLauncher.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerLauncher.kt
+@@ -2,7 +2,6 @@
+ 
+ import android.content.Context
+ import android.content.Intent
+-import android.net.Uri
+ import android.widget.Toast
+ import java.net.URI
+ import java.net.URLDecoder
+@@ -30,15 +29,14 @@
+     }
+ }
+ 
+-internal fun openTrailer(context: Context, raw: String?, title: String) {
+-    val address=trailerAddress(raw,title)
+-    if (address == null) { Toast.makeText(context,"Trailer indisponível.",Toast.LENGTH_SHORT).show();return }
+-    try {
+-        context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(address)))
+-        if (address.startsWith("https://www.youtube.com/results?")) Toast.makeText(context,"Buscando trailer no YouTube.",Toast.LENGTH_SHORT).show()
+-    } catch (_: android.content.ActivityNotFoundException) {
+-        Toast.makeText(context,"Instale o YouTube ou um navegador para abrir o trailer.",Toast.LENGTH_LONG).show()
+-    } catch (_: SecurityException) {
+-        Toast.makeText(context,"O Android não permitiu abrir o trailer.",Toast.LENGTH_SHORT).show()
+-    }
++internal fun trailerIntent(context: Context, request: TrailerRequest): Intent =
++    Intent(context, TrailerPlayerActivity::class.java)
++        .putExtra("title", request.title).putExtra("raw", request.raw).putExtra("kind", request.kind)
++        .putExtra("tmdbId", request.tmdbId).putExtra("year", request.year ?: 0)
++        .apply { if (context !is android.app.Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
++
++internal fun openTrailer(context: Context, raw: String?, title: String,
++    kind: String = "movie", tmdbId: String? = null, year: Int? = null) {
++    try { context.startActivity(trailerIntent(context, TrailerRequest(title, raw, kind, tmdbId, year))) }
++    catch (_: Exception) { Toast.makeText(context, "Não foi possível iniciar o trailer.", Toast.LENGTH_SHORT).show() }
+ }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerResolver.kt
+@@ -0,0 +1,88 @@
++package br.com.flaviotorres.iptvpremium.core.media
++
++import br.com.flaviotorres.iptvpremium.data.remote.TmdbClientProvider
++import java.net.URI
++import java.text.Normalizer
++import kotlinx.coroutines.*
++import org.json.JSONArray
++import org.json.JSONObject
++
++internal data class TrailerRequest(val title: String, val raw: String? = null,
++    val kind: String = "movie", val tmdbId: String? = null, val year: Int? = null)
++internal data class TrailerChoice(val url: String, val youtubeId: String? = null,
++    val language: String? = null, val name: String = "Trailer")
++
++internal fun youtubeTrailerId(raw: String?): String? {
++    val address = trailerAddress(raw, "") ?: return null
++    val uri = runCatching { URI(address) }.getOrNull() ?: return null
++    if (uri.host?.lowercase() !in setOf("youtube.com", "www.youtube.com")) return null
++    return uri.rawQuery?.split('&')?.firstOrNull { it.startsWith("v=") }
++        ?.substringAfter('=')?.takeIf { it.matches(Regex("[A-Za-z0-9_-]{11}")) }
++}
++internal fun providerTrailer(raw: String?): TrailerChoice? {
++    youtubeTrailerId(raw)?.let { return TrailerChoice("https://www.youtube.com/watch?v=$it", it) }
++    val uri = runCatching { URI(raw?.trim().orEmpty()) }.getOrNull() ?: return null
++    if (uri.scheme?.lowercase() !in setOf("http", "https") || uri.host.isNullOrBlank() || uri.rawUserInfo != null) return null
++    if (!uri.path.orEmpty().lowercase().matches(Regex(".*\\.(mp4|m3u8|mpd|webm|mov)$"))) return null
++    return TrailerChoice(uri.toASCIIString())
++}
++internal fun trailerSearchTitle(title: String): String = title
++    .replace(Regex("\\[(?:L|D|LEG|DUB|DUBLADO|LEGENDADO|4K|HDR|HD|FHD)\\]", RegexOption.IGNORE_CASE), " ")
++    .replace(Regex("\\b(?:4K|1080p|720p|2160p|HDR|DUBLADO|LEGENDADO)\\b", RegexOption.IGNORE_CASE), " ")
++    .replace(Regex("\\s*\\((?:19|20)\\d{2}\\)\\s*$"), " ")
++    .trim().trimStart('★', '✽', '*', ' ', '-', '|').replace(Regex("\\s+"), " ").trim()
++private fun titleKey(value: String) = Normalizer.normalize(value, Normalizer.Form.NFD)
++    .replace(Regex("\\p{M}"), "").lowercase().replace(Regex("[^a-z0-9]+"), " ").trim()
++
++internal class TrailerResolver(private val get: suspend (String, Map<String, String>) -> String =
++    { path, query -> TmdbClientProvider.client.get(path, query) }) {
++    suspend fun resolve(request: TrailerRequest): List<TrailerChoice> {
++        val fallback = providerTrailer(request.raw)
++        val kind = if (request.kind == "tv") "tv" else "movie"
++        val title = trailerSearchTitle(request.title)
++        var id = request.tmdbId?.takeIf { it.matches(Regex("[1-9][0-9]*")) }
++        if (id == null && title.isNotBlank()) {
++            val query = mutableMapOf("query" to title, "language" to "pt-BR", "include_adult" to "false")
++            request.year?.takeIf { it in 1888..2100 }?.let { query[if (kind == "tv") "first_air_date_year" else "year"] = it.toString() }
++            val results = json("/search/$kind", query).optJSONArray("results") ?: JSONArray()
++            val wanted = titleKey(title)
++            id = (0 until results.length()).mapNotNull { results.optJSONObject(it) }.firstOrNull { candidate ->
++                val names = listOf(candidate.optString("title"), candidate.optString("original_title"),
++                    candidate.optString("name"), candidate.optString("original_name"))
++                names.any { titleKey(it) == wanted }
++            }?.optLong("id")?.takeIf { it > 0 }?.toString()
++        }
++        if (id == null) return listOfNotNull(fallback)
++        val videos = coroutineScope {
++            listOf("pt-BR", "en-US").map { language -> async {
++                json("/$kind/$id/videos", mapOf("language" to language))
++                    .optJSONArray("results") ?: JSONArray()
++            } }.awaitAll()
++        }
++        return rank(videos).plus(listOfNotNull(fallback)).distinctBy { it.url }.take(10)
++    }
++    private suspend fun json(path: String, query: Map<String, String>): JSONObject = try {
++        JSONObject(get(path, query))
++    } catch (cancelled: CancellationException) { throw cancelled }
++      catch (_: Exception) { JSONObject() }
++
++    internal fun rank(arrays: List<JSONArray>): List<TrailerChoice> = arrays.flatMap { array ->
++        (0 until array.length()).mapNotNull { index ->
++            val video = array.optJSONObject(index) ?: return@mapNotNull null
++            val key = video.optString("key")
++            val type = video.optString("type")
++            if (video.optString("site") != "YouTube" || type !in setOf("Trailer", "Teaser") ||
++                !key.matches(Regex("[A-Za-z0-9_-]{11}"))) return@mapNotNull null
++            val name = video.optString("name")
++            val normalized = titleKey(name)
++            val language = video.optString("iso_639_1").takeIf { it.isNotBlank() }
++            val explicitPortuguese = listOf("dublado", "legendado", "portugues", "pt br").any { normalized.contains(it) }
++            val portuguese = language == "pt" || explicitPortuguese
++            val score = (if (portuguese) 1000 else 0) +
++                (if (normalized.contains("dublado")) 150 else if (normalized.contains("legendado")) 100 else 0) +
++                (if (type == "Trailer") 40 else 0) + (if (video.optBoolean("official")) 20 else 0)
++            score to TrailerChoice("https://www.youtube.com/watch?v=$key", key,
++                if (portuguese) "pt" else language, name)
++        }
++    }.sortedByDescending { it.first }.map { it.second }.distinctBy { it.url }
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt
+@@ -0,0 +1,220 @@
++package br.com.flaviotorres.iptvpremium.core.media
++
++import android.annotation.SuppressLint
++import android.graphics.Color
++import android.os.Bundle
++import android.view.KeyEvent
++import android.view.View
++import android.view.ViewGroup
++import android.webkit.*
++import android.widget.*
++import androidx.activity.ComponentActivity
++import androidx.lifecycle.lifecycleScope
++import androidx.media3.common.MediaItem
++import androidx.media3.common.PlaybackException
++import androidx.media3.common.Player
++import androidx.media3.exoplayer.ExoPlayer
++import androidx.media3.ui.PlayerView
++import kotlinx.coroutines.*
++
++/** Official YouTube embed for YouTube trailers; Media3 for direct provider videos. */
++@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
++class TrailerPlayerActivity : ComponentActivity() {
++    private lateinit var frame: FrameLayout
++    private lateinit var status: TextView
++    private lateinit var retry: Button
++    private lateinit var loading: ProgressBar
++    private var resolverJob: Job? = null
++    private var startupJob: Job? = null
++    private var choices = emptyList<TrailerChoice>()
++    private var choiceIndex = 0
++    private var player: ExoPlayer? = null
++    private var web: WebView? = null
++    private var position = 0L
++    private var resumePlaying = true
++    private var generation = 0
++    private var loadingTrailer = false
++    private val request by lazy {
++        TrailerRequest(intent.getStringExtra("title").orEmpty(), intent.getStringExtra("raw"),
++            intent.getStringExtra("kind") ?: "movie", intent.getStringExtra("tmdbId"),
++            intent.getIntExtra("year", 0).takeIf { it > 0 })
++    }
++    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
++    override fun onCreate(savedInstanceState: Bundle?) {
++        super.onCreate(savedInstanceState)
++        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
++        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.BLACK) }
++        val header = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL }
++        val back = Button(this).apply { text = "‹ Voltar"; setOnClickListener { finish() } }
++        header.addView(back, LinearLayout.LayoutParams(dp(110), dp(52)))
++        header.addView(TextView(this).apply {
++            text = request.title.ifBlank { "Trailer" }; setTextColor(Color.WHITE); textSize = 18f
++            maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
++        }, LinearLayout.LayoutParams(0, dp(52), 1f))
++        retry = Button(this).apply { text = "Tentar outro"; visibility = View.GONE; setOnClickListener {
++            if (choiceIndex + 1 < choices.size) { choiceIndex++; position = 0; resumePlaying = true; showChoice() }
++            else resolve()
++        } }
++        header.addView(retry, LinearLayout.LayoutParams(dp(140), dp(52)))
++        root.addView(header)
++        status = TextView(this).apply { setTextColor(Color.LTGRAY); textSize = 13f; setPadding(dp(12), 0, dp(12), dp(4)) }
++        root.addView(status)
++        frame = FrameLayout(this)
++        root.addView(frame, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
++        setContentView(root)
++        resolve()
++    }
++    private fun resolve() {
++        resolverJob?.cancel(); releaseViews()
++        choices = emptyList(); choiceIndex = 0; position = 0; resumePlaying = true
++        status.text = "Procurando trailer, com preferência por português…"
++        retry.visibility = View.GONE
++        loading = ProgressBar(this)
++        frame.addView(loading, FrameLayout.LayoutParams(dp(48), dp(48), android.view.Gravity.CENTER))
++        resolverJob = lifecycleScope.launch {
++            val result = TrailerResolver().resolve(request)
++            if (isFinishing || isDestroyed) return@launch
++            choices = result
++            if (result.isEmpty()) showError("Não encontrei um trailer disponível para este título.")
++            else showChoice()
++        }
++    }
++    private fun releaseViews() {
++        generation++; startupJob?.cancel()
++        player?.release(); player = null
++        web?.let { view ->
++            view.stopLoading(); view.onPause(); view.removeJavascriptInterface("TrailerHost")
++            (view.parent as? ViewGroup)?.removeView(view); view.destroy()
++        }
++        web = null; frame.removeAllViews()
++    }
++    private fun showChoice() {
++        releaseViews()
++        val choice = choices.getOrNull(choiceIndex) ?: return
++        retry.visibility = View.GONE
++        status.text = if (choice.language == "pt") "Trailer em português priorizado."
++            else "Legendas em português serão solicitadas quando disponíveis."
++        try {
++            if (choice.youtubeId != null) showYouTube(choice.youtubeId) else showDirect(choice.url)
++        } catch (_: Exception) {
++            showError("O player deste trailer não está disponível no aparelho. Tente outra versão.")
++        }
++    }
++    private fun showDirect(url: String) {
++        val view = PlayerView(this).apply { useController = true }
++        frame.addView(view, FrameLayout.LayoutParams(-1, -1))
++        player = ExoPlayer.Builder(this).build().also { native ->
++            view.player = native
++            native.setAudioAttributes(androidx.media3.common.AudioAttributes.DEFAULT, true)
++            native.setHandleAudioBecomingNoisy(true)
++            native.trackSelectionParameters = native.trackSelectionParameters.buildUpon()
++                .setPreferredAudioLanguages("pt-BR", "pt")
++                .setPreferredTextLanguages("pt-BR", "pt").build()
++            native.addListener(object : Player.Listener {
++                override fun onPlayerError(error: PlaybackException) {
++                    showError("Este trailer não pôde ser reproduzido. Tente outra versão.")
++                }
++            })
++            native.setMediaItem(MediaItem.fromUri(url), position)
++            native.playWhenReady = resumePlaying; native.prepare()
++        }
++        view.requestFocus(); view.showController()
++    }
++    @SuppressLint("SetJavaScriptEnabled")
++    private fun showYouTube(id: String) {
++        val token = generation
++        loadingTrailer = true
++        val identity = "https://${packageName.lowercase()}/"
++        val view = WebView(this)
++        web = view
++        view.setBackgroundColor(Color.BLACK)
++        view.settings.apply {
++            javaScriptEnabled = true; domStorageEnabled = true
++            mediaPlaybackRequiresUserGesture = false
++            allowFileAccess = false; allowContentAccess = false
++            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
++            javaScriptCanOpenWindowsAutomatically = false
++        }
++        view.addJavascriptInterface(object {
++            @JavascriptInterface fun ready() { runOnUiThread {
++                if (!isDestroyed && generation == token) { loadingTrailer = false; view.requestFocus() }
++            } }
++            @JavascriptInterface fun failed(code: Int) { runOnUiThread {
++                if (!isDestroyed && generation == token) showError(
++                    if (code == 101 || code == 150 || code == 100)
++                        "Este trailer não permite reprodução incorporada ou está indisponível. Tente outro."
++                    else "Não foi possível iniciar este trailer no player do YouTube. Tente outro.")
++            } }
++        }, "TrailerHost")
++        view.webViewClient = object : WebViewClient() {
++            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
++                if (!request.isForMainFrame) return false
++                val host = request.url.host.orEmpty().lowercase()
++                return request.url.scheme != "https" ||
++                    !(host == packageName.lowercase() || host in setOf("www.youtube.com", "www.youtube-nocookie.com"))
++            }
++            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
++                if (request.isForMainFrame && generation == token) showError("Não foi possível carregar o trailer. Verifique a conexão.")
++            }
++        }
++        view.webChromeClient = object : WebChromeClient() {
++            override fun onPermissionRequest(request: PermissionRequest) { request.deny() }
++        }
++        view.setOnKeyListener { _, key, event ->
++            val script = when (key) {
++                KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> "toggleTrailer()"
++                KeyEvent.KEYCODE_DPAD_LEFT -> "seekTrailer(-10)"
++                KeyEvent.KEYCODE_DPAD_RIGHT -> "seekTrailer(10)"
++                else -> null
++            }
++            if (script != null && event.action == KeyEvent.ACTION_DOWN) view.evaluateJavascript(script, null)
++            script != null
++        }
++        frame.addView(view, FrameLayout.LayoutParams(-1, -1))
++        view.loadDataWithBaseURL(identity, youtubeTrailerHtml(id, identity), "text/html", "UTF-8", null)
++        startupJob = lifecycleScope.launch {
++            delay(20_000)
++            if (generation == token && loadingTrailer) showError("O trailer demorou para responder. Tente outra versão.")
++        }
++    }
++    private fun showError(message: String) {
++        loadingTrailer = false; startupJob?.cancel()
++        status.text = message; retry.visibility = View.VISIBLE
++        if (::loading.isInitialized) loading.visibility = View.GONE
++        retry.requestFocus()
++    }
++    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
++        if (event.keyCode == KeyEvent.KEYCODE_ESCAPE) {
++            if (event.action == KeyEvent.ACTION_UP) finish()
++            return true
++        }
++        return super.dispatchKeyEvent(event)
++    }
++    override fun onPause() {
++        player?.let { resumePlaying = it.playWhenReady; position = it.currentPosition; it.pause() }
++        web?.evaluateJavascript("if(window.player&&player.pauseVideo)player.pauseVideo()", null)
++        web?.onPause()
++        super.onPause()
++    }
++    override fun onStop() { player?.release(); player = null; super.onStop() }
++    override fun onResume() {
++        super.onResume(); web?.onResume()
++        if (choices.getOrNull(choiceIndex)?.youtubeId == null && choices.isNotEmpty() && player == null) showChoice()
++    }
++    override fun onDestroy() { resolverJob?.cancel(); releaseViews(); super.onDestroy() }
++}
++
++internal fun youtubeTrailerHtml(id: String, identity: String): String {
++    require(id.matches(Regex("[A-Za-z0-9_-]{11}")))
++    require(identity.matches(Regex("https://[a-z0-9.]+/")))
++    return """<!doctype html><html lang="pt-BR"><head><meta name="viewport" content="width=device-width,initial-scale=1">
++<meta name="referrer" content="strict-origin-when-cross-origin"><style>html,body,#player{width:100%;height:100%;margin:0;background:#000;overflow:hidden}</style></head>
++<body><div id="player"></div><script src="https://www.youtube.com/iframe_api"></script><script>
++var player;
++function onYouTubeIframeAPIReady(){player=new YT.Player('player',{width:'100%',height:'100%',videoId:'$id',
++playerVars:{autoplay:1,playsinline:1,controls:1,fs:0,rel:0,hl:'pt-BR',cc_lang_pref:'pt',cc_load_policy:1,origin:'${identity.trimEnd('/')}'},
++events:{onReady:function(){TrailerHost.ready();player.playVideo()},onError:function(e){TrailerHost.failed(e.data)}}})}
++function toggleTrailer(){if(player&&player.getPlayerState){if(player.getPlayerState()==1)player.pauseVideo();else player.playVideo()}}
++function seekTrailer(seconds){if(player&&player.getCurrentTime)player.seekTo(Math.max(0,player.getCurrentTime()+seconds),true)}
++</script></body></html>"""
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterNetworkBudget.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterNetworkBudget.kt
+@@ -3,7 +3,7 @@
+ import kotlinx.coroutines.sync.Semaphore
+ import kotlinx.coroutines.sync.withPermit
+ 
+-/** Shares six downloads without allowing anticipation to occupy every connection. */
++/** Shares eight downloads without allowing anticipation to occupy every connection. */
+ internal class PosterNetworkBudget {
+     private val total = Semaphore(TOTAL_REQUESTS)
+     private val anticipation = Semaphore(BACKGROUND_REQUESTS)
+@@ -13,7 +13,7 @@
+         else total.withPermit { operation() }
+ 
+     companion object {
+-        const val TOTAL_REQUESTS = 6
+-        const val BACKGROUND_REQUESTS = 2
++        const val TOTAL_REQUESTS = 8
++        const val BACKGROUND_REQUESTS = 4
+     }
+ }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogPosterPreloader.kt
+@@ -0,0 +1,19 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import kotlinx.coroutines.CoroutineScope
++import kotlinx.coroutines.Job
++import kotlinx.coroutines.launch
++
++/** UI-thread queue: overlapping windows keep their in-flight downloads. */
++internal class CatalogPosterPreloader(private val scope: CoroutineScope,
++    private val load: suspend (String) -> Unit) {
++    private val jobs = linkedMapOf<String, Job>()
++    fun update(next: List<String?>, retain: List<String?>) {
++        val wanted = next.mapNotNull { it?.trim()?.takeIf(String::isNotEmpty) }.distinct().take(20)
++        val kept = retain.filterNotNull().map(String::trim).toSet() + wanted
++        val removed = jobs.keys.filter { it !in kept }
++        removed.forEach { jobs.remove(it)?.cancel() }
++        wanted.forEach { url -> if (url !in jobs) jobs[url] = scope.launch { load(url) } }
++    }
++    fun clear() { jobs.values.forEach { it.cancel() }; jobs.clear() }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterBatchPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterBatchPolicy.kt
+@@ -1,9 +1,9 @@
+ package br.com.flaviotorres.iptvpremium.data.cache
+ 
+-/** Exactly two visible rows, with at most one further two-row window anticipated. */
++/** Two visible rows and the next twenty posters, regardless of the column count. */
+ internal data class CatalogPosterWindow(val first: Int, val size: Int) {
+     val visible: IntRange get() = first until first + size
+-    val next: IntRange get() = first + size until first + size * 2
++    val next: IntRange get() = first + size until first + size + 20
+ }
+ internal fun catalogPosterWindow(firstVisibleIndex: Int, columns: Int): CatalogPosterWindow {
+     val count = columns.coerceIn(4, 5)
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/media/TrailerDeviceTest.kt
+@@ -0,0 +1,79 @@
++package br.com.flaviotorres.iptvpremium.core.media
++
++import androidx.test.core.app.ApplicationProvider
++import kotlinx.coroutines.runBlocking
++import org.json.JSONArray
++import org.junit.Assert.*
++import org.junit.Test
++
++class TrailerDeviceTest {
++    @Test fun launcherTargetsInternalPlayerRatherThanAnExternalApp() {
++        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
++        val intent = trailerIntent(context, TrailerRequest("Minha série", "dubbed12345", "tv", "42", 2020))
++        assertEquals(TrailerPlayerActivity::class.java.name, intent.component?.className)
++        assertEquals(context.packageName, intent.component?.packageName)
++        assertEquals("tv", intent.getStringExtra("kind"))
++        assertEquals("42", intent.getStringExtra("tmdbId"))
++        assertEquals(2020, intent.getIntExtra("year", 0))
++        assertNull(intent.data)
++    }
++    @Test fun portugueseDubbedAndSubtitledTrailersPrecedeEnglish() {
++        val data = JSONArray("""[
++            {"site":"YouTube","key":"english1234","type":"Trailer","official":true,"iso_639_1":"en","name":"Official trailer"},
++            {"site":"YouTube","key":"subtitl1234","type":"Trailer","official":true,"iso_639_1":"pt","name":"Trailer legendado"},
++            {"site":"YouTube","key":"dubbed12345","type":"Trailer","official":true,"iso_639_1":"pt","name":"Trailer dublado"},
++            {"site":"Other","key":"notyoutube1","type":"Trailer"},
++            {"site":"YouTube","key":"bad<script>","type":"Trailer"}
++        ]""")
++        val choices = TrailerResolver { _, _ -> "{}" }.rank(listOf(data))
++        assertEquals(listOf("dubbed12345", "subtitl1234", "english1234"), choices.map { it.youtubeId })
++    }
++    @Test fun tvSearchUsesCorrectEndpointAndYearWithoutAcceptingUnrelatedTitles() = runBlocking {
++        val calls = mutableListOf<Pair<String, Map<String, String>>>()
++        val resolver = TrailerResolver { path, query ->
++            calls.add(path to query)
++            if (path == "/search/tv") """{"results":[{"id":42,"name":"Minha Série"}]}"""
++            else """{"results":[{"site":"YouTube","key":"dubbed12345","type":"Trailer","iso_639_1":"pt"}]}"""
++        }
++        val result = resolver.resolve(TrailerRequest("Minha Série (2020) [L]", kind = "tv", year = 2020))
++        assertEquals("Minha Série", calls.first().second["query"])
++        assertEquals("2020", calls.first().second["first_air_date_year"])
++        assertTrue(calls.drop(1).all { it.first == "/tv/42/videos" })
++        assertEquals(1, result.size)
++    }
++    @Test fun providerTrailerRemainsAvailableWhenMetadataFails() = runBlocking {
++        val result = TrailerResolver { _, _ -> throw java.io.IOException("offline fixture") }
++            .resolve(TrailerRequest("Teste", "https://youtu.be/dubbed12345", tmdbId = "42"))
++        assertEquals("dubbed12345", result.single().youtubeId)
++    }
++    @Test fun numericMovieTitlesAreNotMistakenForReleaseYears() {
++        assertEquals("1917", trailerSearchTitle("1917"))
++        assertEquals("2001 - Uma Odisseia no Espaço", trailerSearchTitle("2001 - Uma Odisseia no Espaço (1968) [L]"))
++    }
++    @Test fun directVideoAndYoutubeInputsAreValidated() {
++        assertEquals("dubbed12345", providerTrailer("dubbed12345")?.youtubeId)
++        assertNotNull(providerTrailer("https://example.invalid/trailer.mp4?signature=fixture"))
++        assertNull(providerTrailer("javascript:alert(1)"))
++        assertNull(providerTrailer("file:///private/trailer.mp4"))
++        assertNull(providerTrailer("https://example.invalid/watch"))
++    }
++    @Test fun embedRequestsPortugueseCaptionsAndKeepsOfficialPlayerControls() {
++        val html = youtubeTrailerHtml("dubbed12345", "https://br.com.flaviotorres.iptvpremium/")
++        assertTrue(html.contains("https://www.youtube.com/iframe_api"))
++        assertTrue(html.contains("cc_lang_pref:'pt'"))
++        assertTrue(html.contains("cc_load_policy:1"))
++        assertTrue(html.contains("controls:1"))
++        assertTrue(html.contains("origin:'https://br.com.flaviotorres.iptvpremium'"))
++        try { youtubeTrailerHtml("bad<script>", "https://example.invalid/"); fail("Invalid ID") }
++        catch (_: IllegalArgumentException) { }
++    }
++    @Test fun unrelatedSearchResultDoesNotOpenTheWrongTrailer() = runBlocking {
++        var videosRequested = false
++        val choices = TrailerResolver { path, _ ->
++            if (path.contains("/videos")) videosRequested = true
++            """{"results":[{"id":1,"title":"Outro filme"}]}"""
++        }.resolve(TrailerRequest("Filme esperado"))
++        assertTrue(choices.isEmpty())
++        assertFalse(videosRequested)
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/DetailsArtworkPriorityDeviceTest.kt
+@@ -0,0 +1,72 @@
++package br.com.flaviotorres.iptvpremium.data.repository
++
++import android.graphics.Bitmap
++import androidx.compose.foundation.layout.Box
++import androidx.compose.foundation.layout.requiredSize
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.unit.dp
++import br.com.flaviotorres.iptvpremium.ui.movies.MovieCastMember
++import br.com.flaviotorres.iptvpremium.ui.movies.MovieDetailsScreen
++import java.net.ServerSocket
++import java.net.Socket
++import java.util.concurrent.ConcurrentLinkedQueue
++import java.util.concurrent.CountDownLatch
++import java.util.concurrent.TimeUnit
++import org.junit.Assert.*
++import org.junit.Rule
++import org.junit.Test
++
++class DetailsArtworkPriorityDeviceTest {
++    @get:Rule val compose = createComposeRule()
++    @Test fun movieLogoAndBackdropStartBeforeActorPhoto() {
++        val server = ServerSocket(0)
++        val paths = ConcurrentLinkedQueue<String>()
++        val clients = ConcurrentLinkedQueue<Socket>()
++        val release = CountDownLatch(1)
++        val primaryRequested = CountDownLatch(2)
++        val image = java.io.ByteArrayOutputStream().also { output ->
++            Bitmap.createBitmap(16, 16, Bitmap.Config.ARGB_8888).apply { eraseColor(android.graphics.Color.BLUE) }
++                .compress(Bitmap.CompressFormat.PNG, 100, output)
++        }.toByteArray()
++        kotlin.concurrent.thread(isDaemon = true) {
++            try { while (!server.isClosed) {
++                val socket = server.accept(); clients.add(socket)
++                kotlin.concurrent.thread(isDaemon = true) {
++                    try { socket.use {
++                        val reader = it.getInputStream().bufferedReader()
++                        val path = reader.readLine().split(' ')[1]
++                        while (!reader.readLine().isNullOrEmpty()) { }
++                        paths.add(path)
++                        if (path != "/actor.png") {
++                            primaryRequested.countDown()
++                            release.await(4, TimeUnit.SECONDS)
++                        }
++                        it.getOutputStream().apply {
++                            write("HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: ${image.size}\r\nConnection: close\r\n\r\n".toByteArray())
++                            write(image); flush()
++                        }
++                    } } catch (_: Exception) { }
++                }
++            } } catch (_: Exception) { }
++        }
++        val base = "http://127.0.0.1:${server.localPort}"
++        try {
++            compose.setContent {
++                Box(Modifier.requiredSize(960.dp, 540.dp)) {
++                    MovieDetailsScreen(movieName = "Teste local", backdropUrl = "$base/background.png",
++                        titleLogoUrl = "$base/logo.png", cast = listOf(MovieCastMember("actor", "Ator", "$base/actor.png")))
++                }
++            }
++            compose.waitUntil(3_000) { primaryRequested.count == 0L }
++            assertFalse(paths.contains("/actor.png"))
++            release.countDown()
++            compose.waitUntil(5_000) { paths.contains("/actor.png") }
++            val order = paths.toList()
++            assertTrue(order.indexOf("/actor.png") > order.indexOf("/background.png"))
++            assertTrue(order.indexOf("/actor.png") > order.indexOf("/logo.png"))
++        } finally {
++            release.countDown(); server.close(); clients.forEach { runCatching { it.close() } }
++        }
++    }
++}
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogEntryRulesDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogEntryRulesDeviceTest.kt
+@@ -47,7 +47,7 @@
+         compose.waitUntil(5_000) { compose.onAllNodesWithTag("series-category-ALL").filter(isFocused()).fetchSemanticsNodes().isNotEmpty() }
+         compose.onNodeWithTag("series-category-ALL").assertIsFocused()
+     }
+-    @Test fun heartRemainsHollowAndTogglesWithoutASeparateKeyboardFocus() {
++    @Test fun heartFillsWhenFavoritedAndTogglesWithoutASeparateKeyboardFocus() {
+         val favorite = mutableStateOf(false)
+         lateinit var view: android.view.View
+         compose.setContent {
+@@ -69,7 +69,8 @@
+             assertTrue((0 until pixels.height).sumOf { y ->
+                 (0 until pixels.width).count { x -> val color = pixels[x, y]; color.red > .2f || color.green > .2f || color.blue > .2f }
+             } > 0)
+-            assertTrue(center.red < .1f && center.green < .1f && center.blue < .1f)
++            if (favorite.value) assertTrue(center.red > .2f || center.green > .2f)
++            else assertTrue(center.red < .1f && center.green < .1f && center.blue < .1f)
+             compose.onNode(hasStateDescription(state), useUnmergedTree = true).performClick()
+         }
+         assertFalse(favorite.value)
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogPosterRulesDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogPosterRulesDeviceTest.kt
+@@ -7,18 +7,18 @@
+ import org.junit.Test
+ 
+ class CatalogPosterRulesDeviceTest {
+-    @Test fun fiveColumnsKeepTenVisibleAndOnlyTheNextTen() {
++    @Test fun fiveColumnsKeepTenVisibleAndTheNextTwenty() {
+         val first = catalogPosterWindow(0, 5)
+         assertEquals((0..9).toList(), first.visible.toList())
+-        assertEquals((10..19).toList(), first.next.toList())
++        assertEquals((10..29).toList(), first.next.toList())
+         val down = catalogPosterWindow(10, 5)
+-        assertEquals(first.next, down.visible)
+-        assertEquals((20..29).toList(), down.next.toList())
++        assertEquals(first.next.take(10), down.visible.toList())
++        assertEquals((20..39).toList(), down.next.toList())
+     }
+     @Test fun fourColumnsAndSingleRowScrollingFollowTheActualViewport() {
+-        assertEquals(8..15, catalogPosterWindow(0, 4).next)
++        assertEquals(8..27, catalogPosterWindow(0, 4).next)
+         assertEquals(5..14, catalogPosterWindow(5, 5).visible)
+-        assertEquals(15..24, catalogPosterWindow(5, 5).next)
++        assertEquals(15..34, catalogPosterWindow(5, 5).next)
+         for (columns in 4..5) for (position in 0..1000) {
+             val window = catalogPosterWindow(position, columns)
+             assertTrue(window.size <= 10)
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogPosterQueueDeviceTest.kt
+@@ -0,0 +1,66 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import android.content.Context
++import androidx.test.core.app.ApplicationProvider
++import br.com.flaviotorres.iptvpremium.ui.movies.MoviePosterLoader
++import java.net.ServerSocket
++import java.net.Socket
++import java.util.concurrent.atomic.AtomicReference
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++
++class CatalogPosterQueueDeviceTest {
++    @Test fun overlappingWindowsDoNotRestartInFlightPosters() = runBlocking {
++        val started = mutableMapOf<String, Int>()
++        val queue = CatalogPosterPreloader(this) { url -> started[url] = (started[url] ?: 0) + 1; awaitCancellation() }
++        queue.update((10..29).map { "url-$it" }, (0..9).map { "url-$it" })
++        yield()
++        assertEquals(20, started.size)
++        queue.update((15..34).map { "url-$it" }, (5..14).map { "url-$it" })
++        yield()
++        assertEquals(25, started.size)
++        assertTrue(started.values.all { it == 1 })
++        queue.clear()
++    }
++    @Test fun completedPostersAreNotRequestedAgainWithinTheWindow() = runBlocking {
++        var count = 0
++        val queue = CatalogPosterPreloader(this) { count++ }
++        val next = (10..29).map { "url-$it" }
++        queue.update(next, emptyList()); yield()
++        queue.update(next, emptyList()); yield()
++        assertEquals(20, count)
++        queue.clear()
++    }
++    @Test fun cancellingBlockedPosterDoesNotWaitForReadTimeout() = runBlocking {
++        val server = ServerSocket(0)
++        val client = AtomicReference<Socket?>()
++        val started = CompletableDeferred<Unit>()
++        val release = java.util.concurrent.CountDownLatch(1)
++        val thread = kotlin.concurrent.thread(isDaemon = true) {
++            try {
++                server.accept().use { socket ->
++                    client.set(socket)
++                    val reader = socket.getInputStream().bufferedReader()
++                    while (!reader.readLine().isNullOrEmpty()) { }
++                    socket.getOutputStream().apply {
++                        write("HTTP/1.1 200 OK\r\nContent-Length: 1048576\r\nConnection: close\r\n\r\nx".toByteArray()); flush()
++                    }
++                    started.complete(Unit)
++                    release.await(5, java.util.concurrent.TimeUnit.SECONDS)
++                }
++            } catch (_: Exception) { }
++        }
++        val requests = CatalogPosterRequests()
++        val context = ApplicationProvider.getApplicationContext<Context>()
++        val job = launch { requests.run { MoviePosterLoader.prefetch(context, "http://127.0.0.1:${server.localPort}/poster") } }
++        try {
++            withTimeout(3_000) { started.await() }
++            job.cancel()
++            withTimeout(700) { job.join() }
++            assertTrue(job.isCancelled)
++        } finally {
++            requests.stop(); release.countDown(); client.get()?.close(); server.close(); thread.join(1_000)
++        }
++    }
++}
