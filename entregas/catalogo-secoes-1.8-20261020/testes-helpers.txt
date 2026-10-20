@@ -1,0 +1,3 @@
+PASS: troca Completa confirmada com ADB simulado, sem limpar dados.
+PASS: troca Secoes confirmada com ADB simulado, sem limpar dados.
+PASS: captura inicia antes do app, exclui evento antigo, finaliza no resumo por secoes e remove URLs/credenciais ficticias.

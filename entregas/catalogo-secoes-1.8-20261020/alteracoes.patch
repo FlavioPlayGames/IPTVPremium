@@ -1,0 +1,1102 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheDatabase.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheDatabase.kt
+@@ -16,6 +16,7 @@
+ 
+ @Database(
+     entities = [
++        br.com.flaviotorres.iptvpremium.data.cache.entity.CachedSectionEntity::class,
+         PlaylistCacheGenerationEntity::class,
+         CachedCategoryEntity::class,
+         CachedChannelEntity::class,
+@@ -23,7 +24,7 @@
+         CachedSeriesEntity::class,
+         CachedEpisodeEntity::class
+     ],
+-    version = 4,
++    version = 5,
+     exportSchema = false
+ )
+ abstract class PlaylistCacheDatabase : RoomDatabase() {
+@@ -118,6 +119,12 @@
+                 }
+             }
+ 
++        internal val MIGRATION_4_5 = object : Migration(4, 5) {
++            override fun migrate(db: SupportSQLiteDatabase) {
++                db.execSQL("CREATE TABLE IF NOT EXISTS cached_sections (playlistId TEXT NOT NULL, generationId TEXT NOT NULL, section TEXT NOT NULL, ready INTEGER NOT NULL, PRIMARY KEY(playlistId, generationId, section))")
++            }
++        }
++
+         fun getInstance(
+             context: Context
+         ): PlaylistCacheDatabase {
+@@ -132,7 +139,8 @@
+                             .addMigrations(
+                                 MIGRATION_1_2,
+                                 MIGRATION_2_3,
+-                                MIGRATION_3_4
++                                MIGRATION_3_4,
++                                MIGRATION_4_5
+                             ), ImportTuning.load(context))
+                             .build()
+                             .also { database ->
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uCacheImporter.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uCacheImporter.kt
+@@ -66,10 +66,53 @@
+         }
+     }
+ 
++    /** One network read, bounded buffers, private files; never hold the playlist in RAM. */
++    suspend fun downloadSections(url: String, directory: java.io.File): Map<br.com.flaviotorres.iptvpremium.data.sync.CatalogSection, java.io.File> {
++        check(directory.mkdirs() || directory.isDirectory)
++        val files = br.com.flaviotorres.iptvpremium.data.sync.CatalogSection.entries.associateWith {
++            java.io.File(directory, it.name + ".m3u")
++        }
++        val writers = files.mapValues { (_, file) -> file.bufferedWriter() }
++        var pending: String? = null
++        var entries = 0L
++        var characters = 0L
++        try {
++            httpClient.readLines(url) { raw ->
++                currentCoroutineContext().ensureActive()
++                characters += raw.length
++                check(characters <= 512L * 1024 * 1024) { "A lista excede o espaço reservado para importação." }
++                val line = raw.removePrefix("\uFEFF").trim()
++                if (line.startsWith("#EXTINF", true)) pending = line
++                else if (line.isNotBlank() && !line.startsWith("#")) {
++                    val info = pending
++                    pending = null
++                    if (info != null) {
++                        val group = extractAttribute(info, "group-title").orEmpty()
++                        val kind = when (classifyEntry(line, group, extractDisplayName(info))) {
++                            EntryType.LIVE_TV -> br.com.flaviotorres.iptvpremium.data.sync.CatalogSection.LIVE_TV
++                            EntryType.MOVIE -> br.com.flaviotorres.iptvpremium.data.sync.CatalogSection.MOVIES
++                            EntryType.SERIES -> br.com.flaviotorres.iptvpremium.data.sync.CatalogSection.SERIES
++                        }
++                        writers.getValue(kind).apply { write(info); newLine(); write(line); newLine() }
++                        entries++
++                    }
++                }
++            }
++            check(entries > 0) { "O endereço informado não retornou uma lista M3U válida." }
++            return files
++        } finally { writers.values.forEach { it.close() } }
++    }
++
++    suspend fun importSectionFile(playlist: String, generation: String, file: java.io.File) {
++        if (file.length() == 0L) return // A valid list can have an empty section.
++        importIntoGeneration(playlist, generation, "", file)
++    }
++
+     private suspend fun importIntoGeneration(
+         playlistId: String,
+         generationId: String,
+-        playlistUrl: String
++        playlistUrl: String,
++        localFile: java.io.File? = null
+     ) {
+         val startedAt = SystemClock.elapsedRealtime()
+ 
+@@ -176,11 +219,20 @@
+ 
+             bufferedCharacters = 0L
+             flushCount++
+-        }
+-
+-        httpClient.readLines(
+-            url = playlistUrl
+-        ) { rawLine ->
++            if (localFile != null) kotlinx.coroutines.delay(6)
++        }
++
++        suspend fun readLines(consume: suspend (String) -> Unit) {
++            if (localFile == null) httpClient.readLines(playlistUrl, consume)
++            else localFile.bufferedReader().use { reader ->
++                while (true) {
++                    currentCoroutineContext().ensureActive()
++                    val line = reader.readLine() ?: break
++                    consume(line)
++                }
++            }
++        }
++        readLines { rawLine ->
+             currentCoroutineContext().ensureActive()
+             if (bufferedCharacters >= batchCharacters) flush()
+             bufferedCharacters += rawLine.length
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt
+@@ -936,12 +936,33 @@
+     override val supportsProgressiveXtream: Boolean
+         get() = xtreamParser is br.com.flaviotorres.iptvpremium.data.parser.DefaultXtreamParser
+ 
+-    /** The active catalog is never touched; sink writes only into an IMPORTING generation. */
+-    override suspend fun importXtream(
+-        source: PlaylistSource.XtreamCodes,
+-        sink: br.com.flaviotorres.iptvpremium.data.sync.XtreamCatalogSink
+-    ) {
+-        check(xtreamParser is br.com.flaviotorres.iptvpremium.data.parser.DefaultXtreamParser)
++    override val supportsSectionCatalog: Boolean get() = supportsProgressiveXtream
++
++    override suspend fun authenticateCatalog(source: PlaylistSource.XtreamCodes) {
++        val base = normalizeServerUrl(source.serverUrl)
++        val user = source.username.trim()
++        require(user.isNotBlank() && source.password.isNotBlank()) { "Informe usuário e senha." }
++        authenticateXtream(buildAuthenticationUrl(base, encodeQueryValue(user), encodeQueryValue(source.password)))
++    }
++
++    override suspend fun importXtream(source: PlaylistSource.XtreamCodes,
++        sink: br.com.flaviotorres.iptvpremium.data.sync.XtreamCatalogSink) {
++        authenticateCatalog(source)
++        var accepted = 0L
++        val counted = object : br.com.flaviotorres.iptvpremium.data.sync.XtreamCatalogSink by sink {
++            override suspend fun append(endpoint: String, content: PlaylistContent) {
++                sink.append(endpoint, content)
++                accepted += content.categories.size + content.channels.size + content.movies.size + content.series.size
++            }
++        }
++        for (section in br.com.flaviotorres.iptvpremium.data.sync.CatalogSection.entries) importSection(source, section, counted)
++        check(accepted > 0) { "A API Xtream não retornou conteúdo para a lista." }
++    }
++
++    override suspend fun importSection(source: PlaylistSource.XtreamCodes,
++        section: br.com.flaviotorres.iptvpremium.data.sync.CatalogSection,
++        sink: br.com.flaviotorres.iptvpremium.data.sync.XtreamCatalogSink) {
++        check(supportsSectionCatalog)
+         val base = normalizeServerUrl(source.serverUrl)
+         val user = source.username.trim()
+         require(user.isNotBlank()) { "O usuário do Xtream Codes está vazio." }
+@@ -949,7 +970,6 @@
+         val encodedUser = encodeQueryValue(user)
+         val encodedPassword = encodeQueryValue(source.password)
+         fun url(action: String) = buildPlayerApiUrl(base, encodedUser, encodedPassword, action)
+-        authenticateXtream(buildAuthenticationUrl(base, encodedUser, encodedPassword))
+         suspend fun endpoint(action: String, address: String = url(action),
+                              receive: suspend (PlaylistContent) -> Unit): StreamCatalogStats =
+             streamCatalogEndpoint(action, address) { batch ->
+@@ -969,45 +989,47 @@
+             endpoint(action) { batch -> sink.append(action, batch); result.addAll(batch.categories) }
+             return result
+         }
+-        var total = categories("get_live_categories").size.toLong()
+-        total += endpoint("get_live_streams") { sink.append("get_live_streams", it) }.accepted
+-        val vodCategories = categories("get_vod_categories")
+-        total += vodCategories.size
++        if (section == br.com.flaviotorres.iptvpremium.data.sync.CatalogSection.LIVE_TV) {
++            categories("get_live_categories")
++            endpoint("get_live_streams") { sink.append("get_live_streams", it) }
++            return
++        }
+         val key = "${base.length}:$base:${encodedUser.length}:$encodedUser"
+-        val known = vodCategories.map { it.id.trim() }.filter { it.isNotEmpty() }.toSet()
+-        val ids = HashSet<String>()
+-        val uncategorized = HashSet<String>()
+-        val unknown = HashSet<String>()
+-        val extras = LinkedHashSet<String>()
+-        val full = streamFullWithRetry("get_vod_streams", before = {
+-            sink.reset("get_vod_streams"); ids.clear(); uncategorized.clear(); unknown.clear(); extras.clear()
+-        }) {
+-            endpoint("get_vod_streams") { batch ->
+-                for (movie in batch.movies) {
+-                    ids.add(movie.id)
+-                    val category = movie.categoryId?.trim().orEmpty()
+-                    if (category.isEmpty()) uncategorized.add(movie.id)
+-                    else if (category !in known) { unknown.add(movie.id); extras.add(category) }
+-                }
+-                sink.append("get_vod_streams", batch)
+-            }
+-        }
+-        if (full != null) {
+-            synchronized(vodAuditLock) {
+-                lastVodFullSnapshot = VodFullSnapshot(key, ids.toSet(), uncategorized.toSet(), unknown.toSet(), extras.toSet(), SystemClock.elapsedRealtime())
+-            }
+-            total += full.accepted
+-        } else {
+-            sink.reset("get_vod_streams")
+-            val previous = synchronized(vodAuditLock) { lastVodFullSnapshot }
+-            val now = SystemClock.elapsedRealtime()
+-            val recent = previous?.takeIf { it.sourceKey == key && now >= it.savedAtMs && now - it.savedAtMs <= VOD_AUDIT_WINDOW_MS }
+-            val recovered = streamCategoriesOrdered("get_vod_streams", vodCategories.map { it.id } + recent?.extraCategoryIds.orEmpty(), url("get_vod_streams"), sink) { action, address, consumer -> endpoint(action, address, consumer) }
+-            if (recent != null) Log.i(XTREAM_SYNC_TAG, "VOD_AUDIT comparacao completoAnterior=${recent.allIds.size} segmentadoAtual=${recovered.size} idsAusentes=${recent.allIds.count { it !in recovered }} idsNovos=${recovered.count { it !in recent.allIds }}")
+-            total += recovered.size
++        if (section == br.com.flaviotorres.iptvpremium.data.sync.CatalogSection.MOVIES) {
++            val vodCategories = categories("get_vod_categories")
++            val known = vodCategories.map { it.id.trim() }.filter { it.isNotEmpty() }.toSet()
++            val ids = HashSet<String>()
++            val uncategorized = HashSet<String>()
++            val unknown = HashSet<String>()
++            val extras = LinkedHashSet<String>()
++            val full = streamFullWithRetry("get_vod_streams", before = {
++                sink.reset("get_vod_streams"); ids.clear(); uncategorized.clear(); unknown.clear(); extras.clear()
++            }) {
++                endpoint("get_vod_streams") { batch ->
++                    for (movie in batch.movies) {
++                        ids.add(movie.id)
++                        val category = movie.categoryId?.trim().orEmpty()
++                        if (category.isEmpty()) uncategorized.add(movie.id)
++                        else if (category !in known) { unknown.add(movie.id); extras.add(category) }
++                    }
++                    sink.append("get_vod_streams", batch)
++                }
++            }
++            if (full != null) {
++                synchronized(vodAuditLock) {
++                    lastVodFullSnapshot = VodFullSnapshot(key, ids.toSet(), uncategorized.toSet(), unknown.toSet(), extras.toSet(), SystemClock.elapsedRealtime())
++                }
++            } else {
++                sink.reset("get_vod_streams")
++                val previous = synchronized(vodAuditLock) { lastVodFullSnapshot }
++                val now = SystemClock.elapsedRealtime()
++                val recent = previous?.takeIf { it.sourceKey == key && now >= it.savedAtMs && now - it.savedAtMs <= VOD_AUDIT_WINDOW_MS }
++                val recovered = streamCategoriesOrdered("get_vod_streams", vodCategories.map { it.id } + recent?.extraCategoryIds.orEmpty(), url("get_vod_streams"), sink) { action, address, consumer -> endpoint(action, address, consumer) }
++                if (recent != null) Log.i(XTREAM_SYNC_TAG, "VOD_AUDIT comparacao completoAnterior=${recent.allIds.size} segmentadoAtual=${recovered.size} idsAusentes=${recent.allIds.count { it !in recovered }} idsNovos=${recovered.count { it !in recent.allIds }}")
++            }
++            return
+         }
+         val seriesCategories = categories("get_series_categories")
+-        total += seriesCategories.size
+         suspend fun segmentedSeries(): Set<String> {
+             sink.reset("get_series")
+             return streamCategoriesOrdered("get_series", seriesCategories.map { it.id }, url("get_series"), sink) { action, address, consumer -> endpoint(action, address, consumer) }
+@@ -1028,22 +1050,18 @@
+                 synchronized(seriesFallbackUntilMs) { seriesFallbackUntilMs.remove(key) }
+             }
+         }
+-        if (recoveredSeries != null) total += recoveredSeries.size
+-        else {
++        if (recoveredSeries == null) {
+             val seriesFull = streamFullWithRetry("get_series", before = { sink.reset("get_series") }) {
+                 endpoint("get_series") { sink.append("get_series", it) }
+             }
+             if (seriesFull != null) {
+                 synchronized(seriesFallbackUntilMs) { seriesFallbackUntilMs.remove(key) }
+-                total += seriesFull.accepted
+             } else {
+                 categoryFailure?.let { throw it }
+                 val recovered = segmentedSeries()
+                 synchronized(seriesFallbackUntilMs) { seriesFallbackUntilMs[key] = SystemClock.elapsedRealtime() + SERIES_FULL_RECHECK_MS }
+-                total += recovered.size
+-            }
+-        }
+-        check(total > 0) { "A API Xtream não retornou conteúdo para a lista." }
++                }
++        }
+     }
+ 
+     private data class StreamCatalogStats(val accepted: Long)
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
+@@ -22,6 +22,25 @@
+     private val cacheDao: PlaylistCacheDao,
+     private val generationManager: PlaylistCacheGenerationManager
+ ) {
++
++    val sections: SectionCatalogLoader get() = synchronized(sectionLock) {
++        sectionLoader ?: SectionCatalogLoader(
++            (playlistRepository as? ProgressiveXtreamRepository)?.takeIf { it.supportsSectionCatalog },
++            m3uCacheImporter, cacheDao, generationManager, { sync(it) }
++        ).also { sectionLoader = it }
++    }
++
++    suspend fun openForUse(source: PlaylistSource, context: android.content.Context): String {
++        val supported = source is PlaylistSource.M3u ||
++            (playlistRepository as? ProgressiveXtreamRepository)?.supportsSectionCatalog == true
++        if (SectionCatalogMode.enabled(context) && supported) return sections.open(source, context.cacheDir)
++        sections.stop()
++        val active = generationManager.getActiveGenerationId(source.id)
++        if (active != null && cacheDao.pendingSections(source.id, active).isEmpty()) return active
++        val result = when (source) { is PlaylistSource.M3u -> sync(source); is PlaylistSource.XtreamCodes -> sync(source) }
++        generationManager.activateReadyGenerationOnStartup(source.id)
++        return result
++    }
+ 
+     suspend fun sync(source: PlaylistSource.M3u): String = sharedSync(source) { syncM3u(source) }
+ 
+@@ -533,6 +552,8 @@
+         }
+     }
+     private companion object {
++        val sectionLock = Any()
++        var sectionLoader: SectionCatalogLoader? = null
+         val shared = SharedSync<PlaylistSource, String>(CoroutineScope(SupervisorJob() + Dispatchers.IO)) {
+             Log.i(TAG, "SYNC_COMPARTILHADA pedido repetido reutilizou operacao em andamento")
+         }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -760,6 +760,26 @@
+     val historySyncRun by historySyncSession.state.collectAsState()
+     val enrichmentEntry by navController.currentBackStackEntryAsState()
+     val enrichmentRoute = enrichmentEntry?.destination?.route
++    val sectionErrors by m3uSourceSynchronizer.sections.errors.collectAsState()
++    val pendingSections by remember(activePlaylistId) {
++        activePlaylistId?.let { playlistCacheDao.observePendingSections(it) }
++            ?: kotlinx.coroutines.flow.flowOf(emptyList<String>())
++    }.collectAsState(initial = listOf("LIVE_TV", "MOVIES", "SERIES"))
++    val requestedSection = when (enrichmentRoute) {
++        AppDestination.LiveTv.route -> br.com.flaviotorres.iptvpremium.data.sync.CatalogSection.LIVE_TV
++        AppDestination.Movies.route -> br.com.flaviotorres.iptvpremium.data.sync.CatalogSection.MOVIES
++        AppDestination.Series.route -> br.com.flaviotorres.iptvpremium.data.sync.CatalogSection.SERIES
++        else -> null
++    }
++    LaunchedEffect(activePlaylistId, enrichmentRoute) {
++        val section = requestedSection ?: return@LaunchedEffect
++        val source = playlists.firstOrNull { it.id == activePlaylistId } ?: return@LaunchedEffect
++        if (m3uSourceSynchronizer.sections.hasPending(source.id)) {
++            m3uSourceSynchronizer.openForUse(source, context)
++            m3uSourceSynchronizer.sections.prioritize(source.id, section)
++        }
++    }
++
+     suspend fun refreshSharedPlaylist(source: PlaylistSource, kind: String, force: Boolean, includeNetwork: Boolean = true) {
+         if (br.com.flaviotorres.iptvpremium.BuildConfig.DEBUG &&
+             br.com.flaviotorres.iptvpremium.BuildConfig.DEBUG_PAUSE_SHARED_LIBRARY) return
+@@ -801,7 +821,8 @@
+     }
+     // Local favorite/progress edits stay immediate, without restarting remote history import.
+     LaunchedEffect(activePlaylistId, sharedLibraryRevision, historyRefreshSerial, settingsHistoryRevision,
+-        sharedSelectionInFlight, enrichmentRoute, historySyncRun?.phase) {
++        sharedSelectionInFlight, enrichmentRoute, historySyncRun?.phase, pendingSections) {
++        if (pendingSections.isNotEmpty()) return@LaunchedEffect
+         if (sharedSelectionInFlight != null || historySyncRun?.phase in listOf(
+                 br.com.flaviotorres.iptvpremium.data.history.HistorySyncSession.Phase.PENDING,
+                 br.com.flaviotorres.iptvpremium.data.history.HistorySyncSession.Phase.RUNNING)) return@LaunchedEffect
+@@ -910,6 +931,7 @@
+         if (!historySyncSession.awaitStart(run.id)) return@LaunchedEffect
+         try {
+             playlistCacheDao.observeActiveGenerationId(source.id).first { it != null }
++            playlistCacheDao.observePendingSections(source.id).first { it.isEmpty() }
+             delay(750L) // Give the Home and initial artwork priority; never hold its controls.
+             for (kind in listOf("movies", "series")) {
+                 importLegacyHistory(source, kind)
+@@ -1104,6 +1126,7 @@
+         val playlistId = activePlaylistId
+ 
+         if (playlistId == null) {
++            m3uSourceSynchronizer.sections.stop()
+             activePlaylistContent = null
+             activePlaylistContentSourceId = null
+             // Sem playlist cadastrada, a Home permanece acessivel para
+@@ -1162,7 +1185,8 @@
+                         playlistCatalogRepository.hasActiveCache(playlistId)
+                     }
+                     Log.i("StartupPerf", "etapa=catalogo_abertura cache=$cacheAvailable remoto=${remoteRequest != null} pedidoJaImportado=$remoteCatalogReady")
+-                    if (!cacheAvailable || remoteRequest != null && !remoteCatalogReady) {
++                    val partial = m3uSourceSynchronizer.sections.hasPending(playlistId)
++                    if (cacheAvailable && !partial && remoteRequest != null && !remoteCatalogReady) {
+ 
+ 
+                         br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("catalogo_importacao") {
+@@ -1181,6 +1205,7 @@
+                      * Se alguma atualização anterior deixou uma geração STALE,
+                      * ela é limpa fora do caminho crítico da abertura do app.
+                      */
++                    m3uSourceSynchronizer.openForUse(activePlaylist, context)
+                     scheduleStaleGenerationCleanup(
+                         playlistId = playlistId
+                     )
+@@ -1206,7 +1231,8 @@
+                         playlistCatalogRepository.hasActiveCache(playlistId)
+                     }
+                     Log.i("StartupPerf", "etapa=catalogo_abertura cache=$cacheAvailable remoto=${remoteRequest != null} pedidoJaImportado=$remoteCatalogReady")
+-                    if (!cacheAvailable || remoteRequest != null && !remoteCatalogReady) {
++                    val partial = m3uSourceSynchronizer.sections.hasPending(playlistId)
++                    if (cacheAvailable && !partial && remoteRequest != null && !remoteCatalogReady) {
+ 
+ 
+                         br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("catalogo_importacao") {
+@@ -1221,6 +1247,7 @@
+                         }
+                     }
+ 
++                    m3uSourceSynchronizer.openForUse(activePlaylist, context)
+                     scheduleStaleGenerationCleanup(
+                         playlistId = playlistId
+                     )
+@@ -1393,7 +1420,7 @@
+             false
+         }
+ 
+-        if (!hasCache) return@LaunchedEffect
++        if (!hasCache || m3uSourceSynchronizer.sections.hasPending(playlistId)) return@LaunchedEffect
+ 
+         val resolvedXtream = when (source) {
+             is PlaylistSource.XtreamCodes -> source
+@@ -1521,7 +1548,12 @@
+     }
+     // O NavHost continua existindo, preservando todo o foco e back stack,
+     // mas a tela de abertura fica ACIMA dele ate concluir os trabalhos.
+-    Box(Modifier.fillMaxSize()) {
++    Box(Modifier.fillMaxSize().onPreviewKeyEvent { event ->
++        val waiting = requestedSection?.name in pendingSections && requestedSection != null &&
++            sectionErrors[activePlaylistId]?.get(requestedSection) == null
++        waiting && event.key in listOf(Key.DirectionUp, Key.DirectionDown, Key.DirectionLeft,
++            Key.DirectionRight, Key.DirectionCenter, Key.Enter, Key.NumPadEnter)
++    }) {
+         NavHost(
+             navController = navController,
+             startDestination = AppDestination.Home.route,
+@@ -1637,14 +1669,8 @@
+                                     playlistCacheGenerationManager.activateReadyGenerationOnStartup(playlist.id)
+                                     val cached = playlistCatalogRepository.hasActiveCache(playlist.id)
+                                     Log.i("StartupPerf", "etapa=selecao_catalogo cache=$cached")
+-                                    if (!cached) {
+-                                        when (playlist) {
+-                                            is PlaylistSource.M3u -> m3uSourceSynchronizer.sync(playlist)
+-                                            is PlaylistSource.XtreamCodes -> m3uSourceSynchronizer.sync(playlist)
+-                                        }
+-                                        didSynchronize = true
+-                                        playlistCacheGenerationManager.activateReadyGenerationOnStartup(playlist.id)
+-                                    }
++                                    m3uSourceSynchronizer.openForUse(playlist, context)
++                                    didSynchronize = !cached
+                                     scheduleStaleGenerationCleanup(playlist.id)
+                                     val content: PlaylistContent? = null
+ 
+@@ -1813,6 +1839,7 @@
+                             }
+ 
+                         coroutineScope.launch {
++                            m3uSourceSynchronizer.sections.stopPlaylist(playlist.id)
+                             playlistStorage.savePlaylists(
+                                 updatedPlaylists
+                             )
+@@ -1903,9 +1930,7 @@
+                                  */
+ 
+ 
+-                                m3uSourceSynchronizer.sync(
+-                                    source = newPlaylist
+-                                )
++                                m3uSourceSynchronizer.openForUse(newPlaylist, context)
+ 
+                                 playlistCacheGenerationManager
+                                     .activateReadyGenerationOnStartup(
+@@ -2002,9 +2027,7 @@
+                                  */
+ 
+ 
+-                                m3uSourceSynchronizer.sync(
+-                                    source = newPlaylist
+-                                )
++                                m3uSourceSynchronizer.openForUse(newPlaylist, context)
+ 
+                                 /*
+                                  * Como esta é a primeira importação de uma
+@@ -2124,7 +2147,7 @@
+                     }
+                 }
+ 
+-                LaunchedEffect(parentalAccessState) { liveTvViewModel.refreshMetadata() }
++                LaunchedEffect(parentalAccessState, "LIVE_TV" in pendingSections) { liveTvViewModel.refreshMetadata() }
+ 
+                 val liveCategories by
+                 liveTvViewModel.categories
+@@ -2275,7 +2298,7 @@
+                     )
+                 }
+ 
+-                LaunchedEffect(parentalAccessState) { moviesViewModel.refreshMetadata() }
++                LaunchedEffect(parentalAccessState, "MOVIES" in pendingSections) { moviesViewModel.refreshMetadata() }
+ 
+                 val movieCategories by
+                 moviesViewModel.categories
+@@ -3763,7 +3786,7 @@
+                     seriesViewModel.setFavoriteSeriesIds(favoriteSeriesIds)
+                 }
+ 
+-                LaunchedEffect(parentalAccessState) { seriesViewModel.refreshMetadata() }
++                LaunchedEffect(parentalAccessState, "SERIES" in pendingSections) { seriesViewModel.refreshMetadata() }
+ 
+                 val seriesCategories by seriesViewModel.categories.collectAsState()
+                 val totalSeriesCount by seriesViewModel.seriesCount.collectAsState()
+@@ -4292,6 +4315,22 @@
+                 } else null
+             )
+         }
++        val waitingSection = requestedSection?.takeIf { it.name in pendingSections }
++        if (waitingSection != null && visibleCatalogLoading == null) {
++            val sectionError = sectionErrors[activePlaylistId]?.get(waitingSection)
++            val closeSection: () -> Unit = { navController.navigate(AppDestination.Home.route) {
++                popUpTo(AppDestination.Home.route) { inclusive = false }; launchSingleTop = true
++            } }
++            BackHandler { closeSection() }
++            AppStartupLoadingScreen(
++                state = AppCatalogLoadingState(
++                    phase = if (sectionError == null) AppCatalogLoadingPhase.READING_CATALOG else AppCatalogLoadingPhase.ERROR,
++                    errorMessage = sectionError
++                ),
++                modifier = Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures {} },
++                onOpenHome = if (sectionError != null) closeSection else null
++            )
++        }
+         val historyRun = historySyncRun
+         if (enrichmentRoute == AppDestination.Home.route && visibleCatalogLoading == null &&
+             historyRun != null && historyRun.playlist == activePlaylistId && historyRun.announce &&
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt
+@@ -49,7 +49,7 @@
+         categoryId: String? = null
+     ): Flow<PagingData<Channel>> {
+         return cacheDao
+-            .observeActiveGenerationId(playlistId)
++            .observeReadySectionGenerationId(playlistId, "LIVE_TV")
+             .distinctUntilChanged()
+             .combine(ParentalPolicy.accessFlow) { generation, access -> generation to access }
+             .flatMapLatest { (generationId, access) ->
+@@ -232,7 +232,7 @@
+                     normalizedSortMode == SORT_DEFAULT
+ 
+         return cacheDao
+-            .observeActiveGenerationId(playlistId)
++            .observeReadySectionGenerationId(playlistId, "MOVIES")
+             .distinctUntilChanged()
+             .combine(ParentalPolicy.accessFlow) { generation, access -> generation to access }
+             .flatMapLatest { (generationId, access) ->
+@@ -322,7 +322,7 @@
+                 normalizedSearchQuery.isEmpty() &&
+                 normalizedSortMode == SORT_DEFAULT
+ 
+-        return cacheDao.observeActiveGenerationId(playlistId)
++        return cacheDao.observeReadySectionGenerationId(playlistId, "SERIES")
+             .distinctUntilChanged()
+             .combine(ParentalPolicy.accessFlow) { generation, access -> generation to access }
+             .flatMapLatest { (generationId, access) ->
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/ProgressiveXtream.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/ProgressiveXtream.kt
+@@ -13,6 +13,9 @@
+ }
+ class XtreamCatalogStage(val generationId: String, val endpoint: String, val sink: XtreamCatalogSink)
+ interface ProgressiveXtreamRepository {
++    val supportsSectionCatalog: Boolean get() = false
++    suspend fun authenticateCatalog(source: PlaylistSource.XtreamCodes) { error("Section catalog unsupported") }
++    suspend fun importSection(source: PlaylistSource.XtreamCodes, section: CatalogSection, sink: XtreamCatalogSink) { error("Section catalog unsupported") }
+     val supportsProgressiveXtream: Boolean get() = true
+     suspend fun importXtream(source: PlaylistSource.XtreamCodes, sink: XtreamCatalogSink)
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheGenerationManager.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheGenerationManager.kt
+@@ -43,6 +43,18 @@
+             val protected = (registered + importing).toList().ifEmpty { listOf("") }
+             cacheDao.retireUnregisteredActiveGenerations(protected, beforeMillis)
+         }
++
++    suspend fun prepareSectionShell(playlist: String): String {
++        val generation = beginImport(playlist)
++        try {
++            cacheDao.prepareSectionShell(playlist, generation)
++            synchronized(importLock) { liveImports.remove(playlist to generation) }
++            return generation
++        } catch (error: Throwable) {
++            discardImport(playlist, generation)
++            throw error
++        }
++    }
+ 
+     suspend fun markImportReady(
+         playlistId: String,
+@@ -204,6 +216,7 @@
+                 )
+             }
+ 
++        cacheDao.deleteSectionState(playlistId, generationId)
+         cacheDao.deleteGenerationRow(
+             playlistId = playlistId,
+             generationId = generationId
+@@ -249,6 +262,7 @@
+             val movies = deleteInBatches { cacheDao.deleteMoviesBatchForGeneration(playlistId, generationId, CLEANUP_BATCH_SIZE) }
+             val channels = deleteInBatches { cacheDao.deleteChannelsBatchForGeneration(playlistId, generationId, CLEANUP_BATCH_SIZE) }
+             val categories = deleteInBatches { cacheDao.deleteCategoriesBatchForGeneration(playlistId, generationId, CLEANUP_BATCH_SIZE) }
++            cacheDao.deleteSectionState(playlistId, generationId)
+             cacheDao.deleteGenerationRow(playlistId, generationId)
+             Log.i(TAG, "LIMPEZA_IMPORTACAO_ABANDONADA registros=${episodes + series + movies + channels + categories} duracaoMs=${android.os.SystemClock.elapsedRealtime() - started}")
+             return true
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/dao/PlaylistCacheDao.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/dao/PlaylistCacheDao.kt
+@@ -28,6 +28,64 @@
+ 
+ @Dao
+ interface PlaylistCacheDao {
++    @Query("DELETE FROM cached_sections WHERE playlistId=:playlist")
++    suspend fun deleteAllSectionState(playlist: String)
++
++    @Insert(onConflict = OnConflictStrategy.REPLACE)
++    suspend fun insertSections(rows: List<br.com.flaviotorres.iptvpremium.data.cache.entity.CachedSectionEntity>)
++
++    @Query("SELECT g.generationId FROM playlist_cache_generations g WHERE g.playlistId=:playlist AND g.status='ACTIVE' AND NOT EXISTS (SELECT 1 FROM cached_sections s WHERE s.playlistId=g.playlistId AND s.generationId=g.generationId AND s.section=:section AND s.ready=0) LIMIT 1")
++    fun observeReadySectionGenerationId(playlist: String, section: String): Flow<String?>
++
++    @Query("SELECT s.section FROM cached_sections s JOIN playlist_cache_generations g ON s.playlistId=g.playlistId AND s.generationId=g.generationId WHERE s.playlistId=:playlist AND g.status='ACTIVE' AND s.ready=0")
++    fun observePendingSections(playlist: String): Flow<List<String>>
++
++    @Query("SELECT section FROM cached_sections WHERE playlistId=:playlist AND generationId=:generation AND ready=0")
++    suspend fun pendingSections(playlist: String, generation: String): List<String>
++
++    @Query("UPDATE cached_sections SET ready=1 WHERE playlistId=:playlist AND generationId=:generation AND section=:section")
++    suspend fun finishSection(playlist: String, generation: String, section: String)
++
++    @Query("DELETE FROM cached_sections WHERE playlistId=:playlist AND generationId=:generation")
++    suspend fun deleteSectionState(playlist: String, generation: String)
++
++    @Query("UPDATE cached_categories SET generationId=:target WHERE playlistId=:playlist AND generationId=:stage")
++    suspend fun moveSectionCategories(playlist: String, stage: String, target: String)
++    @Query("UPDATE cached_channels SET generationId=:target WHERE playlistId=:playlist AND generationId=:stage")
++    suspend fun moveSectionChannels(playlist: String, stage: String, target: String)
++    @Query("UPDATE cached_movies SET generationId=:target WHERE playlistId=:playlist AND generationId=:stage")
++    suspend fun moveSectionMovies(playlist: String, stage: String, target: String)
++    @Query("UPDATE cached_series SET generationId=:target WHERE playlistId=:playlist AND generationId=:stage")
++    suspend fun moveSectionSeries(playlist: String, stage: String, target: String)
++
++    @Query("UPDATE cached_episodes SET generationId=:target WHERE playlistId=:playlist AND generationId=:stage")
++    suspend fun moveSectionEpisodes(playlist: String, stage: String, target: String)
++
++    /** A section becomes readable only after its endpoint and all recovery attempts succeed. */
++    @Transaction
++    suspend fun publishSection(playlist: String, stage: String, target: String, section: String) {
++        check(generationStatus(playlist, target) == "ACTIVE") { "Catalog changed during import" }
++        check(section in pendingSections(playlist, target)) { "Section already published" }
++        moveSectionCategories(playlist, stage, target)
++        when (section) {
++            "LIVE_TV" -> moveSectionChannels(playlist, stage, target)
++            "MOVIES" -> moveSectionMovies(playlist, stage, target)
++            "SERIES" -> { moveSectionSeries(playlist, stage, target); moveSectionEpisodes(playlist, stage, target) }
++            else -> error("Unknown catalog section")
++        }
++        finishSection(playlist, target, section)
++    }
++
++    @Transaction
++    suspend fun prepareSectionShell(playlist: String, generation: String) {
++        check(getActiveGeneration(playlist) == null) { "A catalog is already active" }
++        insertSections(listOf("LIVE_TV", "MOVIES", "SERIES").map {
++            br.com.flaviotorres.iptvpremium.data.cache.entity.CachedSectionEntity(playlist, generation, it)
++        })
++        updateGenerationStatus(playlist, generation, "READY", System.currentTimeMillis())
++        switchToReadyGeneration(playlist, generation, System.currentTimeMillis())
++    }
++
+     // Candidate-only pages: never materialize the whole catalogue for shared history.
+     @Query("SELECT movieId AS contentId, name AS title, year, NULL AS imdb, NULL AS tmdb, posterUrl AS poster, providerOrder FROM cached_movies WHERE playlistId = :playlist AND generationId = :generation AND movieId > :after AND ((:pattern != '' AND name GLOB :pattern) OR movieId IN (:ids)) ORDER BY movieId LIMIT 256")
+     suspend fun sharedMovieCandidates(playlist: String, generation: String, after: String, pattern: String, ids: List<String>): List<br.com.flaviotorres.iptvpremium.data.history.SharedCatalogIdentity>
+@@ -1037,6 +1095,7 @@
+             generationId
+         )
+ 
++        deleteSectionState(playlistId, generationId)
+         deleteGenerationRow(
+             playlistId,
+             generationId
+@@ -1107,6 +1166,7 @@
+     suspend fun deletePlaylistCache(
+         playlistId: String
+     ) {
++        deleteAllSectionState(playlistId)
+         deleteAllCategories(
+             playlistId
+         )
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/entity/CachedSectionEntity.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/entity/CachedSectionEntity.kt
+@@ -0,0 +1,8 @@
++package br.com.flaviotorres.iptvpremium.data.cache.entity
++
++import androidx.room.Entity
++
++/** Only progressive generations have rows; legacy/full snapshots are already complete. */
++@Entity(tableName = "cached_sections", primaryKeys = ["playlistId", "generationId", "section"])
++data class CachedSectionEntity(val playlistId: String, val generationId: String,
++    val section: String, val ready: Boolean = false)
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/SectionCatalogLoader.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/SectionCatalogLoader.kt
+@@ -0,0 +1,194 @@
++package br.com.flaviotorres.iptvpremium.data.sync
++
++import android.content.Context
++import android.util.Log
++import br.com.flaviotorres.iptvpremium.data.cache.PlaylistCacheGenerationManager
++import br.com.flaviotorres.iptvpremium.data.cache.dao.PlaylistCacheDao
++import br.com.flaviotorres.iptvpremium.data.cache.importer.M3uCacheImporter
++import br.com.flaviotorres.iptvpremium.domain.model.PlaylistContent
++import br.com.flaviotorres.iptvpremium.domain.model.PlaylistSource
++import kotlinx.coroutines.*
++import kotlinx.coroutines.channels.Channel
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.asStateFlow
++import kotlinx.coroutines.selects.select
++import kotlinx.coroutines.sync.Mutex
++import kotlinx.coroutines.sync.withLock
++import java.io.File
++import java.util.UUID
++
++enum class CatalogSection { LIVE_TV, MOVIES, SERIES }
++
++object SectionCatalogMode {
++    private const val PREFS = "section_catalog_test_18"
++    fun enabled(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean("enabled", true)
++    fun setEnabled(context: Context, enabled: Boolean) {
++        check(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean("enabled", enabled).commit())
++    }
++}
++
++/** One writer, small buffers and private stages. Requests preempt only unfinished sections. */
++class SectionCatalogLoader internal constructor(
++    private val repository: ProgressiveXtreamRepository?,
++    private val importer: M3uCacheImporter,
++    private val dao: PlaylistCacheDao,
++    private val manager: PlaylistCacheGenerationManager,
++    private val fallback: suspend (PlaylistSource.M3u) -> String
++) {
++    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
++    private val mutex = Mutex()
++    private val mutableErrors = MutableStateFlow<Map<String, Map<CatalogSection, String>>>(emptyMap())
++    val errors = mutableErrors.asStateFlow()
++    private var session: Session? = null
++    private class Session(val source: PlaylistSource, val generation: String, val directory: File) {
++        val requests = Channel<CatalogSection>(Channel.CONFLATED)
++        var job: Job? = null
++    }
++
++    suspend fun open(source: PlaylistSource, cacheDirectory: File): String = mutex.withLock {
++        val previous = session
++        if (previous?.source == source && previous.job?.isActive == true) return@withLock previous.generation
++        previous?.job?.cancelAndJoin()
++        var generation = manager.getActiveGenerationId(source.id)
++        if (generation == null) generation = manager.prepareSectionShell(source.id)
++        if (dao.pendingSections(source.id, generation).isEmpty()) return@withLock generation
++        val item = Session(source, generation, File(cacheDirectory, "catalog-sections-" + UUID.randomUUID()))
++        session = item
++        // Own files only, including leftovers from a process killed during its download.
++        cacheDirectory.listFiles()?.filter { it.name.startsWith("catalog-sections-") && it.isDirectory }?.forEach { it.deleteRecursively() }
++        mutableErrors.value = mutableErrors.value - source.id
++        Log.i("SectionCatalog", "etapa=HOME_LIBERADA tipo=${if (source is PlaylistSource.M3u) "M3U" else "XTREAM"}")
++        item.job = scope.launch {
++            val started = android.os.SystemClock.elapsedRealtime()
++            br.com.flaviotorres.iptvpremium.core.storage.StorageMaintenance.foregroundImport {
++                try { run(item) }
++                catch (cancelled: CancellationException) { throw cancelled }
++                catch (error: Exception) {
++                    val pending = dao.pendingSections(source.id, item.generation)
++                    for (section in CatalogSection.entries.filter { it.name in pending }) fail(item, section, error)
++                } finally {
++                    withContext(NonCancellable) {
++                        val active = manager.getActiveGenerationId(source.id)
++                        val count = active?.let { dao.pendingSections(source.id, it).size } ?: 3
++                        val result = if (item.job?.isCancelled == true) "CANCELADA" else if (count == 0) "SUCESSO" else "ERRO"
++                        Log.i("SectionCatalog", "CATALOGO_RESUMO tipo=${if (source is PlaylistSource.M3u) "M3U" else "XTREAM"} resultado=$result duracaoMs=${android.os.SystemClock.elapsedRealtime()-started} pendentes=$count")
++                        item.directory.deleteRecursively()
++                    }
++                }
++            }
++        }
++        generation
++    }
++
++    fun prioritize(playlist: String, section: CatalogSection) {
++        session?.takeIf { it.source.id == playlist }?.let {
++            Log.i("SectionCatalog", "etapa=PRIORIDADE secao=$section")
++            it.requests.trySend(section)
++        }
++    }
++
++    suspend fun hasPending(playlist: String): Boolean {
++        val generation = manager.getActiveGenerationId(playlist) ?: return true
++        return dao.pendingSections(playlist, generation).isNotEmpty()
++    }
++
++    suspend fun stopPlaylist(playlist: String) = mutex.withLock {
++        if (session?.source?.id == playlist) { session?.job?.cancelAndJoin(); session = null }
++    }
++
++    suspend fun stop() = mutex.withLock { session?.job?.cancelAndJoin(); session = null }
++
++    private fun fail(item: Session, section: CatalogSection, error: Exception) {
++        mutableErrors.value = mutableErrors.value + (item.source.id to
++            (mutableErrors.value[item.source.id].orEmpty() + (section to "Não foi possível carregar esta seção. Volte à Home e tente novamente.")))
++        Log.w("SectionCatalog", "secao=$section resultado=ERRO tipo=${error.javaClass.simpleName}")
++    }
++
++    private suspend fun run(item: Session) = supervisorScope {
++        val source = item.source
++        var files: Map<CatalogSection, File>? = null
++        if (source is PlaylistSource.M3u) files = importer.downloadSections(source.playlistUrl, item.directory)
++        else {
++            source as PlaylistSource.XtreamCodes
++            try { checkNotNull(repository).authenticateCatalog(source) }
++            catch (cancelled: CancellationException) { throw cancelled }
++            catch (error: Exception) { if (useFallback(item, source)) return@supervisorScope else throw error }
++        }
++        delay(700) // Let the Home render and collect an initial section choice.
++        val failed = mutableSetOf<CatalogSection>()
++        var preferred = item.requests.tryReceive().getOrNull()
++        while (true) {
++            currentCoroutineContext().ensureActive()
++            val pending = dao.pendingSections(source.id, item.generation).map(CatalogSection::valueOf)
++            val next = preferred?.takeIf { it in pending && it !in failed }
++                ?: CatalogSection.entries.firstOrNull { it in pending && it !in failed } ?: break
++            preferred = null
++            val task = async { loadSection(item, next, files?.getValue(next)) }
++            var preempted = false
++            try {
++                while (!task.isCompleted) {
++                    select<Unit> {
++                        task.onAwait { }
++                        item.requests.onReceive { requested ->
++                            failed.remove(requested)
++                            if (requested != next && requested in pending && requested !in failed) {
++                                preferred = requested
++                                preempted = true
++                                task.cancelAndJoin()
++                            }
++                        }
++                    }
++                    if (preempted) break
++                }
++                if (!preempted) task.await()
++            } catch (cancelled: CancellationException) {
++                if (!preempted) throw cancelled
++            } catch (error: Exception) {
++                if (source is PlaylistSource.XtreamCodes && !storageFailure(error) && useFallback(item, source)) return@supervisorScope
++                failed.add(next)
++                fail(item, next, error)
++            }
++            if (!preempted) preferred = item.requests.tryReceive().getOrNull()
++        }
++        Log.i("SectionCatalog", "catalogo=FINALIZADO pendentes=${dao.pendingSections(source.id, item.generation).size}")
++    }
++
++    private fun storageFailure(error: Throwable, depth: Int = 0): Boolean =
++        error is XtreamCatalogWriteException || error is android.database.sqlite.SQLiteException ||
++            (depth < 5 && error.cause?.takeIf { it !== error }?.let { storageFailure(it, depth + 1) } == true)
++
++    private suspend fun useFallback(item: Session, source: PlaylistSource.XtreamCodes): Boolean {
++        val link = source.fallbackM3uUrl?.takeIf { it.isNotBlank() } ?: return false
++        Log.i("SectionCatalog", "alternativa=M3U catalogo_anterior=preservado")
++        fallback(PlaylistSource.M3u(source.id, source.name, source.isEnabled, link))
++        currentCoroutineContext().ensureActive()
++        manager.activateReadyGenerationOnStartup(source.id)
++        mutableErrors.value = mutableErrors.value - source.id
++        return true
++    }
++
++    private suspend fun loadSection(item: Session, section: CatalogSection, file: File?) {
++        val started = android.os.SystemClock.elapsedRealtime()
++        val stage = manager.beginImport(item.source.id)
++        val writer = XtreamCatalogWriter(dao, manager, item.source.id, stage)
++        try {
++            if (file != null) importer.importSectionFile(item.source.id, stage, file)
++            else checkNotNull(repository).importSection(item.source as PlaylistSource.XtreamCodes, section,
++                object : XtreamCatalogSink by writer {
++                    override suspend fun append(endpoint: String, content: PlaylistContent) {
++                        writer.append(endpoint, content)
++                        delay(6) // Yield between bounded writes instead of competing continuously with UI reads.
++                    }
++                })
++            writer.closeStages()
++            currentCoroutineContext().ensureActive()
++            dao.publishSection(item.source.id, stage, item.generation, section.name)
++            mutableErrors.value = mutableErrors.value + (item.source.id to (mutableErrors.value[item.source.id].orEmpty() - section))
++            Log.i("SectionCatalog", "secao=$section resultado=PRONTA totalMs=${android.os.SystemClock.elapsedRealtime()-started}")
++        } finally {
++            withContext(NonCancellable) {
++                try { writer.closeStages() } finally { manager.discardImport(item.source.id, stage) }
++            }
++        }
++    }
++}
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/sync/SectionCatalogDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/sync/SectionCatalogDeviceTest.kt
+@@ -0,0 +1,197 @@
++package br.com.flaviotorres.iptvpremium.data.sync
++
++import androidx.room.Room
++import androidx.test.core.app.ApplicationProvider
++import androidx.test.platform.app.InstrumentationRegistry
++import br.com.flaviotorres.iptvpremium.data.cache.*
++import br.com.flaviotorres.iptvpremium.data.cache.dao.PlaylistCacheDao
++import br.com.flaviotorres.iptvpremium.data.cache.importer.M3uCacheImporter
++import br.com.flaviotorres.iptvpremium.data.remote.PlaylistHttpClient
++import br.com.flaviotorres.iptvpremium.domain.model.*
++import kotlinx.coroutines.*
++import kotlinx.coroutines.flow.first
++import org.junit.Assert.*
++import org.junit.Test
++import java.io.File
++import java.io.IOException
++import java.util.UUID
++
++class SectionCatalogDeviceTest {
++    private val source = PlaylistSource.XtreamCodes("sections-fixture", "Fixture", true, "https://example.invalid", "fixture", "fixture")
++    private class Client : PlaylistHttpClient {
++        var calls = 0
++        var payload = listOf("#EXTM3U", "#EXTINF:-1 group-title=\"Canais\",Canal", "https://example.invalid/live/u/p/1.ts",
++            "#EXTINF:-1 group-title=\"Filmes\",Filme", "https://example.invalid/movie/u/p/2.mp4",
++            "#EXTINF:-1 group-title=\"Series\",Serie S01E01", "https://example.invalid/series/u/p/3.mp4")
++        override suspend fun get(url: String): String = error("Must stream")
++        override suspend fun readLines(url: String, onLine: suspend (String) -> Unit) { calls++; payload.forEach { onLine(it) } }
++    }
++    private class Provider : ProgressiveXtreamRepository {
++        override val supportsSectionCatalog = true
++        var auth = 0
++        val order = java.util.Collections.synchronizedList(mutableListOf<CatalogSection>())
++        val cancelled = java.util.Collections.synchronizedList(mutableListOf<CatalogSection>())
++        var hold = emptySet<CatalogSection>()
++        var fail: CatalogSection? = null
++        override suspend fun authenticateCatalog(source: PlaylistSource.XtreamCodes) { auth++ }
++        override suspend fun importXtream(source: PlaylistSource.XtreamCodes, sink: XtreamCatalogSink) = error("Must use sections")
++        override suspend fun importSection(source: PlaylistSource.XtreamCodes, section: CatalogSection, sink: XtreamCatalogSink) {
++            order.add(section)
++            try {
++                val content = when (section) {
++                    CatalogSection.LIVE_TV -> PlaylistContent(categories = listOf(Category("live", "Live", CategoryType.LIVE_TV, CategorySource.PROVIDER)))
++                    CatalogSection.MOVIES -> PlaylistContent(movies = listOf(Movie("movie", "Movie", null, null, null, "https://example.invalid/movie.mp4", null, null, null)))
++                    CatalogSection.SERIES -> PlaylistContent(categories = listOf(Category("series", "Series", CategoryType.SERIES, CategorySource.PROVIDER)))
++                }
++                sink.append(if (section == CatalogSection.MOVIES) "get_vod_streams" else "get_series_categories", content)
++                if (section in hold) awaitCancellation()
++                if (section == fail) throw IOException("Fixture failure")
++            } catch (error: CancellationException) { cancelled.add(section); throw error }
++        }
++    }
++    private class Fixture(val db: PlaylistCacheDatabase, val dir: File) {
++        val dao = db.playlistCacheDao()
++        val manager = PlaylistCacheGenerationManager(dao)
++        val provider = Provider()
++        val client = Client()
++        val importer = M3uCacheImporter(client, dao, manager)
++        var fallbacks = 0
++        val loader = SectionCatalogLoader(provider, importer, dao, manager) { fallbacks++; error("Unexpected fallback") }
++    }
++    private fun fixture(block: suspend (Fixture) -> Unit) = runBlocking {
++        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
++        val db = Room.inMemoryDatabaseBuilder(context, PlaylistCacheDatabase::class.java).build()
++        val f = Fixture(db, File(context.cacheDir, "sections-test-" + UUID.randomUUID()).apply { mkdirs() })
++        try { withTimeout(20_000) { block(f) } } finally { f.loader.stop(); db.close(); f.dir.deleteRecursively() }
++    }
++    private suspend fun waitUntil(check: suspend () -> Boolean) { withTimeout(10_000) { while (!check()) delay(10) } }
++
++    @Test fun homeOpensBeforeAnySectionCompletes() = fixture { f ->
++        f.provider.hold = CatalogSection.entries.toSet()
++        val gen = f.loader.open(source, f.dir)
++        assertEquals(gen, f.manager.getActiveGenerationId(source.id))
++        assertEquals(3, f.dao.pendingSections(source.id, gen).size)
++        assertEquals(0, f.dao.getMovieCount(source.id, gen))
++        assertEquals(0, f.fallbacks)
++        assertNull(f.dao.observeReadySectionGenerationId(source.id, "LIVE_TV").first())
++    }
++    @Test fun selectedMoviesArePublishedBeforeBackgroundLive() = fixture { f ->
++        f.provider.hold = setOf(CatalogSection.LIVE_TV)
++        val gen = f.loader.open(source, f.dir)
++        f.loader.prioritize(source.id, CatalogSection.MOVIES)
++        waitUntil { "MOVIES" !in f.dao.pendingSections(source.id, gen) }
++        assertEquals(CatalogSection.MOVIES, f.provider.order.first())
++        assertEquals(gen, f.dao.observeReadySectionGenerationId(source.id, "MOVIES").first())
++        assertNull(f.dao.observeReadySectionGenerationId(source.id, "LIVE_TV").first())
++        assertEquals(1, f.dao.getMovieCount(source.id, gen))
++        assertTrue("LIVE_TV" in f.dao.pendingSections(source.id, gen))
++    }
++    @Test fun selectingSeriesCancelsOnlyUnfinishedBackgroundSection() = fixture { f ->
++        f.provider.hold = setOf(CatalogSection.LIVE_TV, CatalogSection.MOVIES)
++        val gen = f.loader.open(source, f.dir)
++        waitUntil { f.provider.order.contains(CatalogSection.LIVE_TV) }
++        f.loader.prioritize(source.id, CatalogSection.SERIES)
++        waitUntil { "SERIES" !in f.dao.pendingSections(source.id, gen) }
++        assertTrue(f.provider.cancelled.contains(CatalogSection.LIVE_TV))
++        assertTrue("LIVE_TV" in f.dao.pendingSections(source.id, gen))
++        assertEquals(gen, f.manager.getActiveGenerationId(source.id))
++    }
++    @Test fun failedMovieStageDoesNotPublishHalfACatalog() = fixture { f ->
++        f.provider.fail = CatalogSection.MOVIES
++        val gen = f.loader.open(source, f.dir)
++        waitUntil { f.loader.errors.value[source.id]?.containsKey(CatalogSection.MOVIES) == true }
++        assertEquals(0, f.dao.getMovieCount(source.id, gen))
++        assertTrue("MOVIES" in f.dao.pendingSections(source.id, gen))
++        waitUntil { "SERIES" !in f.dao.pendingSections(source.id, gen) }
++        assertEquals(0, f.fallbacks)
++    }
++    @Test fun completeCacheNeverDownloadsAgain() = fixture { f ->
++        val gen = f.manager.beginImport(source.id)
++        f.manager.markImportReady(source.id, gen)
++        f.manager.activateReadyGenerationOnStartup(source.id)
++        assertEquals(gen, f.loader.open(source, f.dir))
++        delay(50)
++        assertEquals(0, f.provider.auth)
++        assertEquals(0, f.client.calls)
++    }
++    @Test fun interruptedImportResumesOnlyMissingSections() = fixture { f ->
++        f.provider.hold = setOf(CatalogSection.LIVE_TV)
++        val gen = f.loader.open(source, f.dir)
++        f.loader.prioritize(source.id, CatalogSection.MOVIES)
++        waitUntil { "MOVIES" !in f.dao.pendingSections(source.id, gen) }
++        f.loader.stop()
++        val movieCalls = f.provider.order.count { it == CatalogSection.MOVIES }
++        f.provider.hold = emptySet()
++        assertEquals(gen, f.loader.open(source, f.dir))
++        waitUntil { f.dao.pendingSections(source.id, gen).isEmpty() }
++        assertEquals(movieCalls, f.provider.order.count { it == CatalogSection.MOVIES })
++        assertEquals(1, f.dao.getMovieCount(source.id, gen))
++    }
++    @Test fun m3uUsesOneDownloadAndKeepsAllKindsAndEpisodes() = fixture { f ->
++        val m3u = PlaylistSource.M3u("m3u-sections-fixture", "Fixture", true, "https://example.invalid/list.m3u")
++        val gen = f.loader.open(m3u, f.dir)
++        f.loader.prioritize(m3u.id, CatalogSection.SERIES)
++        waitUntil { f.dao.pendingSections(m3u.id, gen).isEmpty() }
++        assertEquals(1, f.client.calls)
++        assertEquals(1, f.dao.getMovieCount(m3u.id, gen))
++        assertEquals(1, f.dao.getSeriesCount(m3u.id, gen))
++        assertEquals(1, f.dao.getChannelCount(m3u.id, gen))
++        // Compare identifiers and episode mapping against the original full importer.
++        val old = f.importer.import("m3u-reference", m3u.playlistUrl)
++        val progressiveSeries = f.dao.streamSeriesStage(m3u.id, gen, 10, -1).single()
++        val referenceSeries = f.dao.streamSeriesStage("m3u-reference", old, 10, -1).single()
++        assertEquals(referenceSeries.seriesId, progressiveSeries.seriesId)
++        assertEquals(1, f.dao.getEpisodesPage(m3u.id, gen, progressiveSeries.seriesId, 10, 0).size)
++    }
++    @Test fun invalidM3uReportsFailureWithoutPublishingSections() = fixture { f ->
++        f.client.payload = listOf("<html>Provider error</html>")
++        val m3u = PlaylistSource.M3u("bad-m3u", "Fixture", true, "https://example.invalid/list.m3u")
++        val gen = f.loader.open(m3u, f.dir)
++        waitUntil { f.loader.errors.value[m3u.id]?.size == 3 }
++        assertEquals(3, f.dao.pendingSections(m3u.id, gen).size)
++        assertEquals(0, f.dao.getMovieCount(m3u.id, gen))
++    }
++    @Test fun publicationConflictRollsBackCategoriesAndKeepsSectionPending() = fixture { f ->
++        val parent = f.manager.prepareSectionShell(source.id)
++        val stage = f.manager.beginImport(source.id)
++        val writer = XtreamCatalogWriter(f.dao, f.manager, source.id, parent)
++        val movie = Movie("duplicate", "Movie", null, null, null, "https://example.invalid/movie.mp4", null, null, null)
++        writer.append("get_vod_streams", PlaylistContent(movies = listOf(movie)))
++        val stageWriter = XtreamCatalogWriter(f.dao, f.manager, source.id, stage)
++        stageWriter.append("get_vod_streams", PlaylistContent(movies = listOf(movie), categories = listOf(
++            Category("category", "Movies", CategoryType.MOVIES, CategorySource.PROVIDER))))
++        try { f.dao.publishSection(source.id, stage, parent, "MOVIES"); fail() }
++        catch (_: android.database.sqlite.SQLiteConstraintException) { }
++        assertEquals(3, f.dao.pendingSections(source.id, parent).size)
++        assertTrue(f.dao.getCategoriesByType(source.id, parent, "MOVIES").isEmpty())
++        assertEquals(1, f.dao.getCategoriesByType(source.id, stage, "MOVIES").size)
++        assertEquals(1, f.dao.getMovieCount(source.id, stage))
++        assertEquals(1, f.dao.getMovieCount(source.id, parent))
++        f.manager.discardImport(source.id, stage)
++    }
++    @Test fun migrationPreservesExistingActiveCatalog() = runBlocking {
++        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
++        val name = "section-migration-" + UUID.randomUUID() + ".db"
++        var db = Room.databaseBuilder(context, PlaylistCacheDatabase::class.java, name).build()
++        try {
++            val manager = PlaylistCacheGenerationManager(db.playlistCacheDao())
++            val gen = manager.beginImport(source.id)
++            manager.markImportReady(source.id, gen)
++            manager.activateReadyGenerationOnStartup(source.id)
++            db.openHelper.writableDatabase.execSQL("DROP TABLE cached_sections")
++            db.openHelper.writableDatabase.execSQL("PRAGMA user_version=4")
++            db.close()
++            db = Room.databaseBuilder(context, PlaylistCacheDatabase::class.java, name).addMigrations(PlaylistCacheDatabase.MIGRATION_4_5).build()
++            assertEquals(gen, db.playlistCacheDao().getActiveGeneration(source.id)?.generationId)
++            assertTrue(db.playlistCacheDao().pendingSections(source.id, gen).isEmpty())
++        } finally { db.close(); context.deleteDatabase(name) }
++    }
++    @Test fun configureMode() {
++        val argument = InstrumentationRegistry.getArguments().getString("catalog_sections_enabled") ?: return
++        val enabled = when (argument) { "true" -> true; "false" -> false; else -> error("Invalid mode") }
++        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
++        SectionCatalogMode.setEnabled(context, enabled)
++        assertEquals(enabled, SectionCatalogMode.enabled(context))
++        println("CATALOGO_POR_SECOES=" + if (enabled) "ATIVADO" else "DESATIVADO")
++    }
++}

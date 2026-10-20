@@ -1,0 +1,5 @@
+OK: os arquivos sao compativeis. Nenhuma alteracao aplicada.
+Aplicado. Backup: /workspace/storage-toolchain/tests/sections/package-final-5yy2zk8l/.navigation-backups/catalogo-secoes-1.8-20261020-025755-dd56c55b
+PASS: validar e aplicar com backup em copia; hashes conferidos; versao local 9/1.07 migrada para 10/1.8, demais propriedades preservadas e backup exato. Nenhum segredo real usado.
+PASS: codigo superior a 10 impede downgrade sem modificar arquivos.
+PASS: metadados dos 5 APKs debug conferem: versao 1.8 codigo 10.
