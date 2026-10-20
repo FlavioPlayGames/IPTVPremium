@@ -1,0 +1,51 @@
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicyDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicyDeviceTest.kt
+@@ -5,6 +5,6 @@
+  @Test fun releaseIgnoresEverySavedExperiment(){for(p in ImportProfile.entries)assertEquals(ImportProfile.ATUAL,ImportProfile.stored(p.name,false))}
+  @Test fun invalidPreferencesKeepOriginalProfile(){assertEquals(ImportProfile.ATUAL,ImportProfile.stored("bad",true));assertEquals(ImportProfile.ATUAL,ImportProfile.stored(null,true))}
+  @Test fun individualProfilesChangeOnlyIntendedSettings(){assertFalse(ImportProfile.ATUAL.forceWal);assertTrue(ImportProfile.WAL.forceWal);assertFalse(ImportProfile.WAL.normal);assertEquals(250,ImportProfile.WAL.batchSize);assertTrue(ImportProfile.NORMAL.normal);assertEquals(250,ImportProfile.NORMAL.batchSize);assertEquals(2000,ImportProfile.LOTES.batchSize);assertEquals(2*1024*1024,ImportProfile.LOTES.batchCharacters)}
+- @Test fun combinedProfilesKeepM3uAt2000WithoutForcingJournalChanges(){for(p in listOf(ImportProfile.XTREAM_1000,ImportProfile.XTREAM_500)){assertEquals(2000,p.m3uBatchSize);assertEquals(2*1024*1024,p.m3uBatchCharacters);assertFalse(p.forceWal);assertFalse(p.normal)};assertEquals(1000,ImportProfile.XTREAM_1000.batchSize);assertEquals(500,ImportProfile.XTREAM_500.batchSize)}
++ @Test fun combinedProfilesKeepM3uAt2000WithoutForcingJournalChanges(){for(p in listOf(ImportProfile.XTREAM_1000,ImportProfile.XTREAM_500,ImportProfile.XTREAM_650)){assertEquals(2000,p.m3uBatchSize);assertEquals(2*1024*1024,p.m3uBatchCharacters);assertFalse(p.forceWal);assertFalse(p.normal)};assertEquals(1000,ImportProfile.XTREAM_1000.batchSize);assertEquals(500,ImportProfile.XTREAM_500.batchSize);assertEquals(650,ImportProfile.XTREAM_650.batchSize);assertEquals(ImportProfile.XTREAM_500.batchCharacters,ImportProfile.XTREAM_650.batchCharacters)}
+  @Test fun invalidRequestedModeDoesNotSilentlySelectAnExperiment(){try{ImportProfile.requested("bad");fail()}catch(expected:IllegalArgumentException){}}
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuningPolicy.kt
+@@ -10,7 +10,8 @@
+     NORMAL(true, true, 250, 256 * 1024),
+     LOTES(true, true, 2000, 2 * 1024 * 1024),
+     XTREAM_1000(false, false, 1000, 512 * 1024, 2000, 2 * 1024 * 1024),
+-    XTREAM_500(false, false, 500, 256 * 1024, 2000, 2 * 1024 * 1024);
++    XTREAM_500(false, false, 500, 256 * 1024, 2000, 2 * 1024 * 1024),
++    XTREAM_650(false, false, 650, 256 * 1024, 2000, 2 * 1024 * 1024);
+     companion object {
+         fun stored(value: String?, debug: Boolean): ImportProfile =
+             if (debug) entries.firstOrNull { it.name == value } ?: ATUAL else ATUAL
+--- a/entregas-locais/perfis-importacao-1.07/Testar-Perfil-Importacao-1.07.ps1
++++ b/entregas-locais/perfis-importacao-1.07/Testar-Perfil-Importacao-1.07.ps1
+@@ -1,5 +1,5 @@
+ param(
+-    [ValidateSet('ATUAL','WAL','NORMAL','LOTES','XTREAM_1000','XTREAM_500')][string]$Perfil = 'ATUAL',
++    [ValidateSet('ATUAL','WAL','NORMAL','LOTES','XTREAM_1000','XTREAM_500','XTREAM_650')][string]$Perfil = 'ATUAL',
+     [ValidateSet('M3U','XTREAM')][string]$Formato = 'M3U',
+     [string]$Dispositivo = 'emulator-5554',
+     [string]$PastaSaida = (Get-Location).Path,
+--- a/entregas-locais/perfis-importacao-1.07/Medir-Perfil-Importacao-1.07.ps1
++++ b/entregas-locais/perfis-importacao-1.07/Medir-Perfil-Importacao-1.07.ps1
+@@ -4,7 +4,7 @@
+     [ValidateSet('M3U','XTREAM','Automatico')][string]$Formato = 'Automatico',
+     [ValidateRange(30,900)][int]$TempoMaximoSegundos = 600,
+     [string]$AdbPath = '',
+-    [ValidateSet('ATUAL','WAL','NORMAL','LOTES','XTREAM_1000','XTREAM_500')][string]$Perfil = 'ATUAL',
++    [ValidateSet('ATUAL','WAL','NORMAL','LOTES','XTREAM_1000','XTREAM_500','XTREAM_650')][string]$Perfil = 'ATUAL',
+     [switch]$AbrirAplicativo
+ )
+ $ErrorActionPreference = 'Stop'
+@@ -43,7 +43,7 @@
+         foreach ($match in [regex]::Matches($body, '\b([A-Za-z][A-Za-z0-9]*)=([^\s]+)')) {
+             $key=$match.Groups[1].Value; $value=$match.Groups[2].Value
+             if ($key -cin @('duracaoMs','totalMs','tempoMs','tempoTotalMs','gravacaoRoomMs','redeEParsingMs','parsingMs','gravacaoMs','lotes','gravacaoPicoMs','aceitos','entradas','canais','filmes','episodios','seriesDistintas','categoriasDistintas','bytesRede','bytesTexto','heapKb','heapPicoObservadoKb','heapAntesKb','heapDepoisKb','synchronous','lote','limiteCaracteres','loteM3u','limiteCaracteresM3u') -and $value -match '^\d+$') { $fields.Add($key+'='+$value) }
+-            elseif ($key -ceq 'perfil' -and $value -cmatch '^(ATUAL|WAL|NORMAL|LOTES|XTREAM_1000|XTREAM_500)$') { $fields.Add($key+'='+$value) }
++            elseif ($key -ceq 'perfil' -and $value -cmatch '^(ATUAL|WAL|NORMAL|LOTES|XTREAM_1000|XTREAM_500|XTREAM_650)$') { $fields.Add($key+'='+$value) }
+             elseif ($key -ceq 'journal' -and $value -cmatch '^(wal|truncate|delete|persist|memory|off)$') { $fields.Add($key+'='+$value) }
+             elseif ($key -ceq 'revisao' -and $value -cmatch '^db-r[12]$') { $fields.Add($key+'='+$value) }
+             elseif ($key -ceq 'endpoint' -and $value -cmatch '^(authenticate|get_live_categories|get_live_streams|get_vod_categories|get_vod_streams|get_series_categories|get_series|XTREAM_AUTH|XTREAM_DATA|M3U_GET)$') { $fields.Add($key+'='+$value) }

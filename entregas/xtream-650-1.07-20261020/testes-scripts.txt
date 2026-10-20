@@ -1,0 +1,5 @@
+OK: os arquivos sao compativeis. Nenhuma alteracao aplicada.
+Aplicado. Backup: /workspace/storage-toolchain/tests/xtream-650/package-fixture/.navigation-backups/xtream-650-20261020-001424-7c438f2a
+OK: os arquivos sao compativeis. Nenhuma alteracao aplicada.
+PASS: pacote compativel com a entrega anterior; aplicar/backup/verificar e hashes conferidos em copia.
+PASS: medidor preserva modo real e tamanhos independentes, inclusive se formato real diferir do rotulo; sem URLs/segredos. Controlador reinicia/configura sem limpar dados. ADB simulado.
