@@ -1,0 +1,650 @@
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/media/TrailerDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/media/TrailerDeviceTest.kt
+@@ -60,10 +60,17 @@
+     @Test fun embedRequestsPortugueseCaptionsAndKeepsOfficialPlayerControls() {
+         val html = youtubeTrailerHtml("dubbed12345", "https://br.com.flaviotorres.iptvpremium/")
+         assertTrue(html.contains("https://www.youtube.com/iframe_api"))
+-        assertTrue(html.contains("cc_lang_pref:'pt'"))
+-        assertTrue(html.contains("cc_load_policy:1"))
+-        assertTrue(html.contains("controls:1"))
+-        assertTrue(html.contains("origin:'https://br.com.flaviotorres.iptvpremium'"))
++        assertTrue(html.contains("cc_lang_pref=pt"))
++        assertTrue(html.contains("cc_load_policy=1"))
++        assertTrue(html.contains("controls=1"))
++        assertTrue(html.contains("<iframe id=\"player\""))
++        assertTrue(html.contains("https://www.youtube.com/embed/dubbed12345"))
++        assertTrue(html.indexOf("function onYouTubeIframeAPIReady") < html.indexOf("api.src="))
++        assertTrue(html.contains("onStateChange"))
++        assertTrue(html.contains("TrailerHost.playing()"))
++        assertTrue(html.contains("onAutoplayBlocked"))
++
++        assertTrue(html.contains("origin=https%3A%2F%2Fbr.com.flaviotorres.iptvpremium"))
+         try { youtubeTrailerHtml("bad<script>", "https://example.invalid/"); fail("Invalid ID") }
+         catch (_: IllegalArgumentException) { }
+     }
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/media/TrailerReturnDeviceTest.kt
+@@ -0,0 +1,43 @@
++package br.com.flaviotorres.iptvpremium.core.media
++
++import android.content.Context
++import android.content.Intent
++import android.view.KeyEvent
++import android.view.View
++import android.view.ViewGroup
++import android.widget.Button
++import androidx.test.core.app.ActivityScenario
++import androidx.test.core.app.ApplicationProvider
++import org.junit.Assert.*
++import org.junit.Test
++
++class TrailerReturnDeviceTest {
++    @Test fun noBackButtonAndHardwareEscapeClosesTheScreen() {
++        val context = ApplicationProvider.getApplicationContext<Context>()
++        val intent = Intent(context, TrailerPlayerActivity::class.java).putExtra("title", "")
++            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
++        ActivityScenario.launch<TrailerPlayerActivity>(intent).use { scenario ->
++            scenario.onActivity { activity ->
++                fun buttons(view: View): List<Button> = when (view) {
++                    is Button -> listOf(view)
++                    is ViewGroup -> (0 until view.childCount).flatMap { buttons(view.getChildAt(it)) }
++                    else -> emptyList()
++                }
++                assertFalse(buttons(activity.window.decorView).any { it.text.toString().contains("Voltar") })
++                val surface = android.widget.FrameLayout(activity)
++                var hidden = false
++                val callback = android.webkit.WebChromeClient.CustomViewCallback { hidden = true }
++                TrailerPlayerActivity::class.java.getDeclaredMethod("showCustomVideo", View::class.java,
++                    android.webkit.WebChromeClient.CustomViewCallback::class.java).apply { isAccessible = true }
++                    .invoke(activity, surface, callback)
++                assertNotNull(surface.parent)
++                assertEquals(View.VISIBLE, surface.visibility)
++                TrailerPlayerActivity::class.java.getDeclaredMethod("hideCustomVideo").apply { isAccessible = true }.invoke(activity)
++                assertNull(surface.parent)
++                assertTrue(hidden)
++                assertTrue(activity.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ESCAPE)))
++                assertTrue(activity.isFinishing)
++            }
++        }
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PreparedPosterCacheDeviceTest.kt
+@@ -0,0 +1,46 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++import kotlinx.coroutines.*
++import org.junit.Assert.*
++import org.junit.Test
++
++class PreparedPosterCacheDeviceTest {
++    @Test fun nearestRowSurvivesWhenFartherImagesFillTheBudget() {
++        val cache = PreparedPosterCache<String, Long>(100) { it }
++        cache.window(listOf("next-1", "next-2", "far"))
++        cache.put("far", 60)
++        cache.put("next-1", 60)
++        cache.put("next-2", 40)
++        assertEquals(60L, cache.get("next-1"))
++        assertEquals(40L, cache.get("next-2"))
++        assertNull(cache.get("far"))
++        assertEquals(100L, cache.allocatedBytes())
++    }
++    @Test fun preparedImagesAreReturnedForPromotionWhenTheyBecomeVisible() {
++        val cache = PreparedPosterCache<String, String>(100) { 20 }
++        cache.window(listOf("next-1", "next-2"))
++        cache.put("next-1", "decoded")
++        assertEquals(listOf("next-1" to "decoded"), cache.window(listOf("next-2", "next-3")))
++        assertFalse(cache.wants("next-1"))
++        cache.clear()
++        assertEquals(0L, cache.allocatedBytes())
++    }
++    @Test fun completedDiskDownloadsCanBePromotedToPreparedImagesLater() = runBlocking {
++        val ready = mutableSetOf<String>()
++        val calls = mutableMapOf<String, Int>()
++        var near = "url-10"
++        val queue = CatalogPosterPreloader(this, ready = { it != near || it in ready }) { url ->
++            calls[url] = (calls[url] ?: 0) + 1
++            if (url == near) ready.add(url)
++        }
++        val urls = (10..29).map { "url-$it" }
++        queue.update(urls, emptyList()); yield()
++        assertTrue("url-10" in ready)
++        near = "url-15"
++        queue.update(urls, emptyList()); yield()
++        assertTrue("url-15" in ready)
++        assertEquals(2, calls["url-15"])
++        assertEquals(1, calls["url-20"])
++        queue.clear()
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogPreparedRowsDeviceTest.kt
+@@ -0,0 +1,81 @@
++package br.com.flaviotorres.iptvpremium.data.repository
++
++import android.graphics.Bitmap
++import androidx.compose.foundation.layout.Box
++import androidx.compose.foundation.layout.requiredSize
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.input.key.Key
++import androidx.compose.ui.test.*
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.unit.dp
++import androidx.paging.PagingData
++import androidx.paging.compose.collectAsLazyPagingItems
++import br.com.flaviotorres.iptvpremium.domain.model.Movie
++import br.com.flaviotorres.iptvpremium.ui.movies.MoviePosterLoader
++import br.com.flaviotorres.iptvpremium.ui.movies.MoviesScreen
++import java.net.ServerSocket
++import java.net.Socket
++import java.util.concurrent.ConcurrentLinkedQueue
++import kotlinx.coroutines.flow.flowOf
++import org.junit.Assert.*
++import org.junit.Rule
++import org.junit.Test
++
++@OptIn(ExperimentalTestApi::class)
++class CatalogPreparedRowsDeviceTest {
++    @get:Rule val compose = createComposeRule()
++    @Test fun nextMovieRowIsDecodedBeforeTheUserScrolls() {
++        val server = ServerSocket(0)
++        val clients = ConcurrentLinkedQueue<Socket>()
++        val paths = ConcurrentLinkedQueue<String>()
++        val image = java.io.ByteArrayOutputStream().also { out ->
++            Bitmap.createBitmap(16, 24, Bitmap.Config.ARGB_8888).apply { eraseColor(android.graphics.Color.BLUE) }
++                .compress(Bitmap.CompressFormat.PNG, 100, out)
++        }.toByteArray()
++        kotlin.concurrent.thread(isDaemon = true) {
++            try { while (!server.isClosed) {
++                val socket = server.accept(); clients.add(socket)
++                kotlin.concurrent.thread(isDaemon = true) {
++                    try { socket.use {
++                        val reader = it.getInputStream().bufferedReader()
++                        val path = reader.readLine().split(' ')[1]
++                        while (!reader.readLine().isNullOrEmpty()) { }
++                        paths.add(path)
++                        it.getOutputStream().apply {
++                            write("HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: ${image.size}\r\nConnection: close\r\n\r\n".toByteArray())
++                            write(image); flush()
++                        }
++                    } } catch (_: Exception) { }
++                }
++            } } catch (_: Exception) { }
++        }
++        val base = "http://127.0.0.1:${server.localPort}"
++        val data = flowOf(PagingData.from(List(40) { Movie("m$it", "Filme $it", null, "$base/$it.png", null, "", 2026, 8.0, null) }, sourceLoadStates = androidx.paging.LoadStates(androidx.paging.LoadState.NotLoading(false), androidx.paging.LoadState.NotLoading(true), androidx.paging.LoadState.NotLoading(true))))
++        try {
++            compose.setContent {
++                val movies = data.collectAsLazyPagingItems()
++                Box(Modifier.requiredSize(960.dp, 540.dp)) { MoviesScreen(pagedMovies = movies, totalMovieCount = 40) }
++            }
++            compose.waitUntil(7_000) { (10..14).all { MoviePosterLoader.peekBitmap("$base/$it.png") != null } }
++            compose.waitUntil(7_000) { (10..29).all { paths.contains("/$it.png") } }
++            compose.onNodeWithContentDescription("Filme 10").assertDoesNotExist()
++            assertTrue((10..14).all { paths.contains("/$it.png") })
++            compose.onNodeWithTag("movie-category-ALL").performKeyInput { pressKey(Key.DirectionRight) }
++            compose.waitForIdle()
++            compose.onAllNodes(isFocused()).onFirst().performKeyInput { repeat(2) { pressKey(Key.DirectionDown) } }
++            compose.mainClock.advanceTimeBy(700)
++            compose.onNodeWithContentDescription("Filme 10").assertIsDisplayed()
++            assertEquals(1, paths.count { it == "/10.png" })
++            MoviePosterLoader.clearMemory()
++            val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
++            kotlinx.coroutines.runBlocking {
++                assertNotNull(MoviePosterLoader.loadCached(context, "$base/10.png"))
++                assertNull(MoviePosterLoader.loadCached(context, "$base/never-downloaded.png"))
++            }
++            assertEquals(1, paths.count { it == "/10.png" })
++            assertFalse(paths.contains("/never-downloaded.png"))
++        } finally {
++            server.close(); clients.forEach { runCatching { it.close() } }
++        }
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt
+@@ -30,10 +30,14 @@
+     private var choiceIndex = 0
+     private var player: ExoPlayer? = null
+     private var web: WebView? = null
++    private var videoView: View? = null
++    private var videoCallback: WebChromeClient.CustomViewCallback? = null
+     private var position = 0L
+     private var resumePlaying = true
+     private var generation = 0
+     private var loadingTrailer = false
++    private var youtubeApiReady = false
++    private var waitingForGesture = false
+     private val request by lazy {
+         TrailerRequest(intent.getStringExtra("title").orEmpty(), intent.getStringExtra("raw"),
+             intent.getStringExtra("kind") ?: "movie", intent.getStringExtra("tmdbId"),
+@@ -45,11 +49,10 @@
+         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.BLACK) }
+         val header = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL }
+-        val back = Button(this).apply { text = "‹ Voltar"; setOnClickListener { finish() } }
+-        header.addView(back, LinearLayout.LayoutParams(dp(110), dp(52)))
+         header.addView(TextView(this).apply {
+             text = request.title.ifBlank { "Trailer" }; setTextColor(Color.WHITE); textSize = 18f
+             maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
++            setPadding(dp(12), 0, dp(8), 0)
+         }, LinearLayout.LayoutParams(0, dp(52), 1f))
+         retry = Button(this).apply { text = "Tentar outro"; visibility = View.GONE; setOnClickListener {
+             if (choiceIndex + 1 < choices.size) { choiceIndex++; position = 0; resumePlaying = true; showChoice() }
+@@ -81,6 +84,7 @@
+     }
+     private fun releaseViews() {
+         generation++; startupJob?.cancel()
++        hideCustomVideo()
+         player?.release(); player = null
+         web?.let { view ->
+             view.stopLoading(); view.onPause(); view.removeJavascriptInterface("TrailerHost")
+@@ -124,10 +128,15 @@
+     private fun showYouTube(id: String) {
+         val token = generation
+         loadingTrailer = true
++        youtubeApiReady = false
++        waitingForGesture = false
++        status.text = "Carregando trailer…"
+         val identity = "https://${packageName.lowercase()}/"
+         val view = WebView(this)
+         web = view
+         view.setBackgroundColor(Color.BLACK)
++        // Video textures must remain in the hardware compositor.
++        view.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+         view.settings.apply {
+             javaScriptEnabled = true; domStorageEnabled = true
+             mediaPlaybackRequiresUserGesture = false
+@@ -137,7 +146,27 @@
+         }
+         view.addJavascriptInterface(object {
+             @JavascriptInterface fun ready() { runOnUiThread {
+-                if (!isDestroyed && generation == token) { loadingTrailer = false; view.requestFocus() }
++                if (!isDestroyed && generation == token) {
++                    youtubeApiReady = true
++                    status.text = "Iniciando trailer…"
++                    view.requestFocus()
++                }
++            } }
++            @JavascriptInterface fun playing() { runOnUiThread {
++                if (!isDestroyed && generation == token) {
++                    loadingTrailer = false; waitingForGesture = false
++                    startupJob?.cancel(); loading.visibility = View.GONE
++                    status.text = if (choices.getOrNull(choiceIndex)?.language == "pt")
++                        "Trailer em português priorizado." else "Legendas em português quando disponíveis."
++                }
++            } }
++            @JavascriptInterface fun manual() { runOnUiThread {
++                if (!isDestroyed && generation == token) {
++                    waitingForGesture = true; loadingTrailer = false
++                    startupJob?.cancel(); loading.visibility = View.GONE
++                    status.text = "Pressione OK ou toque em Reproduzir."
++                    view.requestFocus()
++                }
+             } }
+             @JavascriptInterface fun failed(code: Int) { runOnUiThread {
+                 if (!isDestroyed && generation == token) showError(
+@@ -154,13 +183,32 @@
+                     !(host == packageName.lowercase() || host in setOf("www.youtube.com", "www.youtube-nocookie.com"))
+             }
+             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+-                if (request.isForMainFrame && generation == token) showError("Não foi possível carregar o trailer. Verifique a conexão.")
++                if ((request.isForMainFrame || request.url.path.orEmpty().startsWith("/embed/")) && generation == token)
++                    showError("Não foi possível carregar o trailer. Verifique a conexão.")
++            }
++            override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
++                if (generation == token && (request.isForMainFrame || request.url.path.orEmpty().startsWith("/embed/")))
++                    showError("O YouTube não conseguiu carregar este trailer. Tente outro.")
++            }
++            override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: android.net.http.SslError) {
++                handler.cancel()
++                if (generation == token) showError("Não foi possível estabelecer uma conexão segura com o trailer.")
++            }
++            override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
++                if (generation == token) showError("O player de vídeo foi interrompido pelo aparelho. Tente novamente.")
++                return true
+             }
+         }
+         view.webChromeClient = object : WebChromeClient() {
+             override fun onPermissionRequest(request: PermissionRequest) { request.deny() }
++            override fun onShowCustomView(customView: View, callback: CustomViewCallback) {
++                if (generation != token || videoView != null) { callback.onCustomViewHidden(); return }
++                showCustomVideo(customView, callback)
++            }
++            override fun onHideCustomView() { hideCustomVideo() }
+         }
+         view.setOnKeyListener { _, key, event ->
++            if (!youtubeApiReady || waitingForGesture) return@setOnKeyListener false
+             val script = when (key) {
+                 KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> "toggleTrailer()"
+                 KeyEvent.KEYCODE_DPAD_LEFT -> "seekTrailer(-10)"
+@@ -171,11 +219,31 @@
+             script != null
+         }
+         frame.addView(view, FrameLayout.LayoutParams(-1, -1))
++        loading = ProgressBar(this)
++        frame.addView(loading, FrameLayout.LayoutParams(dp(48), dp(48), android.view.Gravity.CENTER))
+         view.loadDataWithBaseURL(identity, youtubeTrailerHtml(id, identity), "text/html", "UTF-8", null)
+         startupJob = lifecycleScope.launch {
+             delay(20_000)
+             if (generation == token && loadingTrailer) showError("O trailer demorou para responder. Tente outra versão.")
+         }
++    }
++    private fun showCustomVideo(customView: View, callback: WebChromeClient.CustomViewCallback) {
++        videoView = customView; videoCallback = callback
++        (customView.parent as? ViewGroup)?.removeView(customView)
++        frame.addView(customView, FrameLayout.LayoutParams(-1, -1))
++        customView.bringToFront()
++        // TV WebViews may deliver HTML5 video as a separate native surface.
++        web?.visibility = View.INVISIBLE
++        if (::loading.isInitialized) loading.visibility = View.GONE
++        customView.requestFocus()
++    }
++    private fun hideCustomVideo() {
++        val custom = videoView ?: return
++        videoView = null
++        (custom.parent as? ViewGroup)?.removeView(custom)
++        web?.visibility = View.VISIBLE
++        val callback = videoCallback; videoCallback = null
++        callback?.onCustomViewHidden()
+     }
+     private fun showError(message: String) {
+         loadingTrailer = false; startupJob?.cancel()
+@@ -207,14 +275,28 @@
+ internal fun youtubeTrailerHtml(id: String, identity: String): String {
+     require(id.matches(Regex("[A-Za-z0-9_-]{11}")))
+     require(identity.matches(Regex("https://[a-z0-9.]+/")))
++    val origin = java.net.URLEncoder.encode(identity.trimEnd('/'), "UTF-8")
+     return """<!doctype html><html lang="pt-BR"><head><meta name="viewport" content="width=device-width,initial-scale=1">
+-<meta name="referrer" content="strict-origin-when-cross-origin"><style>html,body,#player{width:100%;height:100%;margin:0;background:#000;overflow:hidden}</style></head>
+-<body><div id="player"></div><script src="https://www.youtube.com/iframe_api"></script><script>
+-var player;
+-function onYouTubeIframeAPIReady(){player=new YT.Player('player',{width:'100%',height:'100%',videoId:'$id',
+-playerVars:{autoplay:1,playsinline:1,controls:1,fs:0,rel:0,hl:'pt-BR',cc_lang_pref:'pt',cc_load_policy:1,origin:'${identity.trimEnd('/')}'},
+-events:{onReady:function(){TrailerHost.ready();player.playVideo()},onError:function(e){TrailerHost.failed(e.data)}}})}
++<meta name="referrer" content="strict-origin-when-cross-origin"><style>
++html,body{width:100%;height:100%;margin:0;background:#000;overflow:hidden}
++#player{position:absolute;inset:0;width:100%;height:100%;border:0}
++#play{display:none;position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);padding:18px 32px;font:20px sans-serif;color:#fff;background:#202020;border:2px solid #d4af37;border-radius:8px}
++</style></head><body>
++<iframe id="player" title="Trailer" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"
++src="https://www.youtube.com/embed/$id?enablejsapi=1&amp;origin=$origin&amp;autoplay=1&amp;playsinline=1&amp;controls=1&amp;fs=0&amp;rel=0&amp;hl=pt-BR&amp;cc_lang_pref=pt&amp;cc_load_policy=1"></iframe>
++<button id="play" onclick="startTrailer()">Reproduzir</button>
++<script>
++var player,started=false;
++function askForPlay(){if(started)return;var button=document.getElementById('play');button.style.display='block';button.focus();TrailerHost.manual()}
++function startTrailer(){if(player&&player.playVideo)player.playVideo();document.getElementById('play').style.display='none';setTimeout(function(){if(!started)askForPlay()},4000)}
++function onYouTubeIframeAPIReady(){player=new YT.Player('player',{events:{
++onReady:function(){TrailerHost.ready();player.playVideo();setTimeout(function(){if(!started)askForPlay()},4000)},
++onStateChange:function(e){if(e.data===1){started=true;document.getElementById('play').style.display='none';TrailerHost.playing()}},
++onAutoplayBlocked:askForPlay,onError:function(e){TrailerHost.failed(e.data)}}})}
+ function toggleTrailer(){if(player&&player.getPlayerState){if(player.getPlayerState()==1)player.pauseVideo();else player.playVideo()}}
+ function seekTrailer(seconds){if(player&&player.getCurrentTime)player.seekTo(Math.max(0,player.getCurrentTime()+seconds),true)}
++// The iframe is already visible. API callbacks are defined before the API is requested.
++var api=document.createElement('script');api.src='https://www.youtube.com/iframe_api';api.async=true;
++api.onerror=function(){document.getElementById('player').focus();TrailerHost.manual()};document.head.appendChild(api);
+ </script></body></html>"""
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -4952,8 +4952,8 @@
+     val context = LocalContext.current
+     val cachedPoster = remember(poster.posterUrl) { MoviePosterLoader.peekBitmap(poster.posterUrl) }
+     val bitmap by produceState<ImageBitmap?>(cachedPoster, poster.posterUrl, selectedMovie) {
+-        // The opening carousel reuses RAM artwork only; logo and backdrop have priority.
+-        value = cachedPoster
++        // Read the same persistent files as Home/catalog. Never compete with detail artwork on the network.
++        value = cachedPoster ?: MoviePosterLoader.loadCached(context.applicationContext, poster.posterUrl)
+     }
+     val shape = RoundedCornerShape(6.dp)
+     Box(
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogPosterPreloader.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogPosterPreloader.kt
+@@ -6,6 +6,7 @@
+ 
+ /** UI-thread queue: overlapping windows keep their in-flight downloads. */
+ internal class CatalogPosterPreloader(private val scope: CoroutineScope,
++    private val ready: (String) -> Boolean = { true },
+     private val load: suspend (String) -> Unit) {
+     private val jobs = linkedMapOf<String, Job>()
+     fun update(next: List<String?>, retain: List<String?>) {
+@@ -13,7 +14,15 @@
+         val kept = retain.filterNotNull().map(String::trim).toSet() + wanted
+         val removed = jobs.keys.filter { it !in kept }
+         removed.forEach { jobs.remove(it)?.cancel() }
+-        wanted.forEach { url -> if (url !in jobs) jobs[url] = scope.launch { load(url) } }
++        wanted.forEach { url ->
++            if (url !in jobs || (jobs[url]?.isCompleted == true && !ready(url))) {
++                jobs[url] = scope.launch {
++                    try { load(url) }
++                    catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
++                    catch (_: Exception) { /* One unavailable poster cannot cancel the other rows. */ }
++                }
++            }
++        }
+     }
+     fun clear() { jobs.values.forEach { it.cancel() }; jobs.clear() }
+ }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PreparedPosterCache.kt
+@@ -0,0 +1,31 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++/** A bounded next-row cache. Farthest images are evicted before the next row. */
++internal class PreparedPosterCache<K, V>(private val maxBytes: Long, private val size: (V) -> Long) {
++    private var order = emptyList<K>()
++    private val images = linkedMapOf<K, V>()
++    private var bytes = 0L
++    @Synchronized fun window(keys: List<K>): List<Pair<K, V>> {
++        order = keys.distinct()
++        val promoted = images.entries.filter { it.key !in order }.map { it.key to it.value }
++        promoted.forEach { (key, value) -> images.remove(key); bytes -= size(value) }
++        trim()
++        return promoted
++    }
++    @Synchronized fun wants(key: K): Boolean = key in order
++    @Synchronized fun get(key: K): V? = images[key]
++    @Synchronized fun put(key: K, image: V) {
++        if (key !in order) return
++        images.put(key, image)?.let { bytes -= size(it) }
++        bytes += size(image)
++        trim()
++    }
++    @Synchronized fun clear() { images.clear(); bytes = 0 }
++    @Synchronized fun allocatedBytes(): Long = bytes
++    private fun trim() {
++        while (bytes > maxBytes && images.isNotEmpty()) {
++            val key = order.asReversed().firstOrNull { it in images } ?: break
++            images.remove(key)?.let { bytes -= size(it) }
++        }
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -303,6 +303,7 @@
+     val posterRequestsEnabled by posterRequests.enabled.collectAsState()
+     fun openCatalogItem(id: String) {
+         posterRequests.stop()
++        MoviePosterLoader.releaseUpcoming()
+         onCatalogInteraction(true)
+         onMovieClick(id)
+     }
+@@ -473,8 +474,10 @@
+     // Keep overlapping downloads alive; focus and scrolling never restart the same URLs.
+     LaunchedEffect(pagedMovies, selectedCategory, selectedSourceCategoryId, searchText, sortMode, gridColumns, continueMovies) {
+         val paging = pagedMovies ?: return@LaunchedEffect
+-        val queue = br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterPreloader(this) { url ->
+-            posterRequests.run { MoviePosterLoader.prefetch(posterCacheContext, url) }
++        val queue = br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterPreloader(this,
++            ready = { url -> !MoviePosterLoader.shouldPrepare(url) || MoviePosterLoader.peekBitmap(url) != null }
++        ) { url ->
++            posterRequests.run { MoviePosterLoader.prepareUpcoming(posterCacheContext, url) }
+         }
+         try {
+             snapshotFlow {
+@@ -490,7 +493,14 @@
+                     val until = (range.last + 1 - loaded.placeholdersBefore).coerceAtMost(loaded.items.size)
+                     return if (from < until) loaded.items.subList(from, until).map { it.posterUrl } else emptyList()
+                 }
+-                queue.update(urls(window.next), urls(window.visible))
++                // Ask Room only for metadata needed by the next twenty posters.
++                if (!(selectedCategory == MovieCategory.CONTINUE_WATCHING && selectedSourceCategoryId == null) && paging.itemCount > 0 &&
++                    window.next.last >= loaded.placeholdersBefore + loaded.items.size) {
++                    paging[minOf(window.next.last, paging.itemCount - 1)]
++                }
++                val nextUrls = urls(window.next)
++                MoviePosterLoader.prioritizeUpcoming(nextUrls.take(gridColumns * 2))
++                queue.update(nextUrls, urls(window.visible))
+             }
+         } finally { queue.clear() }
+     }
+@@ -2141,7 +2151,7 @@
+     val artworkRequests = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterRequests.current
+     val artworkWindow = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWindow.current
+     val artworkEnabled = artworkRequests?.enabled?.collectAsState()?.value ?: true
+-    val loadArtwork = artworkEnabled && (gridIndex < 0 || gridIndex in artworkWindow.visible)
++    val loadArtwork = artworkEnabled && (gridIndex < 0 || gridIndex in artworkWindow.visible || gridIndex in artworkWindow.next)
+     val fittedPosterWidth = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWidth.current
+     var isFocused by remember {
+         mutableStateOf(false)
+@@ -2655,7 +2665,23 @@
+                 .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+     }
+ 
+-    fun clearMemory() { memoryCache.evictAll() }
++    // Only the nearest two future rows are pinned; the other twenty-window files stay on disk.
++    private val upcoming = br.com.flaviotorres.iptvpremium.data.cache.PreparedPosterCache<String, ImageBitmap>(24L * 1024 * 1024) {
++        it.width.toLong() * it.height * 4L
++    }
++    fun prioritizeUpcoming(urls: List<String?>) {
++        val keys = urls.mapNotNull(::validUrl).distinct().take(10)
++        upcoming.window(keys).forEach { (url, image) -> memoryCache.put(url, image) }
++    }
++    fun releaseUpcoming() { upcoming.clear() }
++    fun shouldPrepare(rawUrl: String?): Boolean = validUrl(rawUrl)?.let(upcoming::wants) == true
++    suspend fun prepareUpcoming(context: Context, rawUrl: String?) {
++        val url = validUrl(rawUrl) ?: return
++        if (shouldPrepare(url) && !br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value) {
++            load(context, url, background = true)?.let { upcoming.put(url, it) }
++        } else prefetch(context, url)
++    }
++    fun clearMemory() { memoryCache.evictAll(); upcoming.clear() }
+ 
+     private val decodeSlots = Semaphore(2)
+     private val networkBudget = br.com.flaviotorres.iptvpremium.data.cache.PosterNetworkBudget()
+@@ -2709,7 +2735,7 @@
+     /** Consulta instantanea ao cache RAM, sem rede ou acesso ao disco. */
+     fun peekBitmap(rawUrl: String?): ImageBitmap? {
+         val url = validUrl(rawUrl) ?: return null
+-        return memoryCache.get(url)
++        return upcoming.get(url) ?: memoryCache.get(url)
+     }
+ 
+     suspend fun prefetch(context: Context, rawUrl: String?, priority: Boolean = false) {
+@@ -2752,15 +2778,28 @@
+         return null
+     }
+ 
+-    suspend fun load(context: Context, rawUrl: String?): ImageBitmap? {
++    suspend fun load(context: Context, rawUrl: String?, background: Boolean = false): ImageBitmap? {
+         val url = validUrl(rawUrl) ?: return null
+-        memoryCache.get(url)?.let { return it }
++        peekBitmap(url)?.let { return it }
+         return withContext(Dispatchers.IO) {
+             val directory = persistentDirectory(context) ?: return@withContext null
+             val budget = br.com.flaviotorres.iptvpremium.core.storage.ImageDiskCache.get(context)
+             budget.prefer(protectedHomeFiles)
+             budget.retain(File(directory, "${sha256(url)}.img")).use {
+-                loadUnmanaged(context, url)
++                loadUnmanaged(context, url, background)
++            }
++        }
++    }
++
++    /** Reuses Home/catalog artwork without opening any network connection. */
++    suspend fun loadCached(context: Context, rawUrl: String?): ImageBitmap? {
++        val url = validUrl(rawUrl) ?: return null
++        peekBitmap(url)?.let { return it }
++        return withContext(Dispatchers.IO) {
++            val directory = persistentDirectory(context) ?: return@withContext null
++            val file = File(directory, "${sha256(url)}.img")
++            br.com.flaviotorres.iptvpremium.core.storage.ImageDiskCache.get(context).retain(file).use {
++                if (!file.isFile || file.length() == 0L) null else decodePoster(url, file)
+             }
+         }
+     }
+@@ -2773,12 +2812,15 @@
+     }
+ 
+     /** Usado por Filmes, Series e carrossel: RAM -> disco persistente -> rede. */
+-    private suspend fun loadUnmanaged(context: Context, rawUrl: String?): ImageBitmap? {
++    private suspend fun loadUnmanaged(context: Context, rawUrl: String?, background: Boolean): ImageBitmap? {
+         val url = validUrl(rawUrl) ?: return null
+         memoryCache.get(url)?.let { return it }
+ 
+-        val file = ensureFile(context, url, background = false) ?: return null
+-        return withContext(Dispatchers.Default) {
++        val file = ensureFile(context, url, background = background) ?: return null
++        return decodePoster(url, file)
++    }
++
++    private suspend fun decodePoster(url: String, file: File): ImageBitmap? = withContext(Dispatchers.Default) {
+             decodeSlots.withPermit {
+             memoryCache.get(url)?.let { return@withPermit it }
+ 
+@@ -2816,7 +2858,6 @@
+             bitmap
+             }
+         }
+-    }
+ 
+     private suspend fun ensureFile(
+         context: Context,
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -1170,6 +1170,7 @@
+     val posterRequestsEnabled by posterRequests.enabled.collectAsState()
+     fun openCatalogItem(id: String) {
+         posterRequests.stop()
++        MoviePosterLoader.releaseUpcoming()
+         onCatalogInteraction(true)
+         onSeriesClick(id)
+     }
+@@ -1232,8 +1233,10 @@
+     // Keep overlapping downloads alive; focus and scrolling never restart the same URLs.
+     LaunchedEffect(pagedSeries, selectedMenu, selectedProviderId, searchText, sortMode, gridColumns, continueWatchingEntries) {
+         val paging = pagedSeries
+-        val queue = br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterPreloader(this) { url ->
+-            posterRequests.run { MoviePosterLoader.prefetch(posterCacheContext, url) }
++        val queue = br.com.flaviotorres.iptvpremium.data.cache.CatalogPosterPreloader(this,
++            ready = { url -> !MoviePosterLoader.shouldPrepare(url) || MoviePosterLoader.peekBitmap(url) != null }
++        ) { url ->
++            posterRequests.run { MoviePosterLoader.prepareUpcoming(posterCacheContext, url) }
+         }
+         try {
+             snapshotFlow {
+@@ -1249,7 +1252,14 @@
+                     val until = (range.last + 1 - loaded.placeholdersBefore).coerceAtMost(loaded.items.size)
+                     return if (from < until) loaded.items.subList(from, until).map { it.posterUrl } else emptyList()
+                 }
+-                queue.update(urls(window.next), urls(window.visible))
++                // Ask Room only for metadata needed by the next twenty posters.
++                if (!(selectedMenu == "continue") && paging.itemCount > 0 &&
++                    window.next.last >= loaded.placeholdersBefore + loaded.items.size) {
++                    paging[minOf(window.next.last, paging.itemCount - 1)]
++                }
++                val nextUrls = urls(window.next)
++                MoviePosterLoader.prioritizeUpcoming(nextUrls.take(gridColumns * 2))
++                queue.update(nextUrls, urls(window.visible))
+             }
+         } finally { queue.clear() }
+     }
+@@ -2374,7 +2384,7 @@
+     val artworkRequests = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterRequests.current
+     val artworkWindow = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWindow.current
+     val artworkEnabled = artworkRequests?.enabled?.collectAsState()?.value ?: true
+-    val loadArtwork = artworkEnabled && (gridIndex < 0 || gridIndex in artworkWindow.visible)
++    val loadArtwork = artworkEnabled && (gridIndex < 0 || gridIndex in artworkWindow.visible || gridIndex in artworkWindow.next)
+     val fittedPosterWidth = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWidth.current
+     var isFocused by remember { mutableStateOf(false) }
+     val visuallyFocused = isFocused || navigator?.isMovingSelection(gridIndex) == true
