@@ -1,0 +1,296 @@
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogNavigationDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogNavigationDeviceTest.kt
+@@ -177,8 +177,13 @@
+         }
+         instrumentation.sendKeySync(android.view.KeyEvent(start, android.os.SystemClock.uptimeMillis(),
+             android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_DPAD_DOWN, 0))
+-        compose.waitUntil(5_000) { focused.get() == 102 }
+-        compose.onNodeWithTag("cell-102").assertIsFocused()
++        compose.waitForIdle()
++        val settled = focused.get()
++        org.junit.Assert.assertTrue(settled > 2)
++        assertEquals(2, settled % 5)
++        compose.onNodeWithTag("cell-$settled").assertIsFocused()
++        compose.mainClock.advanceTimeBy(1_000)
++        assertEquals("Held-key release must not coast through old repeats", settled, focused.get())
+         compose.onNodeWithTag("category").assertIsNotFocused()
+     }
+     @Test fun onlyLeftFromFirstColumnCanLeaveForCategories() {
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSmoothScrollDeviceTest.kt
+@@ -81,7 +81,7 @@
+         assertTrue("An intermediate frame must move without jumping the whole row: $middle", middle > 0f && middle < step)
+         compose.runOnIdle { assertTrue("The destination must remain highlighted while sliding",
+             navigation.isMovingSelection(2 + columns * 2)) }
+-        compose.mainClock.advanceTimeBy(700)
++        compose.mainClock.advanceTimeBy(240)
+         compose.onNodeWithTag("smooth-${2 + columns * 2}").assertIsFocused()
+         assertEquals(columns, compose.runOnIdle { grid.firstVisibleItemIndex })
+         assertTwoRows(columns)
+@@ -152,14 +152,16 @@
+         val before = position(columns)
+         val step = compose.runOnIdle { grid.layoutInfo.visibleItemsInfo.first().size.height + grid.layoutInfo.mainAxisItemSpacing }
+         send(android.view.KeyEvent.ACTION_UP, 0)
+-        compose.mainClock.advanceTimeBy(700)
++        compose.mainClock.advanceTimeBy(240)
+         val after = position(columns)
+-        assertTrue("Release must settle near the visible screen: before=$before after=$after", kotlin.math.abs(after - before) <= step / 2f + 2f)
++        assertTrue("Release must finish only the active row: before=$before after=$after", kotlin.math.abs(after - before) <= step + 2f)
++        compose.mainClock.advanceTimeBy(2_000)
++        assertEquals("No inertial movement after the short slide", after, position(columns), 1f)
+         assertEquals(2, focused.get() % columns)
+         compose.onNodeWithTag("smooth-${focused.get()}").assertIsFocused()
+         assertTwoRows(columns)
+     }
+-    @Test fun fourColumnsHeldReleaseStopsNearVisibleScreen() = heldRelease(4)
+-    @Test fun fiveColumnsHeldReleaseStopsNearVisibleScreen() = heldRelease(5)
++    @Test fun fourColumnsHeldReleaseFinishesOnlyTheActiveRow() = heldRelease(4)
++    @Test fun fiveColumnsHeldReleaseFinishesOnlyTheActiveRow() = heldRelease(5)
+ 
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogGridNavigation.kt
+@@ -1,5 +1,8 @@
+ package br.com.flaviotorres.iptvpremium.ui.components
+ 
++import androidx.compose.animation.core.animate
++import androidx.compose.animation.core.tween
++import androidx.compose.animation.core.FastOutSlowInEasing
+ import androidx.compose.foundation.MutatePriority
+ import androidx.compose.foundation.background
+ import androidx.compose.foundation.focusable
+@@ -25,7 +28,7 @@
+ internal val LocalCatalogPosterWidth = staticCompositionLocalOf { androidx.compose.ui.unit.Dp.Unspecified }
+ internal val LocalCatalogMetadataHeight = staticCompositionLocalOf { 34.dp }
+ 
+-/** One continuous scroll follows the latest DPAD destination, even while the key repeats. */
++/** Short fixed-duration slides advance one complete row at a time, without a spring or inertia. */
+ internal class CatalogGridNavigator(private val grid: LazyGridState, private val scope: CoroutineScope,
+     private val columns: Int, private val count: () -> Int, private val load: (Int) -> Unit,
+     private val manual: () -> Unit,
+@@ -35,7 +38,7 @@
+     private val revision = MutableStateFlow(0L)
+     private val intent = CatalogVerticalIntent(columns)
+     private var heldDirection: Key? = null
+-    private var releaseSerial = 0
++    private var activeRow: Int? = null
+     private var job: Job? = null
+     private var diagnosticPhase = "idle"
+     private var diagnosticFrames = 0
+@@ -43,7 +46,7 @@
+     private var diagnosticVelocity = 0f
+     private var diagnosticElapsedNanos = 0L
+     internal fun motionDiagnostic(): String =
+-        "build=continuous-trace-1 phase=$diagnosticPhase frames=$diagnosticFrames " +
++        "build=short-row-160ms phase=$diagnosticPhase frames=$diagnosticFrames " +
+             "elapsedMs=${diagnosticElapsedNanos / 1_000_000} distance=$diagnosticDistance " +
+             "velocity=$diagnosticVelocity desiredRow=$desiredFirstRow current=$currentIndex " +
+             "active=${job?.isActive} attached=${requesters.containsKey(currentIndex)}"
+@@ -67,7 +70,7 @@
+         }.collectLatest { (scrolling, _) ->
+             if (!scrolling) {
+                 // A wheel/drag may stop between rows. Wait for its next tick,
+-                // then use the same continuous motion to settle on a whole row.
++                // then use the same short row slide to settle on a whole row.
+                 delay(100)
+                 if (job?.isActive != true && grid.firstVisibleItemScrollOffset > 0 && count() > 0) {
+                     val step = rowStep()
+@@ -109,7 +112,7 @@
+         intent.focused(index)
+     }
+     fun cancel() {
+-        job?.cancel(); job = null; heldDirection = null; moving = false; desiredFirstRow = null; intent.clear()
++        job?.cancel(); job = null; heldDirection = null; moving = false; desiredFirstRow = null; activeRow = null; intent.clear()
+     }
+     fun reset() { cancel(); currentIndex = 0 }
+     fun filterChanged(key: Any) {
+@@ -165,63 +168,38 @@
+                     }
+                     if (laidOut == null) return@launch
+                     if (!keepRow) reveal(currentIndex)
+-                    // A critically damped spring retains its velocity when the target
+-                    // changes. Repeated arrows never restart a tween or jump a row.
+-                    diagnosticPhase = "await-scroll-lock"
+-                    grid.scroll(MutatePriority.UserInput) {
+-                        diagnosticPhase = "animate"
+-                        diagnosticFrames = 0
+-                        diagnosticElapsedNanos = 0L
++                    // Each transaction covers at most one row. Repeated commands
++                    // choose the next destination after this short slide finishes.
++                    val step = rowStep()
++                    if (step <= 0f) return@launch
++                    val position = (grid.firstVisibleItemIndex / columns) * step + grid.firstVisibleItemScrollOffset
++                    val desiredPosition = (desiredFirstRow ?: 0) * step
++                    val distance = (desiredPosition - position).coerceIn(-step, step)
++                    val settledRow = kotlin.math.round((position + distance) / step).toInt().coerceAtLeast(0)
++                    activeRow = settledRow
++                    diagnosticPhase = "short-slide"
++                    diagnosticDistance = distance
++                    diagnosticVelocity = 0f
++                    diagnosticFrames = 0
++                    diagnosticElapsedNanos = 0L
++                    if (kotlin.math.abs(distance) > .5f) {
++                        var previous = 0f
+                         var firstFrame = 0L
+-                        var motion = CatalogScrollMotion()
+-                        var observedRelease = releaseSerial
+-                        var lastFrame = 0L
+-                        var loaded = currentIndex
+-                        var position = (grid.firstVisibleItemIndex / columns) * rowStep() + grid.firstVisibleItemScrollOffset
+-                        while (true) {
+-                            val now = withFrameNanos { it }
+-                            ensureActive()
+-                            val dt = if (lastFrame == 0L) 1f / 60f else
+-                                ((now - lastFrame) / 1_000_000_000f).coerceIn(.001f, .05f)
+-                            lastFrame = now
+-                            if (firstFrame == 0L) firstFrame = now
+-                            diagnosticElapsedNanos = now - firstFrame
+-                            diagnosticFrames++
+-                            if (loaded != currentIndex) { load(currentIndex); loaded = currentIndex }
+-                            val step = rowStep()
+-                            if (step <= 0f) break
+-                            if (observedRelease != releaseSerial) {
+-                                observedRelease = releaseSerial
+-                                motion = CatalogScrollMotion()
+-                                position = (grid.firstVisibleItemIndex / columns) * step + grid.firstVisibleItemScrollOffset
++                        grid.scroll(MutatePriority.UserInput) {
++                            animate(0f, distance, animationSpec = tween(160, easing = FastOutSlowInEasing)) { value, _ ->
++                                val now = System.nanoTime()
++                                if (firstFrame == 0L) firstFrame = now
++                                diagnosticElapsedNanos = now - firstFrame
++                                diagnosticFrames++
++                                scrollBy(value - previous)
++                                previous = value
+                             }
+-                            val distance = (desiredFirstRow ?: 0) * step - position
+-                            diagnosticDistance = distance
+-                            diagnosticVelocity = motion.velocity
+-                            // LazyGrid rounds physical offsets to integers. Below one pixel,
+-                            // consumption may stop while the spring still has fractional error.
+-                            if (kotlin.math.abs(distance) <= 2f && kotlin.math.abs(motion.velocity) < 48f) {
+-                                scrollBy(distance)
+-                                break
+-                            }
+-                            // A bounded continuous spring follows repeated commands
+-                            // without allocating an animation object for each frame.
+-                            val delta = motion.advance(distance, dt, step, speedFactor = if (heldDirection != null) 3.59375f else 1f)
+-                            val consumed = scrollBy(delta)
+-                            // Integrate the continuous trajectory, not LazyGrid's rounded
+-                            // consumption. At a boundary, consumed pixels may stop before
+-                            // the spring settles; its virtual position must still converge.
+-                            position += delta
+-                            if (kotlin.math.abs(consumed) < .01f && kotlin.math.abs(delta) > .5f) break
+                         }
+                     }
+-                    // Floating-point consumption can leave one physical pixel after
+-                    // reversing direction. Commit the exact row before handing focus
+-                    // back, otherwise the idle observer may start another host move.
++                    // Commit the exact row: no fractional poster remains at rest.
+                     diagnosticPhase = "align-row"
+                     val available = count()
+                     if (available <= 0) return@launch
+-                    val settledRow = desiredFirstRow ?: (grid.firstVisibleItemIndex / columns)
+                     val settledIndex = (settledRow * columns).coerceIn(0, available - 1)
+                     if (grid.firstVisibleItemIndex != settledIndex || grid.firstVisibleItemScrollOffset != 0) {
+                         grid.scrollToItem(settledIndex, 0)
+@@ -245,7 +223,7 @@
+                     }
+                     if (currentIndex == target) { intent.clear(); return@launch }
+                 }
+-            } finally { diagnosticPhase = "finished-$diagnosticPhase"; moving = false }
++            } finally { diagnosticPhase = "finished-$diagnosticPhase"; moving = false; activeRow = null }
+         }
+     }
+ 
+@@ -257,17 +235,15 @@
+         val total = count()
+         if (event.type == KeyEventType.KeyUp && heldDirection == direction) {
+             heldDirection = null
+-            val step = rowStep()
+-            if (step > 0f && total > 0) {
+-                val last = ((total + columns - 1) / columns - viewportRows()).coerceAtLeast(0)
+-                val nearest = (grid.firstVisibleItemIndex / columns +
+-                    if (grid.firstVisibleItemScrollOffset >= step / 2f) 1 else 0).coerceIn(0, last)
+-                desiredFirstRow = nearest
+-                val row = nearest + if (direction == Key.DirectionDown) viewportRows() - 1 else 0
+-                currentIndex = (row * columns + currentIndex % columns).coerceAtMost(total - 1)
++            if (total > 0) {
++                // Finish only the row currently sliding when the remote is released.
++                // Discard accumulated repeats instead of coasting through old commands.
++                val row = activeRow ?: grid.firstVisibleItemIndex / columns
++                desiredFirstRow = row
++                val selectionRow = row + if (direction == Key.DirectionDown) viewportRows() - 1 else 0
++                currentIndex = (selectionRow * columns + currentIndex % columns).coerceAtMost(total - 1)
+                 visualIndex = currentIndex
+                 intent.clear()
+-                releaseSerial++
+                 revision.value++
+                 startMovement(keepRow = true)
+             }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -5,9 +5,7 @@
+ import br.com.flaviotorres.iptvpremium.ui.components.reinforcedCatalogFocus
+ 
+ import androidx.compose.runtime.collectAsState
+-import androidx.compose.ui.graphics.graphicsLayer
+ import androidx.compose.animation.core.tween
+-import androidx.compose.animation.core.animateFloatAsState
+ import android.graphics.BitmapFactory
+ import android.graphics.Bitmap
+ import androidx.compose.foundation.basicMarquee
+@@ -1095,7 +1093,7 @@
+                                     columns = GridCells.Fixed(gridColumns),
+                                     state = moviesGridState,
+                                     modifier = Modifier.fillMaxSize().catalogGridHost(gridNavigator),
+-                                    // Reserva espaço para o zoom de 3,5% no primeiro card.
++                                    // Mantém o mesmo espaço do quadro, sem ampliar a capa selecionada.
+                                     // Sem isso a LazyGrid recorta o topo/lateral no foco.
+                                     contentPadding = PaddingValues(8.dp),
+                                     horizontalArrangement =
+@@ -2157,8 +2155,6 @@
+         mutableStateOf(false)
+     }
+     val visuallyFocused = isFocused || navigator?.isMovingSelection(gridIndex) == true
+-    val focusScale by animateFloatAsState(if (visuallyFocused) 1.035f else 1f,
+-        animationSpec = tween(140), label = "PosterFocusScale")
+ 
+     val focusRequester = remember { FocusRequester() }
+     BindCatalogFocus(navigator, gridIndex, focusRequester)
+@@ -2261,7 +2257,6 @@
+     Column(
+         modifier = Modifier
+             .then(if (fittedPosterWidth.value.isFinite()) Modifier.wrapContentWidth(Alignment.CenterHorizontally).width(fittedPosterWidth).height(LocalCatalogCardHeight.current) else Modifier)
+-            .graphicsLayer { scaleX = focusScale; scaleY = focusScale }
+             .onFocusChanged { focusState ->
+                 if (focusState.isFocused && !isFocused) {
+                     navigator?.focused(gridIndex)
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -5,9 +5,7 @@
+ import br.com.flaviotorres.iptvpremium.ui.components.reinforcedCatalogFocus
+ 
+ import androidx.compose.runtime.collectAsState
+-import androidx.compose.ui.graphics.graphicsLayer
+ import androidx.compose.animation.core.tween
+-import androidx.compose.animation.core.animateFloatAsState
+ import android.os.SystemClock
+ import androidx.compose.foundation.basicMarquee
+ import br.com.flaviotorres.iptvpremium.ui.components.catalogGridHost
+@@ -2388,8 +2386,6 @@
+     val fittedPosterWidth = br.com.flaviotorres.iptvpremium.ui.components.LocalCatalogPosterWidth.current
+     var isFocused by remember { mutableStateOf(false) }
+     val visuallyFocused = isFocused || navigator?.isMovingSelection(gridIndex) == true
+-    val focusScale by animateFloatAsState(if (visuallyFocused) 1.035f else 1f,
+-        animationSpec = tween(140), label = "PosterFocusScale")
+     val context = LocalContext.current.applicationContext
+     val artworkEpoch by br.com.flaviotorres.iptvpremium.ui.theme.ThemeArtworkEpoch.collectAsState()
+     val initialPoster = remember(posterUrl) { MoviePosterLoader.peekBitmap(posterUrl) }
+@@ -2437,7 +2433,6 @@
+     Column(
+         modifier = Modifier
+             .then(if (fittedPosterWidth.value.isFinite()) Modifier.wrapContentWidth(Alignment.CenterHorizontally).width(fittedPosterWidth).height(LocalCatalogCardHeight.current) else Modifier)
+-            .graphicsLayer { scaleX = focusScale; scaleY = focusScale }
+             .onFocusChanged { focusState ->
+                 isFocused = focusState.isFocused
+                 if (focusState.isFocused) {
