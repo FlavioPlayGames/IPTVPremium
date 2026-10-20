@@ -1,0 +1,46 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -2855,12 +2855,6 @@
+     }
+ 
+     private suspend fun download(context: Context, url: String, target: File): Boolean {
+-        val smaller = br.com.flaviotorres.iptvpremium.data.cache.PosterDownloadUrl.optimized(url)
+-        if (smaller != url && downloadFromUrl(context, smaller, target)) return true
+-        return downloadFromUrl(context, url, target)
+-    }
+-
+-    private suspend fun downloadFromUrl(context: Context, url: String, target: File): Boolean {
+         var reservation: br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget.Reservation? = null
+         var connection: HttpURLConnection? = null
+         try {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -5189,12 +5189,6 @@
+     }
+ 
+     private suspend fun download(context: Context, url: String, destination: File): Boolean {
+-        val smaller = br.com.flaviotorres.iptvpremium.data.cache.PosterDownloadUrl.optimized(url)
+-        if (smaller != url && downloadFromUrl(context, smaller, destination)) return true
+-        return downloadFromUrl(context, url, destination)
+-    }
+-
+-    private suspend fun downloadFromUrl(context: Context, url: String, destination: File): Boolean {
+         var reservation: br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget.Reservation? = null
+         var conn: HttpURLConnection? = null
+         var partial: File? = null
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
+@@ -1409,12 +1409,7 @@
+ 
+                         downloadSlots.acquire()
+                         val downloaded = try {
+-                            val smaller = if (imageType == "series_episode") {
+-                                br.com.flaviotorres.iptvpremium.data.cache.PosterDownloadUrl
+-                                    .optimized(normalizedUrl, width = 300)
+-                            } else normalizedUrl
+-                            (smaller != normalizedUrl && downloadToDisk(context, smaller, diskFile)) ||
+-                                downloadToDisk(context, normalizedUrl, diskFile)
++                            downloadToDisk(context, normalizedUrl, diskFile)
+                         } finally {
+                             downloadSlots.release()
+                         }
