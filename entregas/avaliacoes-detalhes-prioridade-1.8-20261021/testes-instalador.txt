@@ -1,0 +1,2 @@
+PASS: categorias; validation read-only, application of 17 files, exact backup, unrelated code/config/Kids resources preserved, reapplication check and unknown changes rejected atomically.
+PASS: sem-aba; validation read-only, application of 17 files, exact backup, unrelated code/config/Kids resources preserved, reapplication check and unknown changes rejected atomically.
