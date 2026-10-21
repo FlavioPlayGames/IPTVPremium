@@ -1,0 +1,6 @@
+PASS: shared stable category comparator wired in repository for films/series/channels and legacy channel menu; header shortcuts untouched; subtitle visibility filtering preserved.
+PASS: channel keyboard/pointer favorite threshold 1000ms with repeat suppression, cancel/lost-focus cancellation and one favorite action per press; no combinedClickable or separate heart click target.
+PASS: regular channel rows clip focus drawing to their rounded shape; no default rectangular clickable indication on row or heart.
+PASS: saved favorite IDs scoped by source playlist; existing Room getChannelById resolves only saved IDs on Favorites entry and applies parental/Kids policy.
+PASS: five delivered files match compilation inputs; version remains 1.09.
+LIMIT: JVM tests validate ordering and shared duration gate. Actual key/pointer gestures and visuals require emulator verification; no cloud emulator.
