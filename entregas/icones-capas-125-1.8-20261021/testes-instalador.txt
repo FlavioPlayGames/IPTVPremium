@@ -1,0 +1,1 @@
+PASS: PowerShell parse, validation read-only, application of 24 files, exact backups, reapplication validation, unknown change rejected atomically, local version/config and Kids assets preserved.
