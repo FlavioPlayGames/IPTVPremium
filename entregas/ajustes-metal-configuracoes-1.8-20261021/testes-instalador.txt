@@ -1,0 +1,3 @@
+PASS: known-art; read-only verification, 21 updates, removal of 8 known obsolete images (custom art preserved), exact backups, unrelated code/config/Kids resources unchanged, reapplication and atomic rejection of unknown source edits.
+PASS: custom-legacy-art; read-only verification, 21 updates, removal of 8 known obsolete images (custom art preserved), exact backups, unrelated code/config/Kids resources unchanged, reapplication and atomic rejection of unknown source edits.
+PASS: installed-marble; read-only verification, 21 updates, removal of 8 known obsolete images (custom art preserved), exact backups, unrelated code/config/Kids resources unchanged, reapplication and atomic rejection of unknown source edits.
