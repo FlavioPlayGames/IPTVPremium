@@ -1,0 +1,489 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterRowDownloader.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterRowDownloader.kt
+@@ -2,29 +2,31 @@
+ 
+ import kotlinx.coroutines.*
+ 
+-/** Bounded database pages, ordered network groups; doesn't own a grid or decoded bitmap. */
++/** Consulta local limitada: termina cada fileira e para ao completar a janela atual. */
+ internal suspend fun downloadPosterRows(start: Int, read: suspend (Int) -> PosterPage,
+-    deliver: suspend (List<String?>) -> Unit, advanced: (Int) -> Unit) {
+-    var cursor = start.coerceAtLeast(0)
+-    var failures = 0
+-    while (true) {
++    deliver: suspend (List<String?>) -> Unit, advanced: (Int) -> Unit,
++    endExclusive: Int = Int.MAX_VALUE, columns:Int = PosterCategoryPolicy.GROUP) {
++    require(columns in 1..PosterCategoryPolicy.GROUP)
++    var cursor=start.coerceAtLeast(0)
++    var failures=0
++    while(cursor<endExclusive) {
+         currentCoroutineContext().ensureActive()
+-        val page = try { read(cursor) }
+-        catch (cancelled: CancellationException) { throw cancelled }
+-        catch (_: Exception) {
+-            if (++failures >= 3) return
+-            delay(500); continue
+-        }
+-        require(page.urls.size <= 50) { "Poster query exceeded bounded page" }
+-        failures = 0
+-        for (batch in page.urls.chunked(PosterCategoryPolicy.GROUP)) {
++        val page=try {read(cursor)}
++        catch(cancelled:CancellationException){throw cancelled}
++        catch(_:Exception){if(++failures>=3)return;delay(500);continue}
++        require(page.urls.size<=50){"Poster query exceeded bounded page"}
++        failures=0
++        var delivered=0
++        while(delivered<page.urls.size && cursor<endExclusive) {
+             currentCoroutineContext().ensureActive()
+-            deliver(batch)
++            val size=minOf(columns-cursor%columns,PosterCategoryPolicy.GROUP,page.urls.size-delivered,endExclusive-cursor)
++            deliver(page.urls.subList(delivered,delivered+size))
++            cursor+=size;delivered+=size;advanced(cursor)
+             delay(12)
+         }
+-        val next = page.next ?: return
+-        if (next <= cursor) return
+-        cursor = next
+-        advanced(cursor)
++        if(cursor>=endExclusive)return
++        val next=page.next?:return
++        if(next<cursor || (page.urls.isEmpty() && next<=cursor))return
++        if(next>cursor){cursor=next;advanced(cursor)}
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt
+@@ -414,7 +414,7 @@
+                         key = offset.coerceAtLeast(0), loadSize = 50, placeholdersEnabled = true)
+                     return when (val result = source.load(request)) {
+                         is androidx.paging.PagingSource.LoadResult.Page -> br.com.flaviotorres.iptvpremium.data.cache.PosterPage(
+-                            result.data.filter(allowed).map(url), result.nextKey)
++                            result.data.map { if(allowed(it))url(it)else null }, result.nextKey)
+                         is androidx.paging.PagingSource.LoadResult.Error -> throw result.throwable
+                         is androidx.paging.PagingSource.LoadResult.Invalid -> throw java.io.IOException("Catalog updated")
+                     }
+@@ -665,17 +665,7 @@
+                 val access = ParentalPolicy.access()
+                 if (access.blocked(playlistId, type, category.id, categoryName = category.name)) category.copy(name = "🔒 " + category.name.replaceFirst(categoryMediaPrefix, "")) else category
+             }
+-            .let { categories ->
+-                if (categoryType == CategoryType.LIVE_TV) categories
+-                else categories.filterNot { CatalogSections.subtitled(it.name) }
+-                    .sortedWith(compareBy<Category> {
+-                        if (categoryType == CategoryType.MOVIES) CatalogSections.moviePriority(it.name)
+-                        else CatalogSections.priority(it.name)
+-                    }.thenByDescending {
+-                        val priority = if (categoryType == CategoryType.MOVIES) CatalogSections.moviePriority(it.name) else CatalogSections.priority(it.name)
+-                        if (priority == 0) CatalogSections.year(it.name) else 0
+-                    }.thenBy { CatalogSections.orderName(it.name) })
+-            }
++            .sortedWith(CatalogSections.categoryOrder {it.name})
+     }
+ 
+     // O catalogo apresenta "Filmes | ..." / "Series | ..." sem o prefixo.
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsPolicy.kt
+@@ -17,7 +17,7 @@
+     fun subtitled(name: String): Boolean = Regex("(?:^|[^\\p{L}\\p{N}])(?:L|LEG|LEGENDADO[S]?|LEGENDADA[S]?)(?:$|[^\\p{L}\\p{N}])",RegexOption.IGNORE_CASE).containsMatchIn(name)
+     private val year=Regex("(?:19|20)[0-9]{2}")
+     fun orderName(name: String): String = KidsContent.folded(name).trim().removePrefix("🔒 ")
+-        .replace(Regex("^(?:filmes?|series?)\\s*[|:–—-]\\s*"), "").trim()
++        .replace(Regex("^(?:filmes?|series?|canais|canal|channels?)\\s*[|｜:–—-]\\s*"), "").trim()
+     fun priority(name: String): Int {
+         val folded=orderName(name)
+         return when {
+@@ -31,13 +31,18 @@
+         val text = orderName(name)
+         val adult = Regex("\\b(?:xxx|adultos?|adultas?)\\b|(?:18\\s*\\+|\\+\\s*18)")
+         return when {
+-            text.firstOrNull()?.isLetterOrDigit() == false || adult.containsMatchIn(text) ||
+-                Regex("\\bcursos?\\b").containsMatchIn(text) -> 4
++            adult.containsMatchIn(text) -> 6
++            Regex("\\bcursos?\\b").containsMatchIn(text) -> 5
++            text.firstOrNull()?.isLetterOrDigit() == false -> 4
+             "lancamento" in text || Regex("\\breleases?\\b").containsMatchIn(text) -> 0
+             subtitled(text) -> 1
+             Regex("\\b(?:4k|uhd)\\b").containsMatchIn(text) -> 2
+             else -> 3
+         }
+     }
++    /** Canais, filmes e series conservam seus IDs e compartilham a mesma ordem. */
++    fun <T> categoryOrder(name:(T)->String):Comparator<T> = compareBy<T> { moviePriority(name(it)) }
++        .thenByDescending { if(moviePriority(name(it))==0)year(name(it))else 0 }
++        .thenBy { orderName(name(it)) }
+     fun year(name: String): Int = year.findAll(name).map { it.value.toInt() }.maxOrNull() ?: 0
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
+@@ -59,6 +59,10 @@
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.input.pointer.pointerInput
++import androidx.compose.foundation.gestures.detectTapGestures
++import androidx.compose.ui.semantics.*
++import br.com.flaviotorres.iptvpremium.ui.movies.movieHoldReady
+ import androidx.compose.ui.draw.scale
+ import androidx.compose.ui.graphics.graphicsLayer
+ import androidx.compose.ui.graphics.TransformOrigin
+@@ -111,7 +115,7 @@
+ import java.time.format.DateTimeFormatter
+ import java.util.Locale
+ 
+-private const val FAVORITE_LONG_PRESS_MS = 600L
++private const val FAVORITE_LONG_PRESS_MS = 1_000L
+ private const val FAVORITE_ACTION_DEBOUNCE_MS = 800L
+ private const val SUPPRESS_CLICK_AFTER_LONG_PRESS_MS = 250L
+ 
+@@ -247,7 +251,7 @@
+     Z_A
+ }
+ 
+-private data class PreviewChannel(
++internal data class PreviewChannel(
+     val id: String,
+     val number: Int,
+     val name: String,
+@@ -377,6 +381,7 @@
+                 .distinctBy {
+                     it.id
+                 }
++                .sortedWith(br.com.flaviotorres.iptvpremium.ui.kids.CatalogSections.categoryOrder {it.name})
+                 .map { category ->
+                     ChannelCategory(
+                         id = "source_${category.id}",
+@@ -1965,7 +1970,7 @@
+ }
+ 
+ @Composable
+-private fun ChannelRow(
++internal fun ChannelRow(
+     channel: PreviewChannel,
+     isSelected: Boolean,
+     isFavorite: Boolean,
+@@ -1977,20 +1982,30 @@
+         mutableStateOf(false)
+     }
+ 
+-    var selectKeyDownTime by remember {
+-        mutableLongStateOf(0L)
+-    }
+-
+-    var keyboardLongPressDetected by remember {
+-        mutableStateOf(false)
+-    }
+-
+-    var suppressSelectUntil by remember {
+-        mutableLongStateOf(0L)
+-    }
+-
+-    var lastFavoriteActionTime by remember {
+-        mutableLongStateOf(0L)
++    var selectKeyDownTime by remember(channel.id) { mutableLongStateOf(0L) }
++    var selectKeyHeld by remember(channel.id) { mutableStateOf(false) }
++    var favoriteTriggered by remember(channel.id) { mutableStateOf(false) }
++    var pointerFavoriteTriggered by remember(channel.id) { mutableStateOf(false) }
++    val currentSelect by rememberUpdatedState(onSelect)
++    val currentFavorite by rememberUpdatedState(onFavoriteClick)
++    LaunchedEffect(selectKeyHeld,channel.id) {
++        if(selectKeyHeld) {
++            delay(FAVORITE_LONG_PRESS_MS)
++            if(selectKeyHeld && !favoriteTriggered && movieHoldReady(
++                    SystemClock.elapsedRealtime()-selectKeyDownTime,FAVORITE_LONG_PRESS_MS,isFocused,false)) {
++                favoriteTriggered=true
++                currentFavorite()
++            }
++        }
++    }
++    val ownerView=androidx.compose.ui.platform.LocalView.current
++    DisposableEffect(ownerView,channel.id) {
++        val listener=android.view.ViewTreeObserver.OnWindowFocusChangeListener {hasFocus->
++            if(!hasFocus){selectKeyHeld=false;selectKeyDownTime=0L}
++        }
++        val observer=ownerView.viewTreeObserver
++        observer.addOnWindowFocusChangeListener(listener)
++        onDispose {if(observer.isAlive)observer.removeOnWindowFocusChangeListener(listener)}
+     }
+ 
+     val shape =
+@@ -1998,22 +2013,10 @@
+             if (compactLayout) 10.dp else 12.dp
+         )
+ 
+-    fun performFavoriteAction() {
+-        val now =
+-            SystemClock.elapsedRealtime()
+-
+-        if (
+-            lastFavoriteActionTime == 0L ||
+-            now - lastFavoriteActionTime >=
+-            FAVORITE_ACTION_DEBOUNCE_MS
+-        ) {
+-            lastFavoriteActionTime = now
+-            onFavoriteClick()
+-        }
+-    }
+ 
+     Row(
+         modifier = Modifier
++            .testTag("channel-row-${channel.id}")
+             .fillMaxWidth()
+             .height(
+                 if (compactLayout) 42.dp else 50.dp
+@@ -2022,7 +2025,7 @@
+                 if (isFocused) 1.015f else 1f
+             )
+             .background(
+-                color = when {
++                color = if(br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.regular) Color.Transparent else when {
+                     isFocused ->
+                         br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.selectionColor()
+ 
+@@ -2057,96 +2060,46 @@
+                 shape = shape
+             )
+             .kidsFocus(isFocused,isSelected)
+-            .onFocusChanged { focusState ->
+-                isFocused = focusState.isFocused
+-
+-                if (!focusState.isFocused) {
+-                    selectKeyDownTime = 0L
+-                    keyboardLongPressDetected = false
+-                    suppressSelectUntil = 0L
++            .onFocusChanged {state->
++                isFocused=state.isFocused
++                if(!state.isFocused){selectKeyHeld=false;selectKeyDownTime=0L}
++            }
++            .onPreviewKeyEvent {event->
++                val select=event.key==Key.DirectionCenter || event.key==Key.Enter || event.key==Key.NumPadEnter
++                if(!select)false else when(event.type) {
++                    KeyEventType.KeyDown->{
++                        if(!selectKeyHeld && event.nativeKeyEvent.repeatCount==0) {
++                            selectKeyDownTime=SystemClock.elapsedRealtime();favoriteTriggered=false;selectKeyHeld=true
++                        }
++                        true
++                    }
++                    KeyEventType.KeyUp->{
++                        if(selectKeyHeld && !event.nativeKeyEvent.isCanceled) {
++                            val elapsed=SystemClock.elapsedRealtime()-selectKeyDownTime
++                            if(favoriteTriggered || movieHoldReady(elapsed,FAVORITE_LONG_PRESS_MS,isFocused,false)) {
++                                if(!favoriteTriggered){favoriteTriggered=true;currentFavorite()}
++                            }else currentSelect()
++                        }
++                        selectKeyHeld=false;selectKeyDownTime=0L;true
++                    }
++                    else->false
+                 }
+             }
+-            .onPreviewKeyEvent { event ->
+-                val selectKey =
+-                    event.key == Key.DirectionCenter ||
+-                            event.key == Key.Enter ||
+-                            event.key == Key.NumPadEnter
+-
+-                if (!selectKey) {
+-                    false
+-                } else {
+-                    val now =
+-                        SystemClock.elapsedRealtime()
+-
+-                    when (event.type) {
+-                        KeyEventType.KeyDown -> {
+-                            if (
+-                                event.nativeKeyEvent.repeatCount == 0
+-                            ) {
+-                                selectKeyDownTime = now
+-                                keyboardLongPressDetected = false
+-                            } else if (
+-                                !keyboardLongPressDetected
+-                            ) {
+-                                keyboardLongPressDetected = true
+-                                performFavoriteAction()
+-                            }
+-
+-                            false
+-                        }
+-
+-                        KeyEventType.KeyUp -> {
+-                            val pressedDuration =
+-                                if (selectKeyDownTime > 0L) {
+-                                    now - selectKeyDownTime
+-                                } else {
+-                                    0L
+-                                }
+-
+-                            val wasLongPress =
+-                                keyboardLongPressDetected ||
+-                                        pressedDuration >=
+-                                        FAVORITE_LONG_PRESS_MS
+-
+-                            if (wasLongPress) {
+-                                if (!keyboardLongPressDetected) {
+-                                    performFavoriteAction()
+-                                }
+-
+-                                suppressSelectUntil =
+-                                    now +
+-                                            SUPPRESS_CLICK_AFTER_LONG_PRESS_MS
+-                            }
+-
+-                            selectKeyDownTime = 0L
+-                            keyboardLongPressDetected = false
+-
+-                            false
+-                        }
+-
+-                        else -> false
++            .pointerInput(channel.id) {
++                detectTapGestures(onPress={
++                    pointerFavoriteTriggered=false
++                    val released=kotlinx.coroutines.withTimeoutOrNull(FAVORITE_LONG_PRESS_MS){tryAwaitRelease()}
++                    if(released==null) {
++                        pointerFavoriteTriggered=true;currentFavorite();tryAwaitRelease()
+                     }
+-                }
+-            }
+-            .combinedClickable(
+-                onClick = {
+-                    if (
+-                        SystemClock.elapsedRealtime() >=
+-                        suppressSelectUntil
+-                    ) {
+-                        onSelect()
+-                    }
+-                },
+-                onLongClick = {
+-                    performFavoriteAction()
+-                },
+-                onLongClickLabel =
+-                    if (isFavorite) {
+-                        "Remover dos favoritos"
+-                    } else {
+-                        "Adicionar aos favoritos"
+-                    }
+-            )
++                },onTap={if(!pointerFavoriteTriggered)currentSelect();pointerFavoriteTriggered=false})
++            }
++            .semantics {
++                role=Role.Button
++                onClick(label="Assistir canal"){currentSelect();true}
++                onLongClick(label=if(isFavorite)"Remover dos favoritos"else "Adicionar aos favoritos") {currentFavorite();true}
++            }
++            .focusable()
+             .padding(
+                 horizontal =
+                     if (compactLayout) 10.dp else 14.dp
+@@ -2192,18 +2145,8 @@
+             overflow = TextOverflow.Ellipsis
+         )
+ 
+-        Box(
+-            modifier = Modifier
+-                .clickable(
+-                    onClick = onFavoriteClick
+-                )
+-                .padding(4.dp),
+-            contentAlignment = Alignment.Center
+-        ) {
+-            FavoriteHeart(
+-                isFavorite = isFavorite,
+-                size = if (compactLayout) 16 else 18
+-            )
++        br.com.flaviotorres.iptvpremium.ui.components.CatalogFavoriteHeart(isFavorite,compactLayout) {
++            currentFavorite()
+         }
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/CategoryPosterPrefetch.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/CategoryPosterPrefetch.kt
+@@ -18,13 +18,14 @@
+ internal fun <T : Any> CategoryPosterPrefetch(kind: PosterKind, category: String,
+     grid: LazyGridState, paging: LazyPagingItems<T>?, url: (T) -> String?, blocked: Boolean,
+     page: (suspend (Int) -> PosterPage)?) {
++    val columns=br.com.flaviotorres.iptvpremium.ui.settings.rememberSettingsPreferences().catalogColumns()
+     val context = LocalContext.current.applicationContext
+     val access by ParentalPolicy.accessFlow.collectAsState(initial = ParentalPolicy.access())
+     val blockedNow by rememberUpdatedState(blocked)
+     val readPage by rememberUpdatedState(page)
+     val getUrl by rememberUpdatedState(url)
+     DisposableEffect(kind) { onDispose { MoviePosterLoader.releaseVisible(context, kind) } }
+-    LaunchedEffect(paging, category, kind, access) {
++    LaunchedEffect(paging, category, kind, access, columns) {
+         val items = paging ?: return@LaunchedEffect
+         var cursor = -1
+         var previousFirst = -1
+@@ -32,26 +33,27 @@
+             val visible = grid.layoutInfo.visibleItemsInfo.sortedBy { it.index }
+             PosterViewport(visible.firstOrNull()?.index ?: -1, visible.lastOrNull()?.index ?: -1,
+                 visible.map { item -> if (item.index in 0 until items.itemCount) items.peek(item.index)?.let(getUrl) else null },
+-                blockedNow || visible.isEmpty() || grid.isScrollInProgress || items.loadState.refresh is LoadState.Loading)
++                blockedNow || visible.isEmpty() || items.loadState.refresh is LoadState.Loading)
+         }
+         combine(viewports, CatalogMemoryPolicy.pressured, MediaOpeningPriority.busy) { viewport, pressure, selectedMedia ->
+             viewport.copy(busy = viewport.busy || pressure || selectedMedia)
+         }.collectLatest { viewport ->
+             MoviePosterLoader.updateVisible(context, kind, viewport.urls)
+             if (viewport.busy) return@collectLatest
+-            delay(100)
+             // Complete all visible covers before asking for any off-screen row.
+             for (batch in viewport.urls.chunked(PosterCategoryPolicy.GROUP)) {
+                 MoviePosterLoader.prefetchCategoryBatch(context, kind, batch, visible = true)
+             }
+-            val row = PosterCategoryPolicy.nextRow(viewport.last + 1)
++            val row = (viewport.last + 1).coerceAtLeast(0) / columns * columns
+             if (cursor < row || previousFirst > viewport.first) cursor = row
+             if (cursor < 0) cursor = row
+             previousFirst = viewport.first
+             val nextPage = readPage ?: return@collectLatest
+             downloadPosterRows(cursor, nextPage,
+                 { batch -> MoviePosterLoader.prefetchCategoryBatch(context, kind, batch, visible = false) },
+-                { next -> cursor = next })
++                { next -> cursor = next },
++                endExclusive=(viewport.first.toLong()+PosterCategoryPolicy.CAPACITY).coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
++                columns=columns)
+         }
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -2999,6 +2999,7 @@
+         var reservation: br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget.Reservation? = null
+         var connection: HttpURLConnection? = null
+         var backgroundInterrupt: kotlinx.coroutines.Job? = null
++        var cancellationInterrupt: kotlinx.coroutines.Job? = null
+         try {
+             currentCoroutineContext().ensureActive()
+             if (background && br.com.flaviotorres.iptvpremium.data.cache.MediaOpeningPriority.busy.value) return false
+@@ -3013,6 +3014,13 @@
+                 val activeConnection = connection
+                 backgroundInterrupt = br.com.flaviotorres.iptvpremium.data.cache.MediaOpeningPriority
+                     .interruptBackgroundOnSelection { activeConnection.disconnect() }
++                // Trocar de categoria tambem interrompe uma leitura de socket bloqueada.
++                // O watcher e filho da fila atual; nao depende do timeout de dez segundos.
++                cancellationInterrupt = kotlinx.coroutines.CoroutineScope(currentCoroutineContext()).launch(
++                    Dispatchers.IO, start = kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
++                    try { kotlinx.coroutines.awaitCancellation() }
++                    finally { runCatching { activeConnection.disconnect() } }
++                }
+             }
+             currentCoroutineContext().ensureActive()
+             connection.connect()
+@@ -3044,6 +3052,7 @@
+         } catch (_: Exception) {
+             return false
+         } finally {
++            cancellationInterrupt?.cancel()
+             backgroundInterrupt?.cancel()
+             reservation?.close()
+             connection?.disconnect()
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -1304,7 +1304,7 @@
+ 
+     // Mesmo criterio do catalogo de Filmes: categorias reais, sem
+     // descartar IDs nem modificar a ordem entregue pelo provedor.
+-    val realCategories = pagingCategories
++    val realCategories = remember(pagingCategories) { pagingCategories.sortedWith(br.com.flaviotorres.iptvpremium.ui.kids.CatalogSections.categoryOrder {it.name}) }
+     val continueWatchingPlaceholder = selectedMenu == "continue"
+     val continueWatchingEntries = remember(watchHistoryEntries) {
+         watchHistoryEntries
