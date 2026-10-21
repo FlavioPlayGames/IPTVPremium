@@ -1,0 +1,5 @@
+BUILD SUCCESSFUL in 2m 32s
+assembleDebug assembleDebugAndroidTest compileReleaseKotlin
+83 actionable tasks: 20 executed, 63 up-to-date
+Confirmed APK metadata: versionName 1.09, versionCode 11, applicationId br.com.flaviotorres.iptvpremium for all 5 outputs.
+Instrumented tests compiled only; no cloud emulator.

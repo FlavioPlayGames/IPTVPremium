@@ -1,0 +1,4 @@
+PASS: movies/MoviesScreen.kt; poster-only 3% focus growth, metal overlay after image, short shadow; Kids retains legacy focus; category fills scoped separately.
+PASS: series/SeriesScreen.kt; poster-only 3% focus growth, metal overlay after image, short shadow; Kids retains legacy focus; category fills scoped separately.
+PASS: 7 delivered files match compilation inputs; versionName 1.09, default code 11 (higher local codes preserved); light-mode graphite icons unchanged; no foreground alpha or live blur added.
+LIMIT: no Android emulator available in cloud; instrumentation compiled, device execution delegated to -Testar. Visual appearance still requires TV review.
