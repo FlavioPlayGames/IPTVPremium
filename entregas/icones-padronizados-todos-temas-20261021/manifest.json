@@ -1,0 +1,79 @@
+[
+  {
+    "tema": "gold",
+    "nome": "Dourado",
+    "arquivo": "icones-gold.png",
+    "dimensoes": [
+      2172,
+      724
+    ],
+    "transparente": true,
+    "sha256": "de853cba2d061e0f3d403b55013b7c64d200eb9c7050e81d7837d37f515f3bee"
+  },
+  {
+    "tema": "blue",
+    "nome": "Azul",
+    "arquivo": "icones-blue.png",
+    "dimensoes": [
+      2172,
+      724
+    ],
+    "transparente": true,
+    "sha256": "c7d70d11843d13e334858d04ec9a66a4bc8fad8e1f5de3cb9b7b36ed4a9e0d9c"
+  },
+  {
+    "tema": "purple",
+    "nome": "Roxo",
+    "arquivo": "icones-purple.png",
+    "dimensoes": [
+      2172,
+      724
+    ],
+    "transparente": true,
+    "sha256": "09e6d4f8cc44560eea1286ea8f8683ac483978e4a2adcb48e0f94504ea9611dc"
+  },
+  {
+    "tema": "red",
+    "nome": "Vermelho",
+    "arquivo": "icones-red.png",
+    "dimensoes": [
+      2172,
+      724
+    ],
+    "transparente": true,
+    "sha256": "894f7a8ba430ea455726e3b462f3ede0ae15784ba0e78edb90dafc7d1bb7d836"
+  },
+  {
+    "tema": "pink",
+    "nome": "Rosa suave",
+    "arquivo": "icones-pink.png",
+    "dimensoes": [
+      2172,
+      724
+    ],
+    "transparente": true,
+    "sha256": "6c38fff2f5083ac05eb3f3203ee08e1c017883dded192bff5cc0d27dfb1351a7"
+  },
+  {
+    "tema": "emerald",
+    "nome": "Verde-esmeralda",
+    "arquivo": "icones-emerald.png",
+    "dimensoes": [
+      2172,
+      724
+    ],
+    "transparente": true,
+    "sha256": "3d9f9be04848300c73c8ebc99c6b89d751b5be36ecdeb44663dd49dea4dc1de9"
+  },
+  {
+    "tema": "cyan",
+    "nome": "Ciano / Turquesa",
+    "arquivo": "icones-cyan.png",
+    "dimensoes": [
+      2172,
+      724
+    ],
+    "transparente": true,
+    "sha256": "042fde05d7e4ca295935a11e79d6a329cd14ff799d3167047999a95d50f690e7"
+  }
+]
