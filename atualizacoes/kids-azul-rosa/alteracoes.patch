@@ -1,0 +1,808 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/ThemeArtwork.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/ThemeArtwork.kt
+@@ -122,7 +122,8 @@
+                 val factor = minOf(target.width.toFloat() / width, target.height.toFloat() / height, 1f)
+                 val outWidth = (width * factor).roundToInt().coerceAtLeast(1)
+                 val outHeight = (height * factor).roundToInt().coerceAtLeast(1)
+-                if (id == R.drawable.series_living_room && cell == null) {
++                if (id in listOf(R.drawable.series_living_room, R.drawable.kids_home_blue, R.drawable.kids_home_pink,
++                    R.drawable.kids_category_symbols, R.drawable.kids_brand_marks) && cell == null) {
+                     return@withPermit Bitmap.createScaledBitmap(bitmap, outWidth, outHeight, true).asImageBitmap()
+                         .also { put(cacheKey, it, theme, pin, cacheKey, epoch) }
+                 }
+@@ -140,7 +141,7 @@
+ /** Preserve neutral surfaces; only the warm accent is mapped to the selected hue. */
+ private fun loadingAccent(theme: PremiumTheme, kids: Boolean = false): ColorFilter {
+     // O urso usa a saturacao dos icones metalicos; fundos continuam com o filtro suave.
+-    val accent = Color.hsv(theme.hue, if (kids) .98f else .58f, if (kids) 1f else .72f)
++    val accent = Color.hsv(theme.hue, if (kids) .98f else .58f, if (kids) .74f else .72f)
+     return ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
+         accent.red, 0f, 1f-accent.red, 0f, 0f,
+         accent.green, 0f, 1f-accent.green, 0f, 0f,
+@@ -191,10 +192,13 @@
+     val theme = ThemeState.selected
+     val epoch by ThemeArtworkEpoch.collectAsState()
+     ThemeArtworkCache.activate(theme.name)
+-    val pinned = id in listOf(R.drawable.kids_bear, R.drawable.home_channels, R.drawable.home_movies, R.drawable.home_series,
++    val pinned = id in listOf(R.drawable.kids_home_blue, R.drawable.kids_home_pink, R.drawable.kids_category_symbols, R.drawable.kids_brand_marks, R.drawable.kids_bear, R.drawable.home_channels, R.drawable.home_movies, R.drawable.home_series,
+         R.drawable.icon_lista, R.drawable.icon_atualizar, R.drawable.icon_configuracoes,
+         R.drawable.iptv_premium_logo, R.drawable.series_living_room)
+     val resolvedTarget = targetSize ?: when (id) {
++        R.drawable.kids_home_blue, R.drawable.kids_home_pink -> IntSize(1920,1080)
++        R.drawable.kids_category_symbols -> IntSize(1024,512)
++        R.drawable.kids_brand_marks -> IntSize(768,384)
+         R.drawable.kids_bear -> IntSize(320,320)
+         R.drawable.series_living_room -> IntSize(2560, 1440)
+         R.drawable.iptv_premium_logo -> IntSize(768, 512)
+@@ -214,7 +218,8 @@
+         else -> null
+     }
+     val asset = when {
+-        id == R.drawable.kids_bear -> id
++        id in listOf(R.drawable.kids_bear, R.drawable.kids_home_blue, R.drawable.kids_home_pink,
++            R.drawable.kids_category_symbols, R.drawable.kids_brand_marks) -> id
+         set == null -> id
+         cell != null -> set.icons
+         id == R.drawable.iptv_premium_logo -> set.logo
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsScreen.kt
+@@ -1,6 +1,11 @@
+ package br.com.flaviotorres.iptvpremium.ui.kids
+ 
+ import androidx.activity.compose.BackHandler
++import androidx.compose.foundation.focusable
++import androidx.compose.foundation.border
++import androidx.compose.foundation.clickable
++import androidx.compose.ui.focus.onFocusChanged
++import androidx.compose.ui.focus.focusProperties
+ import androidx.compose.foundation.Image
+ import androidx.compose.foundation.rememberScrollState
+ import androidx.compose.foundation.verticalScroll
+@@ -28,19 +33,34 @@
+ @Composable
+ internal fun KidsScreen(onChannels:()->Unit,onMovies:()->Unit,onSeries:()->Unit,onBack:()->Unit) {
+     val first=remember { FocusRequester() }
++    val settings=br.com.flaviotorres.iptvpremium.ui.settings.rememberSettingsPreferences()
++    val style=KidsStyle.fromKey(settings.kidsStyle())
+     BackHandler(onBack=onBack)
+     LaunchedEffect(Unit) { withFrameNanos { }; first.requestFocus() }
+-    val wide = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 700
+-    Column(Modifier.fillMaxSize().background(ThemeColors.surface(0xFF080A0C))
+-        .onPreviewKeyEvent { if(it.key==Key.Escape) { if(it.type==KeyEventType.KeyUp) onBack();true } else false }
+-        .verticalScroll(rememberScrollState()).padding(24.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
+-        KidsLogo(Modifier.height(150.dp).width(180.dp))
+-        Text("KIDS",color=ThemeColors.color(0xFFFFE6A0),fontSize=28.sp)
+-        Spacer(Modifier.height(24.dp))
+-        FlowRow(maxItemsInEachRow = if (wide) 3 else 2, horizontalArrangement=Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally), verticalArrangement=Arrangement.spacedBy(24.dp)) {
+-            HomeMenuCard("Canais",onChannels,Modifier.focusRequester(first),R.drawable.home_channels)
+-            HomeMenuCard("Filmes",onMovies,imageResId=R.drawable.home_movies)
+-            HomeMenuCard("Séries",onSeries,imageResId=R.drawable.home_series)
++    BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFF020513))
++        .onPreviewKeyEvent {if(it.key==Key.Escape){if(it.type==KeyEventType.KeyUp)onBack();true}else false},contentAlignment=Alignment.Center) {
++        val width=minOf(maxWidth,maxHeight*16f/9f)
++        val height=width*9f/16f
++        Box(Modifier.width(width).height(height)) {
++            KidsHomeArtwork(style,Modifier.fillMaxSize())
++            Row(Modifier.fillMaxWidth().offset(y=height*.32f).height(height*.62f)
++                .padding(horizontal=width*.035f),horizontalArrangement=Arrangement.spacedBy(width*.018f)) {
++                listOf("CANAIS" to onChannels,"FILMES" to onMovies,"SÉRIES" to onSeries).forEachIndexed {index,(title,action)->
++                    var focused by remember {mutableStateOf(false)}
++                    val shape=androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
++                    Box(Modifier.weight(1f).fillMaxHeight()
++                        .then(if(index==0)Modifier.focusRequester(first)else Modifier)
++                        .focusProperties {canFocus=true}
++                        .onFocusChanged {focused=it.isFocused}
++                        .border(if(focused)3.dp else 0.dp,if(focused)style.accent else Color.Transparent,shape)
++                        .clickable(interactionSource=remember {androidx.compose.foundation.interaction.MutableInteractionSource()},
++                            indication=null,role=androidx.compose.ui.semantics.Role.Button,onClick=action).focusable(),contentAlignment=Alignment.BottomCenter) {
++                        Text(title,Modifier.padding(bottom=height*.045f),color=Color.White,
++                            fontSize=(height.value*.045f).coerceIn(14f,32f).sp,
++                            fontWeight=androidx.compose.ui.text.font.FontWeight.Black,letterSpacing=2.sp)
++                    }
++                }
++            }
+         }
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -772,6 +772,11 @@
+ 
+     val parentalAccessState by br.com.flaviotorres.iptvpremium.ui.settings.ParentalPolicy.accessFlow.collectAsState(
+         initial = br.com.flaviotorres.iptvpremium.ui.settings.ParentalPolicy.access())
++    val kidsStyle = br.com.flaviotorres.iptvpremium.ui.settings.rememberSettingsPreferences().kidsStyle()
++    androidx.compose.runtime.SideEffect {
++        br.com.flaviotorres.iptvpremium.ui.kids.KidsAppearance.apply(parentalAccessState.kidsCatalog, kidsStyle)
++    }
++    DisposableEffect(Unit) { onDispose { br.com.flaviotorres.iptvpremium.ui.kids.KidsAppearance.apply(false, kidsStyle) } }
+     val parentalEpoch by br.com.flaviotorres.iptvpremium.ui.settings.ParentalSession.epoch.collectAsState()
+     var parentalCategoryRequest by remember(parentalEpoch, activePlaylistId) {
+         mutableStateOf<br.com.flaviotorres.iptvpremium.ui.settings.ParentalCategoryRequest?>(null)
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsUiDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsUiDeviceTest.kt
+@@ -113,9 +113,10 @@
+                 val pixels=bitmap.toPixelMap()
+                 var hits=0
+                 var vividBlue=0
++                var brightestVividBlue=0f
+                 for(y in 0 until pixels.height step 4) for(x in 0 until pixels.width step 4) {
+                     val c=pixels[x,y]
+-                    if(c.blue>.5f && c.blue>c.red*3f) vividBlue++
++                    if(c.blue>.5f && c.blue>c.red*3f) {vividBlue++;brightestVividBlue=maxOf(brightestVividBlue,c.blue)}
+                     val ok=when(theme) {
+                         PremiumTheme.GOLD->c.red>.5f&&c.green>.3f&&c.blue<c.red*.7f
+                         PremiumTheme.BLUE->c.blue>.3f&&c.blue>c.red*1.2f
+@@ -127,7 +128,10 @@
+                     if(ok)hits++
+                 }
+                 assertTrue("Visible themed bear for $theme, pixels=$hits", hits>30)
+-                if(theme==PremiumTheme.BLUE) assertTrue("Bear must match vivid blue icons, not silver",vividBlue>30)
++                if(theme==PremiumTheme.BLUE) {
++                    assertTrue("Bear must match vivid blue icons, not silver",vividBlue>30)
++                    assertTrue("Bear saturated highlights must be restrained",brightestVividBlue<.9f)
++                }
+         compose.runOnIdle {ThemeState.choose(context,PremiumTheme.GOLD)}
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -1,5 +1,6 @@
+ package br.com.flaviotorres.iptvpremium.ui.series
+ 
++import br.com.flaviotorres.iptvpremium.ui.kids.*
+ import androidx.compose.runtime.CompositionLocalProvider
+ import androidx.compose.foundation.layout.wrapContentWidth
+ import br.com.flaviotorres.iptvpremium.ui.components.reinforcedCatalogFocus
+@@ -616,12 +617,14 @@
+                         border = BorderStroke(1.dp, PremiumGoldBorder),
+                         shape = RoundedCornerShape(if (compactLayout) 14.dp else 18.dp)
+                     )
++                    .kidsPanel()
+                     .padding(
+                         horizontal = if (compactLayout) 8.dp else 12.dp,
+                         vertical = if (compactLayout) 6.dp else 10.dp
+                     )
+             ) {
+-                Row(
++                if (KidsAppearance.active) { KidsCatalogHeader(compactLayout) } else {
++                    Row(
+                     modifier = Modifier.fillMaxWidth(),
+                     horizontalArrangement = Arrangement.spacedBy(if (compactLayout) 6.dp else 10.dp),
+                     verticalAlignment = Alignment.CenterVertically
+@@ -639,6 +642,7 @@
+                         Spacer(Modifier.height(0.dp))
+                     }
+                     Spacer(Modifier.width(0.dp))
++                }
+                 }
+                 PremiumDivider(compactLayout = compactLayout)
+                 Spacer(Modifier.height(if (compactLayout) 8.dp else 12.dp))
+@@ -1407,12 +1411,14 @@
+                         border = BorderStroke(1.dp, PremiumGoldBorder),
+                         shape = RoundedCornerShape(if (compactLayout) 14.dp else 18.dp)
+                     )
++                    .kidsPanel()
+                     .padding(
+                         horizontal = if (compactLayout) 8.dp else 12.dp,
+                         vertical = if (compactLayout) 6.dp else 10.dp
+                     )
+             ) {
+-                Row(
++                if (KidsAppearance.active) { KidsCatalogHeader(compactLayout) } else {
++                    Row(
+                     modifier = Modifier.fillMaxWidth(),
+                     horizontalArrangement = Arrangement.spacedBy(if (compactLayout) 6.dp else 10.dp),
+                     verticalAlignment = Alignment.CenterVertically
+@@ -1430,6 +1436,7 @@
+                         Spacer(Modifier.height(0.dp))
+                     }
+                     Spacer(Modifier.width(0.dp))
++                }
+                 }
+                 PremiumDivider(compactLayout = compactLayout)
+                 Spacer(Modifier.height(if (compactLayout) 8.dp else 12.dp))
+@@ -1536,6 +1543,7 @@
+                     compactLayout = compactLayout
+                 )
+                 Spacer(Modifier.height(if (compactLayout) 10.dp else 16.dp))
++                KidsCatalogTitle("SÉRIES KIDS", totalSeriesCount)
+                 br.com.flaviotorres.iptvpremium.ui.components.CatalogTwoRowFrame(
+                     columns = gridColumns,
+                     compactLayout = compactLayout,
+@@ -1947,7 +1955,7 @@
+             value = value,
+             active = active,
+             cursorPosition = cursorPosition,
+-            placeholder = "Pesquisar séries...",
++            placeholder = if (KidsAppearance.active) "Qual aventura vamos assistir?" else "Pesquisar séries...",
+             modifier = Modifier.weight(1f),
+             fontSize = if (compactLayout) 12.sp else 14.sp
+         )
+@@ -2161,7 +2169,8 @@
+         verticalAlignment =
+             Alignment.CenterVertically
+     ) {
+-        if (customTitle != null) {
++        if (KidsAppearance.active && customTitle != null) KidsCategoryIcon(customTitle)
++        else if (customTitle != null) {
+             SeriesCategoryIcon(type = SeriesNavIcon.GENERIC, compactLayout = compactLayout)
+         } else {
+             BrandMark(category = category, compactLayout = compactLayout)
+@@ -2233,6 +2242,9 @@
+     category: SeriesCategory,
+     compactLayout: Boolean
+ ) {
++    if (KidsAppearance.active && category !in listOf(SeriesCategory.FAVORITES, SeriesCategory.CONTINUE_WATCHING)) {
++        KidsCategoryIcon(category.title); return
++    }
+     val type = when (category) {
+         SeriesCategory.ALL -> SeriesNavIcon.ALL
+         SeriesCategory.CONTINUE_WATCHING -> SeriesNavIcon.CONTINUE
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -1,5 +1,6 @@
+ package br.com.flaviotorres.iptvpremium.ui.movies
+ 
++import br.com.flaviotorres.iptvpremium.ui.kids.*
+ import androidx.compose.runtime.CompositionLocalProvider
+ import androidx.compose.foundation.layout.wrapContentWidth
+ import br.com.flaviotorres.iptvpremium.ui.components.reinforcedCatalogFocus
+@@ -714,10 +715,12 @@
+                         border = BorderStroke(1.dp, PremiumGoldBorder),
+                         shape = categoryPanelShape
+                     )
++                    .kidsPanel()
+                     .padding(horizontal = if (compactLayout) 8.dp else 12.dp,
+                         vertical = if (compactLayout) 6.dp else 10.dp)
+             ) {
+-                Row(
++                if (KidsAppearance.active) { KidsCatalogHeader(compactLayout) } else {
++                    Row(
+                     modifier = Modifier.fillMaxWidth(),
+                     horizontalArrangement = Arrangement.spacedBy(if (compactLayout) 6.dp else 10.dp),
+                     verticalAlignment = Alignment.CenterVertically
+@@ -735,6 +738,7 @@
+                         Spacer(Modifier.height(0.dp))
+                     }
+                     Spacer(Modifier.width(0.dp))
++                }
+                 }
+ 
+                 Spacer(modifier = Modifier.height(if (compactLayout) 5.dp else 8.dp))
+@@ -971,6 +975,7 @@
+                     )
+                 )
+ 
++                KidsCatalogTitle("FILMES KIDS", totalMovieCount)
+                 br.com.flaviotorres.iptvpremium.ui.components.CatalogTwoRowFrame(
+                     columns = gridColumns,
+                     compactLayout = compactLayout,
+@@ -1570,7 +1575,7 @@
+             value = value,
+             active = active,
+             cursorPosition = cursorPosition,
+-            placeholder = "Pesquisar filmes...",
++            placeholder = if (KidsAppearance.active) "Qual aventura vamos assistir?" else "Pesquisar filmes...",
+             modifier = Modifier.weight(1f),
+             fontSize = if (compactLayout) 12.sp else 14.sp
+         )
+@@ -1930,10 +1935,12 @@
+         verticalAlignment =
+             Alignment.CenterVertically
+     ) {
++        if (KidsAppearance.active) KidsCategoryIcon(title) else {
+         MovieCategoryIcon(
+             type = MovieNavIcon.GENERIC,
+             compactLayout = compactLayout
+         )
++        }
+ 
+         Spacer(
+             modifier = Modifier.width(
+@@ -2002,6 +2009,9 @@
+     category: MovieCategory,
+     compactLayout: Boolean
+ ) {
++    if (KidsAppearance.active && category !in listOf(MovieCategory.FAVORITES, MovieCategory.CONTINUE_WATCHING)) {
++        KidsCategoryIcon(category.title); return
++    }
+     val type = when (category) {
+         MovieCategory.ALL -> MovieNavIcon.ALL
+         MovieCategory.CONTINUE_WATCHING -> MovieNavIcon.CONTINUE
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
+@@ -1,5 +1,6 @@
+ package br.com.flaviotorres.iptvpremium.ui.live
+ 
++import br.com.flaviotorres.iptvpremium.ui.kids.*
+ import android.os.SystemClock
+ import android.net.Uri
+ import androidx.compose.ui.platform.LocalContext
+@@ -841,12 +842,13 @@
+                         ),
+                         shape = RoundedCornerShape(if (compactLayout) 16.dp else 20.dp)
+                     )
++                    .kidsPanel()
+                     .padding(if (compactLayout) 10.dp else 14.dp)
+             ) {
+                 Row(
+                     modifier = Modifier
+                         .fillMaxWidth()
+-                        .height(topBarHeight)
++                        .height(if (KidsAppearance.active) { if(compactLayout)128.dp else 154.dp } else topBarHeight)
+                         .clickable(
+                             enabled = leftPaneMode == LeftPaneMode.CHANNELS,
+                             onClick = {
+@@ -855,6 +857,10 @@
+                         ),
+                     verticalAlignment = Alignment.CenterVertically
+                 ) {
++                    if (KidsAppearance.active) {
++                        KidsCatalogHeader(compactLayout, if(leftPaneMode == LeftPaneMode.CATEGORIES) "MINHAS AVENTURAS"
++                            else "‹ " + cleanCategoryDisplayName(selectedCategory.title))
++                    } else {
+                     AppLogo(
+                         compactLayout = compactLayout
+                     )
+@@ -888,6 +894,8 @@
+                     }
+ 
+                     Spacer(Modifier.width(0.dp))
++                
++                    }
+                 }
+ 
+                 PremiumOrnamentDivider(compactLayout = compactLayout)
+@@ -1522,7 +1530,7 @@
+             value = query,
+             active = active,
+             cursorPosition = cursorPosition,
+-            placeholder = "Pesquisar canais",
++            placeholder = if (KidsAppearance.active) "Qual canal vamos assistir?" else "Pesquisar canais",
+             modifier = Modifier.weight(1f),
+             fontSize = if (compactLayout) 11.sp else 13.sp
+         )
+@@ -1716,6 +1724,10 @@
+             .padding(horizontal = if (compactLayout) 12.dp else 15.dp),
+         verticalAlignment = Alignment.CenterVertically
+     ) {
++        if (KidsAppearance.active) {
++            KidsCategoryIcon(title)
++            Spacer(Modifier.width(8.dp))
++        }
+         Text(
+             text = title,
+             modifier = Modifier.weight(1f),
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/PremiumThemes.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/PremiumThemes.kt
+@@ -20,15 +20,18 @@
+ }
+ 
+ object ThemeState {
+-    var selected by mutableStateOf(PremiumTheme.GOLD)
+-        private set
++    private var mainSelected by mutableStateOf(PremiumTheme.GOLD)
++    private var kidsPalette by mutableStateOf<PremiumTheme?>(null)
++    val selected: PremiumTheme get() = kidsPalette ?: mainSelected
++    internal fun useKidsPalette(theme: PremiumTheme?) { kidsPalette = theme }
+     fun initialize(context: Context) {
+-        selected = PremiumTheme.fromKey(context.applicationContext.getSharedPreferences("iptvpremium_settings_v2", Context.MODE_PRIVATE).getString("visual_theme", "gold"))
++        kidsPalette = null
++        mainSelected = PremiumTheme.fromKey(context.applicationContext.getSharedPreferences("iptvpremium_settings_v2", Context.MODE_PRIVATE).getString("visual_theme", "gold"))
+     }
+     fun choose(context: Context, theme: PremiumTheme) {
+         context.applicationContext.getSharedPreferences("iptvpremium_settings_v2", Context.MODE_PRIVATE)
+             .edit().putString("visual_theme", theme.key).apply()
+-        selected = theme
++        mainSelected = theme
+     }
+ }
+ 
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsAppearance.kt
+@@ -0,0 +1,182 @@
++package br.com.flaviotorres.iptvpremium.ui.kids
++
++import androidx.compose.foundation.Canvas
++import androidx.compose.foundation.Image
++import androidx.compose.foundation.background
++import androidx.compose.foundation.layout.*
++import androidx.compose.runtime.*
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.drawWithCache
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.geometry.Size
++import androidx.compose.ui.graphics.*
++import androidx.compose.ui.graphics.drawscope.*
++import androidx.compose.ui.graphics.painter.Painter
++import androidx.compose.ui.layout.ContentScale
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.unit.*
++import androidx.tv.material3.Text
++import br.com.flaviotorres.iptvpremium.R
++import br.com.flaviotorres.iptvpremium.ui.theme.PremiumTheme
++import br.com.flaviotorres.iptvpremium.ui.theme.ThemeState
++import br.com.flaviotorres.iptvpremium.ui.theme.themePainterResource
++
++internal enum class KidsStyle(val key:String,val label:String,val accent:Color,val theme:PremiumTheme) {
++    BLUE("blue","Azul",Color(0xFF51C8FF),PremiumTheme.BLUE),
++    PINK("pink","Rosa",Color(0xFFFF86D5),PremiumTheme.PINK);
++    val home:Int get()=if(this==BLUE)R.drawable.kids_home_blue else R.drawable.kids_home_pink
++    companion object { fun fromKey(key:String?)=entries.firstOrNull {it.key==key}?:BLUE }
++}
++
++/** Aparência infantil é independente da preferência do menu principal. */
++internal object KidsAppearance {
++    var active by mutableStateOf(false); private set
++    var style by mutableStateOf(KidsStyle.BLUE); private set
++    fun apply(active:Boolean,key:String?) {
++        this.active=active;style=KidsStyle.fromKey(key)
++        ThemeState.useKidsPalette(if(active)style.theme else null)
++    }
++    val accent get()=style.accent
++}
++
++/** Desconhecidos recebem um símbolo sorteado pelo nome: estável ao voltar/reiniciar. */
++internal fun kidsCategorySymbol(name:String):Int {
++    val folded=KidsContent.folded(name)
++    return when {
++        Regex("halloween|abobora|bruxa").containsMatchIn(folded)->2
++        Regex("fantasm|assombr|ghost|spooky").containsMatchIn(folded)->3
++        Regex("aventur|adventur|espac|space|rocket|astron|\\bacao\\b|foguet").containsMatchIn(folded)->1
++        Regex("princes|castel|castle|fadas|fairy|contos").containsMatchIn(folded)->4
++        Regex("ocean|aquatic|tartarug|turtle|natureza|\\bmar\\b").containsMatchIn(folded)->5
++        Regex("animais|pets|cachorr|gatinh|patrulha").containsMatchIn(folded)->7
++        Regex("todos|estrela|musica|lancamento").containsMatchIn(folded)->6
++        Regex("kids|infantil|desenho|cartoon|animacao|familia|family|children").containsMatchIn(folded)->0
++        else->Math.floorMod(folded.hashCode(),8)
++    }
++}
++
++private class AtlasPainter(private val source:Painter,private val columns:Int,private val rows:Int,private val index:Int):Painter() {
++    private val full=source.intrinsicSize
++    override val intrinsicSize=Size(full.width/columns,full.height/rows)
++    override fun DrawScope.onDraw() {
++        if(!full.width.isFinite() || full.width<=0 || !full.height.isFinite() || full.height<=0)return
++        val cell=intrinsicSize
++        clipRect {
++            withTransform({
++                scale(size.width/cell.width,size.height/cell.height,Offset.Zero)
++                translate(-(index%columns)*cell.width,-(index/columns)*cell.height)
++            }) { with(source) {draw(full)} }
++        }
++    }
++}
++
++@Composable
++internal fun KidsCategoryIcon(name:String,modifier:Modifier=Modifier) {
++    val label=KidsContent.folded(name)
++    if("favorit" in label || "continua" in label) {
++        val accent=KidsAppearance.accent
++        Canvas(modifier.size(30.dp)) {
++            val u=size.minDimension/24f
++            if("favorit" in label) {
++                val heart=Path().apply {
++                    moveTo(12*u,21*u);cubicTo(1*u,14*u,0f,7*u,5*u,4*u)
++                    cubicTo(8*u,2*u,11*u,4*u,12*u,6*u)
++                    cubicTo(14*u,1*u,21*u,2*u,22*u,7*u)
++                    cubicTo(24*u,12*u,19*u,16*u,12*u,21*u);close()
++                }
++                drawPath(heart,Brush.verticalGradient(listOf(Color.White,accent,accent.copy(alpha=.65f))))
++            } else {
++                drawCircle(Brush.verticalGradient(listOf(accent,accent.copy(alpha=.4f))))
++                val play=Path().apply {moveTo(9*u,6*u);lineTo(18*u,12*u);lineTo(9*u,18*u);close()}
++                drawPath(play,Color.White)
++            }
++        }
++        return
++    }
++    val source=themePainterResource(R.drawable.kids_category_symbols,IntSize(1024,512))
++    val index=kidsCategorySymbol(name)
++    val painter=remember(source,index){AtlasPainter(source,4,2,index)}
++    Image(painter,null,modifier.size(30.dp),contentScale=ContentScale.Fit)
++}
++
++@Composable
++internal fun KidsBrand(modifier:Modifier=Modifier,style:KidsStyle=KidsAppearance.style) {
++    val source=themePainterResource(R.drawable.kids_brand_marks,IntSize(768,384))
++    val painter=remember(source,style){AtlasPainter(source,2,1,style.ordinal)}
++    Image(painter,"IPTV Premium Kids",modifier,contentScale=ContentScale.Fit)
++}
++
++@Composable
++internal fun KidsCatalogHeader(compact:Boolean,title:String="MINHAS AVENTURAS") {
++    Column(Modifier.fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally) {
++        KidsBrand(Modifier.fillMaxWidth().height(if(compact)96.dp else 118.dp))
++        Text(title,color=KidsAppearance.accent,fontSize=if(compact)12.sp else 15.sp,
++            fontWeight=FontWeight.ExtraBold,letterSpacing=1.sp,maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
++        Spacer(Modifier.height(6.dp))
++    }
++}
++
++@Composable
++internal fun KidsHomeArtwork(style:KidsStyle,modifier:Modifier=Modifier,labels:Boolean=false) {
++    Box(modifier) {
++        Image(themePainterResource(style.home,IntSize(1920,1080)),null,Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)
++        if(labels) Row(Modifier.fillMaxWidth(.94f).align(Alignment.BottomCenter).padding(bottom=8.dp),horizontalArrangement=Arrangement.SpaceAround) {
++            listOf("CANAIS","FILMES","SÉRIES").forEach {Text(it,color=Color.White,fontSize=10.sp,fontWeight=FontWeight.Black)}
++        }
++    }
++}
++
++/** Decoração estática: sem shimmer, partículas animadas ou trabalho por foco. */
++@Composable
++internal fun KidsScenery(modifier:Modifier=Modifier,panel:Boolean=false) {
++    val accent=KidsAppearance.accent
++    val pink=KidsAppearance.style==KidsStyle.PINK
++    Canvas(modifier) {
++        drawRect(Brush.verticalGradient(if(pink)listOf(Color(0xFF1B0625),Color(0xFF080411))else listOf(Color(0xFF031B38),Color(0xFF020714))))
++        fun star(center:Offset,r:Float,color:Color) {
++            val path=Path()
++            for(i in 0..9) {
++                val a=-Math.PI/2+i*Math.PI/5;val radius=if(i%2==0)r else r*.42f
++                val p=Offset(center.x+kotlin.math.cos(a).toFloat()*radius,center.y+kotlin.math.sin(a).toFloat()*radius)
++                if(i==0)path.moveTo(p.x,p.y)else path.lineTo(p.x,p.y)
++            };path.close();drawPath(path,color)
++        }
++        repeat(if(panel)12 else 35) {i->
++            val x=((i*73+13)%101)/101f*size.width;val y=((i*47+9)%103)/103f*size.height
++            if(!panel || y>size.height*.72f)star(Offset(x,y),if(i%5==0)4.dp.toPx()else 1.4.dp.toPx(),if(i%5==0)Color(0xFFEACB7E)else accent.copy(alpha=.45f))
++        }
++        val cloud=if(pink)Color(0xFF491444)else Color(0xFF063168)
++        repeat(8){i->drawCircle(cloud,28.dp.toPx(),Offset(i*size.width/6,size.height+(if(i%2==0)8.dp else 22.dp).toPx()))}
++        for(top in listOf(-7.dp.toPx(),size.height-12.dp.toPx())) {
++            drawRect(accent.copy(alpha=.15f),Offset(0f,top),Size(size.width,18.dp.toPx()))
++            repeat((size.width/14.dp.toPx()).toInt()+1){i->drawRect(accent.copy(alpha=.28f),Offset(i*14.dp.toPx(),top+3.dp.toPx()),Size(6.dp.toPx(),4.dp.toPx()))}
++        }
++    }
++}
++
++/** Aplicado só à superfície do painel, depois do seu fundo e antes do conteúdo. */
++internal fun Modifier.kidsPanel():Modifier=if(!KidsAppearance.active)this else this.drawKidsPanel()
++private fun Modifier.drawKidsPanel()=drawWithCache {
++    val accent=KidsAppearance.accent
++    onDrawBehind {
++        drawRect(Brush.verticalGradient(listOf(accent.copy(alpha=.12f),Color.Transparent,accent.copy(alpha=.10f))))
++        repeat(7){i->drawCircle(accent.copy(alpha=.14f),12.dp.toPx(),Offset(i*size.width/5,size.height+if(i%2==0)0f else 10.dp.toPx()))}
++        val ribbon=Path().apply {
++            moveTo(-size.width*.1f,size.height-35.dp.toPx())
++            cubicTo(size.width*.35f,size.height-75.dp.toPx(),size.width*.45f,size.height+35.dp.toPx(),size.width*1.1f,size.height-10.dp.toPx())
++        }
++        drawPath(ribbon,accent.copy(alpha=.25f),style=Stroke(16.dp.toPx()))
++        drawPath(ribbon,Color.Black.copy(alpha=.35f),style=Stroke(7.dp.toPx()))
++    }
++}
++
++@Composable
++internal fun KidsCatalogTitle(title:String,count:Int) {
++    if(!KidsAppearance.active)return
++    Row(Modifier.fillMaxWidth().padding(start=6.dp,bottom=5.dp),verticalAlignment=Alignment.CenterVertically,
++        horizontalArrangement=Arrangement.spacedBy(12.dp)) {
++        Text(title,color=KidsAppearance.accent,fontSize=16.sp,fontWeight=FontWeight.Black,letterSpacing=.7.sp)
++        Text("$count ITENS",color=KidsAppearance.accent.copy(alpha=.8f),fontSize=10.sp)
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogThemeBackdrop.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogThemeBackdrop.kt
+@@ -19,6 +19,10 @@
+ /** Shared catalogue wallpaper; only this static decorative layer is blurred. */
+ @Composable
+ internal fun CatalogThemeBackdrop(modifier: Modifier = Modifier) {
++    if (br.com.flaviotorres.iptvpremium.ui.kids.KidsAppearance.active) {
++        br.com.flaviotorres.iptvpremium.ui.kids.KidsScenery(modifier)
++        return
++    }
+     Box(modifier.clipToBounds()) {
+         Image(themeBackdropPainter(R.drawable.home_background, 24.dp), null,
+             modifier = Modifier.fillMaxSize().blur(24.dp), contentScale = ContentScale.Crop)
+@@ -29,6 +33,9 @@
+ 
+ /** Neutral smoked glass avoids tinting all panels brown/olive in the Gold theme. */
+ internal object CatalogGlass {
+-    val panelBrush get() = Brush.verticalGradient(listOf(Color(0xC00B0D10), Color(0xC00B0D10)))
++    val panelBrush get() = if (br.com.flaviotorres.iptvpremium.ui.kids.KidsAppearance.active)
++        Brush.verticalGradient(if(br.com.flaviotorres.iptvpremium.ui.kids.KidsAppearance.style == br.com.flaviotorres.iptvpremium.ui.kids.KidsStyle.PINK)
++            listOf(Color(0xEB230A25),Color(0xDD120718)) else listOf(Color(0xEB05152C),Color(0xDD060B1B)))
++        else Brush.verticalGradient(listOf(Color(0xC00B0D10), Color(0xC00B0D10)))
+     fun surface(source: Long): Color = Color(source)
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsHubPages.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsHubPages.kt
+@@ -105,6 +105,14 @@
+                     }
+                 }
+                 Spacer(Modifier.height(4.dp))
++                Text("Visual do Kids", color = pageGold, fontSize = 18.sp)
++                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
++                    br.com.flaviotorres.iptvpremium.ui.kids.KidsStyle.entries.forEach { style ->
++                        AppearanceChoice("Kids · " + style.label, settings.kidsStyle() == style.key, Modifier.weight(1f), style.accent) {
++                            settings.setKidsStyle(style.key)
++                        }
++                    }
++                }
+                 Text("Tamanho dos textos", color = pageGold, fontSize = 18.sp)
+                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                     listOf(1f to "Padrão", 1.1f to "Maior", 1.2f to "Extra grande").forEach { (scale, title) ->
+@@ -130,6 +138,11 @@
+                 Column(Modifier.weight(.42f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                     Text("Prévia · " + selectedTheme.label, color = pageGold, fontSize = 18.sp)
+                     AppearanceThemePreview(compact = true)
++                    Text("Kids · " + br.com.flaviotorres.iptvpremium.ui.kids.KidsStyle.fromKey(settings.kidsStyle()).label, color = pageGold, fontSize = 16.sp)
++                    br.com.flaviotorres.iptvpremium.ui.kids.KidsHomeArtwork(
++                        br.com.flaviotorres.iptvpremium.ui.kids.KidsStyle.fromKey(settings.kidsStyle()),
++                        Modifier.fillMaxWidth().aspectRatio(16f/9f).clip(RoundedCornerShape(12.dp)), labels=true)
++
+                     Text("Grade · ${settings.catalogColumns()} por fileira · ${settings.catalogColumns() * 2} capas",
+                         color = pageGold, fontSize = 16.sp)
+                     br.com.flaviotorres.iptvpremium.ui.components.CatalogLayoutPreview(settings.catalogColumns())
+@@ -140,6 +153,10 @@
+             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                 controls()
+                 AppearanceThemePreview()
++                br.com.flaviotorres.iptvpremium.ui.kids.KidsHomeArtwork(
++                    br.com.flaviotorres.iptvpremium.ui.kids.KidsStyle.fromKey(settings.kidsStyle()),
++                    Modifier.fillMaxWidth().aspectRatio(16f/9f).clip(RoundedCornerShape(12.dp)), labels=true)
++
+                 Text("Grade · ${settings.catalogColumns()} por fileira · ${settings.catalogColumns() * 2} capas",
+                     color = pageGold, fontSize = 16.sp)
+                 br.com.flaviotorres.iptvpremium.ui.components.CatalogLayoutPreview(settings.catalogColumns())
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsPreferences.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsPreferences.kt
+@@ -12,6 +12,11 @@
+         preferredEngine = if (prefs.getString("engine", "media3") == "vlc") PlaybackEngine.VLC else PlaybackEngine.MEDIA3,
+         autoPlayNextEpisode = prefs.getBoolean("auto_next", true)
+     )
++    fun kidsStyle(): String = br.com.flaviotorres.iptvpremium.ui.kids.KidsStyle.fromKey(prefs.getString("kids_style", "blue")).key
++    fun setKidsStyle(value: String) {
++        require(value == "blue" || value == "pink")
++        prefs.edit().putString("kids_style", value).apply()
++    }
+     fun catalogColumns(): Int = prefs.getInt("catalog_columns", 5).let { if (it == 4) 4 else 5 }
+     fun setCatalogColumns(value: Int) { require(value == 4 || value == 5); prefs.edit().putInt("catalog_columns", value).apply() }
+     fun textScale(): Float = prefs.getFloat("text_scale", 1f).coerceIn(1f, 1.2f)
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsAppearanceDeviceTest.kt
+@@ -0,0 +1,138 @@
++package br.com.flaviotorres.iptvpremium.ui.kids
++
++import android.content.Context
++import androidx.compose.foundation.Image
++import androidx.compose.foundation.layout.*
++import androidx.compose.runtime.*
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.focus.FocusRequester
++import androidx.compose.ui.graphics.*
++import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
++import androidx.compose.ui.graphics.painter.Painter
++import androidx.compose.ui.input.key.Key
++import androidx.compose.ui.test.*
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.unit.*
++import androidx.test.core.app.ApplicationProvider
++import androidx.paging.compose.collectAsLazyPagingItems
++import br.com.flaviotorres.iptvpremium.ui.settings.*
++import br.com.flaviotorres.iptvpremium.ui.theme.*
++import org.junit.*
++import org.junit.Assert.*
++
++@OptIn(ExperimentalTestApi::class)
++@org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
++class KidsAppearanceDeviceTest {
++    @get:Rule val compose=createComposeRule()
++    private val context get()=ApplicationProvider.getApplicationContext<Context>()
++    @Before fun setup() {KidsAppearance.apply(false,"blue");ThemeState.choose(context,PremiumTheme.GOLD);SettingsPreferences(context).setKidsStyle("blue")}
++    @After fun cleanup() {KidsAppearance.apply(false,"blue");ThemeState.choose(context,PremiumTheme.GOLD)}
++
++    @Test fun personalisationPersistsPinkChoiceAndKeepsMainTheme() {
++        val settings=SettingsPreferences(context);ThemeState.choose(context,PremiumTheme.EMERALD)
++        compose.setContent {Column(Modifier.requiredSize(960.dp,540.dp)){AppearancePreferencesSettings(FocusRequester())}}
++        compose.onNode(hasText("Kids · Rosa",substring=true) and hasClickAction()).performClick()
++        compose.onNode(hasText("Kids · Rosa",substring=true) and hasClickAction()).assertIsSelected()
++        assertEquals("pink",SettingsPreferences(context).kidsStyle())
++        assertEquals(PremiumTheme.EMERALD,ThemeState.selected)
++    }
++    @Test fun enteringKidsUsesItsPaletteAndExitRestoresMainThemeWithoutOverwritingPrefs() {
++        ThemeState.choose(context,PremiumTheme.RED)
++        KidsAppearance.apply(true,"blue");assertEquals(PremiumTheme.BLUE,ThemeState.selected)
++        KidsAppearance.apply(true,"pink");assertEquals(PremiumTheme.PINK,ThemeState.selected)
++        assertEquals("red",SettingsPreferences(context).prefs.getString("visual_theme",null))
++        KidsAppearance.apply(false,"pink");assertEquals(PremiumTheme.RED,ThemeState.selected)
++    }
++    @Test fun unknownPreferenceDefaultsToBlueAndInvalidInputIsRejected() {
++        val settings=SettingsPreferences(context);settings.prefs.edit().putString("kids_style","unknown").commit()
++        assertEquals("blue",settings.kidsStyle())
++        try {settings.setKidsStyle("red");fail("Unknown style accepted")}catch(_:IllegalArgumentException){}
++    }
++    @Test fun categoriesUseMeaningfulSymbolsAndUnknownNamesStayStable() {
++        assertEquals(0,kidsCategorySymbol("Animação e Infantil"));assertEquals(1,kidsCategorySymbol("Aventuras"))
++        assertEquals(2,kidsCategorySymbol("Halloween Kids"));assertEquals(3,kidsCategorySymbol("Fantasminhas"))
++        assertEquals(4,kidsCategorySymbol("Princesas"));assertEquals(5,kidsCategorySymbol("Fundo do Mar"))
++        assertEquals(7,kidsCategorySymbol("Pets"));assertEquals(6,kidsCategorySymbol("Todos"))
++        val names=(1..40).map {"Canal desconhecido $it"}
++        for(n in names) {val first=kidsCategorySymbol(n);assertTrue(first in 0..7);assertEquals(first,kidsCategorySymbol(n.uppercase()))}
++        assertTrue(names.map(::kidsCategorySymbol).toSet().size>4)
++    }
++    @Test fun kidsHomeHasThreeRemoteActionsAndNoCornerButtons() {
++        var movies=0;var back=0
++        compose.setContent {Box(Modifier.requiredSize(960.dp,540.dp)){KidsScreen({}, {movies++},{},{back++})}}
++        compose.onNodeWithText("CANAIS").assertIsFocused()
++        compose.onRoot().performKeyInput {pressKey(Key.DirectionRight);pressKey(Key.Enter)}
++        assertEquals(1,movies)
++        compose.onNodeWithContentDescription("Home").assertDoesNotExist()
++        compose.onNodeWithContentDescription("Controle parental").assertDoesNotExist()
++        compose.onRoot().performKeyInput {pressKey(Key.Escape)};assertEquals(1,back)
++    }
++    @Test fun blueHomeArtworkLoadsWithLandscapeShape() = homeArtwork(KidsStyle.BLUE)
++    @Test fun pinkHomeArtworkLoadsWithLandscapeShape() = homeArtwork(KidsStyle.PINK)
++    private fun homeArtwork(style:KidsStyle) {
++        var painter:Painter?=null
++        compose.setContent {painter=themePainterResource(style.home,IntSize(960,540));Image(painter!!,null,Modifier.size(640.dp,360.dp))}
++        compose.waitUntil(10000){painter?.javaClass?.simpleName=="ArtworkPainter"}
++        val pixels=render(painter!!,320,180).toPixelMap();var colored=0
++        for(y in 0 until pixels.height step 4)for(x in 0 until pixels.width step 4) {
++            val c=pixels[x,y]
++            if(style==KidsStyle.BLUE && c.blue>c.red*1.25f)colored++
++            if(style==KidsStyle.PINK && c.red>c.green*1.25f)colored++
++        }
++        assertTrue("Selected Kids art must be visibly colored",colored>300)
++    }
++    private fun render(painter:Painter,width:Int,height:Int):ImageBitmap {
++        val bitmap=ImageBitmap(width,height)
++        CanvasDrawScope().draw(Density(1f),LayoutDirection.Ltr,Canvas(bitmap),androidx.compose.ui.geometry.Size(width.toFloat(),height.toFloat())) {
++            with(painter){draw(size)}
++        }
++        return bitmap
++    }
++    @Test fun kidsMovieSidebarAndSearchAreThemedWithoutChangingCategories() {
++        KidsAppearance.apply(true,"blue")
++        compose.setContent {Box(Modifier.requiredSize(960.dp,540.dp)){br.com.flaviotorres.iptvpremium.ui.movies.MoviesScreen()}}
++        compose.onNodeWithText("MINHAS AVENTURAS").assertExists()
++        compose.onNodeWithText("Qual aventura vamos assistir?").assertExists()
++        compose.onNodeWithText("FILMES KIDS").assertExists()
++        compose.onNodeWithTag("movie-category-ALL").assertExists()
++    }
++    @Test fun normalMovieSidebarRetainsNormalHeadingAndSearch() {
++        compose.setContent {Box(Modifier.requiredSize(960.dp,540.dp)){br.com.flaviotorres.iptvpremium.ui.movies.MoviesScreen()}}
++        compose.onNodeWithText("CATEGORIAS").assertExists()
++        compose.onNodeWithText("Pesquisar filmes...").assertExists()
++        compose.onNodeWithText("MINHAS AVENTURAS").assertDoesNotExist()
++    }
++    @Test fun kidsSeriesProviderEscapeRestoresCategoryAndPreservesItsId() {
++        KidsAppearance.apply(true,"pink")
++        val chosen=java.util.concurrent.atomic.AtomicReference<String?>(null)
++        val categories=List(24) { i->br.com.flaviotorres.iptvpremium.domain.model.Category("kids-$i","Infantil $i",
++            br.com.flaviotorres.iptvpremium.domain.model.CategoryType.SERIES,
++            br.com.flaviotorres.iptvpremium.domain.model.CategorySource.PROVIDER) }
++        fun page()=androidx.paging.PagingData.from(List(20) {i->br.com.flaviotorres.iptvpremium.domain.model.Series("s$i","Série $i",null,null,null,2026,8.0,null)})
++        val data=kotlinx.coroutines.flow.MutableStateFlow(page())
++        compose.setContent {
++            val paging=data.collectAsLazyPagingItems()
++            Box(Modifier.requiredSize(960.dp,540.dp)) {br.com.flaviotorres.iptvpremium.ui.series.SeriesScreen(
++                pagedSeries=paging,pagingCategories=categories,totalSeriesCount=20,
++                onSourceCategorySelected={chosen.set(it);data.value=page()})}
++        }
++        compose.onNodeWithText("SÉRIES KIDS").assertExists()
++        compose.onNodeWithTag("series-category-list").performScrollToKey("provider:kids-20")
++        compose.onNodeWithTag("series-category-Infantil 20").performClick()
++        compose.waitForIdle();compose.mainClock.advanceTimeBy(1000)
++        compose.runOnIdle {
++            check(br.com.flaviotorres.iptvpremium.ui.components.CatalogHardwareEscape.down(false))
++            check(br.com.flaviotorres.iptvpremium.ui.components.CatalogHardwareEscape.up())
++        }
++        compose.waitUntil(5000) {compose.onAllNodesWithTag("series-category-Infantil 20").filter(isFocused()).fetchSemanticsNodes().isNotEmpty()}
++        compose.onNodeWithTag("series-category-Infantil 20").performKeyInput {pressKey(Key.DirectionDown);pressKey(Key.DirectionCenter)}
++        compose.waitForIdle();assertEquals("kids-21",chosen.get())
++    }
++    @Test fun pinkSidebarUsesPinkBrandAndPreservesProviderNames() {
++        KidsAppearance.apply(true,"pink")
++        compose.setContent {Column {KidsCatalogHeader(true);KidsCategoryIcon("Halloween Kids")}}
++        compose.onNodeWithContentDescription("IPTV Premium Kids").assertExists()
++        compose.onNodeWithText("MINHAS AVENTURAS").assertExists()
++        assertEquals(KidsStyle.PINK,KidsAppearance.style)
++    }
++}
+Binary asset added: app/src/main/res/drawable-nodpi/kids_home_blue.png (SHA256 D89410CD4D8A45B7B90C636A183AD0DE3985D76E4158BC6CDF02036C2ABFD468)
+Binary asset added: app/src/main/res/drawable-nodpi/kids_home_pink.png (SHA256 F1F102E98E7456191B6E8E6CCE7DA5756481410490007F51A13A8E9A1C841B0B)
+Binary asset added: app/src/main/res/drawable-nodpi/kids_category_symbols.png (SHA256 0363252C47E6966D8C2ABE6E806282666DBFD5BD804AD2CEB17D02C1F441EB4F)
+Binary asset added: app/src/main/res/drawable-nodpi/kids_brand_marks.png (SHA256 C74A5312144682A6AF080845C9963A125BFAB292FBF7F6A20F606BCB44A3E940)
