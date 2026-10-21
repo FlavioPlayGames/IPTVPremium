@@ -1,0 +1,77 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "allowMissing": false,
+    "allowed": [
+      "00b6090826a79586f57ab620bd8b1191811c08f2616990bd93a68df51d2535d6",
+      "0680d99b68f7a0d5b4028f241f03aa48cef00b09891c7c65c0fca7ba29326dea",
+      "20a8ab5a96a03119f909a1c3c53c418885d2a75654406e22f5110f72d8dab0e1",
+      "7d809cb592538d3d262f8dd496718c29d762eccb7f92c216571de7564484a2d4",
+      "ba808d28dacee2af7fdbafde0172d46e096e4e7dba6325b29c9c4ef5e90a5d98",
+      "c17d180301dfc62ddd3917fdd681ce584c5f632888a2347920fd6508a1702065",
+      "cfe2be3a190704b6fb3a9fd38d0ad4b0c154ab5056e8718fed23c0e787c23884",
+      "ecbfadb5ac7fc2b71e86a601d0dac184771e8a7fae0afed0c221a4e6e409f66b"
+    ],
+    "sha": "cfe2be3a190704b6fb3a9fd38d0ad4b0c154ab5056e8718fed23c0e787c23884"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "allowMissing": false,
+    "allowed": [
+      "606fce3e37ae2ed8afdbe82d50cb299991e19850d8fdbac854b62b579bdc968a",
+      "61ee7511f292b9dbd44b128ead47d804ff68fa8bace61a0ca824491a0d25c17a",
+      "8a70f418c96793f8e41771f5c3a636eb19f99b20bcb28635f7da77989d6b56ec",
+      "bf32bae9c0b1e6cf5cd5cab9f02d5c3d74a9098c7dcb999601d50372908e1382",
+      "c52318ff47a23a823ce4eb70237b969e94b3174c01f46956ed3d9567b3e4779a",
+      "d349e604aacb90e95317dc2d7d2e78d9dbb3d89a18c4bbd2b4bfb9946335a502",
+      "de37ee5536bb11eaa19cbc07dbfc3188406ae108a39d632727ccb8f87fcd9e84",
+      "f1d0228752ee3d5112f0e8358019893c01c14834f215b1572520177093226533"
+    ],
+    "sha": "61ee7511f292b9dbd44b128ead47d804ff68fa8bace61a0ca824491a0d25c17a"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt",
+    "allowMissing": false,
+    "allowed": [
+      "04e8fc9545f483b1a90d0d3229585292a93c9385cb366acbbb31e988ff7ff730",
+      "269de2d7882d70c95a4ef5495dd65c9a275383dffe9c51a01735ca3fb7452c29",
+      "41349ad64682d8a5a18292bc9077aea70a59110ee56592eb9b08dc4ecde86d3b",
+      "4e069325f77c1d8765733adcf66055a3f3676ddaeb9d02934a791759b2ff0490",
+      "5c807163f970dbb352e63eb59236b3235ecb6e032861876ece0362518fd62dac",
+      "74c69c0b9de0635bd8377c5e8d90cc6b037f8291da3dc1da22ab10592af8ea9c",
+      "9c575d222833872defacb53b6b753fb33c70f9b263e69b7dbbc313bfbd41309e",
+      "ab92e36663cd57d32ea1234c0e67c470ef50c121af3ce41b8c9e72ab825fb960"
+    ],
+    "sha": "4e069325f77c1d8765733adcf66055a3f3676ddaeb9d02934a791759b2ff0490"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/dao/PlaylistCacheDao.kt",
+    "allowMissing": false,
+    "allowed": [
+      "4ddcf3a0c56e45072b2d1de77946fcd87da58eb51045843e1626b679aeaa4157",
+      "586f5ea6094b48d786e8aa76d85f14d9830690db0062a7562adc56a708a02fe7",
+      "5c416483d1b7d963118a466d3e39564476c4e30733f0df85da3d32351461c725",
+      "786ad010f951ccf03e4080dcca544db41a56474f51f075e2d6ae389aa238317a",
+      "812aa16bcbf077450133c4a584eee63c2d3ed9eb29f802a3e8d95b7b3f883edd",
+      "85dee65f857c64d4d4f6e23ce5fcda1b9c2001e82bb05aa35dcb64f04e9aded3",
+      "878ebbedfb3fb6a99533a31a4b16290a6eab7a52799d69223c1b433d313bf029",
+      "92168f1a38803145e12304b92fd37b778ca1daa5bfd24fa81de2c7882697c6e4"
+    ],
+    "sha": "786ad010f951ccf03e4080dcca544db41a56474f51f075e2d6ae389aa238317a"
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/MovieCategoryRoomDeviceTest.kt",
+    "allowMissing": false,
+    "allowed": [
+      "10db3508d88cf88470b3c42c7545ac06e6f316c96c4f9035e3bb3a11f1b23760",
+      "651591026423f3305b6b5cd1598d09806118beece958329fb0dd3e913ea89c41",
+      "6e8a53ebf0c892b4165175843be79c26a3156b6c80117a3f916687d1d48bb127",
+      "9f2ff61e0d60fc9510a95a909fe4e0a238fdafb55002a3b6b2348743bda0ef1b",
+      "c154bf464834a30552439283a9c3195edec43a91f5d780b37f08cebdf313646c",
+      "e32480a544c2f6a17a3de43f64562799f4fd18620e9fb671ae3589c0f09f064a",
+      "ec658a21ccb114f5ee08ecda295443f218c0636b1f646166eb845dc831dd0362",
+      "ff40489b69bdc39a7dd96d242d936205df479d1e78eedea359aced221f6fa0c5"
+    ],
+    "sha": "10db3508d88cf88470b3c42c7545ac06e6f316c96c4f9035e3bb3a11f1b23760"
+  }
+]

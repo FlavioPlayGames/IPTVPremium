@@ -1,0 +1,1 @@
+PASS: 8 SQLite checks using the actual DAO annotation SQL. Mixed normal/subtitled movies restored in All, category and search; original counts restored; favorites and Kids restriction retained. No Android instrumentation executed here.

@@ -1,0 +1,4 @@
+assembleDebug assembleDebugAndroidTest compileReleaseKotlin
+BUILD SUCCESSFUL in 2m 22s
+83 actionable tasks: 12 executed, 71 up-to-date
+Configuration cache entry reused.
