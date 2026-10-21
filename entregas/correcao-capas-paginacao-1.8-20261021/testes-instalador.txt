@@ -1,0 +1,1 @@
+PASS: PowerShell installer parse and read-only check; patch exactly two files from the installed delivery; exact backup; other sources/images/version/config unchanged; reapplication check; unknown changes rejected before writing.

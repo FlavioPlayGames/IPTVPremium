@@ -1,0 +1,1 @@
+PASS: real Room/Paging offset utility, 12 catalogue sizes without repeats or gaps; original Refresh(150) reproduces backwards shift to 110. SQL/instrumentation not executed on JVM.

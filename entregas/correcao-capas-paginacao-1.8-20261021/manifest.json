@@ -1,0 +1,32 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt",
+    "allowMissing": false,
+    "allowed": [
+      "0e277263de175811fd001fba6dd4628dd29d4c278c1eb78c0e771d0276639a90",
+      "12461f4d9df24f73890a3009caf5d83a5d73fd6f8543e7b6d7d026c243ead08e",
+      "16a683105f00842c1e34121d1beeeba9f9a35ac0cb57ca2b83fc4f0f7133c131",
+      "4dda5846f30cfd2594fa2a86ffef612ee857df5603b0665552869339797dd0f6",
+      "acef5c733fe8be9f3222b6bc24eb9be6dd2a94f282f317878e6dfa0825d2d953",
+      "bfebd8372d8935800f19d2f9b6c9ed21db0c4fb4556a77cfe5cd544ff035df9d",
+      "e5472a0650c73bdba7533360a4edc2d22dc4a7012f72aa507d9dd0af4b573133",
+      "f5c8f087348aab252ce4bb204af5f2665634aae9d30d8ace0c01e2ba202d6251"
+    ],
+    "sha": "f5c8f087348aab252ce4bb204af5f2665634aae9d30d8ace0c01e2ba202d6251"
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterCategoryRoomDeviceTest.kt",
+    "allowMissing": false,
+    "allowed": [
+      "14a00f6e8e21db8a7d393543b309d74f3935cd38ae586d7059c0569891a1f077",
+      "27c4397ea2070030e0f4b168aef71af9f34f012f85cde67599ca55cd5c4f9350",
+      "2bea0444f92bf4478b9bef28518833beaedabe540d16a376008dc3d07aa86541",
+      "305416760a194a47a23da47671e12925af24f5a82ef68ff3339114ccadf2e7bc",
+      "3b4dcf2a2f216a9c46329b3e5556a39349708cd2411285387ea9d24b04802150",
+      "4de2afa53600f29a86e3c3f1caacdcfe21ce1d0b55eaca209ae74096c90d6a3d",
+      "9893aa776cdd6f62c70200ddd6230061d5a851036a400e6534fd9e846018fede",
+      "d604ab1be92e362d4bf323aec14b6821bcf2279735beef5c4aaa4e93516e119e"
+    ],
+    "sha": "27c4397ea2070030e0f4b168aef71af9f34f012f85cde67599ca55cd5c4f9350"
+  }
+]
