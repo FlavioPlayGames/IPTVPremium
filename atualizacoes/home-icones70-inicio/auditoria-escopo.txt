@@ -1,0 +1,6 @@
+Base: java.zip restaurado (192 arquivos Kotlin).
+Mudancas desta atualizacao: somente MarbleHomeGeometry.kt, MarbleLayeredHomeArtwork.kt e MarbledHomeScreen.kt.
+Outros 189 arquivos: sem novas alteracoes.
+As 3 alteracoes de classificacao publicadas em ead8db03206e0e1526e1bc2c3777d0d152e88b87 foram verificadas pelo payload e permanecem identicas.
+Os demais 186 arquivos permanecem identicos ao ZIP restaurado.
+Nenhum recurso, configuracao de build, assinatura ou limite de cache integra o instalador.

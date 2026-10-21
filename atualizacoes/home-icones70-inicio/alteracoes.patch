@@ -1,0 +1,185 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomeGeometry.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomeGeometry.kt
+@@ -1,6 +1,7 @@
+ package br.com.flaviotorres.iptvpremium.ui.home
+ 
+-/** 1672 x 941 layout: main PNGs reduced 5%, with uniform gaps and independent native captions. */
++/** The five main icons are 70% of their former size; anchors, captions and hit areas stay fixed. */
++internal const val MARBLE_MAIN_ICON_SCALE = .70f
+ internal data class MarbleRegion(val left:Int,val top:Int,val right:Int,val bottom:Int) {
+     val width get()=right-left
+     val height get()=bottom-top
+@@ -9,11 +10,19 @@
+     const val width=1672
+     const val height=941
+     val logo=MarbleRegion(570,45,1108,365)
+-    val icons=listOf(
++    private val originalIcons=listOf(
+         MarbleRegion(64,453,357,690), MarbleRegion(399,395,686,690),
+         MarbleRegion(729,446,986,690), MarbleRegion(1028,443,1284,690),
+         MarbleRegion(1326,457,1608,690), MarbleRegion(1472,50,1537,111),
+         MarbleRegion(1570,49,1642,115))
++    val icons=originalIcons.mapIndexed {index,region->
++        if(index>=5)region else {
++            val w=kotlin.math.round(region.width*MARBLE_MAIN_ICON_SCALE).toInt()
++            val h=kotlin.math.round(region.height*MARBLE_MAIN_ICON_SCALE).toInt()
++            val left=kotlin.math.round((region.left+region.right-w)/2f).toInt()
++            MarbleRegion(left,region.bottom-h,left+w,region.bottom)
++        }
++    }
+     val captions=listOf(
+         MarbleRegion(122,700,300,742),MarbleRegion(448,700,638,742),
+         MarbleRegion(758,700,957,742),MarbleRegion(1070,700,1242,742),
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt
+@@ -25,23 +25,62 @@
+ import br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle
+ import br.com.flaviotorres.iptvpremium.ui.theme.*
+ import kotlin.math.roundToInt
++import kotlinx.coroutines.CancellationException
++import kotlinx.coroutines.delay
+ 
+ internal data class MarbleHomeLayers(val backdrop:ImageBitmap,val icons:List<ImageBitmap>)
+ 
+-/** Background and five shared PNGs decode on IO once, never per focus frame. */
++internal data class MarbleHomeLoadState(
++    val backdrop:ImageBitmap?=null,
++    val layers:MarbleHomeLayers?=null,
++    val failed:Boolean=false
++)
++
++/** Cold start is loading, not a second menu. Warm starts reuse the existing bounded art cache. */
+ @Composable
+-internal fun rememberMarbleHomeLayers():MarbleHomeLayers? {
++internal fun rememberMarbleHomeLoadState(retryKey:Int=0,
++    artworkLoader:(suspend (Int)->ImageBitmap?)?=null):MarbleHomeLoadState {
+     val light=CatalogStyle.light
+     val context=LocalContext.current.applicationContext
+     val epoch by ThemeArtworkEpoch.collectAsState()
+-    var layers by remember(light,epoch){mutableStateOf<MarbleHomeLayers?>(null)}
+-    LaunchedEffect(light,epoch) {
+-        val backdrop=MarbleArtworkCache.load(context,if(light)R.drawable.marble_home_layer_white else R.drawable.marble_home_layer_black)
+-        val icons=MarbleHomePngAssets.icons.map{MarbleArtworkCache.load(context,it.resource)}
+-        if(backdrop!=null&&icons.all{it!=null})layers=MarbleHomeLayers(backdrop,icons.filterNotNull())
++    val backdropId=if(light)R.drawable.marble_home_layer_white else R.drawable.marble_home_layer_black
++    val load by rememberUpdatedState<suspend (Int)->ImageBitmap?>(artworkLoader?:{id->MarbleArtworkCache.load(context,id)})
++    var state by remember(light,epoch,retryKey) {
++        val backdrop=if(artworkLoader==null)MarbleArtworkCache.peek(backdropId)else null
++        val icons=if(artworkLoader==null)MarbleHomePngAssets.icons.map{MarbleArtworkCache.peek(it.resource)}else emptyList()
++        val ready=if(backdrop!=null && icons.size==5 && icons.all{it!=null})MarbleHomeLayers(backdrop,icons.filterNotNull())else null
++        mutableStateOf(MarbleHomeLoadState(backdrop,ready))
+     }
+-    return layers
++    LaunchedEffect(light,epoch,retryKey) {
++        if(state.layers!=null)return@LaunchedEffect
++        repeat(3) {attempt->
++            try {
++                val backdrop=load(backdropId)
++                if(backdrop!=null) {
++                    state=MarbleHomeLoadState(backdrop=backdrop)
++                    val icons=mutableListOf<ImageBitmap>()
++                    for(asset in MarbleHomePngAssets.icons) {
++                        val icon=load(asset.resource)?:break
++                        icons+=icon
++                    }
++                    if(icons.size==5) {
++                        state=MarbleHomeLoadState(backdrop,MarbleHomeLayers(backdrop,icons))
++                        return@LaunchedEffect
++                    }
++                }
++            } catch(cancelled:CancellationException) {throw cancelled}
++              catch(_:android.content.res.Resources.NotFoundException) { /* Retry, then expose a recoverable art error. */ }
++            if(attempt<2)delay(250L*(attempt+1))
++        }
++        state=state.copy(failed=true)
++    }
++    return state
+ }
++
++/** Preview and Home share the same resource cache and readiness rules. */
++@Composable
++internal fun rememberMarbleHomeLayers():MarbleHomeLayers?=rememberMarbleHomeLoadState().layers
++
+ private fun DrawScope.drawPng(layers:MarbleHomeLayers,index:Int,tint:ColorFilter?,sx:Float,sy:Float,alpha:Float=1f) {
+     val bitmap=layers.icons[index];val asset=MarbleHomePngAssets.icons[index];val target=MarbleHomeGeometry.icons[index]
+     val rx=bitmap.width.toFloat()/asset.width;val ry=bitmap.height.toFloat()/asset.height
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbledHomeScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbledHomeScreen.kt
+@@ -5,6 +5,11 @@
+ import androidx.compose.foundation.verticalScroll
+ import androidx.compose.foundation.rememberScrollState
+ import androidx.compose.ui.draw.scale
++import androidx.compose.foundation.Image
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.graphicsLayer
++import androidx.compose.ui.graphics.TransformOrigin
++import androidx.compose.ui.layout.ContentScale
+ import androidx.compose.ui.text.style.TextAlign
+ import androidx.compose.animation.core.tween
+ import androidx.compose.foundation.background
+@@ -37,8 +42,11 @@
+ /** Separate PNG objects and native captions with the original seven accessible action targets. */
+ @Composable
+ internal fun MarbledHomeScreen(onChannels:()->Unit,onMovies:()->Unit,onSeries:()->Unit,
+-    onKids:()->Unit,onLists:()->Unit,onRefresh:()->Unit,onSettings:()->Unit,normalEnabled:Boolean) {
+-    val layers=rememberMarbleHomeLayers()
++    onKids:()->Unit,onLists:()->Unit,onRefresh:()->Unit,onSettings:()->Unit,normalEnabled:Boolean,
++    artworkLoader:(suspend (Int)->ImageBitmap?)?=null) {
++    var artworkRetry by remember{mutableIntStateOf(0)}
++    val loadState=rememberMarbleHomeLoadState(artworkRetry,artworkLoader)
++    val layers=loadState.layers
+     val bitmap=layers?.backdrop
+     val actions=listOf(onChannels,onMovies,onSeries,onKids,onLists,onRefresh,onSettings)
+     val focus=remember{List(7){FocusRequester()}}
+@@ -61,14 +69,7 @@
+             return@BoxWithConstraints
+         }
+         if(bitmap==null) {
+-            // Even if a bundled image cannot be decoded, every permitted destination remains usable.
+-            Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(12.dp)) {
+-                Text("IPTV PREMIUM",color=CatalogStyle.accent)
+-                MarbleHomeGeometry.labels.forEachIndexed{index,label->
+-                    if(MarbleHomeNavigation.enabled(index,normalEnabled))Text(label,color=CatalogStyle.text,
+-                        modifier=Modifier.clickable(onClick=actions[index]).padding(8.dp))
+-                }
+-            }
++            MarbleHomeLoading(loadState){artworkRetry++}
+         } else {
+             val aspect=MarbleHomeGeometry.width.toFloat()/MarbleHomeGeometry.height
+             val width=minOf(maxWidth,maxHeight*aspect)
+@@ -127,9 +128,34 @@
+         .semantics{contentDescription=MarbleHomeGeometry.labels[index];role=Role.Button}
+         .clickable(enabled=enabled,interactionSource=remember{MutableInteractionSource()},indication=null,onClick=action),
+         horizontalAlignment=Alignment.CenterHorizontally) {
+-        if(layers!=null)MarblePngIcon(layers,index,Modifier.size(if(small)44.dp else 123.5.dp,if(small)44.dp else 110.2.dp).then(if(small)Modifier else Modifier.scale(zoom)))
++        if(layers!=null)MarblePngIcon(layers,index,Modifier.size(if(small)44.dp else 123.5.dp,if(small)44.dp else 110.2.dp).then(if(small)Modifier else Modifier.graphicsLayer {
++            scaleX=MARBLE_MAIN_ICON_SCALE*zoom;scaleY=MARBLE_MAIN_ICON_SCALE*zoom
++            transformOrigin=TransformOrigin(.5f,1f)
++        }))
+         else Box(Modifier.size(if(small)44.dp else 123.5.dp,if(small)44.dp else 110.2.dp))
+         if(!small)Text(MarbleHomeGeometry.labels[index].uppercase(),color=if(focused)CatalogStyle.accent else CatalogStyle.text,
+             modifier=Modifier.padding(top=8.dp),fontSize=(14f*zoom).sp,textAlign=TextAlign.Center)
+     }
+ }
++
++/** No text-only destinations while the bundled Home art is being decoded. */
++@Composable
++private fun MarbleHomeLoading(state:MarbleHomeLoadState,onRetry:()->Unit) {
++    BoxWithConstraints(Modifier.fillMaxSize().testTag("marble-home-loading"),contentAlignment=Alignment.Center) {
++        val width=minOf(maxWidth,maxHeight*MarbleHomeGeometry.width/MarbleHomeGeometry.height)
++        val height=width*MarbleHomeGeometry.height/MarbleHomeGeometry.width
++        Box(Modifier.size(width,height)) {
++            state.backdrop?.let {
++                Image(it,null,Modifier.fillMaxSize().testTag("marble-home-loading-backdrop"),contentScale=ContentScale.Fit,
++                    colorFilter=marbleBackdropFilter(ThemeState.selected,CatalogStyle.light))
++            }
++            Column(Modifier.align(Alignment.BottomCenter).padding(bottom=24.dp),
++                horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp)) {
++                Text(if(state.failed)"Não foi possível carregar a tela inicial."else "Carregando início…",
++                    color=CatalogStyle.text,fontSize=14.sp)
++                if(state.failed)Text("Tentar novamente",color=CatalogStyle.accent,
++                    modifier=Modifier.clickable(onClick=onRetry).padding(12.dp))
++            }
++        }
++    }
++}
