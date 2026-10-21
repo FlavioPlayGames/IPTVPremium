@@ -1,0 +1,2 @@
+PASS: current; 6 updates; read-only verification; exact backups; local Kids/private settings/PNG preserved; reapplication; atomic rejection of unknown edits.
+PASS: windows-bom-crlf; 6 updates; read-only verification; exact backups; local Kids/private settings/PNG preserved; reapplication; atomic rejection of unknown edits.

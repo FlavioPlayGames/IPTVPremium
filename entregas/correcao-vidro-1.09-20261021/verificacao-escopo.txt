@@ -1,0 +1,5 @@
+PASS: all four regular category row variants clip background and focus/click indication to their rounded shape; Kids does not receive new clipping.
+PASS: light-only panel opacity reduced: categories .54/.46; other glass panels .64/.58; cover frame .14. Foreground opacity unchanged.
+PASS: selected light category fill reduced to .42. Dark palette and poster selection option 2 unchanged.
+PASS: six payload files match compilation inputs; version remains 1.09; no data/storage/network changes.
+LIMIT: Android visual review and instrumented execution require local emulator; no emulator available in cloud.
