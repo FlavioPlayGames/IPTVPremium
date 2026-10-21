@@ -1,0 +1,3 @@
+PASS: inventory; logs UTF-8, source paths/hash/package, missing files, complete native output and exit code; existing files unchanged; no installation.
+PASS: build-success; logs UTF-8, source paths/hash/package, missing files, complete native output and exit code; existing files unchanged; no installation.
+PASS: build-failure; logs UTF-8, source paths/hash/package, missing files, complete native output and exit code; existing files unchanged; no installation.
