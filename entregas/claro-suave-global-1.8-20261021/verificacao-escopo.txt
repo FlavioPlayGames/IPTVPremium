@@ -1,0 +1,1 @@
+PASS: apenas tres fontes visuais alteradas. Tres cores neutras exclusivas do Claro suavizadas; filtro estatico reduz em 14% o componente neutro dos fundos e preserva a cromaticidade metalica. Escuro retorna filtro original. PNGs de primeiro plano, letras, capas, graﬁte, geometria, player, banco e importacao intocados. Sem bitmaps adicionais ou desfoque por frame.

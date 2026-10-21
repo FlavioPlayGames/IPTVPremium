@@ -1,0 +1,47 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogStyle.kt",
+    "allowMissing": false,
+    "sha": "7de4c4c789a6ae54f25d1f75a6e19e8355f0d34c6ecc222039f325e07414876d",
+    "allowed": [
+      "6e2cf1ff137d2eb17ca3fc38002a6add790c6bf09588495f9cba201d619e94ea",
+      "6e7045741b8c855d1362902acce9c1be158852c744bb549d940491fa400e3fba",
+      "7de4c4c789a6ae54f25d1f75a6e19e8355f0d34c6ecc222039f325e07414876d",
+      "bfa0517a9153767f0d9e2b52c06fa83df31e0a6218e82aa3d1704767049dd7a4",
+      "c3d8fc8853f4155433ea81c0a8400bbabaf23b5b66b3b64f09396c1f0f37395a",
+      "e0a8e329e927f3c9a166ff030f556825ff0929134f85dc2ec4366b721bfb2d6b",
+      "e7f368563d593445bcbfce16dfff94781247600aa26676fa632edf19d38caae4",
+      "ea1fa63023e34ade726d74f1082e6ff18229c218facdfde565f22c502f4c4cd2"
+    ]
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MarbleArtwork.kt",
+    "allowMissing": false,
+    "sha": "90b3ac4053f4eb3a3ff73f92441474e03aa775455e9831afb606e4722937322e",
+    "allowed": [
+      "0b9f991eed1688167b9fa6481fc396b0e428e116b46fcecc68993a9dea7f42e6",
+      "12234dfd4e9b026e5b8e1b33d4c68cd0726341fc233b8aa1f6eec8465cde647d",
+      "42acbc60433d8f20328615ac9ab4813fa1f8cfc2f55151de84ce0814ba9503ed",
+      "6adf372c70d987e15e20d6894d3c69e63101f3cd3c090e572bfc9c56d7dc4708",
+      "90b3ac4053f4eb3a3ff73f92441474e03aa775455e9831afb606e4722937322e",
+      "98c917b66f53a0f7c034e00b8e3f2d4ddfaab3ece4814b673197e951a4bb5abd",
+      "9d057641fa60b23152ee936b2271b6682a0205cd7a67b7b42ed03d58fb670494",
+      "c4da0d2ac144fb5b0f6cd1b6c90bfe7bd056b1907b27bc124ab4dfdfa2536bc7"
+    ]
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt",
+    "allowMissing": false,
+    "sha": "3401a83e1e5ea00ca3fd5f8b524863fdf5230750b091fc9965fb446840ad79ff",
+    "allowed": [
+      "3401a83e1e5ea00ca3fd5f8b524863fdf5230750b091fc9965fb446840ad79ff",
+      "4118d59ed40b7482dd1bb419b4f9d38c6b42343d80cde838cde1a39ecaebd045",
+      "5b80b7adcc51e48deb13c139c5e763eef80b7db9eda55f287ae81d2088f4f501",
+      "61efb02d48b101b0c74abe640cd04b7d674caaf10c55842c809375f36d31ab49",
+      "7143f2626ca56e0d1ca940de7a0c91955fb87ac6b00c089b122976f58752ec1b",
+      "78af56e1773f0aa2ca4e067ed2d5f4606192898c768b5d6b9f60a6d7daa8269e",
+      "a2f3099dda56f43fa00d8f7aef58605f8e526e429754f9e1197f5197c0497616",
+      "f581b9297694b4ea4f710c1e0a228e8f740c313ea65c6af09c9b3e668820a660"
+    ]
+  }
+]
