@@ -1,0 +1,1 @@
+PASS: 13 payload files match final compiled sources; all Kids Kotlin sources and shared SelectionTheme unchanged; no resource/schema/import/navigation algorithm changes.

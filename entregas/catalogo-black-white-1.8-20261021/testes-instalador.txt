@@ -1,0 +1,1 @@
+PASS: PowerShell validation read-only, 13 source files applied, exact backup, unrelated code/config/Kids resources preserved, reapplication validated, unknown edits rejected atomically.
