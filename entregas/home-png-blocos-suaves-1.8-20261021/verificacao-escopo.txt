@@ -1,0 +1,1 @@
+PASS: geometria, posicoes, tamanhos nominais e navegacao da Home preservados. Cinco PNGs alfa e nomes nativos substituem objetos e letras pintados no fundo. Reflexos e sombras em camadas. Blocos e foco do catalogo suavizados. Player, Listas, PIN, Kids, importacao, historico e versao preservados.
