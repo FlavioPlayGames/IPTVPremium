@@ -1,0 +1,1 @@
+PASS: oito fontes alteradas; labels Escuro/Claro mantem keys black/white. Controlador, motores de reproducao, persistencia, cache, catalogo e Home preservados. Fonte sem serifa fora do Kids; delegacao da paleta Kids preservada. PNG de estudo da Home separado do pacote Android.
