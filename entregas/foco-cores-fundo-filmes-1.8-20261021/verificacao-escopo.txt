@@ -1,0 +1,1 @@
+PASS: seven delivered updates match compiled sources/tests. Navigation outside loading UI, 3-second policy, repositories and Kids sources unchanged. Legacy resource retained for unchanged Kids loading; regular loading uses the themed marble wallpaper. No native Android tests executed here.
