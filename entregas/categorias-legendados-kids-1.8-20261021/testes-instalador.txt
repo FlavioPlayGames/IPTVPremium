@@ -1,0 +1,3 @@
+PASS: original; validation read-only, application of 16 files, exact backup, unrelated code/config/Kids resources preserved, reapplication check and unknown changes rejected atomically.
+PASS: pagination-fixed; validation read-only, application of 16 files, exact backup, unrelated code/config/Kids resources preserved, reapplication check and unknown changes rejected atomically.
+PASS: home-fixed; validation read-only, application of 16 files, exact backup, unrelated code/config/Kids resources preserved, reapplication check and unknown changes rejected atomically.

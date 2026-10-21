@@ -1,0 +1,1 @@
+PASS: 10 SQLite checks using the actual DAO annotation SQL and shared predicate. Simple grid, genre, search/order, subtitle markers, favorites, identity lookup, counts, Kids restriction. Does not execute Android Room instrumentation.
