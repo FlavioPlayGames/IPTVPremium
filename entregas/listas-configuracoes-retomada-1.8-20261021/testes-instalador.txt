@@ -1,0 +1,2 @@
+PASS: before-alias-fix; read-only validation, 24 updates, exact backups, local Kids test/private settings/assets preserved, reapplication accepted, unknown edits rejected atomically.
+PASS: alias-fix-applied; read-only validation, 24 updates, exact backups, local Kids test/private settings/assets preserved, reapplication accepted, unknown edits rejected atomically.

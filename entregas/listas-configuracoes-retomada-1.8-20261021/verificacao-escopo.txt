@@ -1,0 +1,1 @@
+PASS: mudancas de apresentacao. Regras de digitos PIN, eventos numericos e callbacks da retomada preservados. Home, tamanhos, importacao, banco, motores de video e preferencia Escuro/Claro preservados. Kids mantem delegacao das cores originais.
