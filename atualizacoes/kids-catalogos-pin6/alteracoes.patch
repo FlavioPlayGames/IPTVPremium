@@ -1,0 +1,1656 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/HomeScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/HomeScreen.kt
+@@ -5,6 +5,9 @@
+ import androidx.compose.animation.core.infiniteRepeatable
+ import androidx.compose.animation.core.tween
+ import androidx.compose.animation.core.LinearEasing
++import androidx.compose.foundation.verticalScroll
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.layout.heightIn
+ import androidx.compose.foundation.BorderStroke
+ import androidx.compose.foundation.Image
+ import androidx.compose.foundation.shape.RoundedCornerShape
+@@ -61,7 +64,9 @@
+     onSeriesClick: () -> Unit,
+     onListaClick: () -> Unit = {},
+     onAtualizarClick: () -> Unit = {},
+-    onConfiguracoesClick: () -> Unit = {}
++    onConfiguracoesClick: () -> Unit = {},
++    onKidsClick: () -> Unit = {},
++    normalEnabled: Boolean = true
+ ) {
+     val artworkReady = br.com.flaviotorres.iptvpremium.ui.theme.rememberHomeArtworkReady()
+     if (!artworkReady) {
+@@ -182,28 +187,29 @@
+                     verticalAlignment =
+                         Alignment.CenterVertically
+                 ) {
+-                    HomeMenuCard(
+-                        title = "Canais",
++                    HomeMenuCard(slots = 5,
++                        title = "Canais", enabled = normalEnabled,
+                         imageResId =
+                             R.drawable.home_channels,
+                         onClick = onLiveTvClick
+                     )
+ 
+-                    HomeMenuCard(
+-                        title = "Filmes",
++                    HomeMenuCard(slots = 5,
++                        title = "Filmes", enabled = normalEnabled,
+                         imageResId =
+                             R.drawable.home_movies,
+                         onClick = onMoviesClick
+                     )
+ 
+-                    HomeMenuCard(
+-                        title = "Séries",
++                    HomeMenuCard(slots = 5,
++                        title = "Séries", enabled = normalEnabled,
+                         imageResId =
+                             R.drawable.home_series,
+                         onClick = onSeriesClick
+                     )
+ 
+-                    HomeMenuCard(
++                    HomeMenuCard(slots = 5, title = "Kids", imageResId = R.drawable.kids_bear, onClick = onKidsClick)
++                    HomeMenuCard(slots = 5,
+                         title = "Listas",
+                         imageResId = R.drawable.icon_lista,
+                         onClick = onListaClick
+@@ -212,35 +218,38 @@
+             } else {
+                 Column(
+                     modifier = Modifier
+-                        .align(Alignment.Center)
+-                        .offset(y = 38.dp),
++                        .align(Alignment.TopCenter)
++                        .padding(top = 128.dp)
++                        .heightIn(max = (maxHeight - 128.dp).coerceAtLeast(1.dp))
++                        .verticalScroll(rememberScrollState()),
+                     horizontalAlignment = Alignment.CenterHorizontally,
+                     verticalArrangement = Arrangement.spacedBy(20.dp)
+                 ) {
+                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+-                        HomeMenuCard(
+-                            title = "Canais",
++                        HomeMenuCard(slots = 5,
++                            title = "Canais", enabled = normalEnabled,
+                             imageResId = R.drawable.home_channels,
+                             onClick = onLiveTvClick
+                         )
+-                        HomeMenuCard(
+-                            title = "Filmes",
++                        HomeMenuCard(slots = 5,
++                            title = "Filmes", enabled = normalEnabled,
+                             imageResId = R.drawable.home_movies,
+                             onClick = onMoviesClick
+                         )
+                     }
+                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+-                        HomeMenuCard(
+-                            title = "Séries",
++                        HomeMenuCard(slots = 5,
++                            title = "Séries", enabled = normalEnabled,
+                             imageResId = R.drawable.home_series,
+                             onClick = onSeriesClick
+                         )
+-                        HomeMenuCard(
++                        HomeMenuCard(slots = 5,
+                             title = "Listas",
+                             imageResId = R.drawable.icon_lista,
+                             onClick = onListaClick
+                         )
+                     }
++                    HomeMenuCard(title = "Kids", imageResId = R.drawable.kids_bear, onClick = onKidsClick)
+                 }
+             }
+         }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt
+@@ -793,10 +793,6 @@
+                                 text = if (!isLoadingEpisodes && episodes.isEmpty()) "TENTAR NOVAMENTE" else "ASSISTIR",
+                                 compactLayout = compactLayout,
+                                 onClick = if (!isLoadingEpisodes && episodes.isEmpty()) onRetryEpisodes else onWatchClick
+-                            )
+-                            ActionButton(
+-                                text = "TRAILER", compactLayout = compactLayout,
+-                                onClick = onTrailerClick
+                             )
+                             FavoriteButton(
+                                 isFavorite = favoriteState,
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/ThemeArtwork.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/ThemeArtwork.kt
+@@ -190,10 +190,11 @@
+     val theme = ThemeState.selected
+     val epoch by ThemeArtworkEpoch.collectAsState()
+     ThemeArtworkCache.activate(theme.name)
+-    val pinned = id in listOf(R.drawable.home_channels, R.drawable.home_movies, R.drawable.home_series,
++    val pinned = id in listOf(R.drawable.kids_bear, R.drawable.home_channels, R.drawable.home_movies, R.drawable.home_series,
+         R.drawable.icon_lista, R.drawable.icon_atualizar, R.drawable.icon_configuracoes,
+         R.drawable.iptv_premium_logo, R.drawable.series_living_room)
+     val resolvedTarget = targetSize ?: when (id) {
++        R.drawable.kids_bear -> IntSize(320,320)
+         R.drawable.series_living_room -> IntSize(2560, 1440)
+         R.drawable.iptv_premium_logo -> IntSize(768, 512)
+         R.drawable.home_channels, R.drawable.home_movies, R.drawable.home_series,
+@@ -212,6 +213,7 @@
+         else -> null
+     }
+     val asset = when {
++        id == R.drawable.kids_bear -> id
+         set == null -> id
+         cell != null -> set.icons
+         id == R.drawable.iptv_premium_logo -> set.logo
+@@ -223,7 +225,7 @@
+     val sourceCell = if (set == null) null else cell
+     var image by remember(asset, sourceCell, resolvedTarget, theme, epoch) { mutableStateOf(ThemeArtworkCache.cached(asset, sourceCell, resolvedTarget)) }
+     LaunchedEffect(asset, sourceCell, resolvedTarget, theme, epoch) { image = ThemeArtworkCache.load(context, asset, sourceCell, resolvedTarget, pinned, theme.name) }
+-    val loading = set != null && id in listOf(R.drawable.movie_session_loading_bg, R.drawable.series_living_room)
++    val loading = set != null && id in listOf(R.drawable.kids_bear, R.drawable.movie_session_loading_bg, R.drawable.series_living_room)
+     return remember(image, sourceCell, resolvedTarget, loading, theme) {
+         image?.let { ArtworkPainter(it, if (resolvedTarget == null) sourceCell else null,
+             if (loading) loadingAccent(theme) else null, id == R.drawable.series_living_room && loading) } ?: ColorPainter(Color.Transparent)
+@@ -260,7 +262,7 @@
+     val density = androidx.compose.ui.platform.LocalDensity.current.density
+     val primaryWide = config.screenWidthDp >= 700
+     val layoutWide = config.screenWidthDp - 48 >= 700
+-    val frame = if (primaryWide) ((config.screenWidthDp - 108) / 4).coerceIn(120, 158)
++    val frame = if (primaryWide) ((config.screenWidthDp - 108) / 5).coerceIn(120, 158)
+         else minOf(((config.screenWidthDp - 64) / 2).coerceIn(96, 170), 158)
+     val primary = (frame * 1.12f * density).roundToInt().coerceAtLeast(1)
+     val top = ((if (layoutWide) 33f else 28.6f) * 1.12f * density).roundToInt().coerceAtLeast(1)
+@@ -271,9 +273,10 @@
+             IntSize(if (cell < 4) primary else top, if (cell < 4) primary else top))
+     } + Triple(set?.logo ?: R.drawable.iptv_premium_logo, null,
+         IntSize(((if (layoutWide) 220 else 165) * density).roundToInt(), ((if (layoutWide) 105 else 80) * density).roundToInt()))
+-    var ready by remember(theme, requests, epoch) { mutableStateOf(requests.all { ThemeArtworkCache.cached(it.first, it.second, it.third) != null }) }
+-    LaunchedEffect(theme, requests, epoch) {
+-        requests.forEach { ThemeArtworkCache.load(context, it.first, it.second, it.third, true, theme.name) }
++    val homeRequests = requests + Triple(R.drawable.kids_bear, null, IntSize(320, 320))
++    var ready by remember(theme, homeRequests, epoch) { mutableStateOf(homeRequests.all { ThemeArtworkCache.cached(it.first, it.second, it.third) != null }) }
++    LaunchedEffect(theme, homeRequests, epoch) {
++        homeRequests.forEach { ThemeArtworkCache.load(context, it.first, it.second, it.third, true, theme.name) }
+         ready = true // A missing/corrupt bundled image must not trap the person on the preparation screen.
+         // The static room is reused by every series, independently of catalogue/cover eviction.
+         ThemeArtworkCache.load(context, R.drawable.series_living_room, null, IntSize(2560, 1440), true, theme.name)
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
+@@ -564,12 +564,6 @@
+                             onClick = onWatchClick
+                         )
+ 
+-                        SecondaryActionButton(
+-                            text = "TRAILER",
+-                            compactLayout = compactLayout,
+-                            onClick = onTrailerClick
+-                        )
+-
+                         FavoriteButton(
+                             isFavorite = favoriteState,
+                             compactLayout = compactLayout,
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/ActorDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/ActorDetailsScreen.kt
+@@ -1066,14 +1066,6 @@
+                                     ).show()
+                                 }
+                             )
+-                            ActorPreviewActionButton(
+-                                label = "TRAILER",
+-                                compact = compact,
+-                                onClick = {
+-                                    br.com.flaviotorres.iptvpremium.core.media.openTrailer(
+-                                        context, detail.trailerKey, detail.title, kind = credit.mediaType, tmdbId = credit.tmdbId.toString(), year = credit.year?.toIntOrNull())
+-                                }
+-                            )
+                         }
+                         ActorPreviewFavoriteButton(
+                             isFavorite = isFavorite,
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsPolicy.kt
+@@ -0,0 +1,30 @@
++package br.com.flaviotorres.iptvpremium.ui.kids
++
++import java.text.Normalizer
++import java.util.Locale
++import kotlinx.coroutines.flow.MutableStateFlow
++
++internal object KidsSession { val active = MutableStateFlow(false) }
++internal object KidsContent {
++    fun folded(value: String) = Normalizer.normalize(value, Normalizer.Form.NFKD)
++        .replace(Regex("\\p{M}+"), "").lowercase(Locale.ROOT)
++    private val children = Regex("\\b(?:kids|infantil|infantis|criancas?|desenhos?|cartoons?|children|family|familia|infantojuvenil|infanto[ -]juvenil)\\b")
++    fun category(name: String): Boolean = children.containsMatchIn(folded(name)) &&
++        !br.com.flaviotorres.iptvpremium.ui.settings.AdultChannelMarker.matches(name)
++}
++internal object CatalogSections {
++    const val SUBTITLED = "__iptv_subtitled__"
++    fun subtitled(name: String): Boolean = Regex("(?:^|[^\\p{L}\\p{N}])(?:L|LEG|LEGENDADO[S]?|LEGENDADA[S]?)(?:$|[^\\p{L}\\p{N}])",RegexOption.IGNORE_CASE).containsMatchIn(name)
++    private val year=Regex("(?:19|20)[0-9]{2}")
++    fun orderName(name: String): String = KidsContent.folded(name).removePrefix("🔒 ")
++        .replace(Regex("^(?:filmes?|series?)\\s*[|:–—-]\\s*"), "").trim()
++    fun priority(name: String): Int {
++        val folded=orderName(name)
++        return when {
++            Regex("\\b(?:4k|uhd)\\b").containsMatchIn(folded) -> 1
++            "lancamento" in folded || "release" in folded || year.containsMatchIn(folded) -> 0
++            else -> 2
++        }
++    }
++    fun year(name: String): Int = year.findAll(name).map { it.value.toInt() }.maxOrNull() ?: 0
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsScreen.kt
+@@ -0,0 +1,61 @@
++package br.com.flaviotorres.iptvpremium.ui.kids
++
++import androidx.activity.compose.BackHandler
++import androidx.compose.foundation.Image
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.verticalScroll
++import androidx.compose.foundation.background
++import androidx.compose.foundation.layout.*
++import androidx.compose.runtime.*
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.focus.FocusRequester
++import androidx.compose.ui.focus.focusRequester
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.input.key.*
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import androidx.tv.material3.Text
++import br.com.flaviotorres.iptvpremium.R
++import br.com.flaviotorres.iptvpremium.ui.components.HomeMenuCard
++import br.com.flaviotorres.iptvpremium.ui.theme.*
++
++@Composable
++internal fun KidsLogo(modifier: Modifier = Modifier) {
++    Image(themePainterResource(R.drawable.kids_bear, androidx.compose.ui.unit.IntSize(320, 320)), "Kids", modifier)
++}
++
++@Composable
++internal fun KidsScreen(onChannels:()->Unit,onMovies:()->Unit,onSeries:()->Unit,onBack:()->Unit) {
++    val first=remember { FocusRequester() }
++    BackHandler(onBack=onBack)
++    LaunchedEffect(Unit) { withFrameNanos { }; first.requestFocus() }
++    val wide = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 700
++    Column(Modifier.fillMaxSize().background(ThemeColors.surface(0xFF080A0C))
++        .onPreviewKeyEvent { if(it.key==Key.Escape) { if(it.type==KeyEventType.KeyUp) onBack();true } else false }
++        .verticalScroll(rememberScrollState()).padding(24.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
++        KidsLogo(Modifier.height(150.dp).width(180.dp))
++        Text("KIDS",color=ThemeColors.color(0xFFFFE6A0),fontSize=28.sp)
++        Spacer(Modifier.height(24.dp))
++        FlowRow(maxItemsInEachRow = if (wide) 3 else 2, horizontalArrangement=Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally), verticalArrangement=Arrangement.spacedBy(24.dp)) {
++            HomeMenuCard("Canais",onChannels,Modifier.focusRequester(first),R.drawable.home_channels)
++            HomeMenuCard("Filmes",onMovies,imageResId=R.drawable.home_movies)
++            HomeMenuCard("Séries",onSeries,imageResId=R.drawable.home_series)
++        }
++    }
++}
++
++@Composable
++internal fun KidsRouteAllowed(onBack:()->Unit):Boolean {
++    val access by br.com.flaviotorres.iptvpremium.ui.settings.ParentalPolicy.accessFlow.collectAsState(
++        initial=br.com.flaviotorres.iptvpremium.ui.settings.ParentalPolicy.access())
++    if(!access.enabled || !access.rules.kidsOnly || access.kidsCatalog) return true
++    BackHandler(onBack=onBack)
++    Column(Modifier.fillMaxSize().background(ThemeColors.surface(0xFF080A0C)).padding(32.dp),
++        verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
++        Text("Acesso disponível apenas no Kids",color=Color.White,fontSize=22.sp)
++        Spacer(Modifier.height(16.dp))
++        br.com.flaviotorres.iptvpremium.core.device.PortalOutlineButton("Voltar",onClick=onBack)
++    }
++    return false
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/HomeMenuCard.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/HomeMenuCard.kt
+@@ -23,6 +23,7 @@
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.draw.scale
++import androidx.compose.ui.draw.alpha
+ import androidx.compose.ui.focus.onFocusChanged
+ import androidx.compose.ui.geometry.Offset
+ import androidx.compose.ui.graphics.Color
+@@ -42,7 +43,9 @@
+     title: String,
+     onClick: () -> Unit,
+     modifier: Modifier = Modifier,
+-    @DrawableRes imageResId: Int? = null
++    @DrawableRes imageResId: Int? = null,
++    enabled: Boolean = true,
++    slots: Int = 4
+ ) {
+     var isFocused by remember { mutableStateOf(false) }
+     val interactionSource = remember { MutableInteractionSource() }
+@@ -50,7 +53,7 @@
+     val isWideScreen = screenWidthDp >= 700
+ 
+     val slotWidth = if (isWideScreen) {
+-        ((screenWidthDp - 108) / 4).coerceIn(120, 158).dp
++        ((screenWidthDp - 108) / slots).coerceIn(120, 158).dp
+     } else {
+         ((screenWidthDp - 64) / 2).coerceIn(96, 170).dp
+     }
+@@ -68,6 +71,7 @@
+ 
+     Column(
+         modifier = modifier
++            .alpha(if (enabled) 1f else .4f)
+             .width(slotWidth)
+             .offset(y = verticalAdjustment)
+             .scale(cardScale)
+@@ -75,9 +79,10 @@
+             .clickable(
+                 interactionSource = interactionSource,
+                 indication = null,
++                enabled = enabled,
+                 onClick = onClick
+             )
+-            .focusable(),
++            .focusable(enabled),
+         horizontalAlignment = Alignment.CenterHorizontally
+     ) {
+         Box(
+@@ -118,6 +123,10 @@
+ private fun HomeMenuArtwork(@DrawableRes imageResId: Int, contentDescription: String,
+     artworkSize: androidx.compose.ui.unit.Dp) {
+     val pixels = with(LocalDensity.current) { (artworkSize * 1.12f).roundToPx() }.coerceAtLeast(1)
++    if (imageResId == br.com.flaviotorres.iptvpremium.R.drawable.kids_bear) {
++        br.com.flaviotorres.iptvpremium.ui.kids.KidsLogo(Modifier.width(artworkSize).height(artworkSize * .74f))
++        return
++    }
+     Image(painter = br.com.flaviotorres.iptvpremium.ui.theme.themePainterResource(imageResId,
+         androidx.compose.ui.unit.IntSize(pixels, pixels)), contentDescription = contentDescription,
+         modifier = Modifier.requiredSize(artworkSize), contentScale = ContentScale.Fit)
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ParentalPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ParentalPolicy.kt
+@@ -15,19 +15,24 @@
+     val general: Boolean = true,
+     val adultChannels: Boolean = false,
+     val all: Set<String> = emptySet(),
+-    val categories: Map<String, Set<String>> = emptyMap()
++    val categories: Map<String, Set<String>> = emptyMap(),
++    val kidsOnly: Boolean = false
+ )
+ internal data class ParentalAccessState(
+     val enabled: Boolean,
+     val rules: ParentalRules,
+-    val grants: Set<String>
++    val grants: Set<String>,
++    val kidsCatalog: Boolean = false
+ ) {
+     fun scope(playlist: String, type: String) = "$playlist/$type"
+-    fun hasRestrictions(playlist: String, type: String): Boolean = enabled &&
++    fun hasRestrictions(playlist: String, type: String): Boolean = kidsCatalog || (enabled && rules.kidsOnly) || enabled &&
+         ("__invalid__" in rules.all || if (type == "LIVE_TV") rules.adultChannels
+             else scope(playlist, type) in rules.all || rules.categories[scope(playlist, type)].orEmpty().isNotEmpty())
+     fun categoryKey(playlist: String, type: String, id: String?) = scope(playlist, type) + "/" + (id?.takeIf { it.isNotBlank() } ?: "__uncategorized__")
+     fun blocked(playlist: String, type: String, id: String?, name: String = "", categoryName: String = ""): Boolean {
++        if (enabled && rules.kidsOnly && !kidsCatalog) return true
++        if (kidsCatalog && (AdultChannelMarker.matches(name) ||
++            (categoryName.isNotBlank() && !br.com.flaviotorres.iptvpremium.ui.kids.KidsContent.category(categoryName)))) return true
+         if (!enabled) return false
+         if ("__invalid__" in rules.all) return true
+         val section = scope(playlist, type)
+@@ -49,7 +54,7 @@
+ internal object ParentalPolicy {
+     val rules = MutableStateFlow(ParentalRules())
+     val grants = MutableStateFlow<Set<String>>(emptySet())
+-    val accessFlow = combine(ParentalSession.enabled, rules, grants) { enabled, rules, grants -> ParentalAccessState(enabled, rules, grants) }
++    val accessFlow = combine(ParentalSession.enabled, rules, grants, br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active) { enabled, rules, grants, kids -> ParentalAccessState(enabled, rules, grants, kids) }
+     private lateinit var file: AtomicFile
+     private val lock = Any()
+     fun initialize(context: Context) = synchronized(lock) {
+@@ -63,13 +68,13 @@
+         }
+         grants.value = emptySet()
+     }
+-    fun access() = ParentalAccessState(ParentalSession.enabled.value, rules.value, grants.value)
++    fun access() = ParentalAccessState(ParentalSession.enabled.value, rules.value, grants.value, br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value)
+     fun update(change: (ParentalRules) -> ParentalRules) = synchronized(lock) {
+         val next = change(rules.value)
+         val categories = JSONObject()
+         next.categories.forEach { (key, ids) -> categories.put(key, JSONArray(ids.sorted())) }
+         val data = JSONObject().put("general", next.general).put("adultChannels", next.adultChannels)
+-            .put("all", JSONArray(next.all.sorted())).put("categories", categories)
++            .put("kidsOnly", next.kidsOnly).put("all", JSONArray(next.all.sorted())).put("categories", categories)
+         val stream = file.startWrite()
+         try { stream.write(data.toString().toByteArray(Charsets.UTF_8)); file.finishWrite(stream) }
+         catch (e: Exception) { file.failWrite(stream); throw e }
+@@ -87,6 +92,6 @@
+             (0 until array.length()).map { array.getString(it) }.toSet()
+         val categories = data.optJSONObject("categories") ?: JSONObject()
+         return ParentalRules(data.optBoolean("general", true), data.optBoolean("adultChannels", false),
+-            strings(data.optJSONArray("all")), categories.keys().asSequence().associateWith { strings(categories.getJSONArray(it)) })
++            strings(data.optJSONArray("all")), categories.keys().asSequence().associateWith { strings(categories.getJSONArray(it)) }, data.optBoolean("kidsOnly", false))
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ParentalSettings.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ParentalSettings.kt
+@@ -40,7 +40,7 @@
+     }
+     fun enabled(): Boolean = synchronized(lock) { file.baseFile.exists() || File(file.baseFile.path + ".bak").exists() }
+     fun set(pin: String) = synchronized(lock) {
+-        require(pin.length in 4..8 && pin.all { it in '0'..'9' })
++        require(pin.length == 6 && pin.all { it in '0'..'9' })
+         val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
+         write(JSONObject().put("salt", hex(salt)).put("hash", hex(derive(pin, salt))).put("failures", 0).put("until", 0))
+     }
+@@ -49,7 +49,7 @@
+         val data = read()
+         val now = System.currentTimeMillis()
+         check(now >= data.optLong("until")) { "Aguarde 30 segundos antes de tentar novamente." }
+-        val valid = pin.length in 4..8 && pin.all { it in '0'..'9' } &&
++        val valid = pin.length in 4..6 && pin.all { it in '0'..'9' } &&
+             MessageDigest.isEqual(derive(pin, bytes(data.getString("salt"))), bytes(data.getString("hash")))
+         val failures = if (valid) 0 else data.optInt("failures") + 1
+         data.put("failures", if (failures >= 5) 0 else failures)
+@@ -83,8 +83,8 @@
+ }
+ 
+ @Composable
+-internal fun PinField(label: String, value: String, onValue: (String) -> Unit, enabled: Boolean = true) {
+-    NumericPinField(label, value, onValue, enabled)
++internal fun PinField(label: String, value: String, onValue: (String) -> Unit, enabled: Boolean = true, legacyAuth: Boolean = false) {
++    NumericPinField(label, value, onValue, enabled, if (legacyAuth) 4 else 6)
+ }
+ 
+ @Composable
+@@ -93,7 +93,7 @@
+     val unlocked by ParentalSession.unlocked.collectAsState()
+     val rules by ParentalPolicy.rules.collectAsState()
+     val epoch by ParentalSession.epoch.collectAsState()
+-    if (!enabled || !rules.general || unlocked) { content(); return }
++    if (!enabled || !rules.general || rules.kidsOnly || unlocked) { content(); return }
+     val context = LocalContext.current.applicationContext
+     val scope = rememberCoroutineScope()
+     var pin by remember(epoch) { mutableStateOf("") }
+@@ -103,7 +103,7 @@
+         Column(Modifier.widthIn(max = 480.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+             Text("CONTROLE PARENTAL", color = br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.color(0xFFFFE6A0), fontSize = 25.sp)
+             Text("Digite o PIN para acessar o aplicativo.", color = Color.White, fontSize = 17.sp)
+-            PinField("PIN", pin, { pin = it }, !busy)
++            PinField("PIN", pin, { pin = it }, !busy, legacyAuth = true)
+             PortalOutlineButton(if (busy) "Validando…" else "Entrar", enabled = !busy && pin.length >= 4) {
+                 scope.launch {
+                     busy = true
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -756,6 +756,20 @@
+     val activePlaylistId =
+         storedActivePlaylistId
+ 
++    LaunchedEffect(navController) {
++        navController.currentBackStackEntryFlow.collect { entry ->
++            val route = entry.destination.route.orEmpty()
++            if (route == "home" || route.startsWith("settings") || route.startsWith("playlist")) {
++                br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value = false
++            } else {
++                val kids = route == "kids" || entry.savedStateHandle.get<Boolean>("kids_catalog") == true ||
++                    br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value
++                if (kids) entry.savedStateHandle["kids_catalog"] = true
++                br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value = kids
++            }
++        }
++    }
++
+     val parentalAccessState by br.com.flaviotorres.iptvpremium.ui.settings.ParentalPolicy.accessFlow.collectAsState(
+         initial = br.com.flaviotorres.iptvpremium.ui.settings.ParentalPolicy.access())
+     val parentalEpoch by br.com.flaviotorres.iptvpremium.ui.settings.ParentalSession.epoch.collectAsState()
+@@ -764,6 +778,7 @@
+     }
+     fun requestParentalCategory(type: String, id: String?, title: String, proceed: () -> Unit) {
+         val playlist = activePlaylistId.orEmpty()
++        if (id == br.com.flaviotorres.iptvpremium.ui.kids.CatalogSections.SUBTITLED) { proceed(); return }
+         if (id != null && br.com.flaviotorres.iptvpremium.ui.settings.ParentalPolicy.access()
+                 .blocked(playlist, type, id, categoryName = title)) {
+             parentalCategoryRequest = br.com.flaviotorres.iptvpremium.ui.settings.ParentalCategoryRequest(playlist, type, id, title.removePrefix("🔒 "), proceed)
+@@ -1568,18 +1583,27 @@
+                     catch (cancelled: CancellationException) { throw cancelled }
+                     catch (_: Exception) { /* Preparo opcional nao impede a abertura. */ }
+                 }
++                LaunchedEffect(Unit) { br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value = false }
+                 HomeScreen(
++                    normalEnabled = !(parentalAccessState.enabled && parentalAccessState.rules.kidsOnly),
++                    onKidsClick = {
++                        br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value = true
++                        navController.navigate("kids") { launchSingleTop = true }
++                    },
+                     onLiveTvClick = {
++                        br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value = false
+                         navController.navigate(
+                             AppDestination.LiveTv.route
+                         )
+                     },
+                     onMoviesClick = {
++                        br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value = false
+                         navController.navigate(
+                             AppDestination.Movies.route
+                         )
+                     },
+                     onSeriesClick = {
++                        br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value = false
+                         navController.navigate(
+                             AppDestination.Series.route
+                         )
+@@ -1601,6 +1625,28 @@
+             }
+ 
+             /* Configurações do aplicativo: conta de legendas por usuário. */
++            composable("kids") { entry ->
++                LaunchedEffect(Unit) { br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value = true }
++                br.com.flaviotorres.iptvpremium.ui.kids.KidsScreen(
++                    onChannels = {
++                        br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value = true
++                        navController.navigate(AppDestination.LiveTv.route)
++                        navController.currentBackStackEntry?.savedStateHandle?.set("kids_catalog",true)
++                    },
++                    onMovies = {
++                        br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value = true
++                        navController.navigate(AppDestination.Movies.route)
++                        navController.currentBackStackEntry?.savedStateHandle?.set("kids_catalog",true)
++                    },
++                    onSeries = {
++                        br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value = true
++                        navController.navigate(AppDestination.Series.route)
++                        navController.currentBackStackEntry?.savedStateHandle?.set("kids_catalog",true)
++                    },
++                    onBack = { navController.popBackStack() }
++                )
++            }
++
+             composable(route = AppDestination.Settings.route) {
+                 IPTVSettingsScreen(
+                     onBack = { navController.popBackStack() },
+@@ -2115,6 +2161,7 @@
+             composable(
+                 route = AppDestination.LiveTv.route
+             ) {
++                if (!br.com.flaviotorres.iptvpremium.ui.kids.KidsRouteAllowed { navController.popBackStack() }) return@composable
+                 val activePlaylist =
+                     playlists.firstOrNull {
+                         it.id == activePlaylistId
+@@ -2254,6 +2301,7 @@
+             composable(
+                 route = AppDestination.Movies.route
+             ) {
++                if (!br.com.flaviotorres.iptvpremium.ui.kids.KidsRouteAllowed { navController.popBackStack() }) return@composable
+                 val activePlaylist =
+                     playlists.firstOrNull {
+                         it.id == activePlaylistId
+@@ -3604,6 +3652,11 @@
+             composable(
+                 route = ACTOR_DETAILS_ROUTE
+             ) { entry ->
++                if (br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value ||
++                    (parentalAccessState.enabled && parentalAccessState.rules.kidsOnly)) {
++                    LaunchedEffect(Unit) { navController.popBackStack() }
++                    return@composable
++                }
+                 val personId = entry.arguments
+                     ?.getString("personId")
+                     .orEmpty()
+@@ -3777,6 +3830,7 @@
+              * A lista e as categorias preservam providerOrder no Repository.
+              */
+             composable(route = AppDestination.Series.route) {
++                if (!br.com.flaviotorres.iptvpremium.ui.kids.KidsRouteAllowed { navController.popBackStack() }) return@composable
+                 val seriesViewModel: SeriesViewModel = viewModel(
+                     factory = seriesViewModelFactory
+                 )
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ParentalControlsUi.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ParentalControlsUi.kt
+@@ -76,7 +76,7 @@
+     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+         Text("CONTEÚDO BLOQUEADO", color = parentalAccent, fontSize = 22.sp)
+         Text(title, color = Color.White, fontSize = 17.sp)
+-        PinField("PIN do responsável", pin, { pin = it }, !busy)
++        PinField("PIN do responsável", pin, { pin = it }, !busy, legacyAuth = true)
+         message?.let { Text(it, color = parentalAccent, fontSize = 14.sp) }
+         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+             PortalOutlineButton("Voltar", modifier = Modifier.weight(1f), onClick = onCancel)
+@@ -141,6 +141,9 @@
+             } else if (failure) {
+                 Text("Não foi possível verificar a proteção deste conteúdo.", color = Color.White)
+                 PortalOutlineButton("Voltar", onClick = onBack)
++            } else if (access.kidsCatalog || access.rules.kidsOnly) {
++                Text("Este conteúdo não está disponível no modo Kids.", color = Color.White)
++                PortalOutlineButton("Voltar", onClick = onBack)
+             } else ParentalPinApproval("Digite o PIN para acessar esta categoria.", onBack) {
+                 ParentalPolicy.grant(playlist.orEmpty(), type, category)
+             }
+@@ -158,6 +161,7 @@
+     val rules by ParentalPolicy.rules.collectAsState()
+     var authorized by remember(epoch) { mutableStateOf(!store.enabled()) }
+     var authorizedEpoch by remember { mutableStateOf<Long?>(null) }
++    var needsPinUpgrade by remember(epoch) { mutableStateOf(false) }
+     LaunchedEffect(enabled, epoch) {
+         if (enabled && authorizedEpoch != epoch) authorized = false
+         if (!enabled) authorized = true
+@@ -170,7 +174,7 @@
+     val scope = rememberCoroutineScope()
+     val tileFocus = remember { List(4) { FocusRequester() } }
+     var lastTile by remember { mutableIntStateOf(0) }
+-    BackHandler(enabled = authorized && page != null && !busy) { page = null; pin = ""; confirm = "" }
++    BackHandler(enabled = authorized && page != null && !busy && !needsPinUpgrade) { page = null; pin = ""; confirm = "" }
+     LaunchedEffect(page, authorized, enabled) {
+         if (enabled && authorized && page == null && "__invalid__" !in rules.all) {
+             withFrameNanos { }; withFrameNanos { }; tileFocus[lastTile].requestFocus()
+@@ -206,7 +210,7 @@
+     if (!authorized) {
+         ParentalForm {
+         Text("Digite seu PIN para gerenciar os bloqueios.", color = Color(0xFFB7BBC1), fontSize = 14.sp)
+-        PinField("PIN do responsável", pin, { pin = it }, !busy)
++        PinField("PIN do responsável", pin, { pin = it }, !busy, legacyAuth = true)
+         PortalOutlineButton(if (busy) "Validando…" else "Acessar controles", enabled = !busy && pin.length >= 4) {
+             scope.launch {
+                 busy = true
+@@ -217,6 +221,7 @@
+                         authorizedEpoch = epoch
+                         ParentalSession.unlocked.value = true
+                     }
++                    if (authorized && pin.length < 6) { needsPinUpgrade = true; page = "pin" }
+                     message = if (authorized) null else "PIN incorreto. Após cinco erros, aguarde 30 segundos."
+                 } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                 catch (_: Exception) { message = "Não foi possível validar. Após cinco erros, aguarde 30 segundos." }
+@@ -224,12 +229,13 @@
+             }
+         }
+         }
+-    } else if (!enabled || page == "pin") {
++    } else if (!enabled || page == "pin" || needsPinUpgrade) {
+         ParentalForm {
+-        PinField(if (enabled) "Novo PIN (4 a 8 números)" else "Criar PIN (4 a 8 números)", pin, { pin = it }, !busy)
++        if (needsPinUpgrade) Text("Seu PIN atual foi confirmado. Cadastre 6 números para continuar.", color = Color.White, fontSize = 14.sp)
++        PinField(if (enabled) "Novo PIN (6 números)" else "Criar PIN (6 números)", pin, { pin = it }, !busy)
+         PinField("Repita o PIN", confirm, { confirm = it }, !busy)
+-        Text("Use de 4 a 8 números. Guarde seu PIN: não há recuperação pelo site.", color = Color(0xFFB7BBC1), fontSize = 12.sp)
+-        PortalOutlineButton(if (busy) "Salvando…" else "Salvar PIN", enabled = !busy && pin.length >= 4 && pin == confirm) {
++        Text("Use exatamente 6 números. Guarde seu PIN: não há recuperação pelo site.", color = Color(0xFFB7BBC1), fontSize = 12.sp)
++        PortalOutlineButton(if (busy) "Salvando…" else "Salvar PIN", enabled = !busy && pin.length == 6 && pin == confirm) {
+             scope.launch {
+                 busy = true
+                 try {
+@@ -241,7 +247,7 @@
+                         authorizedEpoch = epoch
+                         authorized = true
+                         ParentalSession.unlocked.value = true
+-                        page = null; message = "PIN salvo. Escolha os bloqueios abaixo."
++                        needsPinUpgrade = false; page = null; message = "PIN salvo. Escolha os bloqueios abaixo."
+                     }
+                     ParentalSession.enabled.value = true
+                 } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+@@ -249,7 +255,7 @@
+                 finally { busy = false; pin = ""; confirm = "" }
+             }
+         }
+-        if (enabled) ParentalAction("‹ Voltar aos controles", "", enabled = !busy) { page = null; pin = ""; confirm = "" }
++        if (enabled && !needsPinUpgrade) ParentalAction("‹ Voltar aos controles", "", enabled = !busy) { page = null; pin = ""; confirm = "" }
+         }
+     } else if ("__invalid__" in rules.all) {
+         Text("As regras salvas não puderam ser lidas. O acesso continua protegido pelo PIN.", color = Color.White)
+@@ -311,6 +317,9 @@
+                 }
+             }
+         }
++        ParentalAction("Kids", if (rules.kidsOnly) "Ativado · Apenas conteúdo infantil disponível" else "Desativado · Acesso normal disponível", enabled = !busy) {
++            save { it.copy(kidsOnly = !it.kidsOnly) }
++        }
+         Text("Os conteúdos bloqueados continuam visíveis com cadeado e pedem PIN para abrir.", color = Color(0xFF9D9FA5), fontSize = 12.sp)
+         Box(Modifier.fillMaxWidth().height(1.dp).background(parentalAccent.copy(alpha = .2f)))
+         BoxWithConstraints(Modifier.fillMaxWidth()) {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/PinNumericKeyboard.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/PinNumericKeyboard.kt
+@@ -38,11 +38,11 @@
+ 
+ /** Mesmas regras para toque, controle remoto e teclas numericas fisicas. */
+ internal object PinDigits {
+-    const val maximum = 8
++    const val maximum = 6
+     fun normalize(value: String) = value.filter { it in '0'..'9' }.take(maximum)
+     fun append(value: String, digit: Int) = if (digit in 0..9 && value.length < maximum) value + digit else value
+     fun erase(value: String) = value.dropLast(1)
+-    fun ready(value: String) = value.length in 4..maximum && value.all { it in '0'..'9' }
++    fun ready(value: String) = value.length == maximum && value.all { it in '0'..'9' }
+     fun digit(keyCode: Int): Int? = when (keyCode) {
+         in AndroidKeyEvent.KEYCODE_0..AndroidKeyEvent.KEYCODE_9 -> keyCode - AndroidKeyEvent.KEYCODE_0
+         in AndroidKeyEvent.KEYCODE_NUMPAD_0..AndroidKeyEvent.KEYCODE_NUMPAD_9 -> keyCode - AndroidKeyEvent.KEYCODE_NUMPAD_0
+@@ -66,7 +66,7 @@
+ 
+ /** Campo sem editor/IME nativo: o OK abre somente o teclado do aplicativo. */
+ @Composable
+-internal fun NumericPinField(label: String, value: String, onValue: (String) -> Unit, enabled: Boolean) {
++internal fun NumericPinField(label: String, value: String, onValue: (String) -> Unit, enabled: Boolean, minimum: Int = 6) {
+     val epoch by ParentalSession.epoch.collectAsState()
+     var open by remember(epoch) { mutableStateOf(false) }
+     var focused by remember { mutableStateOf(false) }
+@@ -99,7 +99,7 @@
+         .clickable(enabled = enabled, role = Role.Button) { open = true }
+         .padding(horizontal = 16.dp, vertical = 12.dp), contentAlignment = Alignment.CenterStart) {
+         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+-            repeat(maxOf(4, value.length)) { index ->
++            repeat(6) { index ->
+                 Box(Modifier.size(10.dp).background(
+                     if (index < value.length) pinAccent else Color.Transparent, RoundedCornerShape(50))
+                     .border(1.dp, br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.metallicBorder, RoundedCornerShape(50)))
+@@ -107,7 +107,7 @@
+         }
+     }
+     if (open && enabled) {
+-        PinKeyboardDialog(label, value, onCancel = { open = false; restoreFocus += 1 }) { entered ->
++        PinKeyboardDialog(label, value, minimum, onCancel = { open = false; restoreFocus += 1 }) { entered ->
+             onValue(entered)
+             open = false
+             restoreFocus += 1
+@@ -116,9 +116,9 @@
+ }
+ 
+ @Composable
+-private fun PinKeyboardDialog(label: String, initial: String, onCancel: () -> Unit, onDone: (String) -> Unit) {
++private fun PinKeyboardDialog(label: String, initial: String, minimum: Int, onCancel: () -> Unit, onDone: (String) -> Unit) {
+     var digits by remember { mutableStateOf(PinDigits.normalize(initial)) }
+-    val ready = PinDigits.ready(digits)
++    val ready = digits.length in minimum..PinDigits.maximum
+     val keys = remember { List(14) { FocusRequester() } }
+     var focusedIndex by remember { mutableIntStateOf(0) }
+     val maxHeight = (LocalConfiguration.current.screenHeightDp * .9f).dp
+@@ -136,10 +136,10 @@
+             Text("PIN DE ACESSO", color = pinAccent, fontSize = 20.sp,
+                 fontFamily = FontFamily(Font(R.font.cinzel_semibold)))
+             Text(label, color = Color(0xFFCDCDD0), fontSize = 13.sp)
+-            Text(if (digits.isEmpty()) "○ ○ ○ ○" else "•".repeat(digits.length),
++            Text(if (digits.isEmpty()) "○ ○ ○ ○ ○ ○" else "•".repeat(digits.length),
+                 color = pinAccent, fontSize = 24.sp, letterSpacing = 5.sp,
+                 modifier = Modifier.semantics { password(); stateDescription = "${digits.length} números digitados" })
+-            Text("4 a 8 números", color = Color(0xFF9D9FA5), fontSize = 12.sp)
++            Text(if (minimum < 6) "PIN atual · máximo de 6 números" else "Exatamente 6 números", color = Color(0xFF9D9FA5), fontSize = 12.sp)
+             Box(Modifier.fillMaxWidth().height(1.dp).background(pinRim.copy(alpha = .45f)))
+             repeat(4) { row ->
+                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+@@ -157,7 +157,7 @@
+                             when (index) {
+                                 9 -> digits = PinDigits.erase(digits)
+                                 10 -> digits = PinDigits.append(digits, 0)
+-                                11 -> if (PinDigits.ready(digits)) onDone(digits)
++                                11 -> if (ready) onDone(digits)
+                                 else -> digits = PinDigits.append(digits, index + 1)
+                             }
+                         }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerLauncher.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerLauncher.kt
+@@ -37,6 +37,6 @@
+ 
+ internal fun openTrailer(context: Context, raw: String?, title: String,
+     kind: String = "movie", tmdbId: String? = null, year: Int? = null) {
+-    try { context.startActivity(trailerIntent(context, TrailerRequest(title, raw, kind, tmdbId, year))) }
+-    catch (_: Exception) { Toast.makeText(context, "Não foi possível iniciar o trailer.", Toast.LENGTH_SHORT).show() }
++    // Trailer removido do aplicativo.
++    return
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt
+@@ -1,5 +1,7 @@
+ package br.com.flaviotorres.iptvpremium.data.repository
+ 
++import br.com.flaviotorres.iptvpremium.ui.kids.CatalogSections
++import br.com.flaviotorres.iptvpremium.ui.kids.KidsContent
+ import androidx.paging.Pager
+ import androidx.paging.PagingConfig
+ import androidx.paging.PagingData
+@@ -56,7 +58,7 @@
+                 if (generationId == null) {
+                     flowOf(PagingData.empty<Channel>())
+                 } else {
+-                    val categoryNames = liveCategoryNames(playlistId, generationId)
++                    val categoryNames = categoryNames(playlistId, generationId)
+                     val parentalSql = parentalSql(access, playlistId, "LIVE_TV", categoryNames)
+                     Pager(
+                         config = pagingConfig(),
+@@ -109,8 +111,10 @@
+             generationId = generationId,
+             channelId = channelId
+         )?.toDomain()?.takeUnless {
+-            ParentalPolicy.access().blocked(playlistId, "LIVE_TV", it.categoryId, it.name,
+-                liveCategoryNames(playlistId, generationId)[it.categoryId].orEmpty())
++            val access=ParentalPolicy.access()
++            val name=categoryNames(playlistId,generationId)[it.categoryId].orEmpty()
++            (access.kidsCatalog && !KidsContent.category(name)) ||
++                access.blocked(playlistId, "LIVE_TV", it.categoryId, it.name, name)
+         }
+     }
+ 
+@@ -151,17 +155,24 @@
+         val generationId = getActiveGenerationId(playlistId)
+             ?: return null
+ 
++        val access=ParentalPolicy.access()
++        val kidsAllowed=if(access.kidsCatalog) categoryNames(playlistId,generationId)
++            .filterValues { KidsContent.category(it) }.keys.toList() else emptyList()
+         val entity = if (direction > 0) {
+             cacheDao.getNextPlayableChannel(
+                 playlistId = playlistId,
+                 generationId = generationId,
+-                channelId = currentChannelId
++                channelId = currentChannelId,
++                kidsOnly = access.kidsCatalog,
++                kidsCategoryIds = kidsAllowed
+             )
+         } else {
+             cacheDao.getPreviousPlayableChannel(
+                 playlistId = playlistId,
+                 generationId = generationId,
+-                channelId = currentChannelId
++                channelId = currentChannelId,
++                kidsOnly = access.kidsCatalog,
++                kidsCategoryIds = kidsAllowed
+             )
+         }
+ 
+@@ -188,10 +199,11 @@
+         favoriteMovieIds: Set<String> = emptySet(),
+         sortMode: String = SORT_DEFAULT
+     ): Flow<PagingData<Movie>> {
++        val subtitledOnly = categoryId == CatalogSections.SUBTITLED
+         val normalizedCategoryId =
+             categoryId
+                 ?.trim()
+-                ?.takeIf { it.isNotBlank() }
++                ?.takeIf { it.isNotBlank() && it != CatalogSections.SUBTITLED }
+ 
+         val normalizedSearchQuery = searchQuery.trim()
+ 
+@@ -227,7 +239,7 @@
+         // consulta genérica. As consultas especializadas já estão no DAO
+         // e conservam exatamente a ordenação DEFAULT do provedor.
+         val useSimplePagingQuery =
+-            !favoritesOnly &&
++            !subtitledOnly && !favoritesOnly &&
+                     normalizedSearchQuery.isEmpty() &&
+                     normalizedSortMode == SORT_DEFAULT
+ 
+@@ -239,7 +251,8 @@
+                 if (generationId == null) {
+                     flowOf(PagingData.empty<Movie>())
+                 } else {
+-                    val parentalSql = parentalSql(access, playlistId, "MOVIES")
++                    val categoryNames = categoryNames(playlistId, generationId, "MOVIES")
++                    val parentalSql = parentalSql(access, playlistId, "MOVIES", categoryNames)
+                     Pager(
+                         config = pagingConfig(grid = true),
+                         pagingSourceFactory = {
+@@ -271,6 +284,7 @@
+                                     favoritesOnly = favoritesOnly,
+                                     favoriteMovieIds = normalizedFavoriteMovieIds,
+                                     sortMode = normalizedSortMode,
++                                    subtitledOnly = subtitledOnly,
+                                     parentalExcludedIds = parentalSql.excluded,
+                                     parentalAllowedIds = parentalSql.allowed,
+                                     parentalRestrict = parentalSql.restrict
+@@ -280,7 +294,7 @@
+                     ).flow.map { pagingData ->
+                         pagingData.map { entity ->
+                             entity.toDomain()
+-                        }.filter { !access.blocked(playlistId, "MOVIES", it.categoryId) }
++                        }.filter { !access.blocked(playlistId, "MOVIES", it.categoryId, it.name, categoryNames[it.categoryId].orEmpty()) }
+                     }
+                 }
+             }
+@@ -301,7 +315,8 @@
+         favoriteSeriesIds: Set<String> = emptySet(),
+         sortMode: String = SORT_DEFAULT
+     ): Flow<PagingData<Series>> {
+-        val normalizedCategoryId = categoryId?.trim()?.takeIf { it.isNotEmpty() }
++        val subtitledOnly = categoryId == CatalogSections.SUBTITLED
++        val normalizedCategoryId = categoryId?.trim()?.takeIf { it.isNotEmpty() && it != CatalogSections.SUBTITLED }
+         val normalizedSearchQuery = searchQuery.trim()
+         val normalizedSortMode = when (sortMode.trim().uppercase()) {
+             SORT_A_Z -> SORT_A_Z
+@@ -318,7 +333,7 @@
+         } else {
+             listOf(NO_FAVORITE_SERIES_ID)
+         }
+-        val useSimpleQuery = !favoritesOnly &&
++        val useSimpleQuery = !subtitledOnly && !favoritesOnly &&
+                 normalizedSearchQuery.isEmpty() &&
+                 normalizedSortMode == SORT_DEFAULT
+ 
+@@ -329,7 +344,8 @@
+                 if (generationId == null) {
+                     flowOf(PagingData.empty<Series>())
+                 } else {
+-                    val parentalSql = parentalSql(access, playlistId, "SERIES")
++                    val categoryNames = categoryNames(playlistId, generationId, "SERIES")
++                    val parentalSql = parentalSql(access, playlistId, "SERIES", categoryNames)
+                     Pager(
+                         config = pagingConfig(grid = true),
+                         pagingSourceFactory = {
+@@ -361,6 +377,7 @@
+                                     favoritesOnly = favoritesOnly,
+                                     favoriteSeriesIds = normalizedFavorites,
+                                     sortMode = normalizedSortMode,
++                                    subtitledOnly = subtitledOnly,
+                                     parentalExcludedIds = parentalSql.excluded,
+                                     parentalAllowedIds = parentalSql.allowed,
+                                     parentalRestrict = parentalSql.restrict
+@@ -368,7 +385,7 @@
+                             }
+                         }
+                     ).flow.map { pagingData ->
+-                        pagingData.map { entity -> entity.toDomain() }.filter { !access.blocked(playlistId, "SERIES", it.categoryId) }
++                        pagingData.map { entity -> entity.toDomain() }.filter { !access.blocked(playlistId, "SERIES", it.categoryId, it.name, categoryNames[it.categoryId].orEmpty()) }
+                     }
+                 }
+             }
+@@ -418,6 +435,9 @@
+     suspend fun getChannelCount(
+         playlistId: String
+     ): Int {
++        if (ParentalPolicy.access().kidsCatalog || (ParentalPolicy.access().enabled && ParentalPolicy.access().rules.kidsOnly))
++            return getChannelCountsByCategory(playlistId).filterKeys { it != CatalogSections.SUBTITLED }.values.sum()
++
+         val generationId =
+             getActiveGenerationId(
+                 playlistId = playlistId
+@@ -432,6 +452,9 @@
+     suspend fun getMovieCount(
+         playlistId: String
+     ): Int {
++        if (ParentalPolicy.access().kidsCatalog || (ParentalPolicy.access().enabled && ParentalPolicy.access().rules.kidsOnly))
++            return getMovieCountsByCategory(playlistId).filterKeys { it != CatalogSections.SUBTITLED }.values.sum()
++
+         val generationId =
+             getActiveGenerationId(
+                 playlistId = playlistId
+@@ -453,6 +476,7 @@
+         playlistId: String,
+         movieId: String
+     ): Movie? {
++        if (isParentalBlocked(playlistId, "MOVIES", movieId)) return null
+         return cacheDao
+             .getActiveMovieById(
+                 playlistId = playlistId,
+@@ -464,6 +488,7 @@
+     /** Resolve tambem atalhos de favoritos/historico, sem depender da pagina visivel. */
+     suspend fun getSeriesById(playlistId: String, seriesId: String): Series? {
+         if (playlistId.isBlank() || seriesId.isBlank()) return null
++        if (isParentalBlocked(playlistId, "SERIES", seriesId)) return null
+         val generationId = getActiveGenerationId(playlistId) ?: return null
+         return cacheDao.getParentalSeriesById(playlistId, generationId, seriesId)
+             ?.toDomain()?.takeUnless {
+@@ -474,6 +499,9 @@
+     suspend fun getSeriesCount(
+         playlistId: String
+     ): Int {
++        if (ParentalPolicy.access().kidsCatalog || (ParentalPolicy.access().enabled && ParentalPolicy.access().rules.kidsOnly))
++            return getSeriesCountsByCategory(playlistId).filterKeys { it != CatalogSections.SUBTITLED }.values.sum()
++
+         val generationId =
+             getActiveGenerationId(
+                 playlistId = playlistId
+@@ -504,6 +532,11 @@
+             .associate { result ->
+                 result.categoryId to result.itemCount
+             }
++            .filterKeys { id ->
++                val access = ParentalPolicy.access()
++                !(access.enabled && access.rules.kidsOnly && !access.kidsCatalog) &&
++                    (!access.kidsCatalog || KidsContent.category(categoryNames(playlistId,generationId,"LIVE_TV")[id].orEmpty()))
++            }
+     }
+ 
+     suspend fun getMovieCountsByCategory(
+@@ -522,6 +555,16 @@
+             .associate { result ->
+                 result.categoryId to result.itemCount
+             }
++            .filterKeys { id ->
++                val access = ParentalPolicy.access()
++                !(access.enabled && access.rules.kidsOnly && !access.kidsCatalog) &&
++                    (!access.kidsCatalog || KidsContent.category(categoryNames(playlistId,generationId,"MOVIES")[id].orEmpty()))
++            }
++            .let { counts ->
++                val names = categoryNames(playlistId,generationId,"MOVIES")
++                val protection = parentalSql(ParentalPolicy.access(),playlistId,"MOVIES",names)
++                counts + (CatalogSections.SUBTITLED to cacheDao.getSubtitledMovieCount(playlistId,generationId,protection.excluded,protection.allowed,protection.restrict))
++            }
+     }
+ 
+     suspend fun getSeriesCountsByCategory(
+@@ -539,6 +582,16 @@
+             )
+             .associate { result ->
+                 result.categoryId to result.itemCount
++            }
++            .filterKeys { id ->
++                val access = ParentalPolicy.access()
++                !(access.enabled && access.rules.kidsOnly && !access.kidsCatalog) &&
++                    (!access.kidsCatalog || KidsContent.category(categoryNames(playlistId,generationId,"SERIES")[id].orEmpty()))
++            }
++            .let { counts ->
++                val names = categoryNames(playlistId,generationId,"SERIES")
++                val protection = parentalSql(ParentalPolicy.access(),playlistId,"SERIES",names)
++                counts + (CatalogSections.SUBTITLED to cacheDao.getSubtitledSeriesCount(playlistId,generationId,protection.excluded,protection.allowed,protection.restrict))
+             }
+     }
+ 
+@@ -574,17 +627,22 @@
+                     source = CategorySource.PROVIDER
+                 )
+             }
++            .filter { category ->
++                val access=ParentalPolicy.access()
++                !(access.enabled && access.rules.kidsOnly && !access.kidsCatalog) &&
++                    (!access.kidsCatalog || KidsContent.category(category.name))
++            }
+             .map { category ->
+                 val access = ParentalPolicy.access()
+                 if (access.blocked(playlistId, type, category.id, categoryName = category.name)) category.copy(name = "🔒 " + category.name.replaceFirst(categoryMediaPrefix, "")) else category
+             }
+             .let { categories ->
+-                when (br.com.flaviotorres.iptvpremium.ui.settings.CategoryOrderSettings.orders[categoryType.name]) {
+-                    "az" -> categories.sortedBy { it.name.lowercase(java.util.Locale.ROOT) }
+-                    "za" -> categories.sortedByDescending { it.name.lowercase(java.util.Locale.ROOT) }
+-                    else -> if (categoryType == CategoryType.LIVE_TV) categories
+-                        else categories.sortedBy { categoryGroupPriority(it.name) }
+-                }
++                if (categoryType == CategoryType.LIVE_TV) categories
++                else (categories.filterNot { KidsContent.folded(it.name).contains("legendad") } +
++                    Category(CatalogSections.SUBTITLED,"Legendados",categoryType,CategorySource.PROVIDER))
++                    .sortedWith(compareBy<Category> { CatalogSections.priority(it.name) }
++                        .thenByDescending { if (CatalogSections.priority(it.name)==0) CatalogSections.year(it.name) else 0 }
++                        .thenBy { CatalogSections.orderName(it.name) })
+             }
+     }
+ 
+@@ -621,6 +679,13 @@
+ 
+     private data class ParentalSql(val excluded: List<String>, val allowed: List<String>, val restrict: Boolean)
+     private fun parentalSql(access: ParentalAccessState, playlist: String, type: String, categoryNames: Map<String, String> = emptyMap()): ParentalSql {
++        if (access.enabled && access.rules.kidsOnly && !access.kidsCatalog)
++            return ParentalSql(emptyList(), emptyList(), true)
++        if (access.kidsCatalog) {
++            val allowed = categoryNames.filter { (id, name) -> KidsContent.category(name) &&
++                !access.blocked(playlist, type, id, categoryName = name) }.keys.toList()
++            return ParentalSql(emptyList(), allowed, true)
++        }
+         if (!access.enabled) return ParentalSql(emptyList(), emptyList(), false)
+         if ("__invalid__" in access.rules.all) return ParentalSql(emptyList(), emptyList(), true)
+         if (type == "LIVE_TV") {
+@@ -636,10 +701,10 @@
+     }
+ 
+     private val parentalCategoryNames = java.util.concurrent.ConcurrentHashMap<String, Map<String, String>>()
+-    private suspend fun liveCategoryNames(playlistId: String, generation: String): Map<String, String> {
+-        val key = "$playlistId/$generation"
++    private suspend fun categoryNames(playlistId: String, generation: String, type: String = "LIVE_TV"): Map<String, String> {
++        val key = "$playlistId/$generation/$type"
+         parentalCategoryNames[key]?.let { return it }
+-        val names = cacheDao.getCategoriesByType(playlistId, generation, "LIVE_TV").associate { it.categoryId to it.name }
++        val names = cacheDao.getCategoriesByType(playlistId, generation, type).associate { it.categoryId to it.name }
+         if (parentalCategoryNames.size > 12) parentalCategoryNames.clear()
+         parentalCategoryNames[key] = names
+         return names
+@@ -659,11 +724,15 @@
+         val access = ParentalPolicy.access()
+         if (!access.hasRestrictions(playlistId, type)) return false
+         val generation = getActiveGenerationId(playlistId) ?: return true
++        val names = categoryNames(playlistId, generation, type)
++        fun blocked(category: String?, name: String = ""): Boolean =
++            (access.kidsCatalog && !KidsContent.category(names[category].orEmpty())) ||
++                access.blocked(playlistId, type, category, name, names[category].orEmpty())
+         return when (type) {
+-            "MOVIES" -> cacheDao.getActiveMovieById(playlistId, id)?.let { access.blocked(playlistId, type, it.categoryId) } ?: true
+-            "SERIES" -> cacheDao.getParentalSeriesById(playlistId, generation, id)?.let { access.blocked(playlistId, type, it.categoryId) } ?: true
++            "MOVIES" -> cacheDao.getActiveMovieById(playlistId, id)?.let { blocked(it.categoryId, it.name) } ?: true
++            "SERIES" -> cacheDao.getParentalSeriesById(playlistId, generation, id)?.let { blocked(it.categoryId, it.name) } ?: true
+             "LIVE_TV" -> cacheDao.getChannelById(playlistId, generation, id)?.let {
+-                access.blocked(playlistId, type, it.categoryId, it.name, liveCategoryNames(playlistId, generation)[it.categoryId].orEmpty())
++                blocked(it.categoryId,it.name)
+             } ?: true
+             else -> true
+         }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterAheadQueue.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterAheadQueue.kt
+@@ -1,6 +1,6 @@
+ package br.com.flaviotorres.iptvpremium.data.cache
+ 
+-/** Cursor por categoria: tres grupos de cinco; repoe quando restam dez. */
++/** Cursor por categoria: grupos de cinco ate 35; repoe quando restam trinta. */
+ internal class PosterAheadQueue {
+     private var completedUntil = 0
+     private var previousAfter = -1
+@@ -26,7 +26,7 @@
+ 
+     companion object {
+         const val GROUP = 5
+-        const val AHEAD = 15
+-        const val REFILL_AT = 10
++        const val AHEAD = 35
++        const val REFILL_AT = 30
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/dao/PlaylistCacheDao.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/dao/PlaylistCacheDao.kt
+@@ -246,6 +246,7 @@
+           AND candidate.generationId = :generationId
+           AND candidate.channelId != origin.channelId
+           AND TRIM(candidate.streamUrl) != ''
++          AND (:kidsOnly=0 OR candidate.categoryId IN (:kidsCategoryIds))
+         ORDER BY
+             CASE
+                 WHEN candidate.channelNumber > origin.channelNumber
+@@ -263,7 +264,9 @@
+     suspend fun getNextPlayableChannel(
+         playlistId: String,
+         generationId: String,
+-        channelId: String
++        channelId: String,
++        kidsOnly: Boolean = false,
++        kidsCategoryIds: List<String> = emptyList()
+     ): CachedChannelEntity?
+ 
+     @Query(
+@@ -278,6 +281,7 @@
+           AND candidate.generationId = :generationId
+           AND candidate.channelId != origin.channelId
+           AND TRIM(candidate.streamUrl) != ''
++          AND (:kidsOnly=0 OR candidate.categoryId IN (:kidsCategoryIds))
+         ORDER BY
+             CASE
+                 WHEN candidate.channelNumber < origin.channelNumber
+@@ -295,7 +299,9 @@
+     suspend fun getPreviousPlayableChannel(
+         playlistId: String,
+         generationId: String,
+-        channelId: String
++        channelId: String,
++        kidsOnly: Boolean = false,
++        kidsCategoryIds: List<String> = emptyList()
+     ): CachedChannelEntity?
+ 
+     @Query(
+@@ -378,6 +384,18 @@
+         playlistId: String,
+         generationId: String
+     ): Int
++
++    @Query("""SELECT COUNT(*) FROM cached_movies WHERE playlistId=:playlistId AND generationId=:generationId
++        AND COALESCE(NULLIF(categoryId,''),'__uncategorized__') NOT IN (:excluded)
++        AND (:restrict=0 OR COALESCE(NULLIF(categoryId,''),'__uncategorized__') IN (:allowed))
++        AND (UPPER(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace((' ' || name || ' '), '[', ' '), ']', ' '), '(', ' '), ')', ' '), '|', ' '), '-', ' '), '_', ' '), '/', ' '), '{', ' '), '}', ' ')) LIKE '% L %' OR UPPER(name) LIKE '%LEGENDAD%' OR categoryId IN (SELECT categoryId FROM cached_categories WHERE playlistId = :playlistId AND generationId = :generationId AND type = 'MOVIES' AND LOWER(name) LIKE '%legendad%'))""")
++    suspend fun getSubtitledMovieCount(playlistId:String,generationId:String,excluded:List<String>,allowed:List<String>,restrict:Boolean):Int
++
++    @Query("""SELECT COUNT(*) FROM cached_series WHERE playlistId=:playlistId AND generationId=:generationId
++        AND COALESCE(NULLIF(categoryId,''),'__uncategorized__') NOT IN (:excluded)
++        AND (:restrict=0 OR COALESCE(NULLIF(categoryId,''),'__uncategorized__') IN (:allowed))
++        AND (UPPER(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace((' ' || name || ' '), '[', ' '), ']', ' '), '(', ' '), ')', ' '), '|', ' '), '-', ' '), '_', ' '), '/', ' '), '{', ' '), '}', ' ')) LIKE '% L %' OR UPPER(name) LIKE '%LEGENDAD%' OR categoryId IN (SELECT categoryId FROM cached_categories WHERE playlistId = :playlistId AND generationId = :generationId AND type = 'SERIES' AND LOWER(name) LIKE '%legendad%'))""")
++    suspend fun getSubtitledSeriesCount(playlistId:String,generationId:String,excluded:List<String>,allowed:List<String>,restrict:Boolean):Int
+ 
+     /*
+      * CACHE PRIORITARIO NA ABERTURA — FAVORITOS DE FILMES.
+@@ -544,6 +562,7 @@
+               :favoritesOnly = 0
+               OR movieId IN (:favoriteMovieIds)
+           )
++          AND (:subtitledOnly = 0 OR (UPPER(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace((' ' || name || ' '), '[', ' '), ']', ' '), '(', ' '), ')', ' '), '|', ' '), '-', ' '), '_', ' '), '/', ' '), '{', ' '), '}', ' ')) LIKE '% L %' OR UPPER(name) LIKE '%LEGENDAD%' OR categoryId IN (SELECT categoryId FROM cached_categories WHERE playlistId = :playlistId AND generationId = :generationId AND type = 'MOVIES' AND LOWER(name) LIKE '%legendad%')))
+         ORDER BY
+             CASE
+                 WHEN :sortMode = 'DEFAULT'
+@@ -578,6 +597,7 @@
+         favoritesOnly: Boolean,
+         favoriteMovieIds: List<String>,
+         sortMode: String,
++        subtitledOnly: Boolean = false,
+         parentalExcludedIds: List<String> = emptyList(),
+         parentalAllowedIds: List<String> = emptyList(),
+         parentalRestrict: Boolean = false
+@@ -673,6 +693,7 @@
+           AND generationId = :generationId
+           AND COALESCE(NULLIF(categoryId, ''), '__uncategorized__') NOT IN (:parentalExcludedIds)
+           AND (:parentalRestrict = 0 OR COALESCE(NULLIF(categoryId, ''), '__uncategorized__') IN (:parentalAllowedIds))
++          AND (:subtitledOnly = 0 OR (UPPER(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace((' ' || name || ' '), '[', ' '), ']', ' '), '(', ' '), ')', ' '), '|', ' '), '-', ' '), '_', ' '), '/', ' '), '{', ' '), '}', ' ')) LIKE '% L %' OR UPPER(name) LIKE '%LEGENDAD%' OR categoryId IN (SELECT categoryId FROM cached_categories WHERE playlistId = :playlistId AND generationId = :generationId AND type = 'SERIES' AND LOWER(name) LIKE '%legendad%')))
+           AND (:categoryId IS NULL OR categoryId = :categoryId)
+           AND (:searchQuery = '' OR name LIKE '%' || :searchQuery || '%' COLLATE NOCASE)
+           AND (:favoritesOnly = 0 OR seriesId IN (:favoriteSeriesIds))
+@@ -697,6 +718,7 @@
+         favoritesOnly: Boolean,
+         favoriteSeriesIds: List<String>,
+         sortMode: String,
++        subtitledOnly: Boolean = false,
+         parentalExcludedIds: List<String> = emptyList(),
+         parentalAllowedIds: List<String> = emptyList(),
+         parentalRestrict: Boolean = false
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsPolicyDeviceTest.kt
+@@ -0,0 +1,46 @@
++package br.com.flaviotorres.iptvpremium.ui.kids
++
++import br.com.flaviotorres.iptvpremium.ui.settings.*
++import br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue
++import org.junit.Assert.*
++import org.junit.Test
++
++@org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
++class KidsPolicyDeviceTest {
++    @Test fun categoryClassificationIsConservativeAndAccentInsensitive() {
++        for(name in listOf("FILMES | INFANTIL", "DESENHOS", "Kids", "Família", "Crianças", "Cartoon")) assertTrue(name,KidsContent.category(name))
++        for(name in listOf("Animes", "Animação", "Disney+", "Ação", "", "INFANTIL XXX", "Kids 18+")) assertFalse(name,KidsContent.category(name))
++    }
++    @Test fun isolatedSubtitleMarkerDoesNotMatchLettersInsideWords() {
++        for(name in listOf("Filme [L]", "Série (L)", "Filme - L", "Filme Legendado")) assertTrue(name,CatalogSections.subtitled(name))
++        for(name in listOf("Lorne", "ALMA", "Lilo & Stitch", "Filme Dublado")) assertFalse(name,CatalogSections.subtitled(name))
++    }
++    @Test fun releaseYearsThenFourKThenAlphabetical() {
++        val names=listOf("Filmes | Zumbi", "4K", "Lançamentos 2024", "Lançamentos 2026", "Ação", "Legendados")
++        val ordered=names.sortedWith(compareBy<String>{CatalogSections.priority(it)}.thenByDescending { if(CatalogSections.priority(it)==0)CatalogSections.year(it) else 0 }.thenBy { CatalogSections.orderName(it) })
++        assertEquals(listOf("Lançamentos 2026","Lançamentos 2024","4K","Ação","Legendados","Filmes | Zumbi"),ordered)
++    }
++    @Test fun kidsLockCannotBeBypassedBySectionGrants() {
++        val outside=ParentalAccessState(true,ParentalRules(kidsOnly=true),setOf("p/MOVIES"),false)
++        assertTrue(outside.blocked("p","MOVIES","kids",categoryName="Infantil"))
++        val inside=outside.copy(kidsCatalog=true)
++        assertFalse(inside.blocked("p","MOVIES","kids",categoryName="Infantil"))
++        assertTrue(inside.blocked("p","MOVIES","adult",categoryName="Ação"))
++    }
++    @Test fun kidsFilteringAlsoAppliesWhenPinIsDisabled() {
++        val access=ParentalAccessState(false,ParentalRules(),emptySet(),true)
++        assertTrue(access.hasRestrictions("p","MOVIES"))
++        assertTrue(access.blocked("p","MOVIES","a",categoryName="Adultos"))
++    }
++    @Test fun maximumThirtyFiveInGroupsOfFiveThenRefillFive() {
++        val queue=PosterAheadQueue();val batches=mutableListOf<IntRange>()
++        while(true) { val b=queue.nextBatch(10,0,100)?:break;batches+=b;queue.completed(b) }
++        assertEquals(7,batches.size);assertEquals(10..14,batches.first());assertEquals(40..44,batches.last())
++        assertNull(queue.nextBatch(14,0,100));assertEquals(45..49,queue.nextBatch(15,0,100))
++    }
++    @Test fun sixDigitPinHasHardLimitOnNormalizeAppendAndReady() {
++        assertEquals("123456",PinDigits.normalize("a12x3456789"))
++        assertEquals("123456",PinDigits.append("123456",7))
++        assertTrue(PinDigits.ready("123456"));assertFalse(PinDigits.ready("12345"));assertFalse(PinDigits.ready("1234567"))
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsUiDeviceTest.kt
+@@ -0,0 +1,130 @@
++package br.com.flaviotorres.iptvpremium.ui.kids
++
++import androidx.compose.runtime.*
++import androidx.compose.foundation.layout.*
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.test.*
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.graphics.toPixelMap
++import br.com.flaviotorres.iptvpremium.ui.settings.NumericPinField
++import br.com.flaviotorres.iptvpremium.ui.home.HomeScreen
++import br.com.flaviotorres.iptvpremium.ui.theme.*
++import androidx.test.core.app.ApplicationProvider
++import android.content.Context
++import org.junit.Assert.*
++import org.junit.Rule
++import org.junit.Test
++
++@org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
++@OptIn(androidx.compose.ui.test.ExperimentalTestApi::class)
++class KidsUiDeviceTest {
++    @get:Rule val compose=createComposeRule()
++    @Test fun homeHasKidsAndNormalContentButtonsCanBeDisabled() {
++        var clicked=0
++        compose.setContent {Box(Modifier.requiredSize(960.dp,540.dp)){HomeScreen({}, {}, {}, onKidsClick={clicked++}, normalEnabled=false)}}
++        try { compose.waitUntil(30000){compose.onAllNodesWithText("KIDS").fetchSemanticsNodes().isNotEmpty()} }
++        catch(e:Throwable) { println(compose.onRoot().printToString());throw e }
++        compose.onNodeWithText("FILMES").assertIsNotEnabled()
++        compose.onNodeWithText("CANAIS").assertIsNotEnabled()
++        compose.onNodeWithText("SÉRIES").assertIsNotEnabled()
++        compose.onNodeWithText("KIDS").assertIsEnabled().performClick()
++        assertEquals(1,clicked)
++    }
++    @Test fun newPinKeyboardStopsAtSixDigits() {
++        var value=""
++        compose.setContent {var pin by remember {mutableStateOf("")};Column{NumericPinField("Novo PIN",pin,{pin=it;value=it},true)}}
++        compose.onNodeWithContentDescription("Novo PIN").performClick()
++        for(n in 1..7)compose.onNodeWithText(n.toString()).performClick()
++        compose.onNodeWithText("Concluir").performClick()
++        assertEquals("123456",value)
++    }
++    @Test fun legacyPinCanBeConfirmedWithFourDigits() {
++        var value=""
++        compose.setContent {var pin by remember {mutableStateOf("")};Column{NumericPinField("PIN atual",pin,{pin=it;value=it},true,minimum=4)}}
++        compose.onNodeWithContentDescription("PIN atual").performClick()
++        for(n in 1..4)compose.onNodeWithText(n.toString()).performClick()
++        compose.onNodeWithText("Concluir").performClick()
++        assertEquals("1234",value)
++    }
++    @Test fun movieDetailsNoLongerExposeTrailerButton() {
++        compose.setContent {br.com.flaviotorres.iptvpremium.ui.movies.MovieDetailsScreen(movieName="Teste")}
++        compose.onNodeWithText("ASSISTIR").assertExists()
++        compose.onNodeWithText("TRAILER").assertDoesNotExist()
++    }
++    @Test fun seriesDetailsNoLongerExposeTrailerButton() {
++        compose.setContent {br.com.flaviotorres.iptvpremium.ui.series.SeriesDetailsScreen(seriesName="Teste",trailerAvailable=true)}
++        compose.onNodeWithText("TRAILER").assertDoesNotExist()
++        compose.onNodeWithText("TENTAR NOVAMENTE").assertExists()
++    }
++    @Test fun kidsLandingUsesRemoteBackAndThreeContentButtons() {
++        var back=0;var movies=0
++        compose.setContent {Box(Modifier.requiredSize(960.dp,540.dp)){KidsScreen({}, {movies++}, {}, {back++})}}
++        compose.onNodeWithText("CANAIS").assertExists()
++        compose.onNodeWithText("FILMES").performClick()
++        assertEquals(1,movies)
++        compose.onNodeWithText("SÉRIES").assertExists()
++        compose.onRoot().performKeyInput { pressKey(androidx.compose.ui.input.key.Key.Escape) }
++        assertEquals(1,back)
++    }
++    @Test fun legacyPinMustBeUpgradedBeforeManagingKids() {
++        val context=ApplicationProvider.getApplicationContext<Context>()
++        val salt=ByteArray(16){it.toByte()}
++        fun hex(b:ByteArray)=b.joinToString(""){"%02x".format(it.toInt()and 255)}
++        val hash=javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(javax.crypto.spec.PBEKeySpec("12345".toCharArray(),salt,120000,256)).encoded
++        java.io.File(context.noBackupFilesDir,"parental_pin_v1.json").apply {parentFile!!.mkdirs();writeText(org.json.JSONObject().put("salt",hex(salt)).put("hash",hex(hash)).toString())}
++        br.com.flaviotorres.iptvpremium.ui.settings.ParentalSession.initialize(context)
++        compose.setContent {br.com.flaviotorres.iptvpremium.ui.settings.ParentalPreferencesSettings({})}
++        compose.onNodeWithContentDescription("PIN do responsável").performClick()
++        for(n in 1..5) compose.onNodeWithText(n.toString()).performClick()
++        compose.onNodeWithText("Concluir").performClick()
++        compose.onNodeWithText("Acessar controles").performClick()
++        compose.waitUntil(10000) {compose.onAllNodesWithText("Seu PIN atual foi confirmado. Cadastre 6 números para continuar.").fetchSemanticsNodes().isNotEmpty()}
++        compose.onNodeWithText("‹ Voltar aos controles").assertDoesNotExist()
++        compose.onNodeWithText("Kids").assertDoesNotExist()
++        compose.onNodeWithContentDescription("Novo PIN (6 números)").performClick()
++        for(n in 1..6) compose.onNodeWithText(n.toString()).performClick()
++        compose.onNodeWithText("Concluir").performClick()
++        compose.onNodeWithContentDescription("Repita o PIN").performClick()
++        for(n in 1..6) compose.onNodeWithText(n.toString()).performClick()
++        compose.onNodeWithText("Concluir").performClick()
++        compose.onNodeWithText("Salvar PIN").performClick()
++        compose.waitUntil(10000) {compose.onAllNodesWithText("Kids").fetchSemanticsNodes().isNotEmpty()}
++        assertTrue(br.com.flaviotorres.iptvpremium.ui.settings.ParentalPinStore(context).verify("123456"))
++    }
++    @Test fun bearGold() = assertBearTheme(PremiumTheme.GOLD)
++    @Test fun bearBlue() = assertBearTheme(PremiumTheme.BLUE)
++    @Test fun bearPurple() = assertBearTheme(PremiumTheme.PURPLE)
++    @Test fun bearRed() = assertBearTheme(PremiumTheme.RED)
++    @Test fun bearPink() = assertBearTheme(PremiumTheme.PINK)
++    @Test fun bearEmerald() = assertBearTheme(PremiumTheme.EMERALD)
++    @Test fun bearCyan() = assertBearTheme(PremiumTheme.CYAN)
++    private fun assertBearTheme(theme:PremiumTheme) {
++        val context=ApplicationProvider.getApplicationContext<Context>()
++        ThemeState.choose(context,theme)
++        var painter: androidx.compose.ui.graphics.painter.Painter? = null
++        compose.setContent { painter=themePainterResource(br.com.flaviotorres.iptvpremium.R.drawable.kids_bear, androidx.compose.ui.unit.IntSize(320,320)); androidx.compose.foundation.Image(painter!!,null,Modifier.size(180.dp)) }
++        compose.waitUntil(10000) { painter?.javaClass?.simpleName == "ArtworkPainter" }
++            val bitmap=androidx.compose.ui.graphics.ImageBitmap(180,180)
++            androidx.compose.ui.graphics.drawscope.CanvasDrawScope().draw(androidx.compose.ui.unit.Density(1f),androidx.compose.ui.unit.LayoutDirection.Ltr,androidx.compose.ui.graphics.Canvas(bitmap),androidx.compose.ui.geometry.Size(180f,180f)) {
++                with(painter!!) { draw(size) }
++            }
++                val pixels=bitmap.toPixelMap()
++                var hits=0
++                for(y in 0 until pixels.height step 4) for(x in 0 until pixels.width step 4) {
++                    val c=pixels[x,y]
++                    val ok=when(theme) {
++                        PremiumTheme.GOLD->c.red>.5f&&c.green>.3f&&c.blue<c.red*.7f
++                        PremiumTheme.BLUE->c.blue>.3f&&c.blue>c.red*1.2f
++                        PremiumTheme.RED->c.red>.3f&&c.red>c.green*1.2f
++                        PremiumTheme.PURPLE,PremiumTheme.PINK->c.red>c.green*1.2f&&c.blue>c.green*1.2f
++                        PremiumTheme.EMERALD->c.green>.3f&&c.green>c.red*1.2f
++                        PremiumTheme.CYAN->c.blue>c.red*1.2f&&c.green>c.red*1.2f
++                    }
++                    if(ok)hits++
++                }
++                assertTrue("Visible themed bear for $theme, pixels=$hits", hits>30)
++        compose.runOnIdle {ThemeState.choose(context,PremiumTheme.GOLD)}
++    }
++}
+--- /dev/null
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsPinStoreDeviceTest.kt
+@@ -0,0 +1,35 @@
++package br.com.flaviotorres.iptvpremium.ui.settings
++
++import android.content.Context
++import androidx.test.core.app.ApplicationProvider
++import java.io.File
++import javax.crypto.SecretKeyFactory
++import javax.crypto.spec.PBEKeySpec
++import org.json.JSONObject
++import org.junit.Assert.*
++import org.junit.Test
++
++@org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
++class KidsPinStoreDeviceTest {
++    @Test fun legacyPinStillAuthenticatesAndNewPinRequiresExactlySix() {
++        val context=ApplicationProvider.getApplicationContext<Context>()
++        val salt=ByteArray(16){it.toByte()}
++        fun hex(b:ByteArray)=b.joinToString(""){"%02x".format(it.toInt()and 255)}
++        val hash=SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(PBEKeySpec("1234".toCharArray(),salt,120000,256)).encoded
++        File(context.noBackupFilesDir,"parental_pin_v1.json").apply {parentFile!!.mkdirs();writeText(JSONObject().put("salt",hex(salt)).put("hash",hex(hash)).toString())}
++        val store=ParentalPinStore(context)
++        assertTrue(store.verify("1234"))
++        for(pin in listOf("12345","1234567")) {
++            try {store.set(pin);fail("Invalid length accepted")} catch(_:IllegalArgumentException){}
++        }
++        store.set("654321");assertTrue(store.verify("654321"));assertFalse(store.verify("1234"))
++    }
++    @Test fun kidsRulePersistsAndCanBeDisabledInsideAuthorizedControls() {
++        val context=ApplicationProvider.getApplicationContext<Context>()
++        ParentalPolicy.initialize(context)
++        ParentalPolicy.update {it.copy(kidsOnly=true)}
++        ParentalPolicy.initialize(context);assertTrue(ParentalPolicy.rules.value.kidsOnly)
++        ParentalPolicy.update {it.copy(kidsOnly=false)}
++        ParentalPolicy.initialize(context);assertFalse(ParentalPolicy.rules.value.kidsOnly)
++    }
++}
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/storage/PosterAheadCacheDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/storage/PosterAheadCacheDeviceTest.kt
+@@ -40,38 +40,39 @@
+         }
+         val context=ApplicationProvider.getApplicationContext<Context>()
+         val unique=java.util.UUID.randomUUID().toString()
+-        val posters=(0 until 40).map { "http://127.0.0.1:${server.localPort}/$unique/poster-$it.png" }
++        val posters=(0 until 80).map { "http://127.0.0.1:${server.localPort}/$unique/poster-$it.png" }
+         val queue=br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue()
+         MoviePosterLoader.clearMemory()
+         try {
+             MoviePosterLoader.prefetchAhead(context,queue,10,0,posters)
+-            assertEquals(15,requests.get())
++            assertEquals(35,requests.get())
+             for(index in 10..14) assertNotNull(MoviePosterLoader.peekBitmap(posters[index]))
+-            for(index in 15..24) assertNull(MoviePosterLoader.peekBitmap(posters[index]))
++            for(index in 15..44) assertNull(MoviePosterLoader.peekBitmap(posters[index]))
+             val folder=java.io.File(context.cacheDir,"iptv_movie_posters_session")
+-            for (url in posters.subList(10,25)) {
++            for (url in posters.subList(10,45)) {
+                 val hash=java.security.MessageDigest.getInstance("SHA-256").digest(url.toByteArray())
+                     .joinToString("") { "%02x".format(it.toInt() and 255) }
+                 assertTrue(java.io.File(folder,"$hash.img").isFile)
+             }
+             MoviePosterLoader.prefetchAhead(context,queue,14,0,posters)
+-            assertEquals(15,requests.get())
++            assertEquals(35,requests.get())
+             MoviePosterLoader.prefetchAhead(context,queue,15,0,posters)
+-            assertEquals(20,requests.get())
++            assertEquals(40,requests.get())
+             MoviePosterLoader.clearMemory()
+             MoviePosterLoader.prefetchAhead(context,queue,15,0,posters)
+-            assertEquals(20,requests.get())
++            assertEquals(40,requests.get())
+             for(index in 15..19) assertNotNull(MoviePosterLoader.peekBitmap(posters[index]))
+-            // Nova abertura/categoria: cursor novo, arquivos existentes devem evitar rede.
++            // Kids usa os mesmos arquivos e chaves, mesmo depois de esvaziar a RAM.
++            br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value=true
+             MoviePosterLoader.clearMemory()
+             MoviePosterLoader.prefetchAhead(context,br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue(),10,0,posters)
+-            assertEquals(20,requests.get())
++            assertEquals(40,requests.get())
+             for (url in posters.take(5)) assertNotNull(MoviePosterLoader.load(context,url))
+-            assertEquals(25,requests.get())
++            assertEquals(45,requests.get())
+             br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value=true
+             try {
+                 MoviePosterLoader.prefetchAhead(context,br.com.flaviotorres.iptvpremium.data.cache.PosterAheadQueue(),30,0,posters)
+-                assertEquals(25,requests.get())
++                assertEquals(45,requests.get())
+             } finally { br.com.flaviotorres.iptvpremium.data.cache.CatalogMemoryPolicy.pressured.value=false }
+             val recent=java.io.File(folder,".recent-posters").readText()
+             assertFalse(recent.contains("http"));assertFalse(recent.contains("127.0.0.1"))
+@@ -79,7 +80,7 @@
+             server.close()
+             MoviePosterLoader.prepareRecentCachedPosters(context)
+             for (url in posters.take(5)) assertNotNull(MoviePosterLoader.peekBitmap(url))
+-            assertEquals(25,requests.get())
++            assertEquals(45,requests.get())
+             val field=MoviePosterLoader::class.java.getDeclaredField("memoryCache").apply { isAccessible=true }
+             val cache=field.get(null) as android.util.LruCache<*,*>
+             val maximum=cache.maxSize()
+@@ -92,7 +93,9 @@
+                 assertEquals(0,cache.size())
+             } finally { cache.resize(maximum) }
+             assertNotNull(MoviePosterLoader.load(context,posters[0]))
+-            assertEquals(25,requests.get())
+-        } finally { server.close();clients.forEach { runCatching { it.close() } } }
++            assertEquals(45,requests.get())
++        } finally {
++            br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value=false
++            server.close();clients.forEach { runCatching { it.close() } } }
+     }
+ }
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/media/RestoredTrailerHeaderDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/core/media/RestoredTrailerHeaderDeviceTest.kt
+@@ -1,53 +1,30 @@
+ package br.com.flaviotorres.iptvpremium.core.media
+ 
++import android.content.ComponentName
+ import android.content.Context
++import android.content.ContextWrapper
+ import android.content.Intent
+-import android.view.KeyEvent
+-import android.view.View
+-import android.view.ViewGroup
+-import android.widget.Button
+-import androidx.test.core.app.ActivityScenario
++import android.content.pm.PackageManager
+ import androidx.test.core.app.ApplicationProvider
+ import org.junit.Assert.*
+ import org.junit.Test
+ 
++/** O trailer foi retirado; nenhum caminho antigo pode abrir o player. */
++@org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
+ class RestoredTrailerHeaderDeviceTest {
+-    @Test fun noBackButtonAndHardwareEscapeClosesTheScreen() {
+-        val context = ApplicationProvider.getApplicationContext<Context>()
+-        val intent = Intent(context, TrailerPlayerActivity::class.java).putExtra("title", "")
+-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+-        ActivityScenario.launch<TrailerPlayerActivity>(intent).use { scenario ->
+-            scenario.onActivity { activity ->
+-                fun buttons(view: View): List<Button> = when (view) {
+-                    is Button -> listOf(view)
+-                    is ViewGroup -> (0 until view.childCount).flatMap { buttons(view.getChildAt(it)) }
+-                    else -> emptyList()
+-                }
+-                assertFalse(buttons(activity.window.decorView).any { it.text.toString().contains("Voltar") })
+-                activity.window.decorView.measure(View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(540, View.MeasureSpec.EXACTLY))
+-                activity.window.decorView.layout(0,0,960,540)
+-                val f = TrailerPlayerActivity::class.java.getDeclaredField("frame").apply { isAccessible = true }.get(activity) as View
+-                assertTrue("video frame ${f.width}x${f.height}", f.width > 800 && f.height > 300)
+-                val content = activity.findViewById<android.widget.FrameLayout>(android.R.id.content)
+-                val layout = content.getChildAt(0) as android.widget.LinearLayout
+-                assertEquals("Only title header and video frame", 2, layout.childCount)
+-                val header = layout.getChildAt(0) as android.widget.LinearLayout
+-                assertEquals(1, header.childCount)
+-                assertEquals("Trailer", (header.getChildAt(0) as android.widget.TextView).text.toString())
+-                val surface = android.widget.FrameLayout(activity)
+-                var hidden = false
+-                val callback = android.webkit.WebChromeClient.CustomViewCallback { hidden = true }
+-                TrailerPlayerActivity::class.java.getDeclaredMethod("showCustomVideo", View::class.java,
+-                    android.webkit.WebChromeClient.CustomViewCallback::class.java).apply { isAccessible = true }
+-                    .invoke(activity, surface, callback)
+-                assertNotNull(surface.parent)
+-                assertEquals(View.VISIBLE, surface.visibility)
+-                TrailerPlayerActivity::class.java.getDeclaredMethod("hideCustomVideo").apply { isAccessible = true }.invoke(activity)
+-                assertNull(surface.parent)
+-                assertTrue(hidden)
+-                assertTrue(activity.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ESCAPE)))
+-                assertTrue(activity.isFinishing)
+-            }
++    @Test fun retiredTrailerActivityIsNotRegistered() {
++        val context=ApplicationProvider.getApplicationContext<Context>()
++        try {
++            context.packageManager.getActivityInfo(ComponentName(context,TrailerPlayerActivity::class.java),0)
++            fail("Trailer retirado ainda registrado")
++        } catch (_: PackageManager.NameNotFoundException) { }
++    }
++    @Test fun retiredLauncherDoesNotStartAnyActivity() {
++        var launches=0
++        val context=object:ContextWrapper(ApplicationProvider.getApplicationContext<Context>()) {
++            override fun startActivity(intent:Intent) { launches++ }
+         }
++        openTrailer(context,"dubbed12345","Teste")
++        assertEquals(0,launches)
+     }
+ }
+--- a/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterAheadQueueDeviceTest.kt
++++ b/app/src/androidTest/java/br/com/flaviotorres/iptvpremium/data/cache/PosterAheadQueueDeviceTest.kt
+@@ -13,23 +13,23 @@
+         }
+         error("Unbounded queue")
+     }
+-    @Test fun fillsFifteenInThreeGroupsOfFive() {
++    @Test fun fillsThirtyFiveInSevenGroupsOfFive() {
+         val queue=PosterAheadQueue()
+-        assertEquals(listOf(10..14,15..19,20..24),fill(queue,10))
++        assertEquals(listOf(10..14,15..19,20..24,25..29,30..34,35..39,40..44),fill(queue,10))
+         assertNull(queue.nextBatch(10,0,100))
+     }
+-    @Test fun refillsExactlyFiveWhenOnlyTenRemain() {
++    @Test fun refillsExactlyFiveWhenThirtyRemain() {
+         val queue=PosterAheadQueue();fill(queue,10)
+         assertTrue(fill(queue,14).isEmpty())
+-        assertEquals(listOf(25..29),fill(queue,15))
++        assertEquals(listOf(45..49),fill(queue,15))
+         assertTrue(fill(queue,19).isEmpty())
+-        assertEquals(listOf(30..34),fill(queue,20))
++        assertEquals(listOf(50..54),fill(queue,20))
+     }
+     @Test fun fourColumnLayoutNeedsNoSpecialCase() {
+         val queue=PosterAheadQueue()
+-        assertEquals(listOf(8..12,13..17,18..22),fill(queue,8))
++        assertEquals(listOf(8..12,13..17,18..22,23..27,28..32,33..37,38..42),fill(queue,8))
+         assertTrue(fill(queue,12).isEmpty())
+-        assertEquals(listOf(23..27,28..30),fill(queue,16))
++        assertEquals(listOf(43..47,48..50),fill(queue,16))
+     }
+     @Test fun cancellationDoesNotAdvanceUncompletedGroup() {
+         val queue=PosterAheadQueue()
+@@ -39,12 +39,12 @@
+     @Test fun waitsForPagingAndContinuesPartialGroup() {
+         val queue=PosterAheadQueue()
+         assertEquals(listOf(10..14,15..16),fill(queue,10,end=17))
+-        assertEquals(listOf(17..21,22..24),fill(queue,10,end=30))
++        assertEquals(listOf(17..21,22..26,27..29),fill(queue,10,end=30))
+     }
+     @Test fun categoryEndAndLargeJumpAreBounded() {
+         val queue=PosterAheadQueue()
+         assertEquals(listOf(98..99),fill(queue,98))
+         assertTrue(fill(queue,100).isEmpty())
+-        assertEquals(listOf(20..24,25..29,30..34),fill(queue,20))
++        assertEquals(listOf(20..24,25..29,30..34,35..39,40..44,45..49,50..54),fill(queue,20))
+     }
+ }
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -54,12 +54,6 @@
+             android:screenOrientation="sensorLandscape" />
+ 
+         <activity
+-            android:name=".core.media.TrailerPlayerActivity"
+-            android:exported="false"
+-            android:hardwareAccelerated="true"
+-            android:screenOrientation="sensorLandscape" />
+-
+-        <activity
+             android:name=".MainActivity"
+             android:screenOrientation="sensorLandscape"
+             android:banner="@drawable/iptv_premium_tv_banner_320x180"
+Binary asset added: app/src/main/res/drawable-nodpi/kids_bear.png (SHA256 315CF0F0A3AB7F6678F9CA2AAD7D0B55824CDDE4EE5A900DB7FCB9C6CA8DDD05)
