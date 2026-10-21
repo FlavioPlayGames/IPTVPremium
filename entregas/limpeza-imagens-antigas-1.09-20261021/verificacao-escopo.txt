@@ -1,0 +1,6 @@
+PASS: one source file updated and ten obsolete image files removed.
+PASS: no references to deleted drawable IDs in Kotlin, Java, XML, manifest or instrumentation sources.
+PASS: unused legacy Home preloader and obsolete icon resource dispatch removed; active Home uses existing layered artwork and native captions.
+PASS: series room preparation and legacy Kids bear sheet painter unchanged; original Kids crop index 3 preserved.
+PASS: cleanup archive contains no image payload and cannot restore manually deleted images. Version remains 1.09.
+LIMIT: no cloud emulator; compile and local installer verification do not replace visual TV review. Cleanup is limited to these ten confirmed legacy images.

@@ -1,0 +1,7 @@
+assembleDebug assembleDebugAndroidTest compileReleaseKotlin
+BUILD SUCCESSFUL in 1m 8s
+83 actionable tasks: 22 executed, 61 up-to-date
+Configuration cache entry stored.
+
+Confirmed versionName 1.09 and absence of the ten deleted resource files in all five debug APK outputs.
+Instrumented tests compiled only; no cloud emulator.

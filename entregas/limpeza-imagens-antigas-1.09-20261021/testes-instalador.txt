@@ -1,0 +1,5 @@
+PASS: current; source update, known obsolete images removed, prior exclusions respected, exact backups, no restoration, current PNG/Kids/private files preserved, reapplication, atomic rejection of unknown source edits.
+PASS: windows-bom-crlf; source update, known obsolete images removed, prior exclusions respected, exact backups, no restoration, current PNG/Kids/private files preserved, reapplication, atomic rejection of unknown source edits.
+PASS: already-deleted; source update, known obsolete images removed, prior exclusions respected, exact backups, no restoration, current PNG/Kids/private files preserved, reapplication, atomic rejection of unknown source edits.
+PASS: additional XML reference blocks cleanup atomically, including before backup.
+PASS: custom-image; source update, known obsolete images removed, prior exclusions respected, exact backups, no restoration, current PNG/Kids/private files preserved, reapplication, atomic rejection of unknown source edits.

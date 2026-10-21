@@ -1,0 +1,97 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/ThemeArtwork.kt",
+    "allowMissing": false,
+    "sha": "471e0ac5dd6b06b70cdc5b50f768e843cdf411c85e572267138a6db5b0e8f366",
+    "allowed": [
+      "23a67c8f1ca2d2e2d4ba864f03165ad487df1c39675646dc19e806bfb123d279",
+      "27d8e64a722f314dd78f63b526f13d49bad1977a88e0f0df68345d7bdce9baab",
+      "3831402e367ee45df489b998105cf2a29e69e5aeefeaa8842b9ca76a1ec1c4b9",
+      "471e0ac5dd6b06b70cdc5b50f768e843cdf411c85e572267138a6db5b0e8f366",
+      "4f63d06b3842dd14ccf4e69751aeee82c005330e903cb187608f6be325a648dc",
+      "5454157fa6a860360c13b4b89e3e0a1c068d54e59e084e2e885546bc7ac7e8e1",
+      "dd44edb1ee0472cb2e718182e63b1cc5547d382fb96f313882a6938d5464ff33",
+      "f91971352cc6a0740422f00d26183fe6bf287ab7e0a267aedec0bbb01f74808e"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable/home_series.webp",
+    "delete": true,
+    "allowMissing": true,
+    "allowed": [
+      "d6c122affd3bd9fe8b0fdc4c4b32c0a74dc0e57f091c4bab82dcab754680980f"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable/home_movies.webp",
+    "delete": true,
+    "allowMissing": true,
+    "allowed": [
+      "cd8b0584cd8eaee110271f76b1c1c77ade26b4fce4d6bf32cfd3c4a8b36f3e5d"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable/icon_atualizar.webp",
+    "delete": true,
+    "allowMissing": true,
+    "allowed": [
+      "e0f02fa84f11d494b4e36b3c7bf9a94314fe5c46c68831d515f82c1f13deea71"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable/icon_configuracoes.webp",
+    "delete": true,
+    "allowMissing": true,
+    "allowed": [
+      "b0cf71692d8de002972e7a845cee468cda5d92c9af40b10f5b0e485317491f1c"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable/home_channels.webp",
+    "delete": true,
+    "allowMissing": true,
+    "allowed": [
+      "26f9c7cbf9aae3c113ca0bfc685e9548f65f0898237f2bcdc29088f280b4864b"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable/icon_lista.webp",
+    "delete": true,
+    "allowMissing": true,
+    "allowed": [
+      "390c09830032f0b449fb3a9d203dd8ca26b3fb0040bce3b36657f9738d34a6f5"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/theme_blue_icons.webp",
+    "delete": true,
+    "allowMissing": true,
+    "allowed": [
+      "3d3aa380eda9aab0955bb0d948dbfa937ea97226210e349fca0b931814b38ea0"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/theme_pink_icons.webp",
+    "delete": true,
+    "allowMissing": true,
+    "allowed": [
+      "a2cfaa010207f98838a314f4323174b929a5442d71ab92d065dbe2dae4f96c20"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/theme_purple_icons.webp",
+    "delete": true,
+    "allowMissing": true,
+    "allowed": [
+      "30a6b5f07627cef64ed8428262129c719854bc026bd11cf0d31ac542183596f2"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/theme_red_icons.webp",
+    "delete": true,
+    "allowMissing": true,
+    "allowed": [
+      "b4edc9535f44bbdf415c2e00ec5e0fe2f18b7ef238476f257be71389158672d9"
+    ]
+  }
+]

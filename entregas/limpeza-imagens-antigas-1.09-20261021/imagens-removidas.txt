@@ -1,0 +1,11 @@
+app/src/main/res/drawable/home_series.webp	819028 bytes
+app/src/main/res/drawable/home_movies.webp	1031308 bytes
+app/src/main/res/drawable/icon_atualizar.webp	766046 bytes
+app/src/main/res/drawable/icon_configuracoes.webp	810638 bytes
+app/src/main/res/drawable/home_channels.webp	760020 bytes
+app/src/main/res/drawable/icon_lista.webp	827418 bytes
+app/src/main/res/drawable-nodpi/theme_blue_icons.webp	409376 bytes
+app/src/main/res/drawable-nodpi/theme_pink_icons.webp	444394 bytes
+app/src/main/res/drawable-nodpi/theme_purple_icons.webp	457214 bytes
+app/src/main/res/drawable-nodpi/theme_red_icons.webp	423030 bytes
+Total: 6748472 bytes (6.44 MiB)
