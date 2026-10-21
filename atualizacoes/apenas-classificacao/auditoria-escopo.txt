@@ -1,0 +1,13 @@
+Auditoria sobre o java.zip restaurado enviado pelo usuario
+
+189 de 192 arquivos Kotlin identicos ao ZIP.
+3 arquivos alterados exclusivamente para ordenar categorias:
+br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
+br/com/flaviotorres/iptvpremium/ui/kids/KidsPolicy.kt
+br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt
+
+LiveTvScreen: somente uma linha sortedWith na lista de categorias.
+PlaylistCatalogRepository: somente o trecho de ordenacao de getCategories; filtros preservados.
+KidsPolicy/CatalogSections: normalizacao do nome para ordenar, prioridade de cursos/adultos e comparador compartilhado.
+
+Favoritos, fila de capas, cache, downloads, navegacao, player e importacao preservados como no ZIP.

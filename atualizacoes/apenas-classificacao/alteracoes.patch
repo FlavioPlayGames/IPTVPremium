@@ -1,0 +1,63 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsPolicy.kt
+@@ -17,7 +17,7 @@
+     fun subtitled(name: String): Boolean = Regex("(?:^|[^\\p{L}\\p{N}])(?:L|LEG|LEGENDADO[S]?|LEGENDADA[S]?)(?:$|[^\\p{L}\\p{N}])",RegexOption.IGNORE_CASE).containsMatchIn(name)
+     private val year=Regex("(?:19|20)[0-9]{2}")
+     fun orderName(name: String): String = KidsContent.folded(name).trim().removePrefix("🔒 ")
+-        .replace(Regex("^(?:filmes?|series?)\\s*[|:–—-]\\s*"), "").trim()
++        .replace(Regex("^(?:filmes?|series?|canais|canal|channels?)\\s*[|｜:–—-]\\s*"), "").trim()
+     fun priority(name: String): Int {
+         val folded=orderName(name)
+         return when {
+@@ -31,13 +31,18 @@
+         val text = orderName(name)
+         val adult = Regex("\\b(?:xxx|adultos?|adultas?)\\b|(?:18\\s*\\+|\\+\\s*18)")
+         return when {
+-            text.firstOrNull()?.isLetterOrDigit() == false || adult.containsMatchIn(text) ||
+-                Regex("\\bcursos?\\b").containsMatchIn(text) -> 4
++            adult.containsMatchIn(text) -> 6
++            Regex("\\bcursos?\\b").containsMatchIn(text) -> 5
++            text.firstOrNull()?.isLetterOrDigit() == false -> 4
+             "lancamento" in text || Regex("\\breleases?\\b").containsMatchIn(text) -> 0
+             subtitled(text) -> 1
+             Regex("\\b(?:4k|uhd)\\b").containsMatchIn(text) -> 2
+             else -> 3
+         }
+     }
++    /** Apenas ordenacao: nao filtra, renomeia nem duplica categorias. */
++    fun <T> categoryOrder(name:(T)->String):Comparator<T> = compareBy<T> { moviePriority(name(it)) }
++        .thenByDescending { if(moviePriority(name(it))==0)year(name(it))else 0 }
++        .thenBy { orderName(name(it)) }
+     fun year(name: String): Int = year.findAll(name).map { it.value.toInt() }.maxOrNull() ?: 0
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt
+@@ -666,15 +666,9 @@
+                 if (access.blocked(playlistId, type, category.id, categoryName = category.name)) category.copy(name = "🔒 " + category.name.replaceFirst(categoryMediaPrefix, "")) else category
+             }
+             .let { categories ->
+-                if (categoryType == CategoryType.LIVE_TV) categories
+-                else categories.filterNot { CatalogSections.subtitled(it.name) }
+-                    .sortedWith(compareBy<Category> {
+-                        if (categoryType == CategoryType.MOVIES) CatalogSections.moviePriority(it.name)
+-                        else CatalogSections.priority(it.name)
+-                    }.thenByDescending {
+-                        val priority = if (categoryType == CategoryType.MOVIES) CatalogSections.moviePriority(it.name) else CatalogSections.priority(it.name)
+-                        if (priority == 0) CatalogSections.year(it.name) else 0
+-                    }.thenBy { CatalogSections.orderName(it.name) })
++                val displayed = if (categoryType == CategoryType.LIVE_TV) categories
++                    else categories.filterNot { CatalogSections.subtitled(it.name) }
++                displayed.sortedWith(CatalogSections.categoryOrder { it.name })
+             }
+     }
+ 
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
+@@ -377,6 +377,7 @@
+                 .distinctBy {
+                     it.id
+                 }
++                .sortedWith(br.com.flaviotorres.iptvpremium.ui.kids.CatalogSections.categoryOrder { it.name })
+                 .map { category ->
+                     ChannelCategory(
+                         id = "source_${category.id}",
