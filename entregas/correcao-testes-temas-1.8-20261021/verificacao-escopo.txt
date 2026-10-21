@@ -1,0 +1,1 @@
+PASS: both delivered files match compiled sources. Five real enum entries and deprecated aliases covered by compiled resource-contract test. Existing local Kids test left untouched by installer. Native-command failure/success log capture validated with executable mocks. No native Android tests executed here.

@@ -1,0 +1,1 @@
+PASS: two-file installer, read-only validation, exact backups, original local Kids test and private config preserved, unknown changes rejected atomically. Native failure mock proves stdout/stderr captured completely in one UTF-8 log; exit 17 rejected, success accepted, previous log overwritten.
