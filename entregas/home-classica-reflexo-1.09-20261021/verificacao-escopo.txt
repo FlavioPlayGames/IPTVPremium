@@ -1,0 +1,7 @@
+PASS: five original user-uploaded transparent cutouts preserved byte-for-byte; no redraw or image recompression.
+PASS: visible-object crops match original dimensions and alpha; destination aspect error <=1px, shared floor baseline, unchanged approved slot widths/centres/gaps and native captions.
+PASS: decoded Home budget 14160704 bytes <18MiB; original files total 4955446 bytes vs 6668595 bytes for replaced images.
+PASS: five replaced icon files removed; no references to their resource IDs remain in main or instrumented sources.
+PASS: classic material filter combined with existing five theme matrices; same filter on icons, focused icons and independent floor reflections. Light/dark backdrops retain existing treatment.
+PASS: no internal Kids screen, playback, favorites, import or database behavior changed.
+LIMIT: preview is a composited reference, not an Android screenshot. Instrumentation compiled only; no cloud emulator.

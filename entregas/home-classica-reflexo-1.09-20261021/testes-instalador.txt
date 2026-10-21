@@ -1,0 +1,6 @@
+PASS: current; four source updates, original five transparent cutouts installed, known replaced images removed, exact backups, local Kids/backdrops/private settings preserved, reapplication, atomic rejection of unknown edits.
+PASS: windows-bom-crlf; four source updates, original five transparent cutouts installed, known replaced images removed, exact backups, local Kids/backdrops/private settings preserved, reapplication, atomic rejection of unknown edits.
+PASS: replaced-images-already-deleted; four source updates, original five transparent cutouts installed, known replaced images removed, exact backups, local Kids/backdrops/private settings preserved, reapplication, atomic rejection of unknown edits.
+PASS: extra-xml-reference blocks replacement atomically, before backup.
+PASS: custom-old-image; four source updates, original five transparent cutouts installed, known replaced images removed, exact backups, local Kids/backdrops/private settings preserved, reapplication, atomic rejection of unknown edits.
+PASS: custom-new-image blocks replacement atomically, before backup.
