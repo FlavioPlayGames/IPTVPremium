@@ -1,0 +1,11 @@
+BUILD SUCCESSFUL. 16 testes passaram.
+br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningDeadlineTest: 4 passaram, 0 falhas.
+br.com.flaviotorres.iptvpremium.ui.playlist.ListRefreshAndPortraitTest: 3 passaram, 0 falhas.
+br.com.flaviotorres.iptvpremium.core.navigation.MovieOpeningErrorUiTest: 1 passaram, 0 falhas.
+br.com.flaviotorres.iptvpremium.data.history.HistoryTransferCheckpointTest: 8 passaram, 0 falhas.
+
+PASS LF/CRLF+BOM, exact PNGs/Kotlin, preservation, backup and idempotence: False
+PASS LF/CRLF+BOM, exact PNGs/Kotlin, preservation, backup and idempotence: True
+PASS unknown source/art refused before writes: unknown-source
+PASS unknown source/art refused before writes: unknown-art
+PASS rollback restores old images/sources and removes the new helper

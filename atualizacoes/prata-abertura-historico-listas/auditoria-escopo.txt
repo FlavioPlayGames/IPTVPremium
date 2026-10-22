@@ -1,0 +1,15 @@
+Base exclusiva: java.zip, sediment file_000000001bc8820ebbc7d852bc178124.
+9 fontes existentes alterados, 1 novo componente e 1 novo PNG.
+app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheRestartActivity.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/HistorySyncSession.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/WatchHistoryStore.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesViewModel.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistListScreen.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MissingCastPortrait.kt
+app/src/main/res/drawable-nodpi/cast_missing_prata.png
+187 outros fontes Kotlin verificados byte a byte contra o ZIP e preservados.
+Gradle e recursos antigos usados somente na compilacao isolada; nao integram o instalador.

@@ -1,0 +1,788 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -309,7 +309,7 @@
+     data class Ready(val result: SeriesEpisodesResult) : SeriesEpisodesLoadState
+ }
+ 
+-private data class CinematicCarouselPoster(
++internal data class CinematicCarouselPoster(
+     val movieId: String,
+     val title: String,
+     val posterUrl: String?
+@@ -579,6 +579,7 @@
+             )
+         }
+ 
++    // Favorites are published after catalogue readiness; do not read/search them during import.
+     // IDs dos favoritos reais do provedor, separados por playlist e persistidos.
+     // A colecao armazenada nunca e exposta diretamente: sempre copiamos o Set.
+     val favoritePreferences = remember(context) {
+@@ -591,20 +592,14 @@
+         "movies_${storedActivePlaylistId.orEmpty()}"
+     }
+     var favoriteMovieIds by remember(storedActivePlaylistId) {
+-        mutableStateOf(
+-            favoritePreferences.getStringSet(movieFavoritesKey, emptySet())
+-                .orEmpty().toSet()
+-        )
++        mutableStateOf(emptySet<String>())
+     }
+     // Favoritos de Series: mesmo armazenamento persistente por playlist dos Filmes.
+     val seriesFavoritesKey = remember(storedActivePlaylistId) {
+         "series_${storedActivePlaylistId.orEmpty()}"
+     }
+     var favoriteSeriesIds by remember(storedActivePlaylistId) {
+-        mutableStateOf(
+-            favoritePreferences.getStringSet(seriesFavoritesKey, emptySet())
+-                .orEmpty().toSet()
+-        )
++        mutableStateOf(emptySet<String>())
+     }
+     DisposableEffect(context.applicationContext) {
+         val app = context.applicationContext
+@@ -797,6 +792,9 @@
+ 
+     // O historico da categoria Continuar Assistindo e independente do cache.
+     // IDs, capas e posicoes sao salvos; URLs e credenciais nunca sao persistidos.
++    var catalogLoadingState by remember {
++        mutableStateOf<AppCatalogLoadingState?>(AppCatalogLoadingState())
++    }
+     val watchHistoryStore = remember(context) {
+         WatchHistoryStore(context.applicationContext)
+     }
+@@ -806,6 +804,7 @@
+     val sharedImportMutex = remember { kotlinx.coroutines.sync.Mutex() }
+     val historySyncSession = remember { br.com.flaviotorres.iptvpremium.data.history.HistorySyncSession.process }
+     val historySyncRun by historySyncSession.state.collectAsState()
++    var historyExecutorJob by remember {mutableStateOf<Job?>(null)}
+     val enrichmentEntry by navController.currentBackStackEntryAsState()
+     val enrichmentRoute = enrichmentEntry?.destination?.route
+     val selectedMediaBusy by br.com.flaviotorres.iptvpremium.data.cache.MediaOpeningPriority.busy.collectAsState()
+@@ -817,9 +816,11 @@
+         sharedImportMutex.lock()
+         try {
+             withContext(Dispatchers.IO) {
+-                val history = watchHistoryStore.allLocal()
++                val origin=historySyncRun?.takeIf {it.playlist==source.id && it.phase!=br.com.flaviotorres.iptvpremium.data.history.HistorySyncSession.Phase.COMPLETED}?.origin
++                    ?:sharedLibrary.historySource()?:source.id
++                val history = watchHistoryStore.allLocal().filter {it.playlistId==source.id || it.playlistId==origin}
+                 suspend fun reconcile(forceScan: Boolean = false) {
+-                    sharedLibrary.reconcile(playlistCacheDao, source.id, history, force = forceScan, reuseUnchanged = true, kind = kind)
++                    sharedLibrary.reconcile(playlistCacheDao, source.id, history, force = forceScan, reuseUnchanged = true, kind = kind, origin=origin)
+                 }
+                 reconcile(force)
+                 if (!includeNetwork) return@withContext
+@@ -855,8 +856,8 @@
+     }
+     // Local favorite/progress edits stay immediate, without restarting remote history import.
+     LaunchedEffect(activePlaylistId, sharedLibraryRevision, historyRefreshSerial, settingsHistoryRevision,
+-        sharedSelectionInFlight, enrichmentRoute, historySyncRun?.phase) {
+-        if (sharedSelectionInFlight != null || historySyncRun?.phase in listOf(
++        sharedSelectionInFlight, enrichmentRoute, historySyncRun?.phase, catalogLoadingState) {
++        if (catalogLoadingState!=null || sharedSelectionInFlight != null || historySyncRun?.phase in listOf(
+                 br.com.flaviotorres.iptvpremium.data.history.HistorySyncSession.Phase.PENDING,
+                 br.com.flaviotorres.iptvpremium.data.history.HistorySyncSession.Phase.RUNNING)) return@LaunchedEffect
+         val kind = when (enrichmentRoute) {
+@@ -875,7 +876,8 @@
+     var watchHistoryEntries by remember(activePlaylistId, historyRefreshSerial, settingsHistoryRevision, sharedReadyRevision, parentalAccessState) {
+         mutableStateOf<List<WatchHistoryEntry>>(emptyList())
+     }
+-    LaunchedEffect(activePlaylistId, historyRefreshSerial, settingsHistoryRevision, sharedReadyRevision, parentalAccessState) {
++    LaunchedEffect(activePlaylistId, historyRefreshSerial, settingsHistoryRevision, sharedReadyRevision, parentalAccessState,catalogLoadingState,sharedSelectionInFlight) {
++        if(catalogLoadingState!=null || sharedSelectionInFlight!=null)return@LaunchedEffect
+         val playlist = activePlaylistId ?: return@LaunchedEffect
+         watchHistoryEntries = withContext(Dispatchers.IO) {
+             playlistCatalogRepository.filterHistoryForCatalog(playlist, watchHistoryStore.all(playlist))
+@@ -945,13 +947,16 @@
+ 
+ 
+     // One import per process/list selection. Navigation and lifecycle resume are not keys.
+-    LaunchedEffect(activePlaylistId, sharedSelectionInFlight, playlists, historySyncRun?.id) {
+-        if (sharedSelectionInFlight != null) return@LaunchedEffect
++    LaunchedEffect(activePlaylistId, sharedSelectionInFlight, playlists, historySyncRun?.id,catalogLoadingState) {
++        if (catalogLoadingState!=null || sharedSelectionInFlight != null) return@LaunchedEffect
+         if (br.com.flaviotorres.iptvpremium.BuildConfig.DEBUG &&
+             br.com.flaviotorres.iptvpremium.BuildConfig.DEBUG_PAUSE_SHARED_LIBRARY) return@LaunchedEffect
+         val source = playlists.firstOrNull { it.id == activePlaylistId } ?: return@LaunchedEffect
+-        val run = historySyncRun?.takeIf { it.playlist == source.id } ?: return@LaunchedEffect
++        val run = historySyncRun?.takeIf { it.playlist == source.id }
++            ?: historySyncSession.request(source.id,origin=sharedLibrary.historySource()?:source.id)
+         if (!historySyncSession.awaitStart(run.id)) return@LaunchedEffect
++        val executor=currentCoroutineContext()[Job]
++        historyExecutorJob=executor
+         try {
+             playlistCacheDao.observeActiveGenerationId(source.id).first { it != null }
+             delay(750L) // Give the Home and initial artwork priority; never hold its controls.
+@@ -965,13 +970,19 @@
+                 currentCoroutineContext().ensureActive()
+                 publishSharedPlaylist(source.id)
+             }
+-            historySyncSession.complete(run.id)
++            withContext(Dispatchers.IO) {
++                currentCoroutineContext().ensureActive()
++                historySyncSession.complete(run.id) {sharedLibrary.checkpointCompletedHistory(source.id,watchHistoryStore)}
++            }
+             Log.i("SharedLibrary", "historico_sessao=concluido aviso=${run.announce}")
+         } catch (cancelled: CancellationException) { throw cancelled }
+         catch (_: Exception) {
+             historySyncSession.fail(run.id)
+             Log.w("SharedLibrary", "historico_sessao=incompleto dados_preservados=true")
+-        } finally { historySyncSession.release(run.id) }
++        } finally {
++            if(historyExecutorJob===executor)historyExecutorJob=null
++            historySyncSession.release(run.id)
++        }
+     }
+ 
+     /*
+@@ -983,9 +994,6 @@
+     val manualCatalogRefresh = remember(context) {
+         br.com.flaviotorres.iptvpremium.core.storage.ActivePlaylistRefresh(context)
+     }
+-    var catalogLoadingState by remember {
+-        mutableStateOf<AppCatalogLoadingState?>(AppCatalogLoadingState())
+-    }
+     var catalogStartupRetry by remember { mutableStateOf(0) }
+     var startupCatalogJob by remember { mutableStateOf<Job?>(null) }
+     var manualCatalogJob by remember { mutableStateOf<Job?>(null) }
+@@ -1021,8 +1029,10 @@
+             .first()?.takeIf(String::isNotBlank)
+             ?: throw IllegalStateException("O catalogo ativo nao esta disponivel.")
+ 
++        // Pin the existing active history before a newly registered list becomes active.
++        activePlaylistId?.takeIf {it!=source.id}?.let {sharedLibrary.seedHistorySource(it)}
+         // A list switch announces on the Home itself; cold starts stay completely silent.
+-        historySyncSession.request(source.id, announce = showHistoryImport, restart = showHistoryImport)
++        historySyncSession.request(source.id, announce = showHistoryImport, restart = showHistoryImport,origin=sharedLibrary.historySource()?:source.id)
+         publishSharedPlaylist(source.id)
+         Log.i("StartupPerf", "etapa=historico_local modo=sessao_background aviso=$showHistoryImport")
+         catalogLoadingState = AppCatalogLoadingState(
+@@ -1661,7 +1671,7 @@
+                         var owner: Context? = context
+                         while (owner is ContextWrapper && owner !is android.app.Activity) owner = owner.baseContext
+                         (owner as? android.app.Activity)?.let {
+-                            br.com.flaviotorres.iptvpremium.core.storage.CacheRestartActivity.restart(it, activePlaylistId)
++                            br.com.flaviotorres.iptvpremium.core.storage.CacheRestartActivity.restart(it)
+                         }
+                     },
+                     onConfiguracoesClick = {
+@@ -1710,12 +1720,11 @@
+             composable(
+                 route = PLAYLIST_LIST_ROUTE
+             ) {
+-                PlaylistListScreen(
+-                    playlists = playlists,
+-                    activePlaylistId = activePlaylistId,
+-                    loadingPlaylistId = loadingPlaylistId,
+-                    onPlaylistClick = { playlist ->
++                val selectPlaylist:(PlaylistSource,Boolean)->Unit = {playlist,forceRefresh->
+                         if (loadingPlaylistId == null) {
++                            activePlaylistId?.let {sharedLibrary.seedHistorySource(it)}
++                            val historyTarget=if(forceRefresh && playlist.id!=activePlaylistId)activePlaylistId?:playlist.id else playlist.id
++                            historySyncSession.request(historyTarget,announce=historyTarget!=activePlaylistId,restart=true,origin=sharedLibrary.historySource()?:activePlaylistId?:historyTarget)
+                             loadingPlaylistId = playlist.id
+                             sharedSelectionInFlight = playlist.id
+                             manualPlaylistOperationId = playlist.id
+@@ -1727,6 +1736,7 @@
+                             catalogLoadingDismissed = false
+                             dismissedCatalogPlaylistId = null
+                             manualCatalogJob = coroutineScope.launch {
++                                historyExecutorJob?.cancelAndJoin()
+                                 // Espera o encerramento seguro de uma
+                                 // eventual sincronizacao automatica antes
+                                 // de iniciar uma importacao manual.
+@@ -1736,8 +1746,8 @@
+                                 /*
+                                  * A lista ativa também pode ser selecionada.
+                                  *
+-                                 * Se o usuário tocar novamente na lista ativa,
+-                                 * tratamos como atualização manual.
++                                 * Usar lista reaproveita o catálogo; Atualizar lista
++                                 * solicita explicitamente uma nova importação.
+                                  *
+                                  * O indicador permanece visível até o processo
+                                  * terminar. Em caso de sucesso, voltamos
+@@ -1760,7 +1770,7 @@
+                                     playlistCacheGenerationManager.activateReadyGenerationOnStartup(playlist.id)
+                                     val cached = playlistCatalogRepository.hasActiveCache(playlist.id)
+                                     Log.i("StartupPerf", "etapa=selecao_catalogo cache=$cached")
+-                                    if (!cached) {
++                                    if (!cached || forceRefresh) {
+                                         when (playlist) {
+                                             is PlaylistSource.M3u -> m3uSourceSynchronizer.sync(playlist)
+                                             is PlaylistSource.XtreamCodes -> m3uSourceSynchronizer.sync(playlist)
+@@ -1769,6 +1779,12 @@
+                                         playlistCacheGenerationManager.activateReadyGenerationOnStartup(playlist.id)
+                                     }
+                                     scheduleStaleGenerationCleanup(playlist.id)
++                                    // Updating an inactive list does not select it or import its history.
++                                    if(forceRefresh && !isAlreadyActive) {
++                                        automaticSyncPreferences.edit().putLong("success_${playlist.id}",System.currentTimeMillis()).apply()
++                                        catalogLoadingState=null
++                                        return@launch
++                                    }
+                                     val content: PlaylistContent? = null
+ 
+                                     // Atualizacao: aguarda a sincronizacao Room e
+@@ -1923,7 +1939,13 @@
+                                 }
+                             }
+                         }
+-                    },
++                }
++                PlaylistListScreen(
++                    playlists = playlists,
++                    activePlaylistId = activePlaylistId,
++                    loadingPlaylistId = loadingPlaylistId,
++                    onPlaylistClick = {selectPlaylist(it,false)},
++                    onRefreshClick = {selectPlaylist(it,true)},
+                     onAddClick = {
+                         navController.navigate(
+                             PLAYLIST_SETUP_ROUTE
+@@ -2701,7 +2723,7 @@
+                                 finishRequested = true
+                             } else {
+                                 errorMessage =
+-                                    "Não foi possível preparar este filme. Tente novamente."
++                                    "Houve uma falha ao conectar o filme."
+                             }
+                         } catch (cancelled: CancellationException) {
+                             throw cancelled
+@@ -2717,7 +2739,7 @@
+                                 error
+                             )
+                             errorMessage =
+-                                "Não foi possível preparar este filme. Tente novamente."
++                                "Houve uma falha ao conectar o filme."
+                         }
+                     }
+ 
+@@ -4641,7 +4663,7 @@
+  * - Nenhum clique real e disparado: onTransitionFinished e chamado uma vez.
+  */
+ @Composable
+-private fun CinematicCarouselLoadingScreen(
++internal fun CinematicCarouselLoadingScreen(
+     posters: List<CinematicCarouselPoster>,
+     selectedMovieId: String,
+     finishRequested: Boolean,
+@@ -4838,11 +4860,15 @@
+         val count = cards.size.coerceAtLeast(1)
+         // Reservar a altura do logo + rodape, inclusive nas TVs em que o
+         // Android usa menos dp que pixels fisicos (ex.: 4K em TV grande).
+-        val carouselHeight = if (compact) {
++        val logoHeight=if(errorMessage!=null) {if(compact)64.dp else 96.dp} else if(compact)100.dp else 142.dp
++        val footerHeight=if(errorMessage!=null) {if(compact)144.dp else 140.dp} else if(compact)84.dp else 80.dp
++        val normalCarouselHeight = if (compact) {
+             188.dp
+         } else {
+             minOf(300.dp, (maxHeight - 242.dp).coerceAtLeast(235.dp))
+         }
++        val carouselHeight=if(errorMessage!=null)minOf(normalCarouselHeight,
++            (maxHeight-logoHeight-footerHeight-30.dp).coerceAtLeast(64.dp)) else normalCarouselHeight
+ 
+         // Elipse bastante horizontal: ocupa cerca de 84% da tela.
+         // A inclinacao e aplicada ao CAMINHO, nao so a cada capa.
+@@ -4853,7 +4879,7 @@
+         // Apenas desce a posicao das capas (sem alterar a geometria da orbita).
+         // Em telas compactas, usa um deslocamento menor para preservar o rodape.
+         val carouselDownPx = with(density) {
+-            (if (compact) 12.dp else 26.dp).toPx()
++            (if(errorMessage!=null)0.dp else if (compact) 12.dp else 26.dp).toPx()
+         }
+ 
+         Column(
+@@ -4865,7 +4891,7 @@
+             Box(
+                 modifier = Modifier
+                     .width(if (compact) 155.dp else 214.dp)
+-                    .height(if (compact) 100.dp else 142.dp),
++                    .height(logoHeight),
+                 contentAlignment = Alignment.Center
+             ) {
+                 if(kidsLoading) Image(painterResource(R.drawable.iptv_premium_logo),"IPTV PREMIUM",
+@@ -4994,7 +5020,7 @@
+             // Mesma area reservada: nem o logo nem as capas saltam no fim.
+             Box(
+                 modifier = Modifier.fillMaxWidth()
+-                    .height(if (compact) 84.dp else 80.dp),
++                    .height(footerHeight),
+                 contentAlignment = Alignment.TopCenter
+             ) {
+                 if (!selectionStarted.value || chromeAlpha > 0.001f) {
+@@ -5005,7 +5031,7 @@
+                         Text(
+                             text = if (errorMessage == null) {
+                                 "Carregando…"
+-                            } else "PREPARAÇÃO INTERROMPIDA",
++                            } else "FALHA NA CONEXÃO",
+                             style = TextStyle(
+                                 fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
+                                 fontWeight = FontWeight.SemiBold,
+@@ -5084,8 +5110,10 @@
+                                 style = TextStyle(textAlign = TextAlign.Center)
+                             )
+                             Spacer(Modifier.height(if (compact) 12.dp else 19.dp))
++                            val retryFocus=remember {FocusRequester()}
++                            LaunchedEffect(errorMessage) {withFrameNanos {};retryFocus.requestFocus()}
+                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+-                                MetallicLoadingAction("TENTAR NOVAMENTE", onRetry)
++                                MetallicLoadingAction("TENTAR NOVAMENTE", onRetry,Modifier.focusRequester(retryFocus))
+                                 MetallicLoadingAction("VOLTAR", onBack)
+                             }
+                         }
+@@ -5284,16 +5312,19 @@
+ @Composable
+ private fun MetallicLoadingAction(
+     text: String,
+-    onClick: () -> Unit
++    onClick: () -> Unit,
++    modifier:Modifier=Modifier
+ ) {
+     var focused by remember { mutableStateOf(false) }
+     val shape = RoundedCornerShape(8.dp)
+ 
+     Box(
+-        modifier = Modifier
++        modifier = modifier
+             .onFocusChanged { focused = it.isFocused }
+             .background(
+-                color = if (focused) { br.com.flaviotorres.iptvpremium.ui.theme.SelectionTheme.color() } else {
++                color = if(br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.regular) {
++                    if(focused)br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.selectionColor() else br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.panel
++                } else if (focused) { br.com.flaviotorres.iptvpremium.ui.theme.SelectionTheme.color() } else {
+                     br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.surface(0xFF131315)
+                 },
+                 shape = shape
+@@ -5315,7 +5346,7 @@
+             style = TextStyle(
+                 fontWeight = FontWeight.SemiBold,
+                 fontSize = 11.sp,
+-                brush = LoadingMetallicGoldText
++                color = br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.ink(0xFFFFFFFF)
+             )
+         )
+     }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheRestartActivity.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheRestartActivity.kt
+@@ -50,9 +50,10 @@
+                     // Keep the Room catalogue: rebuilding it would require a full import.
+                     // Preferences, registry, access, favorites and history stay untouched.
+                     clearExperienceCache(applicationContext.cacheDir, applicationContext.externalCacheDir)
+-                    intent.getStringExtra("refresh_playlist")?.takeIf { it.isNotBlank() }?.let {
+-                        check(ActivePlaylistRefresh(applicationContext).request(it))
+-                    }
++                    // Discard a legacy Home-refresh marker; this action never imports a list.
++                    val refresh=ActivePlaylistRefresh(applicationContext)
++                    refresh.pendingPlaylistId()?.let {check(refresh.complete(it))}
++
+                 }.isSuccess
+             }
+             if (!success) Toast.makeText(this@CacheRestartActivity,
+@@ -65,10 +66,10 @@
+     }
+ 
+     companion object {
+-        fun restart(activity: Activity, playlistId: String? = null) {
++        fun restart(activity: Activity) {
+             activity.startActivity(Intent(activity, CacheRestartActivity::class.java)
+                 .putExtra("previous_pid", Process.myPid())
+-                .putExtra("refresh_playlist", playlistId).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
++                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+         }
+     }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/HistorySyncSession.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/HistorySyncSession.kt
+@@ -8,17 +8,17 @@
+ internal class HistorySyncSession {
+     enum class Phase { PENDING, RUNNING, COMPLETED, FAILED }
+     data class Run(val id: Long, val playlist: String, val announce: Boolean,
+-        val phase: Phase = Phase.PENDING, val announced: Boolean = false)
++        val phase: Phase = Phase.PENDING, val announced: Boolean = false, val origin:String?=null)
+     private var serial = 0L
+     private var cacheObserved = false
+     private val mutableState = MutableStateFlow<Run?>(null)
+     val state = mutableState.asStateFlow()
+ 
+-    @Synchronized fun request(playlist: String, announce: Boolean = false, restart: Boolean = false): Run {
++    @Synchronized fun request(playlist: String, announce: Boolean = false, restart: Boolean = false, origin:String?=null): Run {
+         require(playlist.isNotBlank())
+         val existing = mutableState.value
+         if (!restart && existing?.playlist == playlist) return existing
+-        return Run(++serial, playlist, announce).also { mutableState.value = it }
++        return Run(++serial, playlist, announce, origin=origin).also { mutableState.value = it }
+     }
+     @Synchronized fun start(id: Long): Boolean {
+         val run = mutableState.value ?: return false
+@@ -34,7 +34,12 @@
+             if (start(id)) return true
+         }
+     }
+-    @Synchronized fun complete(id: Long): Boolean = finish(id, Phase.COMPLETED)
++    @Synchronized fun complete(id: Long, checkpoint:()->Unit = {}): Boolean {
++        val run=mutableState.value?:return false
++        if(run.id!=id || run.phase!=Phase.RUNNING)return false
++        checkpoint()
++        return finish(id,Phase.COMPLETED)
++    }
+     @Synchronized fun fail(id: Long): Boolean = finish(id, Phase.FAILED)
+     private fun finish(id: Long, phase: Phase): Boolean {
+         val run = mutableState.value ?: return false
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt
+@@ -26,7 +26,11 @@
+         val identity: ContentIdentity, val tracked: Boolean, val favorite: Boolean?, val changed: Long,
+         val hiddenUntil: Long = 0L, val aliasesVersion: Int = 0)
+     private data class Link(val id: String, val title: String, val poster: String?, val order: Int? = null)
+-    private var records = readRecords()
++    // Opening the app only creates the store; decoding/searching history waits for catalogue readiness.
++    private var loadedRecords:MutableMap<String,Record>?=null
++    private var records:MutableMap<String,Record>
++        get()=synchronized(lock) {loadedRecords?:readRecords().also {loadedRecords=it}}
++        set(value) {synchronized(lock) {loadedRecords=value}}
+     private var linkedPlaylist: String? = null
+     private var linkedGeneration: String? = null
+     private val linkedSignatures = mutableMapOf<String, String>()
+@@ -166,7 +170,7 @@
+     suspend fun enrichMatchingMovies(playlist: String, resolve: suspend (MovieMetadataRequest) -> ContentIdentity?): Boolean {
+         val requests = synchronized(lock) {
+             if (linkedPlaylist != playlist) return false
+-            val sources = records.values.filter { it.tracked && it.identity.kind == "movies" }
++            val sources = records.values.filter { it.tracked && it.identity.kind == "movies" && it.key in eligibleKeys }
+             val sourcesByName = sources.groupBy { it.identity.normalizedTitle }
+             val priorities = sourcesByName.mapValues { (_, items) -> items.maxOf { maxOf(it.changed, historyPriorities[it.key] ?: 0L) } }
+             val names = pendingMovies.associateWith { ContentIdentity("movies", it.title, it.year).normalizedTitle }
+@@ -230,7 +234,7 @@
+         }
+         return updated
+     }
+-    suspend fun reconcile(dao: PlaylistCacheDao, playlist: String, history: List<WatchHistoryEntry>, force: Boolean = false, reuseUnchanged: Boolean = false, kind: String? = null) = reconcileLock.withLock {
++    suspend fun reconcile(dao: PlaylistCacheDao, playlist: String, history: List<WatchHistoryEntry>, force: Boolean = false, reuseUnchanged: Boolean = false, kind: String? = null, origin:String?=null) = reconcileLock.withLock {
+         require(kind == null || kind in listOf("movies", "series"))
+         val generation = dao.getActiveGeneration(playlist)?.generationId ?: return@withLock
+         val favoritePrefs = app.getSharedPreferences("iptvpremium_favorites_v1", Context.MODE_PRIVATE)
+@@ -239,6 +243,7 @@
+             val recordKind = when { name.startsWith("movies_") -> "movies"; name.startsWith("series_") -> "series"; else -> return@forEach }
+             if (kind != null && kind != recordKind) return@forEach
+             val source = name.removePrefix("${recordKind}_")
++            if(origin!=null && source!=playlist && source!=origin)return@forEach
+             (raw as? Set<*>)?.filterIsInstance<String>()?.forEach { id ->
+                 currentCoroutineContext().ensureActive()
+                 val r = ensureRecord(dao, source, recordKind, id, refresh = force) ?: return@forEach
+@@ -262,7 +267,7 @@
+                     if (recordKind == "series") h.seriesTitle.orEmpty() else h.title)) }) return@forEach
+             ensureRecord(dao, h.playlistId, recordKind, id, ContentIdentity(recordKind, if (recordKind == "series") h.seriesTitle.orEmpty() else h.title), refresh = force)
+         }
+-        val snapshot = synchronized(lock) { persist(); records.values.toList() }
++        val snapshot = synchronized(lock) { persist(); records.values.filter {origin==null || it.playlist==playlist || it.playlist==origin} }
+         val progressKeys = history.filter { it.inProgress }.map { h ->
+             key(h.playlistId, if (h.contentType == PlaybackContentType.MOVIE) "movies" else "series", h.seriesId ?: h.contentId)
+         }.toSet()
+@@ -373,7 +378,7 @@
+             }
+             linkedHistory = history.toList()
+             linkedPlaylist = playlist; linkedGeneration = generation; linkedSignatures[scope] = signature
+-            val replacedKeys = snapshot.filter { kind == null || it.identity.kind == kind }.map { it.key }.toSet()
++            val replacedKeys = records.values.filter { kind == null || it.identity.kind == kind }.map { it.key }.toSet()
+             links = links.filterKeys { it !in replacedKeys } + result
+             eligibleKeys = (eligibleKeys - replacedKeys) + tracked.map { it.key }
+             if (kind == null || kind == "movies") pendingMovies = unresolved.distinctBy { it.id }
+@@ -493,6 +498,47 @@
+             ((r.playlist == playlist && r.id == id) || (linkedPlaylist == playlist && links[r.key].orEmpty().any { it.id == id }))) r.copy(hiddenUntil = until) else r }
+         persist(); changed()
+     }
++    fun historySource():String? = prefs.getString("completed_history_source",null)?.takeIf {it.isNotBlank()}
++    /** Existing active data is the baseline if this installation has not recorded a checkpoint yet. */
++    fun seedHistorySource(playlist:String) = synchronized(lock) {
++        if(historySource()==null)check(prefs.edit().putString("completed_history_source",playlist).commit())
++    }
++    /** Called only inside HistorySyncSession's current-run completion guard, on IO. */
++    fun checkpointCompletedHistory(playlist:String, historyStore:WatchHistoryStore) {
++        val raw=historyStore.allLocal()
++        // A linked in-progress episode must have its real target-provider episode ID.
++        // An interrupted/failed episode lookup must not promote a partial list to the origin.
++        synchronized(lock) {
++            val pending=targetSeriesHistory(playlist,linkedHistory).any {(link,h)->
++                h.playlistId!=playlist && h.inProgress && h.seasonNumber!=null && (h.episodeNumber?:0)>0 &&
++                    episodeMaps[link.id]?.get(h.seasonNumber to h.episodeNumber)==null
++            }
++            check(!pending) {"Histórico de episódios ainda incompleto"}
++        }
++        val projected=projectHistory(playlist,raw)
++        val favoritePrefs=app.getSharedPreferences("iptvpremium_favorites_v1",Context.MODE_PRIVATE)
++        val movieFavorites=favorites(playlist,"movies",favoritePrefs.getStringSet("movies_$playlist",emptySet()).orEmpty())
++        val seriesFavorites=favorites(playlist,"series",favoritePrefs.getStringSet("series_$playlist",emptySet()).orEmpty())
++        synchronized(lock) {
++            check(linkedPlaylist==playlist) {"Vínculos de outra lista"}
++            // Materialise completed inherited events under the target IDs, including removals/hides.
++            val mapped=records.values.toList().flatMap {r->links[r.key].orEmpty().map {r to it}}
++                .groupBy {(r,link)->r.identity.kind to link.id}
++            mapped.forEach { (target,candidates)->
++                val (source,link)=candidates.maxBy {it.first.changed}
++                val k=key(playlist,target.first,target.second)
++                records[k]=source.copy(key=k,playlist=playlist,id=target.second,
++                    identity=source.identity.copy(title=link.title),tracked=true,
++                    hiddenUntil=candidates.maxOf {it.first.hiddenUntil})
++            }
++            persist()
++        }
++        historyStore.checkpointPlaylist(playlist,projected)
++        check(favoritePrefs.edit().putStringSet("movies_$playlist",movieFavorites)
++            .putStringSet("series_$playlist",seriesFavorites).commit()) {"Falha ao salvar favoritos"}
++        check(prefs.edit().putString("completed_history_source",playlist).commit()) {"Falha ao concluir histórico"}
++    }
++
+     companion object {
+         fun resumePosition(entry: WatchHistoryEntry?, position: Long, duration: Long?): Long {
+             if (entry?.seriesOnly == true) return 0L
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/WatchHistoryStore.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/WatchHistoryStore.kt
+@@ -176,6 +176,13 @@
+         return@synchronized true
+     }
+ 
++    internal fun checkpointPlaylist(playlist:String, incoming:List<WatchHistoryEntry>) = synchronized(historyLock) {
++        require(incoming.all { it.playlistId==playlist })
++        val combined=(readAll()+incoming).sortedByDescending { it.updatedAtMs }
++            .distinctBy { Triple(it.playlistId,it.contentType,it.contentId) }.take(400)
++        writeAll(combined,durable=true)
++    }
++
+     private fun readAll(): List<WatchHistoryEntry> = runCatching {
+         val array = JSONArray(prefs.getString("items", "[]") ?: "[]")
+         buildList {
+@@ -200,13 +207,14 @@
+                     episodeNumber = obj.optInt("episodeNumber", -1).takeIf { it >= 0 },
+                     positionMs = obj.optLong("positionMs").coerceAtLeast(0L),
+                     durationMs = obj.optLong("durationMs").takeIf { it > 0L },
+-                    updatedAtMs = obj.optLong("updatedAtMs")
++                    updatedAtMs = obj.optLong("updatedAtMs"),
++                    sharedFromPlaylist = obj.optString("sharedFromPlaylist").takeIf { it.isNotBlank() }
+                 ))
+             }
+         }
+     }.getOrDefault(emptyList())
+ 
+-    private fun writeAll(items: List<WatchHistoryEntry>) {
++    private fun writeAll(items: List<WatchHistoryEntry>, durable:Boolean=false) {
+         val array = JSONArray()
+         items.forEach { item ->
+             array.put(JSONObject().apply {
+@@ -223,9 +231,11 @@
+                 put("positionMs", item.positionMs)
+                 put("durationMs", item.durationMs ?: 0L)
+                 put("updatedAtMs", item.updatedAtMs)
++                put("sharedFromPlaylist",item.sharedFromPlaylist?:"")
+             })
+         }
+-        prefs.edit().putString("items", array.toString()).apply()
++        val edit=prefs.edit().putString("items",array.toString())
++        if(durable)check(edit.commit()) { "Falha ao salvar histórico" } else edit.apply()
+     }
+     companion object {
+         private val historyLock = Any()
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
+@@ -1070,12 +1070,7 @@
+                     contentScale = ContentScale.Crop
+                 )
+             } else {
+-                Text(
+-                    text = "•••",
+-                    color = Color(0xFFD2D2D6),
+-                    fontSize = if (compactLayout) 20.sp else 22.sp,
+-                    fontWeight = FontWeight.Bold
+-                )
++                MissingCastPortrait(member.name,Modifier.fillMaxSize())
+             }
+             // A borda e desenhada DEPOIS da foto: nenhuma parte do bitmap
+             // pode esconder o contorno dourado quando o card ganha foco.
+@@ -1436,13 +1431,16 @@
+         )
+     }
+ 
+-    private suspend fun downloadToDisk(context: Context, url: String, destination: File): Boolean {
++    private suspend fun downloadToDisk(context: Context, url: String, destination: File): Boolean = kotlinx.coroutines.coroutineScope {
+         var reservation: br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget.Reservation? = null
+         var connection: HttpURLConnection? = null
+         var partialFile: File? = null
+ 
+-        return try {
+-            val directory = destination.parentFile ?: return false
++        val closer=launch(kotlinx.coroutines.Dispatchers.IO,start=kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
++            try {kotlinx.coroutines.awaitCancellation()} finally {runCatching {connection?.disconnect()}}
++        }
++        return@coroutineScope try {
++            val directory = destination.parentFile ?: return@coroutineScope false
+ 
+             connection = (URL(url).openConnection() as HttpURLConnection).apply {
+                 connectTimeout = 8_000
+@@ -1452,10 +1450,10 @@
+             }
+ 
+             connection.connect()
+-            if (connection.responseCode !in 200..299) return false
+-            if (connection.contentLengthLong > MAX_DOWNLOAD_BYTES) return false
++            if (connection.responseCode !in 200..299) return@coroutineScope false
++            if (connection.contentLengthLong > MAX_DOWNLOAD_BYTES) return@coroutineScope false
+             reservation = br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage.get(context)
+-                .reserve(destination, connection.contentLengthLong.takeIf { it > 0 } ?: MAX_DOWNLOAD_BYTES) ?: return false
++                .reserve(destination, connection.contentLengthLong.takeIf { it > 0 } ?: MAX_DOWNLOAD_BYTES) ?: return@coroutineScope false
+             val temporary = reservation.temporary
+             partialFile = temporary
+ 
+@@ -1468,14 +1466,14 @@
+                         val count = input.read(buffer)
+                         if (count == -1) break
+                         totalBytes += count
+-                        if (totalBytes > reservation.limit) return false
++                        if (totalBytes > reservation.limit) return@coroutineScope false
+                         output.write(buffer, 0, count)
+                     }
+                 }
+             }
+ 
+-            if (totalBytes == 0L) return false
+-            if (!temporary.renameTo(destination)) return false
++            if (totalBytes == 0L) return@coroutineScope false
++            if (!temporary.renameTo(destination)) return@coroutineScope false
+             true
+         } catch (cancelled: CancellationException) {
+             throw cancelled
+@@ -1483,6 +1481,7 @@
+             Log.w(TAG, "Download de imagem falhou: ${error.javaClass.simpleName}")
+             false
+         } finally {
++            closer.cancel()
+             runCatching { connection?.disconnect() }
+             partialFile?.delete()
+             reservation?.close()
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
+@@ -2,6 +2,7 @@
+ 
+ /** One budget for metadata and decoded principal images, reserving the final animation. */
+ internal object MovieOpeningPolicy {
++    const val attempts = 3
+     const val preparationMs = 15_000L
+     const val remoteMs = 8_000L
+     const val minimumLoadingMs = 3_000L
+@@ -14,4 +15,16 @@
+     @Suppress("UNUSED_PARAMETER")
+     fun minimumWaitMs(elapsedMs: Long, artworkReady: Boolean): Long =
+         (minimumLoadingMs - elapsedMs.coerceAtLeast(0L)).coerceAtLeast(0L)
++    /** Each attempt gets a share of the remaining single deadline; never three full deadlines. */
++    suspend fun <T:Any> prepare(block:suspend ()->T?):T? = kotlinx.coroutines.withTimeoutOrNull(preparationMs) {
++        repeat(attempts) { index ->
++            val result = kotlinx.coroutines.withTimeoutOrNull(preparationMs / attempts) {
++                try { block() }
++                catch(cancelled:kotlinx.coroutines.CancellationException) { throw cancelled }
++                catch(_:Exception) { null }
++            }
++            if(result!=null)return@withTimeoutOrNull result
++        }
++        null
++    }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesViewModel.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesViewModel.kt
+@@ -256,6 +256,14 @@
+      * na proxima etapa do AppNavigation.
+      */
+     suspend fun prepareMovieDetails(
++        movieId:String, source:PlaylistSource?, context:Context,
++        viewportWidthPx:Int, viewportHeightPx:Int,
++        detailsLoader:(suspend (PlaylistSource,String)->MovieDetails?)?=null
++    ):PreparedMovieDetails? = MovieOpeningPolicy.prepare {
++        prepareMovieDetailsAttempt(movieId,source,context,viewportWidthPx,viewportHeightPx,detailsLoader)
++    }
++
++    private suspend fun prepareMovieDetailsAttempt(
+         movieId: String,
+         source: PlaylistSource?,
+         context: Context,
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistListScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistListScreen.kt
+@@ -54,7 +54,8 @@
+     loadingPlaylistId: String? = null,
+     onPlaylistClick: (PlaylistSource) -> Unit,
+     onAddClick: () -> Unit,
+-    onDeleteClick: (PlaylistSource) -> Unit
++    onDeleteClick: (PlaylistSource) -> Unit,
++    onRefreshClick: (PlaylistSource) -> Unit = {}
+ ) {
+     var selectedId by remember { mutableStateOf<String?>(null) }
+     var pendingDelete by remember { mutableStateOf<PlaylistSource?>(null) }
+@@ -62,6 +63,7 @@
+     val requesters = remember(ids) { ids.associateWith { FocusRequester() } }
+     val addFocus = remember { FocusRequester() }
+     val useFocus = remember { FocusRequester() }
++    val refreshFocus = remember { FocusRequester() }
+     val deleteFocus = remember { FocusRequester() }
+     val listState = rememberLazyListState()
+     val selected = playlists.firstOrNull { it.id == selectedId }
+@@ -172,11 +174,15 @@
+                         ListDetailAction(if (selected.id == loadingPlaylistId) "Carregando..." else "Usar lista", "▶",
+                             selected.id != loadingPlaylistId, { onPlaylistClick(selected) },
+                             Modifier.fillMaxWidth().focusRequester(useFocus)
+-                                .focusProperties { up = addFocus; down = deleteFocus },
++                                .focusProperties { up = addFocus; down = refreshFocus },
+                             onLeft = { requesters[selected.id]?.requestFocus() })
++                        ListDetailAction("Atualizar lista", "↻", loadingPlaylistId==null,
++                            {onRefreshClick(selected)},Modifier.fillMaxWidth().focusRequester(refreshFocus)
++                                .focusProperties {up=useFocus;down=deleteFocus},
++                            onLeft={requesters[selected.id]?.requestFocus()})
+                         ListDetailAction("Excluir lista", "", selected.id != loadingPlaylistId,
+                             { pendingDelete = selected }, Modifier.fillMaxWidth().focusRequester(deleteFocus)
+-                                .focusProperties { up = useFocus },
++                                .focusProperties { up = refreshFocus },
+                             onLeft = { requesters[selected.id]?.requestFocus() }, trash = true)
+                     }
+                 }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MissingCastPortrait.kt
+@@ -0,0 +1,43 @@
++package br.com.flaviotorres.iptvpremium.ui.movies
++
++import android.content.Context
++import android.graphics.Bitmap
++import android.graphics.BitmapFactory
++import androidx.compose.runtime.*
++import androidx.compose.foundation.Image
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.ImageBitmap
++import androidx.compose.ui.graphics.asImageBitmap
++import androidx.compose.ui.layout.ContentScale
++import androidx.compose.ui.platform.LocalContext
++import br.com.flaviotorres.iptvpremium.R
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.withContext
++import kotlinx.coroutines.sync.Mutex
++import kotlinx.coroutines.sync.withLock
++
++/** A single bounded local portrait shared by all cards and themes; no network or tinted copies. */
++internal object MissingCastPortraitCache {
++    @Volatile private var image:ImageBitmap?=null
++    private val mutex=Mutex()
++    fun peek()=image
++    suspend fun load(context:Context):ImageBitmap?=withContext(Dispatchers.IO) {
++        mutex.withLock {
++            image?:run {
++                val bounds=BitmapFactory.Options().apply { inJustDecodeBounds=true;inScaled=false }
++                BitmapFactory.decodeResource(context.resources,R.drawable.cast_missing_prata,bounds)
++                var sample=1
++                while(bounds.outWidth/sample>384 && bounds.outHeight/sample>512)sample*=2
++                BitmapFactory.decodeResource(context.resources,R.drawable.cast_missing_prata,
++                    BitmapFactory.Options().apply { inScaled=false;inSampleSize=sample;inPreferredConfig=Bitmap.Config.RGB_565 })
++                    ?.asImageBitmap()?.also {image=it}
++            }
++        }
++    }
++}
++@Composable
++internal fun MissingCastPortrait(name:String,modifier:Modifier=Modifier) {
++    val context=LocalContext.current.applicationContext
++    val image by produceState(MissingCastPortraitCache.peek(),context) {value=MissingCastPortraitCache.load(context)}
++    image?.let {Image(it,"Foto indisponível: $name",modifier,contentScale=ContentScale.Crop)}
++}
