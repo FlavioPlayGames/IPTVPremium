@@ -1,8 +1,10 @@
 [
   {
     "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/domain/model/ChannelIdentity.kt",
-    "sha": "fc37ba896694f6cb4f63f0cd561dc4e6be2b05b15af30ca2ff3155b00ab5cdba",
-    "before": [],
+    "sha": "b3dbe5849fd7009980f4d03b7a65085b80316addb3c70952ade76544605ccfcb",
+    "before": [
+      "fc37ba896694f6cb4f63f0cd561dc4e6be2b05b15af30ca2ff3155b00ab5cdba"
+    ],
     "allowMissing": true,
     "remove": false
   },

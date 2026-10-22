@@ -8,7 +8,7 @@ if ($PacoteLocal) { $zip=(Resolve-Path -LiteralPath $PacoteLocal).Path } else {
  $zip=Join-Path $tempDir 'package.zip'
  Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/FlavioPlayGames/IPTVPremium/entrega-iptvpremium-otimizado/entregas/canais-conexao-avaliacao-20261022/canais-conexao-avaliacao.zip' -OutFile $zip
 }
-if ((Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash -ne 'b83870962a1d94acaa921b5c70d4a0b4ce4dabeffd2bbfc6f34da2e7b232fe37') { throw 'Hash do pacote diferente.' }
+if ((Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash -ne '250b353616c8d848c8e9001b3d3a50c86315c5243babb39da0c33ecb11589e0d') { throw 'Hash do pacote diferente.' }
 Expand-Archive -LiteralPath $zip -DestinationPath $tempDir -Force
 $manifest=Get-Content -Raw -LiteralPath (Join-Path $tempDir 'manifest.json') | ConvertFrom-Json
 function TextHash([string]$Path) {

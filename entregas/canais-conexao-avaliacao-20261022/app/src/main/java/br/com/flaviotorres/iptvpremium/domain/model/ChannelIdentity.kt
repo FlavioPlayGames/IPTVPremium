@@ -16,6 +16,12 @@ object ChannelIdentity {
         if(a.isNotBlank()&&a==b)return true
         return false // An EPG ID alone is not enough to switch to a different channel name.
     }
-    fun searchToken(channel:Channel):String = name(channel.name).split(' ')
-        .firstOrNull {it.length>=3&&it.all {c->c in 'a'..'z'||c in '0'..'9'}}.orEmpty()
+    fun searchToken(channel:Channel):String {
+        // SQLite LIKE does not fold accents: use only an ASCII token present in the raw name.
+        // With accent-only names, an empty token safely scans bounded pages and same() filters them.
+        val raw=Regex("[\\p{L}\\p{N}]+").findAll(channel.name).map{it.value.lowercase(Locale.ROOT)}.toSet()
+        return name(channel.name).split(' ').firstOrNull {
+            it.length>=3 && it in raw && it.all{c->c in 'a'..'z'||c in '0'..'9'}
+        }.orEmpty()
+    }
 }

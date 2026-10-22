@@ -7,6 +7,7 @@ aliases somente no ambiente de compilacao; nenhum alias e incluido nesta entrega
 
 Testes externos ao app, com os fontes reais ChannelIdentity e LiveChannelConnection:
 - Variacoes de qualidade coincidem; numeros, +, regioes, idiomas e temporadas nao.
+- Nomes com acentos usam busca SQL segura; nao perdem alternativas por causa do LIKE.
 - EPG generico/repetido nao permite trocar para outro nome.
 - Falhas avancam em ordem; URLs repetidas nao sao tentadas de novo.
 - Transmissao saudavel suspende a busca antes de acessar outra lista.
