@@ -1,0 +1,23 @@
+:app:compileDebugKotlin: BUILD SUCCESSFUL (35 segundos na revisao final).
+Sem alteracao de versao, dependencias, schema ou recursos de imagem.
+Ambiente isolado com aliases apenas locais para recursos ausentes no ZIP de fontes;
+esses aliases nao sao incluidos nesta entrega.
+
+Testes externos ao app com os fontes reais do controlador e player simulado:
+PASS identidade e busca em ordem da entrega anterior.
+PASS servidor saudavel impede consultas posteriores; URL duplicada nao repete.
+PASS falha avanca; esgotamento informa indisponivel; cancelamento limpa listeners.
+PASS timeout de startup em 7 segundos mesmo com avisos repetidos de buffering.
+PASS travamento apos iniciar tambem avanca apos 7 segundos.
+
+Instalador PowerShell em projeto de ensaio:
+PASS aplicacao inicial com CRLF/BOM.
+PASS reaplicacao idempotente.
+PASS recusa alteracoes locais antes de modificar qualquer arquivo.
+
+Revisao de layout: SurfaceView em FIT dentro do host; cantos de 6dp na moldura
+ e 4dp no recorte nativo; fullscreen com cantos retos. O host e o player continuam
+montados ao redimensionar, sem troca de midia ou prepare por esse motivo.
+
+Nao executado visualmente na TV. Os limites da superficie, cantos e transicao
+precisam de verificacao no aparelho. Sem testes automatizados adicionados ao app.
