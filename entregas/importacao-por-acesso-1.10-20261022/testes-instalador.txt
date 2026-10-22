@@ -1,0 +1,6 @@
+PASS original: read-only check, exact backup, apply, idempotent check, unrelated image preserved
+PASS bom-crlf: read-only check, exact backup, apply, idempotent check, unrelated image preserved
+PASS conflict: rejected before any change
+PASS missing: rejected before any change
+PASS new-file-collision: rejected before any change
+PASS scope: 10 updated Kotlin files, 4 new production files, 2 tests; no resources, APK or cloud fixtures

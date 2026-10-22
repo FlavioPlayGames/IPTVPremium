@@ -1,0 +1,4 @@
+BUILD SUCCESSFUL: assembleDebug, assembleDebugAndroidTest, compileReleaseKotlin
+17 testes Android compilados (9 de política + 8 de integração). Não executados em dispositivo nesta sessão cloud.
+18 verificações JVM/transporte executadas e aprovadas.
+Recursos locais substitutos somente para compilar: não incluídos nesta entrega.
