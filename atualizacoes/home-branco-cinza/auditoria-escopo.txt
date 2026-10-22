@@ -1,0 +1,7 @@
+Base: java.zip enviado nesta solicitacao.
+Somente 3 arquivos Kotlin alterados:
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbledHomeScreen.kt
+10 PNGs novos, copiados sem alteracao dos arquivos branca/cinza gerados.
+Demais fontes do ZIP intactas. Sem alteracao de temas, cache de capas, importacao, categorias, favoritos, player, gradle ou assinatura.

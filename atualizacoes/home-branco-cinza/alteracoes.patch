@@ -1,0 +1,132 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt
+@@ -1,23 +1,39 @@
+ package br.com.flaviotorres.iptvpremium.ui.home
+ 
+ import br.com.flaviotorres.iptvpremium.R
++import br.com.flaviotorres.iptvpremium.ui.theme.PremiumTheme
+ 
+-/** Approved pearl/gray PNGs with a flat TV antenna; only their metal takes the selected theme hue. */
++/** Finished theme strips: keep their original colours and neutral materials, without runtime tinting. */
+ internal data class MarblePngAsset(val resource:Int,val width:Int,val height:Int,val crop:MarbleRegion)
+ internal object MarbleHomePngAssets {
+-    private val light=listOf(
+-        MarblePngAsset(R.drawable.home_approved_channels_light,1536,1024,MarbleRegion(62,86,1492,915)),
+-        MarblePngAsset(R.drawable.home_approved_movies_light,1536,1024,MarbleRegion(144,40,1405,990)),
+-        MarblePngAsset(R.drawable.home_approved_series_light,1536,1024,MarbleRegion(136,38,1451,991)),
+-        MarblePngAsset(R.drawable.home_approved_kids_light,1536,1024,MarbleRegion(146,36,1392,1001)),
+-        MarblePngAsset(R.drawable.home_approved_lists_light,1536,1024,MarbleRegion(119,34,1445,971)))
+-    private val dark=listOf(
+-        MarblePngAsset(R.drawable.home_approved_channels_dark,1536,1024,MarbleRegion(102,97,1457,901)),
+-        MarblePngAsset(R.drawable.home_approved_movies_dark,1536,1024,MarbleRegion(109,39,1450,994)),
+-        MarblePngAsset(R.drawable.home_approved_series_dark,1536,1024,MarbleRegion(130,20,1455,1002)),
+-        MarblePngAsset(R.drawable.home_approved_kids_dark,1385,1136,MarbleRegion(52,26,1347,1130)),
+-        MarblePngAsset(R.drawable.home_approved_lists_dark,1536,1024,MarbleRegion(106,28,1467,992)))
+-    fun forMode(lightMode:Boolean):List<MarblePngAsset> = if(lightMode)light else dark
+-    val icons:List<MarblePngAsset> get()=dark
+-    val resourceIds:Set<Int> = (light+dark).map{it.resource}.toSet()
++    private val crops=mapOf(
++        R.drawable.home_original_gold_white to listOf(MarbleRegion(9,188,457,519),MarbleRegion(457,167,876,546),MarbleRegion(882,166,1303,545),MarbleRegion(1308,154,1717,564),MarbleRegion(1721,181,2168,547)),
++        R.drawable.home_original_blue_white to listOf(MarbleRegion(11,208,455,519),MarbleRegion(459,172,874,545),MarbleRegion(881,173,1302,535),MarbleRegion(1308,166,1717,561),MarbleRegion(1725,197,2169,539)),
++        R.drawable.home_original_pink_white to listOf(MarbleRegion(8,190,465,515),MarbleRegion(468,165,879,537),MarbleRegion(889,171,1304,535),MarbleRegion(1313,158,1713,552),MarbleRegion(1730,183,2171,539)),
++        R.drawable.home_original_purple_white to listOf(MarbleRegion(11,214,470,522),MarbleRegion(470,186,875,547),MarbleRegion(881,183,1295,546),MarbleRegion(1304,160,1711,562),MarbleRegion(1723,199,2163,546)),
++        R.drawable.home_original_red_white to listOf(MarbleRegion(8,201,449,508),MarbleRegion(451,186,864,538),MarbleRegion(876,175,1290,534),MarbleRegion(1300,173,1699,555),MarbleRegion(1708,192,2138,538)),
++        R.drawable.home_original_gold_gray to listOf(MarbleRegion(9,189,456,518),MarbleRegion(456,167,874,544),MarbleRegion(881,167,1302,543),MarbleRegion(1307,154,1716,563),MarbleRegion(1720,182,2168,546)),
++        R.drawable.home_original_blue_gray to listOf(MarbleRegion(11,208,454,519),MarbleRegion(459,171,873,545),MarbleRegion(879,173,1301,535),MarbleRegion(1307,165,1717,561),MarbleRegion(1725,197,2168,539)),
++        R.drawable.home_original_pink_gray to listOf(MarbleRegion(9,187,459,513),MarbleRegion(459,161,872,535),MarbleRegion(882,167,1297,533),MarbleRegion(1297,155,1700,549),MarbleRegion(1717,180,2159,537)),
++        R.drawable.home_original_purple_gray to listOf(MarbleRegion(12,213,470,522),MarbleRegion(472,186,875,547),MarbleRegion(882,183,1296,545),MarbleRegion(1306,160,1712,563),MarbleRegion(1726,199,2166,545)),
++        R.drawable.home_original_red_gray to listOf(MarbleRegion(9,205,454,513),MarbleRegion(457,190,874,543),MarbleRegion(886,178,1307,540),MarbleRegion(1316,177,1721,561),MarbleRegion(1729,196,2165,544)))
++    private fun resource(lightMode:Boolean,theme:PremiumTheme):Int = when(theme) {
++        PremiumTheme.GOLD -> if(lightMode)R.drawable.home_original_gold_white else R.drawable.home_original_gold_gray
++        PremiumTheme.BLUE -> if(lightMode)R.drawable.home_original_blue_white else R.drawable.home_original_blue_gray
++        PremiumTheme.PINK -> if(lightMode)R.drawable.home_original_pink_white else R.drawable.home_original_pink_gray
++        PremiumTheme.PURPLE -> if(lightMode)R.drawable.home_original_purple_white else R.drawable.home_original_purple_gray
++        PremiumTheme.RED -> if(lightMode)R.drawable.home_original_red_white else R.drawable.home_original_red_gray
++    }
++    fun forMode(lightMode:Boolean,theme:PremiumTheme=PremiumTheme.GOLD):List<MarblePngAsset> {
++        val id=resource(lightMode,theme)
++        val width=when(id) {
++            R.drawable.home_original_pink_white -> 2171
++            R.drawable.home_original_gold_gray -> 2171
++            R.drawable.home_original_blue_gray -> 2171
++            else -> 2172
++        }
++        return crops.getValue(id).map{MarblePngAsset(id,width,724,it)}
++    }
++    val icons:List<MarblePngAsset> get()=forMode(false)
++    val resourceIds:Set<Int> get()=crops.keys
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt
+@@ -30,8 +30,8 @@
+ 
+ private fun cachedMarbleHomeLayers(light:Boolean,theme:PremiumTheme):MarbleHomeLayers? {
+     val backdrop=MarbleArtworkCache.peek(if(light)R.drawable.marble_home_layer_white else R.drawable.marble_home_layer_black) ?: return null
+-    val assets=MarbleHomePngAssets.forMode(light)
+-    val icons=assets.map { MarbleArtworkCache.peekHomeIcon(it.resource,theme) }
++    val assets=MarbleHomePngAssets.forMode(light,theme)
++    val icons=assets.map { MarbleArtworkCache.peek(it.resource) }
+     return if(icons.all { it!=null }) MarbleHomeLayers(backdrop,icons.filterNotNull(),assets)else null
+ }
+ 
+@@ -45,8 +45,8 @@
+     var layers by remember(light,theme,epoch){mutableStateOf(cachedMarbleHomeLayers(light,theme))}
+     LaunchedEffect(light,theme,epoch) {
+         val backdrop=MarbleArtworkCache.load(context,if(light)R.drawable.marble_home_layer_white else R.drawable.marble_home_layer_black)
+-        val assets=MarbleHomePngAssets.forMode(light)
+-        val icons=assets.map{MarbleArtworkCache.loadHomeIcon(context,it.resource,theme)}
++        val assets=MarbleHomePngAssets.forMode(light,theme)
++        val icons=assets.map{MarbleArtworkCache.load(context,it.resource)}
+         if(backdrop!=null&&icons.all{it!=null})
+             layers=MarbleHomeLayers(backdrop,icons.filterNotNull(),assets)
+     }
+@@ -66,8 +66,13 @@
+ private fun DrawScope.drawPng(layers:MarbleHomeLayers,index:Int,tint:ColorFilter?,sx:Float,sy:Float,
+     light:Boolean,alpha:Float=1f) {
+     val target=MarbleHomeGeometry.icons[index]
++    val crop=layers.assets[index].crop
++    val slot=Rect(target.left*sx,target.top*sy,target.right*sx,target.bottom*sy)
++    val ratio=minOf(slot.width/crop.width,slot.height/crop.height)
++    val width=crop.width*ratio;val height=crop.height*ratio
++    val left=slot.center.x-width*.5f
+     drawClassicIcon(layers.icons[index],layers.assets[index],
+-        Rect(target.left*sx,target.top*sy,target.right*sx,target.bottom*sy),tint,alpha)
++        Rect(left,slot.bottom-height,left+width,slot.bottom),tint,alpha)
+ }
+ 
+ /** Fixed architectural background; only alpha cutouts and their own reflections move. */
+@@ -75,8 +80,7 @@
+ internal fun MarbleLayeredHomePicture(layers:MarbleHomeLayers,focused:Int?,enlargement:Float,normalEnabled:Boolean,modifier:Modifier=Modifier) {
+     val theme=ThemeState.selected
+     val light=CatalogStyle.light
+-    val filter:ColorFilter?=null // Finished neutral materials are protected during the cached metal tint.
+-    val utility=remember(theme){marbleUtilityFocusFilter(theme)}
++    val filter:ColorFilter?=null // Each theme PNG already contains its final colours.
+     val backdropFilter=remember(theme,light){marbleBackdropFilter(theme,light)}
+     BoxWithConstraints(modifier) {
+         val pictureWidth=maxWidth;val pictureHeight=maxHeight
+@@ -104,8 +108,11 @@
+             }
+             if(focused!=null&&focused>=5&&enlargement>1.001f) {
+                 val r=MarbleHomeGeometry.icons[focused]
+-                clipRect(r.left*sx,r.top*sy,r.right*sx,r.bottom*sy) {
+-                    drawImage(layers.backdrop,dstSize=full,colorFilter=utility,alpha=((enlargement-1)/.10f).coerceIn(0f,1f),filterQuality=FilterQuality.High)
++                val pivot=Offset((r.left+r.right)*.5f*sx,r.bottom*sy)
++                val asset=MarblePngAsset(0,MarbleHomeGeometry.width,MarbleHomeGeometry.height,r)
++                scale(enlargement,enlargement,pivot) {
++                    drawClassicIcon(layers.backdrop,asset,
++                        Rect(r.left*sx,r.top*sy,r.right*sx,r.bottom*sy),backdropFilter)
+                 }
+             }
+         }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbledHomeScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbledHomeScreen.kt
+@@ -136,7 +136,7 @@
+         .semantics{contentDescription=MarbleHomeGeometry.labels[index];role=Role.Button}
+         .clickable(enabled=enabled,interactionSource=remember{MutableInteractionSource()},indication=null,onClick=action),
+         horizontalAlignment=Alignment.CenterHorizontally) {
+-        if(layers!=null)MarblePngIcon(layers,index,Modifier.size(if(small)44.dp else 123.5.dp,if(small)44.dp else 110.2.dp).then(if(small)Modifier else Modifier.scale(zoom)))
++        if(layers!=null)MarblePngIcon(layers,index,Modifier.size(if(small)44.dp else 123.5.dp,if(small)44.dp else 110.2.dp).scale(zoom))
+         else Box(Modifier.size(if(small)44.dp else 123.5.dp,if(small)44.dp else 110.2.dp))
+         if(!small)Text(MarbleHomeGeometry.labels[index].uppercase(),color=if(focused)CatalogStyle.accent else CatalogStyle.text,
+             modifier=Modifier.padding(top=8.dp),fontSize=(14f*zoom).sp,textAlign=TextAlign.Center)
