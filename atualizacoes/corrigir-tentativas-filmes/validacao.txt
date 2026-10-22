@@ -1,0 +1,17 @@
+BUILD SUCCESSFUL in 1m 46s.
+Compilacao de producao e testes Android/Robolectric: OK.
+br.com.flaviotorres.iptvpremium.ui.movies.MovieOpeningDeadlineTest: 4 testes; 0 falhas; 0 erros; 0 ignorados.
+br.com.flaviotorres.iptvpremium.ui.movies.RealMovieRetryTest: 4 testes; 0 falhas; 0 erros; 0 ignorados.
+Limites virtuais: inicios 0ms, 5000ms, 10000ms; resultado da terceira em 10100ms enquanto limpeza anterior segue cancelada; resposta atrasada descartada.
+Cliente HTTP real com HttpURLConnection simulada bloqueada na leitura e no disconnect: segunda requisicao entre 4500 e 6500ms, terceira entre 9500 e 12000ms, terceira conclui antes de 15000ms.
+Consulta de fundo segurando mutex: abertura de primeiro plano conclui sem aguardar essa consulta.
+Cache de metadados concluido na primeira tentativa: segunda tentativa realmente chama novamente o carregador do provedor.
+Voltar cancela sem novas tentativas; sucesso para o ciclo; botao manual inicia outro orcamento.
+Sem teste em TV fisica do usuario.
+
+PASS Prata/title baseline CRLF+BOM False correct wiring, preservation, idempotence
+PASS Prata/title baseline CRLF+BOM True correct wiring, preservation, idempotence
+PASS original ZIP baseline CRLF+BOM False correct wiring, preservation, idempotence
+PASS original ZIP baseline CRLF+BOM True correct wiring, preservation, idempotence
+PASS unknown source refuses before any writes
+PASS rollback after final write

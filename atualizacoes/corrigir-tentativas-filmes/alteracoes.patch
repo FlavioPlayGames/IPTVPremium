@@ -1,0 +1,124 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
+@@ -1,4 +1,10 @@
+ package br.com.flaviotorres.iptvpremium.ui.movies
++
++import br.com.flaviotorres.iptvpremium.core.network.MovieOpeningAttempt
++import kotlinx.coroutines.*
++import kotlin.coroutines.resume
++import kotlin.coroutines.resumeWithException
++
+ 
+ /** One budget for metadata and decoded principal images, reserving the final animation. */
+ internal object MovieOpeningPolicy {
+@@ -15,11 +21,35 @@
+     @Suppress("UNUSED_PARAMETER")
+     fun minimumWaitMs(elapsedMs: Long, artworkReady: Boolean): Long =
+         (minimumLoadingMs - elapsedMs.coerceAtLeast(0L)).coerceAtLeast(0L)
+-    /** Each attempt gets a share of the remaining single deadline; never three full deadlines. */
++    /** Cancel the old request without waiting for a blocking socket's teardown. */
++    private suspend fun <T> separateAttempt(block: suspend () -> T): T {
++        val context = currentCoroutineContext()
++        return suspendCancellableCoroutine { continuation ->
++            val requestJob = Job()
++            continuation.invokeOnCancellation { requestJob.cancel() }
++            CoroutineScope(context.minusKey(Job) + requestJob).launch {
++                try {
++                    val result = block()
++                    currentCoroutineContext().ensureActive()
++                    if (continuation.isActive) continuation.resume(result)
++                } catch (error: Throwable) {
++                    if (continuation.isActive) continuation.resumeWithException(error)
++                } finally {
++                    requestJob.complete()
++                }
++            }
++        }
++    }
++
++    /** Three independent requests; cancellation/cleanup never consumes the next request's time. */
+     suspend fun <T:Any> prepare(block:suspend ()->T?):T? = kotlinx.coroutines.withTimeoutOrNull(preparationMs) {
+         repeat(attempts) { index ->
+             val result = kotlinx.coroutines.withTimeoutOrNull(preparationMs / attempts) {
+-                try { block() }
++                try {
++                    separateAttempt {
++                        withContext(MovieOpeningAttempt(index + 1)) { block() }
++                    }
++                }
+                 catch(cancelled:kotlinx.coroutines.CancellationException) { throw cancelled }
+                 catch(_:Exception) { null }
+             }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogDetailsWarmupCache.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogDetailsWarmupCache.kt
+@@ -2,6 +2,9 @@
+ 
+ import android.os.SystemClock
+ import android.util.Log
++import br.com.flaviotorres.iptvpremium.core.network.MovieOpeningAttempt
++import kotlinx.coroutines.currentCoroutineContext
++import kotlinx.coroutines.ensureActive
+ import br.com.flaviotorres.iptvpremium.data.repository.SeriesEpisodesResult
+ import br.com.flaviotorres.iptvpremium.domain.model.MovieDetails
+ import kotlinx.coroutines.CancellationException
+@@ -218,24 +221,37 @@
+         loader: suspend () -> MovieDetails?
+     ): MovieDetails? {
+         if (playlistId.isBlank() || generationId.isBlank() || movieId.isBlank()) return null
++        val opening = currentCoroutineContext()[MovieOpeningAttempt]
++        if (opening != null) {
++            // Do not spend the 5s attempt waiting for a background request's mutex.
++            // Keep completed cache hits on first entry; retries start a new provider request.
++            if (opening.number == 1) getMovie(playlistId, generationId, movieId)?.let { return it }
++            val result = withContext(Dispatchers.IO) { loader() }
++            currentCoroutineContext().ensureActive()
++            if (result != null) rememberMovie(cacheKey(playlistId, generationId, movieId), result)
++            return result
++        }
+         getMovie(playlistId, generationId, movieId)?.let { return it }
+         val key = cacheKey(playlistId, generationId, movieId)
+ 
+         return movieLocks[lockIndex(key)].withLock {
+             getMovie(playlistId, generationId, movieId)?.let { return@withLock it }
+             val result = withContext(Dispatchers.IO) { loader() }
+-            if (result != null) {
+-                synchronized(movieEntries) {
+-                    movieEntries[key] = CacheEntry(result, SystemClock.elapsedRealtime())
+-                    while (movieEntries.size > MAX_MOVIES) {
+-                        val iterator = movieEntries.entries.iterator()
+-                        if (!iterator.hasNext()) break
+-                        iterator.next()
+-                        iterator.remove()
+-                    }
+-                }
+-            }
++            currentCoroutineContext().ensureActive()
++            if (result != null) rememberMovie(key, result)
+             result
++        }
++    }
++
++    private fun rememberMovie(key: String, result: MovieDetails) {
++        synchronized(movieEntries) {
++            movieEntries[key] = CacheEntry(result, SystemClock.elapsedRealtime())
++            while (movieEntries.size > MAX_MOVIES) {
++                val iterator = movieEntries.entries.iterator()
++                if (!iterator.hasNext()) break
++                iterator.next()
++                iterator.remove()
++            }
+         }
+     }
+ 
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/network/MovieOpeningAttempt.kt
+@@ -0,0 +1,9 @@
++package br.com.flaviotorres.iptvpremium.core.network
++
++import kotlin.coroutines.AbstractCoroutineContextElement
++import kotlin.coroutines.CoroutineContext
++
++/** Only explicit movie opening uses a fresh foreground request after a timed-out attempt. */
++internal class MovieOpeningAttempt(val number: Int) : AbstractCoroutineContextElement(Key) {
++    companion object Key : CoroutineContext.Key<MovieOpeningAttempt>
++}
