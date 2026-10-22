@@ -1,0 +1,27 @@
+Fonte: ultimo java.zip enviado, com as entregas anteriores preservadas.
+Versao 1.11 (13) nao alterada.
+
+:app:compileDebugKotlin: BUILD SUCCESSFUL (25 segundos na revisao final).
+Ambiente isolado completo de fontes. Aliases locais de recursos ausentes no ZIP
+foram usados apenas para compilar e nao fazem parte desta entrega.
+
+Instalador PowerShell, projeto de ensaio externo ao app:
+PASS aplicacao inicial com CRLF/BOM e novo arquivo Kotlin.
+PASS reaplicacao idempotente.
+PASS protecao de alteracoes locais antes de qualquer copia.
+PASS suporte ao fonte original anterior a primeira animacao de avaliacao.
+
+Revisao dos fontes:
+- Somente a avaliacao pessoal mudou; metadados, favoritos e assistir preservados.
+- Menu RatingDialog removido. Escolha inline por DPAD/OK ou toque.
+- BackHandler cancela edicao/reacao sem navegar para fora da ficha.
+- Sem retangulo branco de foco. Contornos amarelos no modo de escolha.
+- Animatable temporario: 4600 ms (1-4), 5800 ms (5), sem loop ocioso.
+- Desenhos vetoriais independentes das fontes de emoji de cada TV.
+- Sem download de imagens ou dependencias novas.
+- Salvamento IO/NonCancellable e tratamento de falha mantidos.
+- Remocao da nota preservada por acao inline Limpar.
+
+Nao executado em TV/emulador. A aparencia, foco fisico, limites da camada Popup
+no aparelho e fluidez devem ser conferidos com o APK do usuario.
+Nenhum teste automatizado foi adicionado ao app.
