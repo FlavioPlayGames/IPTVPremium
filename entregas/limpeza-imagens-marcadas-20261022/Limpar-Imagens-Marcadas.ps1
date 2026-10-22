@@ -28,6 +28,15 @@ foreach($entry in $manifest) {
 $names=@(Get-Content -LiteralPath (Join-Path $tempDir 'remover.txt') | Where-Object { $_ })
 $replacement=@{}
 foreach($entry in $manifest) { $replacement[(Join-Path $projectRoot $entry.path)]=[IO.File]::ReadAllText((Join-Path $tempDir $entry.path)) }
+# The uploaded ZIP contained main sources only. Patch the known legacy test token,
+# preserving all test code and checking the complete planned result before writing.
+$testPath=Join-Path $projectRoot 'app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsUiDeviceTest.kt'
+$testText=$null
+if(Test-Path -LiteralPath $testPath) {
+ $originalTest=[IO.File]::ReadAllText($testPath)
+ $updatedTest=[regex]::Replace($originalTest,'\bR\.drawable\.kids_bear\b','R.drawable.home_original_gold_gray')
+ if($updatedTest -ne $originalTest) { $testText=$updatedTest; $replacement[$testPath]=$updatedTest }
+}
 # Check real source and XML references, including source sets absent from the uploaded ZIP.
 Get-ChildItem -LiteralPath (Join-Path $projectRoot 'app/src') -Recurse -File | Where-Object { $_.Extension -in '.kt','.java','.xml' } | ForEach-Object {
  $text=if($replacement.ContainsKey($_.FullName)){$replacement[$_.FullName]}else{[IO.File]::ReadAllText($_.FullName)}
@@ -48,6 +57,13 @@ foreach($entry in $manifest) {
  }
  New-Item -ItemType Directory -Force -Path (Split-Path $target) | Out-Null
  Copy-Item -LiteralPath (Join-Path $tempDir $entry.path) -Destination $target -Force
+}
+if($null -ne $testText) {
+ $testBackup=Join-Path $backup 'app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsUiDeviceTest.kt'
+ New-Item -ItemType Directory -Force -Path (Split-Path $testBackup) | Out-Null
+ Copy-Item -LiteralPath $testPath -Destination $testBackup
+ [IO.File]::WriteAllText($testPath,$testText,(New-Object Text.UTF8Encoding($false)))
+ Write-Host 'Referencia de recurso legado atualizada em KidsUiDeviceTest.kt; teste preservado.'
 }
 foreach($image in $images) {
  $saved=Join-Path $backup ('drawable-nodpi/'+$image.Name)

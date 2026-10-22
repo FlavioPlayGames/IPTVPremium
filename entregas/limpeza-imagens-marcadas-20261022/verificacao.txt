@@ -6,3 +6,5 @@ PASS referência XML desconhecida bloqueia limpeza antes de remover imagem.
 PASS compileDebugKotlin final: BUILD SUCCESSFUL. Recursos de verificação removidos antes da compilação; fontes finais idênticos ao conteúdo do pacote. Na cópia local, 31 arquivos presentes, 33.995.565 bytes.
 Kids: usa recurso azul ou rosa da Home já existente; desfoque estático reutilizado no cache, gerado em background. Nenhum PNG/JPEG adicional ou imagem antiga incluído no pacote.
 Não executado na TV/emulador. Não feita comparação visual de Home/Kids nesta máquina.
+
+PASS correcao opcional em KidsUiDeviceTest: substituicao literal do recurso antigo, backup original, resto do arquivo preservado e reaplicacao. Testado em fixture PowerShell; assercoes do teste real nao fornecidas. Fontes de producao e ZIP permanecem iguais a compilacao anterior.

@@ -8,6 +8,8 @@ Lista exata em `remover.txt`: 32 nomes, independentemente de estarem presentes. 
 
 Preservadas: todas as home_original_*, marble_home_layer_black/white, marble_wallpaper_black/white, logotipos dos temas, marca dourada, imagens Kids não marcadas, actor_cinematic_background e series_living_room. O script não usa padrões amplos para decidir exclusões.
 
+O instalador também corrige a referência literal `R.drawable.kids_bear` em `app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsUiDeviceTest.kt`, quando presente, para a folha mantida `R.drawable.home_original_gold_gray`, que contém o ursinho. Preserva o restante do teste e guarda backup. Isso corrige a referência de compilação; não foi possível validar as asserções desse teste específico porque o arquivo não estava no ZIP enviado. Outras referências desconhecidas continuam bloqueando a limpeza.
+
 Algumas imagens marcadas ainda eram citadas no código. Foram ajustados cinco arquivos:
 
 - ThemeArtwork: referências aos fundos antigos apontam para mármore mantido; remove código de recorte das antigas standard_home.
