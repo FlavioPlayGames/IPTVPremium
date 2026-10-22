@@ -1,0 +1,646 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -1576,6 +1576,17 @@
+             }
+         }
+     }
++    // Keep bounded Paging sessions across Home/catalogue round trips; never share details VMs.
++    val catalogOwner = checkNotNull(androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner.current)
++    val retainedMovies: MoviesViewModel = viewModel(catalogOwner, key = "catalog-movies", factory = moviesViewModelFactory)
++    val retainedSeries: SeriesViewModel = viewModel(catalogOwner, key = "catalog-series", factory = seriesViewModelFactory)
++    val retainedChannels: LiveTvViewModel = viewModel(catalogOwner, key = "catalog-channels", factory = liveTvViewModelFactory)
++    val catalogSessions = remember { br.com.flaviotorres.iptvpremium.data.cache.CatalogSessionRevisions() }
++    val catalogGeneration by remember(activePlaylistId) {
++        activePlaylistId?.let { playlistCacheDao.observeActiveGenerationId(it) }
++            ?: kotlinx.coroutines.flow.flowOf(null)
++    }.collectAsState(initial = null)
++
+     // O NavHost continua existindo, preservando todo o foco e back stack,
+     // mas a tela de abertura fica ACIMA dele ate concluir os trabalhos.
+     Box(Modifier.fillMaxSize()) {
+@@ -2186,11 +2197,7 @@
+                         it.id == activePlaylistId
+                     }
+ 
+-                val liveTvViewModel: LiveTvViewModel =
+-                    viewModel(
+-                        factory =
+-                            liveTvViewModelFactory
+-                    )
++                val liveTvViewModel: LiveTvViewModel = retainedChannels
+ 
+                 /*
+                  * M3U e Xtream Codes direto usam o mesmo catálogo Room + Paging.
+@@ -2202,26 +2209,18 @@
+                                             activePlaylist is PlaylistSource.XtreamCodes
+                                     )
+ 
+-                LaunchedEffect(
+-                    activePlaylistId,
+-                    useRoomPaging
+-                ) {
+-                    val playlistId =
+-                        activePlaylistId
+-
+-                    if (
+-                        useRoomPaging &&
+-                        playlistId != null
+-                    ) {
+-                        liveTvViewModel.setPlaylist(
+-                            playlistId
+-                        )
+-                    } else {
++                LaunchedEffect(activePlaylistId, useRoomPaging, catalogGeneration, parentalAccessState) {
++                    val playlistId = activePlaylistId
++                    if (useRoomPaging && playlistId != null && catalogGeneration != null) {
++                        catalogSessions.bind("channels", playlistId, catalogGeneration, parentalAccessState,
++                            { liveTvViewModel.setPlaylist(playlistId) }, { liveTvViewModel.refreshMetadata() })
++                        if (liveTvViewModel.metadataError.value != null) liveTvViewModel.refreshMetadata()
++                    } else if (!useRoomPaging) {
+                         liveTvViewModel.clear()
+-                    }
+-                }
+-
+-                LaunchedEffect(parentalAccessState) { liveTvViewModel.refreshMetadata() }
++                        catalogSessions.clear("channels")
++                    }
++                }
++
+ 
+                 val liveCategories by
+                 liveTvViewModel.categories
+@@ -2323,7 +2322,8 @@
+              * FILMES
+              */
+             composable(
+-                route = AppDestination.Movies.route
++                route = AppDestination.Movies.route,
++                popEnterTransition = { androidx.compose.animation.EnterTransition.None }
+             ) {
+                 if (!br.com.flaviotorres.iptvpremium.ui.kids.KidsRouteAllowed { navController.popBackStack() }) return@composable
+                 val activePlaylist =
+@@ -2331,11 +2331,7 @@
+                         it.id == activePlaylistId
+                     }
+ 
+-                val moviesViewModel: MoviesViewModel =
+-                    viewModel(
+-                        factory =
+-                            moviesViewModelFactory
+-                    )
++                val moviesViewModel: MoviesViewModel = retainedMovies
+ 
+                 /*
+                  * M3U e Xtream Codes direto usam o mesmo catálogo Room + Paging.
+@@ -2347,22 +2343,15 @@
+                                             activePlaylist is PlaylistSource.XtreamCodes
+                                     )
+ 
+-                LaunchedEffect(
+-                    activePlaylistId,
+-                    useRoomPaging
+-                ) {
+-                    val playlistId =
+-                        activePlaylistId
+-
+-                    if (
+-                        useRoomPaging &&
+-                        playlistId != null
+-                    ) {
+-                        moviesViewModel.setPlaylist(
+-                            playlistId
+-                        )
+-                    } else {
++                LaunchedEffect(activePlaylistId, useRoomPaging, catalogGeneration, parentalAccessState) {
++                    val playlistId = activePlaylistId
++                    if (useRoomPaging && playlistId != null && catalogGeneration != null) {
++                        catalogSessions.bind("movies", playlistId, catalogGeneration, parentalAccessState,
++                            { moviesViewModel.setPlaylist(playlistId) }, { moviesViewModel.refreshMetadata() })
++                        if (moviesViewModel.errorMessage.value != null) moviesViewModel.refreshMetadata()
++                    } else if (!useRoomPaging) {
+                         moviesViewModel.clear()
++                        catalogSessions.clear("movies")
+                     }
+                 }
+ 
+@@ -2378,7 +2367,6 @@
+                     )
+                 }
+ 
+-                LaunchedEffect(parentalAccessState) { moviesViewModel.refreshMetadata() }
+ 
+                 val movieCategories by
+                 moviesViewModel.categories
+@@ -2519,6 +2507,7 @@
+              */
+             composable(
+                 route = MOVIE_PREPARATION_ROUTE,
++                popExitTransition = { androidx.compose.animation.ExitTransition.None },
+                 exitTransition = { fadeOut(animationSpec = tween(340)) }
+             ) { entry ->
+                 val movieId = entry.arguments
+@@ -2754,8 +2743,13 @@
+              */
+             composable(
+                 route = AppDestination.MovieDetails.route,
+-                enterTransition = { fadeIn(animationSpec = tween(380)) }
++                enterTransition = { fadeIn(animationSpec = tween(380)) },
++                popExitTransition = { androidx.compose.animation.ExitTransition.None }
+             ) { backStackEntry ->
++                BackHandler {
++                    br.com.flaviotorres.iptvpremium.data.cache.MediaOpeningPriority.setBusy(false)
++                    navController.popBackStack()
++                }
+                 val movieId =
+                     backStackEntry.arguments
+                         ?.getString("movieId")
+@@ -2805,7 +2799,7 @@
+                         if (prepared != null) {
+                             movieDetailsViewModel.applyPreparedMovieDetails(prepared)
+                         }
+-                        if (activePlaylist != null && (prepared == null || prepared.details == null)) {
++                        if (activePlaylist != null && prepared == null) {
+                             // Retoma metadados apos o limite de entrada, sem bloquear a tela.
+                             movieDetailsViewModel.loadMovieDetails(
+                                 movieId = movieId,
+@@ -3819,18 +3813,20 @@
+              * ativa, passamos um PagingData vazio; nunca mostramos prototipos.
+              * A lista e as categorias preservam providerOrder no Repository.
+              */
+-            composable(route = AppDestination.Series.route) {
++            composable(route = AppDestination.Series.route,
++                popEnterTransition = { androidx.compose.animation.EnterTransition.None }) {
+                 if (!br.com.flaviotorres.iptvpremium.ui.kids.KidsRouteAllowed { navController.popBackStack() }) return@composable
+-                val seriesViewModel: SeriesViewModel = viewModel(
+-                    factory = seriesViewModelFactory
+-                )
+-
+-                LaunchedEffect(activePlaylistId) {
++                val seriesViewModel: SeriesViewModel = retainedSeries
++
++                LaunchedEffect(activePlaylistId, catalogGeneration, parentalAccessState) {
+                     val playlistId = activePlaylistId
+                     if (playlistId.isNullOrBlank()) {
+                         seriesViewModel.clear()
+-                    } else {
+-                        seriesViewModel.setPlaylist(playlistId)
++                        catalogSessions.clear("series")
++                    } else if (catalogGeneration != null) {
++                        catalogSessions.bind("series", playlistId, catalogGeneration, parentalAccessState,
++                            { seriesViewModel.setPlaylist(playlistId) }, { seriesViewModel.refreshMetadata() })
++                        if (seriesViewModel.metadataError.value != null) seriesViewModel.refreshMetadata()
+                     }
+                 }
+ 
+@@ -3839,7 +3835,6 @@
+                     seriesViewModel.setFavoriteSeriesIds(favoriteSeriesIds)
+                 }
+ 
+-                LaunchedEffect(parentalAccessState) { seriesViewModel.refreshMetadata() }
+ 
+                 val seriesCategories by seriesViewModel.categories.collectAsState()
+                 val totalSeriesCount by seriesViewModel.seriesCount.collectAsState()
+@@ -3891,7 +3886,12 @@
+              * A lista de temporadas e episodios vem exclusivamente do provedor,
+              * sem IDs inventados nem requisicao do catalogo completo.
+              */
+-            composable(route = AppDestination.SeriesDetails.route) { backStackEntry ->
++            composable(route = AppDestination.SeriesDetails.route,
++                popExitTransition = { androidx.compose.animation.ExitTransition.None }) { backStackEntry ->
++                BackHandler {
++                    br.com.flaviotorres.iptvpremium.data.cache.MediaOpeningPriority.setBusy(false)
++                    navController.popBackStack()
++                }
+                 val seriesId = backStackEntry.arguments
+                     ?.getString("seriesId")
+                     .orEmpty()
+@@ -3920,9 +3920,12 @@
+                 val returningFromPlayer = backStackEntry.savedStateHandle.get<Boolean>(
+                     SERIES_RETURN_FROM_PLAYER_KEY
+                 ) == true
+-                val readyFromMemory = if (returningFromPlayer) cachedDetails else null
+-
+                 var episodeRetrySerial by remember(source?.id, seriesId) { mutableIntStateOf(0) }
++                val readyFromMemory = if (returningFromPlayer) cachedDetails else if (episodeRetrySerial == 0) {
++                    source?.id?.let { playlist -> activeSeriesGeneration?.let { generation ->
++                        CatalogDetailsWarmupCache.getSeries(playlist, generation, seriesId)
++                    } }
++                } else null
+                 val loaded by produceState<SeriesEpisodesLoadState>(
+                     initialValue = readyFromMemory?.let { SeriesEpisodesLoadState.Ready(it) }
+                         ?: SeriesEpisodesLoadState.Loading,
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogSessionRevisions.kt
+@@ -0,0 +1,16 @@
++package br.com.flaviotorres.iptvpremium.data.cache
++
++/** Metadata is invalidated by real source/access changes, not by leaving a destination. */
++internal class CatalogSessionRevisions {
++    private data class Revision(val playlist:String,val generation:String?,val access:Any?)
++    private val revisions=mutableMapOf<String,Revision>()
++    fun bind(section:String,playlist:String,generation:String?,access:Any?,bind:()->Unit,refresh:()->Unit) {
++        val next=Revision(playlist,generation,access)
++        val previous=revisions[section]
++        if(previous==next)return
++        bind()
++        if(previous?.playlist==playlist)refresh()
++        revisions[section]=next
++    }
++    fun clear(section:String) {revisions.remove(section)}
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvViewModel.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvViewModel.kt
+@@ -13,6 +13,8 @@
+ import kotlinx.coroutines.flow.asStateFlow
+ import kotlinx.coroutines.flow.emptyFlow
+ import kotlinx.coroutines.flow.flatMapLatest
++import kotlinx.coroutines.Job
++import kotlinx.coroutines.CancellationException
+ import kotlinx.coroutines.launch
+ 
+ class LiveTvViewModel(
+@@ -105,12 +107,15 @@
+                 }
+     }
+ 
++    private var metadataRefreshJob: Job? = null
++
+     fun refreshMetadata() {
+         val currentPlaylistId =
+             playlistId.value
+                 ?: return
+ 
+-        viewModelScope.launch {
++        metadataRefreshJob?.cancel()
++        metadataRefreshJob = viewModelScope.launch {
+             _isLoadingMetadata.value = true
+             _metadataError.value = null
+ 
+@@ -138,6 +143,7 @@
+             }.onSuccess {
+                     result ->
+ 
++                if (playlistId.value != currentPlaylistId) return@onSuccess
+                 _categories.value =
+                     result.first
+ 
+@@ -149,6 +155,7 @@
+             }.onFailure {
+                     error ->
+ 
++                if (error is CancellationException) throw error
+                 _metadataError.value =
+                     error.message
+                         ?: "Não foi possível carregar os canais."
+@@ -159,6 +166,8 @@
+     }
+ 
+     fun clear() {
++        metadataRefreshJob?.cancel()
++        metadataRefreshJob = null
+         playlistId.value = null
+         selectedCategoryId.value = null
+         _categories.value = emptyList()
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
+@@ -214,16 +214,19 @@
+     val backdropReady = backdropTask.await()
+     val titleLogoReady = logoTask.await()
+ 
+-    // Do not spend the selected film's opening window downloading twelve actor
+-    // portraits. The visible cast cards load normally after the details are shown.
+-    val castReady = firstCastUrls.count { url ->
+-        MovieDetailsImageLoader.peekFromMemory(appContext, url, castWidthPx, castHeightPx) != null
+-    }
++    // Await the first visible cast strip after backdrop/logo; reuse the same RAM/disk entries.
++    val castSlots = kotlinx.coroutines.sync.Semaphore(2)
++    val castReady = firstCastUrls.map { url -> async {
++        castSlots.acquire()
++        try {
++            MovieDetailsImageLoader.load(appContext, url, castWidthPx, castHeightPx, "preload_cast") != null
++        } finally { castSlots.release() }
++    } }.count { it.await() }
+ 
+     Log.i(
+         "MovieDetailsPreload",
+         "backdropReady=$backdropReady logoReady=$titleLogoReady " +
+-                "castCache=$castReady/${firstCastUrls.size} castRedeNaAbertura=0 " +
++                "castCache=$castReady/${firstCastUrls.size} castAguardado=true " +
+                 "tempoMs=${SystemClock.elapsedRealtime() - startedAt}"
+     )
+ 
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
+@@ -2,8 +2,8 @@
+ 
+ /** One budget for metadata and decoded principal images, reserving the final animation. */
+ internal object MovieOpeningPolicy {
+-    const val preparationMs = 3_500L
+-    const val remoteMs = 2_500L
++    const val preparationMs = 15_000L
++    const val remoteMs = 8_000L
+     const val minimumLoadingMs = 3_000L
+     const val rotationCardsPerSecond = 1.5f
+     const val alignNanos = 1_100_000_000L
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+@@ -2216,10 +2216,9 @@
+     // Recupera o foco por uma janela pequena, sem reposicionar a grade.
+     LaunchedEffect(focusRestorationRequest, focusRestorationMovieId, allowRestoration) {
+         if (allowRestoration && focusRestorationRequest > 0L && focusRestorationMovieId == movieId) {
+-            for (attempt in 0 until 10) {
+-                delay(85L)
+-                if (isFocused) break
+-                runCatching { focusRequester.requestFocus() }
++            repeat(3) {
++                androidx.compose.runtime.withFrameNanos { }
++                if (!isFocused) runCatching { focusRequester.requestFocus() }
+             }
+         }
+     }
+@@ -2358,13 +2357,12 @@
+                     val scale = if (br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.regular) focusScale else 1f
+                     scaleX = scale; scaleY = scale
+                 }
+-                .posterSelectionShadow(visuallyFocused || isSelected, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
++                .posterSelectionShadow(visuallyFocused, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
+                 .background(
+                     brush = Brush.verticalGradient(
+                         colors =
+                             if (
+-                                isFocused ||
+-                                isSelected
++                                visuallyFocused
+                             ) { br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.selectionColors() } else {
+                                 listOf(
+                                     br.com.flaviotorres.iptvpremium.ui.components.CatalogGlass.surface(0xFF242428),
+@@ -2374,13 +2372,12 @@
+                     ),
+                     shape = shape
+                 )
+-                .premiumGlow(visuallyFocused || isSelected, roundedDp = br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
++                .premiumGlow(visuallyFocused, roundedDp = br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
+                 .border(
+                     border = BorderStroke(
+                         width =
+                             if (
+-                                isFocused ||
+-                                isSelected
++                                visuallyFocused
+                             ) {
+                                 2.dp
+                             } else {
+@@ -2388,8 +2385,7 @@
+                             },
+                         brush =
+                             if (
+-                                isFocused ||
+-                                isSelected
++                                visuallyFocused
+                             ) {
+                                 br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.outline(true, PremiumGoldBorder)
+                             } else {
+@@ -2430,8 +2426,7 @@
+                             },
+                         brush =
+                             if (
+-                                isFocused ||
+-                                isSelected
++                                visuallyFocused
+                             ) {
+                                 br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.outline(true, PremiumGoldBorder)
+                             } else {
+@@ -2463,7 +2458,7 @@
+             // A capa é desenhada depois da borda de fundo do Box. Ao receber
+             // foco, sobrepomos o contorno por último para que os quatro lados
+             // permaneçam visíveis, inclusive a linha superior do primeiro card.
+-            if (visuallyFocused || isSelected) {
++            if (visuallyFocused) {
+                 Box(
+                     modifier = Modifier
+                         .matchParentSize()
+@@ -2488,8 +2483,7 @@
+             modifier = if (isFocused) Modifier.basicMarquee(iterations = Int.MAX_VALUE, initialDelayMillis = 800, repeatDelayMillis = 1000) else Modifier,
+             color =
+                 if (
+-                    isFocused ||
+-                    isSelected
++                    visuallyFocused
+                 ) {
+                     br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.ink(0xFFFFFFFF)
+                 } else {
+@@ -2503,8 +2497,7 @@
+                 },
+             fontWeight =
+                 if (
+-                    isFocused ||
+-                    isSelected
++                    visuallyFocused
+                 ) {
+                     FontWeight.SemiBold
+                 } else {
+@@ -3025,7 +3018,7 @@
+         var backgroundInterrupt: kotlinx.coroutines.Job? = null
+         try {
+             currentCoroutineContext().ensureActive()
+-            if (background && br.com.flaviotorres.iptvpremium.data.cache.MediaOpeningPriority.busy.value) return false
++            if (br.com.flaviotorres.iptvpremium.data.cache.MediaOpeningPriority.busy.value) return false
+             val parent = target.parentFile ?: return false
+             if (!parent.isDirectory && !parent.mkdirs() && !parent.isDirectory) return false
+             connection = URL(url).openConnection() as HttpURLConnection
+@@ -3033,11 +3026,9 @@
+             connection.readTimeout = 10_000
+             connection.instanceFollowRedirects = true
+             connection.setRequestProperty("User-Agent", "Mozilla/5.0")
+-            if (background) {
+-                val activeConnection = connection
+-                backgroundInterrupt = br.com.flaviotorres.iptvpremium.data.cache.MediaOpeningPriority
+-                    .interruptBackgroundOnSelection { activeConnection.disconnect() }
+-            }
++            val activeConnection = connection
++            backgroundInterrupt = br.com.flaviotorres.iptvpremium.data.cache.MediaOpeningPriority
++                .interruptBackgroundOnSelection { activeConnection.disconnect() }
+             currentCoroutineContext().ensureActive()
+             connection.connect()
+             if (connection.responseCode !in 200..299) return false
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesViewModel.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesViewModel.kt
+@@ -227,7 +227,6 @@
+             playlistId.value ==
+             newPlaylistId
+         ) {
+-            refreshMetadata()
+             return
+         }
+ 
+@@ -327,14 +326,10 @@
+                 detailsLoader != null
+             ) {
+                 try {
+-                    withTimeoutOrNull(
++                    val completed = withTimeoutOrNull(
+                         MovieOpeningPolicy.remoteMs.coerceAtMost(MovieOpeningPolicy.remainingMs(SystemClock.elapsedRealtime() - startedAt))
+-                    ) {
+-                        detailsLoader(
+-                            source,
+-                            movieId
+-                        )
+-                    }
++                    ) { Pair(true, detailsLoader(source, movieId)) } ?: return null
++                    completed.second
+                 } catch (cancelled: CancellationException) {
+                     throw cancelled
+                 } catch (error: Exception) {
+@@ -343,7 +338,7 @@
+                         "Detalhes remotos indisponiveis: " +
+                                 error.javaClass.simpleName
+                     )
+-                    null
++                    return null
+                 }
+             } else {
+                 null
+@@ -432,7 +427,7 @@
+                         viewportHeightPx =
+                             viewportHeightPx.coerceAtLeast(1),
+                         castProfileUrls =
+-                            emptyList() // Elenco nao bloqueia a entrada; a tela carrega suas fotos.
++                            visibleCastUrls
+                     )
+                 }
+             } catch (cancelled: CancellationException) {
+@@ -445,6 +440,8 @@
+                 )
+                 null
+             }
++
++        if (images == null) return null // Keep the loading/retry page instead of revealing unfinished work.
+ 
+         /*
+          * DIAGNOSTICO DE DESEMPENHO
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesLoadingOverlay.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesLoadingOverlay.kt
+@@ -100,7 +100,7 @@
+         }
+ 
+         // The existing transition takes two seconds. Artwork may use only the
+-        // remaining three, keeping a normal opening between two and five seconds.
++        // remaining preparation budget, revealing available images before the transition.
+         awaitSeriesArtworkWindow(openingStarted, { artworkLatest }, { failedLatest }, SystemClock::uptimeMillis)
+         if (failedLatest) { onCompleteLatest(false); return@LaunchedEffect }
+ 
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesOpeningTiming.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesOpeningTiming.kt
+@@ -3,9 +3,9 @@
+ import kotlinx.coroutines.delay
+ 
+ internal const val SERIES_OPENING_TRANSITION_MS = 2_000L
+-internal const val SERIES_OPENING_MAX_ARTWORK_MS = 5_000L
++internal const val SERIES_OPENING_MAX_ARTWORK_MS = 15_000L
+ 
+-/** Artwork cannot extend the existing two-second transition beyond a five-second window. */
++/** Artwork cannot extend the existing two-second transition beyond a bounded fifteen-second window. */
+ internal suspend fun awaitSeriesArtworkWindow(
+     openingStartedMs: Long,
+     ready: () -> Boolean,
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+@@ -2417,11 +2417,9 @@
+     // a grade for recomposta. No filtro Favoritos pode apontar ao vizinho.
+     LaunchedEffect(focusRestorationRequest, focusRestorationSeriesId, allowRestoration) {
+         if (allowRestoration && focusRestorationRequest > 0L && focusRestorationSeriesId == seriesId) {
+-            repeat(4) {
+-                delay(70L)
+-                if (!isFocused) {
+-                    runCatching { focusRequester.requestFocus() }
+-                }
++            repeat(3) {
++                androidx.compose.runtime.withFrameNanos { }
++                if (!isFocused) runCatching { focusRequester.requestFocus() }
+             }
+         }
+     }
+@@ -2536,13 +2534,12 @@
+                     val scale = if (br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.regular) focusScale else 1f
+                     scaleX = scale; scaleY = scale
+                 }
+-                .posterSelectionShadow(visuallyFocused || isSelected, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
++                .posterSelectionShadow(visuallyFocused, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
+                 .background(
+                     brush = Brush.verticalGradient(
+                         colors =
+                             if (
+-                                isFocused ||
+-                                isSelected
++                                visuallyFocused
+                             ) { br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.selectionColors() } else {
+                                 listOf(
+                                     br.com.flaviotorres.iptvpremium.ui.components.CatalogGlass.surface(0xFF242428),
+@@ -2552,11 +2549,11 @@
+                     ),
+                     shape = shape
+                 )
+-                .premiumGlow(visuallyFocused || isSelected, roundedDp = br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
++                .premiumGlow(visuallyFocused, roundedDp = br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP)
+                 .border(
+                     border = BorderStroke(
+-                        width = if (visuallyFocused || isSelected) 2.dp else 1.dp,
+-                        brush = if (visuallyFocused || isSelected) {
++                        width = if (visuallyFocused) 2.dp else 1.dp,
++                        brush = if (visuallyFocused) {
+                             PremiumGoldBorder
+                         } else {
+                             if(br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.regular) androidx.compose.ui.graphics.SolidColor(Color.Transparent) else Brush.linearGradient(
+@@ -2591,8 +2588,7 @@
+                             },
+                         brush =
+                             if (
+-                                isFocused ||
+-                                isSelected
++                                visuallyFocused
+                             ) {
+                                 MetallicGoldBrush
+                             } else {
+@@ -2609,7 +2605,7 @@
+             }
+             // Foco por cima da arte, com metalizado da paleta ativa.
+             Box(Modifier.matchParentSize().posterSelectionFrame(
+-                visuallyFocused || isSelected, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP
++                visuallyFocused, br.com.flaviotorres.iptvpremium.ui.components.CATALOG_POSTER_CORNER_DP
+             ))
+ 
+ 
+@@ -2631,8 +2627,7 @@
+             modifier = if (isFocused) Modifier.basicMarquee(iterations = Int.MAX_VALUE, initialDelayMillis = 800, repeatDelayMillis = 1000) else Modifier,
+             color =
+                 if (
+-                    isFocused ||
+-                    isSelected
++                    visuallyFocused
+                 ) {
+                     br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.ink(0xFFFFFFFF)
+                 } else {
+@@ -2646,8 +2641,7 @@
+                 },
+             fontWeight =
+                 if (
+-                    isFocused ||
+-                    isSelected
++                    visuallyFocused
+                 ) {
+                     FontWeight.SemiBold
+                 } else {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesViewModel.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesViewModel.kt
+@@ -117,10 +117,7 @@
+             clear()
+             return
+         }
+-        if (playlistId.value == normalized) {
+-            refreshMetadata()
+-            return
+-        }
++        if (playlistId.value == normalized) return
+         metadataRefreshJob?.cancel()
+         categoryFilter.value = SeriesCategoryFilter()
+         searchQuery.value = ""

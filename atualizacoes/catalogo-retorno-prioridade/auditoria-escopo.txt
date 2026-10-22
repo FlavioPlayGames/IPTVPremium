@@ -1,0 +1,15 @@
+Base: ultimo java.zip, com a atualizacao dos icones aplicada.
+10 fontes existentes alteradas e 1 helper novo:
+app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogSessionRevisions.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvViewModel.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieOpeningPolicy.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesViewModel.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesLoadingOverlay.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesOpeningTiming.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesViewModel.kt
+Todos os demais arquivos Kotlin do estado anterior preservados.
+Sem mudanca nos recursos, icones, temas, dimensoes das capas, lotes de download, limites de RAM/disco, JPEG, classificacao, importacao, favoritos ou player.
