@@ -1,0 +1,6 @@
+PASS compileDebugKotlin final: BUILD SUCCESSFUL, fonte entregue identico ao compilado.
+PASS revisao de escopo: desenho das estrelas da pagina, metadados e demais acoes anteriores a PersonalRatingControl permanecem identicos. Alteracoes na confirmacao e no desenho sao locais ao dialogo.
+PASS gravação existente NonCancellable+Dispatchers.IO preservada; confirmacao despacha nota antes de aguardar animacao; fechamento automatico apenas chama onDismiss da caixa.
+PASS instalador PowerShell em fixture: aplica, reaplica e protege arquivo alterado localmente. Backup e verificacao de hashes mantidos.
+Nao adicionados testes ao aplicativo. Nao executado na TV/emulador; confirmar aspecto visual, foco, tempo de fechamento e persistencia no aparelho.
+Estrutura Android isolada usa os aliases de compilacao ja documentados para cinema_title/cast_missing_prata; eles nao entram neste pacote.
