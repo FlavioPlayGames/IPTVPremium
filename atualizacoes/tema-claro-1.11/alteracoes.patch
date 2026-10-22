@@ -1,0 +1,126 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogStyle.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogStyle.kt
+@@ -31,13 +31,13 @@
+     }
+     val regular get() = !KidsAppearance.active
+     val light get() = regular && selected == CatalogBackground.WHITE
+-    val background get() = if (light) Color(0xFFC1C5C8) else Color(0xFF17191B)
+-    val panel get() = if (light) Color(0xFFCFD2D4) else Color(0xFF1C1E20)
++    val background get() = if (light) Color(0xFFCDCDD2) else Color(0xFF17191B)
++    val panel get() = if (light) Color(0xFFCDCDD2) else Color(0xFF1C1E20)
+     val text get() = if (light) Color(0xFF292B30) else Color(0xFFE8E8EA)
+     val secondary get() = if (light) Color(0xFF60636C) else Color(0xFFAEB0B7)
+     val edge get() = if (light) Color(0xFFA8ADB4) else Color(0xFF323438)
+     /** Always-visible category cards, independent of the current focus or active category. */
+-    val categorySurface get()=if(light)Color(0xFFC9CDD0)else Color(0xFF24272A)
++    val categorySurface get()=if(light)Color(0xFFC5C5CB)else Color(0xFF24272A)
+     val categoryEdge get()=if(light)Color(0xFFBAC0C6).copy(alpha=.5f)else Color(0xFF3C4046).copy(alpha=.5f)
+     fun categoryColors():List<Color> = if(!regular)listOf(surface(0x50111419),surface(0x600B0C10))
+         else listOf(categorySurface.copy(alpha=if(light).16f else .23f),categorySurface.copy(alpha=if(light).10f else .16f))
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MarbleArtwork.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MarbleArtwork.kt
+@@ -147,7 +147,9 @@
+     val matrix=marbleAccentMatrix(theme)
+     for(row in 0..2) {
+         val start=row*5
+-        matrix[start+2]-=.14f*(matrix[start]+matrix[start+1]+matrix[start+2])
++        // Map the white component to the approved #CDCDD2 without tinting posters.
++        val neutralWhite=if(row==2)210f/255f else 205f/255f
++        matrix[start+2]-=(1f-neutralWhite)*(matrix[start]+matrix[start+1]+matrix[start+2])
+     }
+     return ColorFilter.colorMatrix(ColorMatrix(matrix))
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt
+@@ -24,6 +24,20 @@
+ import androidx.compose.ui.semantics.Role
+ import kotlinx.coroutines.withContext
+ 
++/** The light settings/list panels share the catalogue palette; dark and Kids stay unchanged. */
++private object DeviceCardPalette {
++    private val light get()=br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.light
++    fun surface(source:Long)=if(light)br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.surface(source)
++        else br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.surface(source)
++    fun borderColor(source:Long)=if(light)br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.borderColor(source)
++        else br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(source)
++    fun color(source:Long)=if(light)br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.color(source)
++        else br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.color(source)
++    fun ink(source:Long)=if(light)br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.ink(source)else Color(source)
++    fun selection()=if(light)br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.selectionColor()
++        else br.com.flaviotorres.iptvpremium.ui.theme.SelectionTheme.color()
++}
++
+ @Composable
+ fun DeviceIdentityCard(compact: Boolean = false, showSyncButton: Boolean = true) {
+     val context = LocalContext.current.applicationContext
+@@ -33,23 +47,23 @@
+             kotlinx.coroutines.delay(5_000)
+         }
+     }
+-    val rim = Brush.linearGradient(listOf(br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFF7A5215), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFFFFE6A0), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFFD6A32E), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFFFFF5CD), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFF926315)))
+-    Column(Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.surface(0x50111419), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.surface(0x600B0C10))), RoundedCornerShape(10.dp))
++    val rim = Brush.linearGradient(listOf(DeviceCardPalette.borderColor(0xFF7A5215), DeviceCardPalette.borderColor(0xFFFFE6A0), DeviceCardPalette.borderColor(0xFFD6A32E), DeviceCardPalette.borderColor(0xFFFFF5CD), DeviceCardPalette.borderColor(0xFF926315)))
++    Column(Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(DeviceCardPalette.surface(0x50111419), DeviceCardPalette.surface(0x600B0C10))), RoundedCornerShape(10.dp))
+         .border(1.dp, rim, RoundedCornerShape(10.dp)).padding(if (compact) 12.dp else 18.dp),
+         verticalArrangement = Arrangement.spacedBy(if (compact) 5.dp else 10.dp)) {
+-        Text("IDENTIFICAÇÃO DO APARELHO", color = br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.color(0xFFFFE6A0), fontSize = if (compact) 11.sp else 14.sp, fontWeight = FontWeight.SemiBold)
++        Text("IDENTIFICAÇÃO DO APARELHO", color = DeviceCardPalette.color(0xFFFFE6A0), fontSize = if (compact) 11.sp else 14.sp, fontWeight = FontWeight.SemiBold)
+         val identity = result?.getOrNull()
+         if (identity == null) {
+-            Text(if (result == null) "Carregando identificação…" else if (br.com.flaviotorres.iptvpremium.BuildConfig.DEVICE_PORTAL_URL.isNotBlank()) "Aguardando conexão com o portal para registrar o MAC…" else "Não foi possível ler a identificação do aparelho.", color = Color(0xFFF2F2F2), fontSize = 12.sp)
++            Text(if (result == null) "Carregando identificação…" else if (br.com.flaviotorres.iptvpremium.BuildConfig.DEVICE_PORTAL_URL.isNotBlank()) "Aguardando conexão com o portal para registrar o MAC…" else "Não foi possível ler a identificação do aparelho.", color = DeviceCardPalette.ink(0xFFF2F2F2), fontSize = 12.sp)
+         } else {
+             SelectionContainer {
+                 Column(verticalArrangement = Arrangement.spacedBy(if (compact) 5.dp else 10.dp)) {
+-                    Text(if (br.com.flaviotorres.iptvpremium.BuildConfig.DEVICE_PORTAL_URL.isNotBlank()) "MAC do aplicativo" else "ID do aparelho · MAC", color = Color(0xFFF2F2F2), fontSize = 11.sp)
+-                    Text(identity.displayId, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = if (compact) 12.sp else 16.sp)
+-                    Text("Código: ${identity.code}", color = br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.color(0xFFFFE6A0), fontSize = if (compact) 16.sp else 22.sp, fontWeight = FontWeight.Bold)
++                    Text(if (br.com.flaviotorres.iptvpremium.BuildConfig.DEVICE_PORTAL_URL.isNotBlank()) "MAC do aplicativo" else "ID do aparelho · MAC", color = DeviceCardPalette.ink(0xFFF2F2F2), fontSize = 11.sp)
++                    Text(identity.displayId, color = DeviceCardPalette.ink(0xFFFFFFFF), fontWeight = FontWeight.SemiBold, fontSize = if (compact) 12.sp else 16.sp)
++                    Text("Código: ${identity.code}", color = DeviceCardPalette.color(0xFFFFE6A0), fontSize = if (compact) 16.sp else 22.sp, fontWeight = FontWeight.Bold)
+                 }
+             }
+-            if (identity.physicalMac == null) Text("O Android não permitiu ler o MAC físico deste aparelho.", color = Color(0xFFF2F2F2), fontSize = 11.sp)
++            if (identity.physicalMac == null) Text("O Android não permitiu ler o MAC físico deste aparelho.", color = DeviceCardPalette.ink(0xFFF2F2F2), fontSize = 11.sp)
+ 
+         }
+         if (br.com.flaviotorres.iptvpremium.BuildConfig.DEVICE_PORTAL_URL.isNotBlank()) {
+@@ -67,7 +81,7 @@
+     val scope = rememberCoroutineScope()
+     var syncing by remember { mutableStateOf(false) }
+     var syncMessage by remember { mutableStateOf<String?>(null) }
+-    val rim = Brush.linearGradient(listOf(br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFF7A5215), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFFFFE6A0), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFFD6A32E), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFFFFF5CD), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFF926315)))
++    val rim = Brush.linearGradient(listOf(DeviceCardPalette.borderColor(0xFF7A5215), DeviceCardPalette.borderColor(0xFFFFE6A0), DeviceCardPalette.borderColor(0xFFD6A32E), DeviceCardPalette.borderColor(0xFFFFF5CD), DeviceCardPalette.borderColor(0xFF926315)))
+     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+             val synchronize: () -> Unit = {
+                 if (!syncing) {
+@@ -100,7 +114,7 @@
+                 }
+             }
+             PortalOutlineButton(label = if (syncing) "Sincronizando…" else label, enabled = !syncing, onClick = synchronize)
+-            syncMessage?.let { Text(it, color = Color.White, fontSize = 14.sp) }
++            syncMessage?.let { Text(it, color = DeviceCardPalette.ink(0xFFFFFFFF), fontSize = 14.sp) }
+     }
+ }
+ 
+@@ -109,9 +123,9 @@
+ internal fun PortalOutlineButton(label: String, enabled: Boolean = true, modifier: Modifier = Modifier.fillMaxWidth(), textColor: Color? = null, onClick: () -> Unit) {
+     var focused by remember { mutableStateOf(false) }
+     val shape = RoundedCornerShape(8.dp)
+-    val rim = Brush.linearGradient(listOf(br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFF7A5215), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFFFFE6A0), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFFD6A32E), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFFFFF5CD), br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.borderColor(0xFF926315)))
++    val rim = Brush.linearGradient(listOf(DeviceCardPalette.borderColor(0xFF7A5215), DeviceCardPalette.borderColor(0xFFFFE6A0), DeviceCardPalette.borderColor(0xFFD6A32E), DeviceCardPalette.borderColor(0xFFFFF5CD), DeviceCardPalette.borderColor(0xFF926315)))
+     Box(modifier = modifier.height(48.dp)
+-        .background(if (focused) br.com.flaviotorres.iptvpremium.ui.theme.SelectionTheme.color() else Color.Transparent, shape)
++        .background(if (focused) DeviceCardPalette.selection() else Color.Transparent, shape)
+         .border(1.dp, rim, shape)
+         .onFocusChanged { focused = it.isFocused }
+         .onPreviewKeyEvent { event ->
+@@ -123,7 +137,7 @@
+         .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+         .focusable(enabled)
+         .padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
+-        Text(label, color = textColor ?: if (enabled) (if (focused) Color.White else br.com.flaviotorres.iptvpremium.ui.theme.ThemeColors.color(0xFFFFE6A0)) else Color(0xFFF2F2F2), fontSize = 14.sp,
++        Text(label, color = textColor ?: if (enabled) (if (focused) DeviceCardPalette.ink(0xFFFFFFFF) else DeviceCardPalette.color(0xFFFFE6A0)) else DeviceCardPalette.ink(0xFFF2F2F2), fontSize = 14.sp,
+             fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+     }
+ }

@@ -1,0 +1,9 @@
+Versao publica 1.11.
+Fontes de apresentacao alterados:
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogStyle.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MarbleArtwork.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt
+
+Gradle e local.properties: somente chaves de versao, editadas no destino; sem incluir configuracao privada no pacote.
+Tema escuro e Kids preservados. Importacao, novas tentativas Xtream, foco, navegacao, cache, capas, player e PNGs dos icones preservados.
+Testes de paleta clara e escura em todas as cores, independencia de Kids e BuildConfig.VERSION_NAME=1.11 passaram.
