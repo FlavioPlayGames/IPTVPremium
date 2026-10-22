@@ -1,0 +1,8 @@
+PASS by-access: read-only check, exact backup, apply, idempotent check, unrelated image preserved
+PASS full-mode: read-only check, exact backup, apply, idempotent check, unrelated image preserved
+PASS idle: read-only check, exact backup, apply, idempotent check, unrelated image preserved
+PASS bom-crlf: read-only check, exact backup, apply, idempotent check, unrelated image preserved
+PASS conflict: rejected before any change
+PASS missing: rejected before any change
+PASS new-file-collision: rejected before any change
+PASS scope: 5 production files + 2 integration/policy test files; no resources, APK or cloud fixtures
