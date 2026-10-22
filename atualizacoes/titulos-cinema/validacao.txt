@@ -1,0 +1,13 @@
+Compilacao Android e testes: BUILD SUCCESSFUL.
+CinemaTitleTest: 3 testes, 0 falhas, 0 erros, 0 ignorados.
+Regras: tokens completos; acentos; titulos de duas palavras; qualidade fora da contagem; prioridade visual via fallback nas duas telas.
+Arte local: bitmap compartilhado e limitado; exibicao dos titulos validada em Compose/Robolectric Android 35 nativo.
+Previa PNG capturada do componente real, por desenho da View.
+PASS baseline False CRLF+BOM False preservation, idempotence
+PASS baseline False CRLF+BOM True preservation, idempotence
+PASS baseline True CRLF+BOM False preservation, idempotence
+PASS baseline True CRLF+BOM True preservation, idempotence
+PASS unknown source refuses before writes
+PASS rollback
+
+Sem validacao em TV fisica. Gradle/recursos privados usados na compilacao isolada nao estao no pacote.
