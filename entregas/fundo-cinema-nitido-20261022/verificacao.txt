@@ -1,0 +1,7 @@
+PASS compileDebugKotlin: BUILD SUCCESSFUL na estrutura Android isolada com os fontes atualizados do java.zip mais recente.
+PASS comparacao dos fontes: somente CinemaDetailsFallback.kt alterado.
+PASS WebP 1672x941, 162.492 bytes; mantidas dimensoes da arte gerada na compressao.
+PASS pacote ZIP e hash do arquivo Kotlin; hash da imagem verificado pelo instalador.
+PASS instalador PowerShell em fixture: aplica, reaplica, substitui variantes PNG/WebP do mesmo recurso com backup, preserva imagens de outros nomes; bloqueia fonte alterada antes de escrever.
+Aliases temporarios de cinema_title e cast_missing_prata usados apenas na compilacao isolada por ausencia desses recursos nesta maquina. Nao incluidos na entrega.
+Nao executado na TV. Arte nao e 4K nativo; imagem comprimida sem ampliacao artificial.
