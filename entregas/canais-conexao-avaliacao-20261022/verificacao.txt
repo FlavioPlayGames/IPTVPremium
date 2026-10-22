@@ -1,0 +1,37 @@
+Versao Gradle preservada: 1.11 (13).
+Fontes base: ultimo java.zip do usuario, preservando as entregas anteriores.
+
+:app:compileDebugKotlin: BUILD SUCCESSFUL.
+Compilacao isolada completa com Room/KSP. Recursos ausentes no ZIP de fontes usam
+aliases somente no ambiente de compilacao; nenhum alias e incluido nesta entrega.
+
+Testes externos ao app, com os fontes reais ChannelIdentity e LiveChannelConnection:
+- Variacoes de qualidade coincidem; numeros, +, regioes, idiomas e temporadas nao.
+- EPG generico/repetido nao permite trocar para outro nome.
+- Falhas avancam em ordem; URLs repetidas nao sao tentadas de novo.
+- Transmissao saudavel suspende a busca antes de acessar outra lista.
+- Falha durante reproducao permite continuar ate o recurso da outra lista.
+- Original saudavel nao consulta alternativas.
+- Cancelamento interrompe o player e remove listeners.
+- Esgotamento marca indisponivel; tentativa falha nao entra no historico.
+- Startup sem resposta tem timeout e avanca para alternativa.
+O player desses testes e simulado; nao valida codecs ou rede real.
+
+Consultas SQL extraidas diretamente do DAO executadas em SQLite:
+- Volta circular em ambos os sentidos.
+- Escopo de categoria e grupo de IDs (favoritos/historico).
+- Exclusoes/restricoes parentais.
+- Isolamento de playlist e geracao.
+- Fase por categoria antes da global e resultados em paginas limitadas.
+
+Instalador PowerShell em projeto de ensaio externo ao aplicativo:
+- Primeira aplicacao com CRLF/BOM, novos arquivos e remocao da animacao: PASS.
+- Reaplicacao idempotente, incluindo animacao ja ausente: PASS.
+- Edicao local desconhecida impede toda a operacao antes da copia/remocao: PASS.
+- Arquivo de animacao removido permanece no backup fora de app/src: PASS.
+
+Sem testes automatizados adicionados a app/src. Sem novos recursos, bibliotecas,
+importadores, alteracoes de schema ou apagamento de caches/dados do usuario.
+
+Pendente no aparelho: rede real, compatibilidade de codecs/HDR, fluidez da superficie
+ao redimensionar, foco fisico, audio continuo, retomada e navegacao circular real.
