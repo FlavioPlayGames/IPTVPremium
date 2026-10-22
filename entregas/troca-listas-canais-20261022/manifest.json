@@ -1,0 +1,14 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "sha": "2fe7b0beeaf373b2db3908479f9794fe5e255b70e1dffd46990c8f6b24b039ce",
+    "before": "d4c7ee071ed2a1b6da5d6d1e80d2b7969e6bad38e715d16fc5e5ea556e741f2f",
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt",
+    "sha": "f9d9e85a9e76997c9ff9716a15709b9c92a3b96a0ee56e5713343b4f93ac0438",
+    "before": "4e8faf5271553b570bbff6e619dc6ae1df8c071a386ced16041f13d16b57cc81",
+    "allowMissing": false
+  }
+]

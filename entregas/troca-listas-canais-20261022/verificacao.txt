@@ -1,0 +1,20 @@
+Fonte: ultimo java.zip enviado pelo usuario (file_00000000f758820e8612150e683e0603).
+Alterados somente AppNavigation.kt e LiveTvScreen.kt; versao Gradle nao alterada.
+
+Compilacao local: :app:compileDebugKotlin, BUILD SUCCESSFUL.
+Ambiente isolado com os fontes atuais completos. Recursos ausentes do ZIP de fontes
+usam aliases locais apenas para compilacao; esses aliases nao fazem parte da entrega.
+
+Instalador PowerShell validado em projeto de ensaio fora do aplicativo:
+- Aplicacao inicial com fontes em CRLF e BOM: passou.
+- Reaplicacao idempotente: passou.
+- Protecao contra sobrescrever alteracoes locais: passou.
+- ZIP limitado aos dois arquivos Kotlin e manifesto; backup antes da copia.
+
+Revisao: cache Room e importadores preservados, sessoes antigas encerradas na troca,
+geracao inicial reiniciada por lista, transicoes Home/Listas sem sobreposicao,
+liberacao do bloqueio anterior a navegacao e mensagem inicial/paginada em Canais.
+Nao adicionados testes ao app, nem removidos dados do usuario.
+
+Nao executado em TV/emulador nesta entrega. Tempos, foco e fluidez reais pendentes
+na TV do usuario. Nao foi gerado APK distribuivel com os recursos completos.
