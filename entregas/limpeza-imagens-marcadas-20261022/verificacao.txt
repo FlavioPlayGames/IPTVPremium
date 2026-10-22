@@ -1,10 +1,7 @@
-PASS manifest e hashes dos cinco arquivos Kotlin; lista fechada de 32 nomes.
-PASS comparação com java.zip: somente cinco arquivos visuais/navegação alterados; nenhum arquivo de importação/cache/banco modificado.
-PASS referência estática: nenhum dos 32 recursos permanece referenciado nos fontes Kotlin finais.
-PASS PowerShell: sintaxe; aplicação e reaplicação em projeto temporário; remoção apenas das 32 imagens da lista; arquivo home_original preservado; backup de todas as imagens removidas; fonte modificada bloqueia antes de escrever.
-PASS referência XML desconhecida bloqueia limpeza antes de remover imagem.
-PASS compileDebugKotlin final: BUILD SUCCESSFUL. Recursos de verificação removidos antes da compilação; fontes finais idênticos ao conteúdo do pacote. Na cópia local, 31 arquivos presentes, 33.995.565 bytes.
-Kids: usa recurso azul ou rosa da Home já existente; desfoque estático reutilizado no cache, gerado em background. Nenhum PNG/JPEG adicional ou imagem antiga incluído no pacote.
-Não executado na TV/emulador. Não feita comparação visual de Home/Kids nesta máquina.
-
-PASS correcao opcional em KidsUiDeviceTest: substituicao literal do recurso antigo, backup original, resto do arquivo preservado e reaplicacao. Testado em fixture PowerShell; assercoes do teste real nao fornecidas. Fontes de producao e ZIP permanecem iguais a compilacao anterior.
+PASS Kotlin de producao: compileDebugKotlin BUILD SUCCESSFUL com as imagens marcadas removidas na estrutura Android isolada e fundo Kids estatico desfocado; fontes identicos aos cinco arquivos do ZIP.
+PASS integridade do ZIP e lista exata de 32 nomes de recursos.
+PASS comparacao com java.zip: somente cinco arquivos visuais/navegacao alterados; importacao, banco, cache e lotes inalterados.
+PASS instalador revisado em fixture PowerShell: aplica, reaplica sem falha, remove apenas imagens da lista, preserva home_original e guarda backup das imagens.
+PASS remocao de androidTest, test, testFixtures, androidTestDebug e testRelease; backup integral das cinco pastas; main preservado; referencias antigas em testes removidos nao bloqueiam limpeza.
+PASS arquivo de producao alterado bloqueia antes de qualquer escrita.
+O teste de instalador valida manipulacao de arquivos, nao executa testes Android do usuario. Nao executado na TV/emulador; sem validacao visual nesta maquina. Remover testes nao representa ganho de velocidade de importacao.

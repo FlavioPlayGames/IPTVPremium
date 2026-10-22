@@ -28,23 +28,23 @@ foreach($entry in $manifest) {
 $names=@(Get-Content -LiteralPath (Join-Path $tempDir 'remover.txt') | Where-Object { $_ })
 $replacement=@{}
 foreach($entry in $manifest) { $replacement[(Join-Path $projectRoot $entry.path)]=[IO.File]::ReadAllText((Join-Path $tempDir $entry.path)) }
-# The uploaded ZIP contained main sources only. Patch the known legacy test token,
-# preserving all test code and checking the complete planned result before writing.
-$testPath=Join-Path $projectRoot 'app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsUiDeviceTest.kt'
-$testText=$null
-if(Test-Path -LiteralPath $testPath) {
- $originalTest=[IO.File]::ReadAllText($testPath)
- $updatedTest=[regex]::Replace($originalTest,'\bR\.drawable\.kids_bear\b','R.drawable.home_original_gold_gray')
- if($updatedTest -ne $originalTest) { $testText=$updatedTest; $replacement[$testPath]=$updatedTest }
-}
+# User requested removal of all conventional automated-test source sets.
+$testDirectories=@(Get-ChildItem -LiteralPath (Join-Path $projectRoot 'app/src') -Directory | Where-Object { $_.Name -cmatch '^(androidTest|test)([A-Z].*)?$' })
 # Check real source and XML references, including source sets absent from the uploaded ZIP.
+$remainingReferences=New-Object 'System.Collections.Generic.List[string]'
 Get-ChildItem -LiteralPath (Join-Path $projectRoot 'app/src') -Recurse -File | Where-Object { $_.Extension -in '.kt','.java','.xml' } | ForEach-Object {
+ $testFile=$false
+ foreach($testDirectory in $testDirectories) {
+  if($_.FullName.StartsWith(($testDirectory.FullName+[IO.Path]::DirectorySeparatorChar),[StringComparison]::OrdinalIgnoreCase)) { $testFile=$true; break }
+ }
+ if($testFile) { return }
  $text=if($replacement.ContainsKey($_.FullName)){$replacement[$_.FullName]}else{[IO.File]::ReadAllText($_.FullName)}
  foreach($name in $names) {
   $pattern='(?:R\.drawable\.|@drawable/|["''])(?:'+[regex]::Escape($name)+')(?![A-Za-z0-9_])'
-  if($text -match $pattern) { throw ('Referencia ainda existente: '+$name+' em '+$_.FullName+'. Nenhum arquivo foi alterado.') }
+  if($text -match $pattern) { $remainingReferences.Add(($name+' em '+$_.FullName)) }
  }
 }
+if($remainingReferences.Count -gt 0) { throw ("Referencias ainda existentes (nenhum arquivo foi alterado):`n"+($remainingReferences -join "`n")) }
 $drawable=Join-Path $projectRoot 'app/src/main/res/drawable-nodpi'
 $images=@(Get-ChildItem -LiteralPath $drawable -File | Where-Object { $_.BaseName -in $names -and $_.Extension -in '.png','.webp','.jpg','.jpeg','.xml' })
 $backup=Join-Path $projectRoot ('.image-cleanup-backups/'+[guid]::NewGuid().ToString('N'))
@@ -58,12 +58,11 @@ foreach($entry in $manifest) {
  New-Item -ItemType Directory -Force -Path (Split-Path $target) | Out-Null
  Copy-Item -LiteralPath (Join-Path $tempDir $entry.path) -Destination $target -Force
 }
-if($null -ne $testText) {
- $testBackup=Join-Path $backup 'app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsUiDeviceTest.kt'
- New-Item -ItemType Directory -Force -Path (Split-Path $testBackup) | Out-Null
- Copy-Item -LiteralPath $testPath -Destination $testBackup
- [IO.File]::WriteAllText($testPath,$testText,(New-Object Text.UTF8Encoding($false)))
- Write-Host 'Referencia de recurso legado atualizada em KidsUiDeviceTest.kt; teste preservado.'
+foreach($testDirectory in $testDirectories) {
+ $saved=Join-Path $backup ('app/src/'+$testDirectory.Name)
+ New-Item -ItemType Directory -Force -Path (Split-Path $saved) | Out-Null
+ Move-Item -LiteralPath $testDirectory.FullName -Destination $saved
+ Write-Host ('Testes removidos de app/src; backup preservado: '+$testDirectory.Name)
 }
 foreach($image in $images) {
  $saved=Join-Path $backup ('drawable-nodpi/'+$image.Name)

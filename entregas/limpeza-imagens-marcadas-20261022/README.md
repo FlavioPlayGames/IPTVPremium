@@ -8,7 +8,9 @@ Lista exata em `remover.txt`: 32 nomes, independentemente de estarem presentes. 
 
 Preservadas: todas as home_original_*, marble_home_layer_black/white, marble_wallpaper_black/white, logotipos dos temas, marca dourada, imagens Kids não marcadas, actor_cinematic_background e series_living_room. O script não usa padrões amplos para decidir exclusões.
 
-O instalador também corrige a referência literal `R.drawable.kids_bear` em `app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsUiDeviceTest.kt`, quando presente, para a folha mantida `R.drawable.home_original_gold_gray`, que contém o ursinho. Preserva o restante do teste e guarda backup. Isso corrige a referência de compilação; não foi possível validar as asserções desse teste específico porque o arquivo não estava no ZIP enviado. Outras referências desconhecidas continuam bloqueando a limpeza.
+**A pedido do usuário, esta revisão também remove todos os conjuntos convencionais de testes automatizados do módulo app:** `app/src/test`, `app/src/androidTest`, `app/src/testFixtures` e variantes como `testDebug`/`androidTestDebug`. As pastas são movidas inteiras para `.image-cleanup-backups/<identificador>/app/src`, fora dos fontes compilados. Nenhum teste é substituído ou recriado. Isso inclui os testes antigos que referenciavam imagens removidas. O instalador verifica as referências no código que permanecerá no aplicativo; uma referência desconhecida em produção continua bloqueando toda a operação antes de qualquer alteração.
+
+Não altera configurações Gradle nem dependências de teste declaradas. Não remove diagnósticos de produção ou funções das telas. Para preparar um ZIP sem testes e sem as imagens antigas, exclua a pasta de backup do ZIP.
 
 Algumas imagens marcadas ainda eram citadas no código. Foram ajustados cinco arquivos:
 
@@ -29,7 +31,7 @@ Invoke-WebRequest -UseBasicParsing "$base/Limpar-Imagens-Marcadas.ps1" -OutFile 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -Projeto 'C:\Users\flavi\AndroidStudioProjects\IPTVPremium' -Testar
 ```
 
-O script baixa somente as correções de código e a lista de exclusões. Não baixa imagens antigas nem recria imagens já excluídas. Aceita arquivo do código enviado ou já corrigido; verifica hashes e procura referências restantes nos arquivos .kt, .java e .xml de app/src. Se encontrar referência desconhecida ou arquivo alterado, interrompe antes de escrever.
+O script baixa somente as correções de código e a lista de exclusões. Não baixa imagens antigas nem recria imagens já excluídas. Aceita arquivo do código enviado ou já corrigido; verifica hashes e procura referências restantes nos arquivos .kt, .java e .xml que permanecerão em app/src. Se encontrar referência desconhecida ou arquivo alterado, interrompe antes de escrever.
 
 Depois aplica o código e move somente as imagens listadas de `app/src/main/res/drawable-nodpi` para `.image-cleanup-backups/<identificador>/drawable-nodpi`. Faz backup do código na mesma pasta. Imagens já ausentes são ignoradas. Para preparar um ZIP menor do projeto, exclua `.image-cleanup-backups` do ZIP; esse backup fica fora dos recursos e não entra no APK.
 
