@@ -1,0 +1,12 @@
+Payloads Kotlin identicos aos publicados em tema-claro-1.11: verificado.
+Instalacao com LF e CRLF/BOM: passou.
+Preservacao das demais configuracoes do Gradle e local.properties: passou.
+Versao 1.11 com numero interno monotono e repeticao sem incremento extra: passou.
+Criacao de local.properties quando ausente: passou.
+Recusa de fonte desconhecido antes de qualquer escrita: passou.
+Restauracao apos falha de escrita, incluindo Gradle e local.properties: passou.
+Declaracoes literais com comentarios e ponto e virgula: passou.
+Declaracoes mistas literal/getProperty: passou.
+getProperty com nome de variavel diferente e espacamento: passou.
+Declaracoes com quebra de linha: passou.
+Comentarios contendo versionCode/versionName ignorados: passou.
