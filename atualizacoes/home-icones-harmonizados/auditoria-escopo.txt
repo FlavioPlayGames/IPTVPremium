@@ -1,0 +1,19 @@
+Base: versao com home-branco-cinza e catalogo-retorno-prioridade aplicados.
+4 fontes Kotlin e 10 PNGs substituidos; 1 helper novo:
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MarbleArtwork.kt
+app/src/main/res/drawable-nodpi/home_original_blue_gray.png
+app/src/main/res/drawable-nodpi/home_original_blue_white.png
+app/src/main/res/drawable-nodpi/home_original_gold_gray.png
+app/src/main/res/drawable-nodpi/home_original_gold_white.png
+app/src/main/res/drawable-nodpi/home_original_pink_gray.png
+app/src/main/res/drawable-nodpi/home_original_pink_white.png
+app/src/main/res/drawable-nodpi/home_original_purple_gray.png
+app/src/main/res/drawable-nodpi/home_original_purple_white.png
+app/src/main/res/drawable-nodpi/home_original_red_gray.png
+app/src/main/res/drawable-nodpi/home_original_red_white.png
+app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheRestartActivity.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/ActivePlaylistRefresh.kt
+Geometria, areas de clique, rotulos, foco, navegacao da grade, player, limites de cache e imagens das capas preservados. Atualizar solicita sincronizacao da lista ativa pelo importador existente.
+Os fundos enviados foram usados na validacao; nao integram o instalador, que preserva os fundos do projeto.

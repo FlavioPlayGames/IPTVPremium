@@ -1,0 +1,204 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt
+@@ -3,20 +3,20 @@
+ import br.com.flaviotorres.iptvpremium.R
+ import br.com.flaviotorres.iptvpremium.ui.theme.PremiumTheme
+ 
+-/** Finished theme strips: keep their original colours and neutral materials, without runtime tinting. */
++/** Harmonised high-definition theme strips; use the finished stone and metal without recolouring. */
+ internal data class MarblePngAsset(val resource:Int,val width:Int,val height:Int,val crop:MarbleRegion)
+ internal object MarbleHomePngAssets {
+     private val crops=mapOf(
+-        R.drawable.home_original_gold_white to listOf(MarbleRegion(9,188,457,519),MarbleRegion(457,167,876,546),MarbleRegion(882,166,1303,545),MarbleRegion(1308,154,1717,564),MarbleRegion(1721,181,2168,547)),
+-        R.drawable.home_original_blue_white to listOf(MarbleRegion(11,208,455,519),MarbleRegion(459,172,874,545),MarbleRegion(881,173,1302,535),MarbleRegion(1308,166,1717,561),MarbleRegion(1725,197,2169,539)),
+-        R.drawable.home_original_pink_white to listOf(MarbleRegion(8,190,465,515),MarbleRegion(468,165,879,537),MarbleRegion(889,171,1304,535),MarbleRegion(1313,158,1713,552),MarbleRegion(1730,183,2171,539)),
+-        R.drawable.home_original_purple_white to listOf(MarbleRegion(11,214,470,522),MarbleRegion(470,186,875,547),MarbleRegion(881,183,1295,546),MarbleRegion(1304,160,1711,562),MarbleRegion(1723,199,2163,546)),
+-        R.drawable.home_original_red_white to listOf(MarbleRegion(8,201,449,508),MarbleRegion(451,186,864,538),MarbleRegion(876,175,1290,534),MarbleRegion(1300,173,1699,555),MarbleRegion(1708,192,2138,538)),
+-        R.drawable.home_original_gold_gray to listOf(MarbleRegion(9,189,456,518),MarbleRegion(456,167,874,544),MarbleRegion(881,167,1302,543),MarbleRegion(1307,154,1716,563),MarbleRegion(1720,182,2168,546)),
+-        R.drawable.home_original_blue_gray to listOf(MarbleRegion(11,208,454,519),MarbleRegion(459,171,873,545),MarbleRegion(879,173,1301,535),MarbleRegion(1307,165,1717,561),MarbleRegion(1725,197,2168,539)),
+-        R.drawable.home_original_pink_gray to listOf(MarbleRegion(9,187,459,513),MarbleRegion(459,161,872,535),MarbleRegion(882,167,1297,533),MarbleRegion(1297,155,1700,549),MarbleRegion(1717,180,2159,537)),
+-        R.drawable.home_original_purple_gray to listOf(MarbleRegion(12,213,470,522),MarbleRegion(472,186,875,547),MarbleRegion(882,183,1296,545),MarbleRegion(1306,160,1712,563),MarbleRegion(1726,199,2166,545)),
+-        R.drawable.home_original_red_gray to listOf(MarbleRegion(9,205,454,513),MarbleRegion(457,190,874,543),MarbleRegion(886,178,1307,540),MarbleRegion(1316,177,1721,561),MarbleRegion(1729,196,2165,544)))
++        R.drawable.home_original_gold_white to listOf(MarbleRegion(22,206,478,582),MarbleRegion(509,123,878,575),MarbleRegion(919,113,1311,588),MarbleRegion(1335,148,1693,589),MarbleRegion(1727,176,2148,584)),
++        R.drawable.home_original_blue_white to listOf(MarbleRegion(22,220,479,612),MarbleRegion(479,135,894,611),MarbleRegion(921,112,1340,612),MarbleRegion(1359,152,1725,612),MarbleRegion(1750,210,2154,611)),
++        R.drawable.home_original_pink_white to listOf(MarbleRegion(23,196,460,593),MarbleRegion(477,104,874,590),MarbleRegion(914,107,1313,592),MarbleRegion(1352,117,1728,593),MarbleRegion(1764,164,2152,595)),
++        R.drawable.home_original_purple_white to listOf(MarbleRegion(26,217,476,591),MarbleRegion(490,134,894,597),MarbleRegion(920,136,1322,601),MarbleRegion(1347,149,1716,605),MarbleRegion(1748,194,2145,603)),
++        R.drawable.home_original_red_white to listOf(MarbleRegion(31,187,479,583),MarbleRegion(492,124,889,582),MarbleRegion(927,114,1310,583),MarbleRegion(1341,140,1695,591),MarbleRegion(1726,164,2135,583)),
++        R.drawable.home_original_gold_gray to listOf(MarbleRegion(16,189,471,593),MarbleRegion(477,126,898,592),MarbleRegion(927,110,1337,589),MarbleRegion(1364,121,1723,591),MarbleRegion(1757,174,2156,593)),
++        R.drawable.home_original_blue_gray to listOf(MarbleRegion(19,199,471,610),MarbleRegion(489,151,889,608),MarbleRegion(911,108,1318,614),MarbleRegion(1343,152,1713,615),MarbleRegion(1734,182,2155,611)),
++        R.drawable.home_original_pink_gray to listOf(MarbleRegion(35,206,485,570),MarbleRegion(500,115,895,576),MarbleRegion(932,104,1324,586),MarbleRegion(1357,136,1725,591),MarbleRegion(1768,181,2146,581)),
++        R.drawable.home_original_purple_gray to listOf(MarbleRegion(22,192,482,613),MarbleRegion(497,110,905,613),MarbleRegion(927,90,1321,610),MarbleRegion(1353,119,1722,617),MarbleRegion(1758,161,2151,614)),
++        R.drawable.home_original_red_gray to listOf(MarbleRegion(19,165,468,607),MarbleRegion(475,98,890,594),MarbleRegion(914,98,1332,602),MarbleRegion(1355,123,1735,611),MarbleRegion(1764,165,2160,607)))
+     private fun resource(lightMode:Boolean,theme:PremiumTheme):Int = when(theme) {
+         PremiumTheme.GOLD -> if(lightMode)R.drawable.home_original_gold_white else R.drawable.home_original_gold_gray
+         PremiumTheme.BLUE -> if(lightMode)R.drawable.home_original_blue_white else R.drawable.home_original_blue_gray
+@@ -26,12 +26,7 @@
+     }
+     fun forMode(lightMode:Boolean,theme:PremiumTheme=PremiumTheme.GOLD):List<MarblePngAsset> {
+         val id=resource(lightMode,theme)
+-        val width=when(id) {
+-            R.drawable.home_original_pink_white -> 2171
+-            R.drawable.home_original_gold_gray -> 2171
+-            R.drawable.home_original_blue_gray -> 2171
+-            else -> 2172
+-        }
++        val width=2172
+         return crops.getValue(id).map{MarblePngAsset(id,width,724,it)}
+     }
+     val icons:List<MarblePngAsset> get()=forMode(false)
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MarbleArtwork.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MarbleArtwork.kt
+@@ -62,7 +62,7 @@
+     suspend fun load(context:Context,id:Int,wallpaper:Boolean=false):ImageBitmap?=withContext(Dispatchers.IO) {
+         decode.withLock {
+             peek(id)?:try {
+-                val options=BitmapFactory.Options().apply {inScaled=false;inMutable=true;inSampleSize=if(id==R.drawable.marble_brand_gold)4 else if(wallpaper || id in br.com.flaviotorres.iptvpremium.ui.home.MarbleHomePngAssets.resourceIds)2 else 1}
++                val options=BitmapFactory.Options().apply {inScaled=false;inMutable=true;inSampleSize=if(id==R.drawable.marble_brand_gold)4 else if(wallpaper)2 else 1}
+                 BitmapFactory.decodeResource(context.resources,id,options)?.also { if(id==R.drawable.marble_home_white||id==R.drawable.marble_home_black) balanceMovieMetal(it) }?.asImageBitmap()?.also {bitmaps.put(id,it)}
+             } catch(_:OutOfMemoryError){clear();null}
+         }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt
+@@ -980,6 +980,9 @@
+      * portanto aguardamos a primeira leitura antes de liberar a Home.
+      */
+     val startupPreferencesResolved = storedSelection != null
++    val manualCatalogRefresh = remember(context) {
++        br.com.flaviotorres.iptvpremium.core.storage.ActivePlaylistRefresh(context)
++    }
+     var catalogLoadingState by remember {
+         mutableStateOf<AppCatalogLoadingState?>(AppCatalogLoadingState())
+     }
+@@ -1161,12 +1164,13 @@
+         val remoteRequest = portalLoadRequest?.takeIf { request ->
+             runCatching { org.json.JSONObject(request).getString("id") == playlistId }.getOrDefault(false)
+         }
++        val manualRefreshRequested = manualCatalogRefresh.pendingPlaylistId() == playlistId
+         // Operacao manual ja esta cuidando do seu proprio progresso.
+         if (manualPlaylistOperationId == playlistId) return@LaunchedEffect
+ 
+         if (
+             activePlaylistContentSourceId == playlistId &&
+-            catalogLoadingState == null && remoteRequest == null
++            catalogLoadingState == null && remoteRequest == null && !manualRefreshRequested
+         ) {
+             return@LaunchedEffect
+         }
+@@ -1176,7 +1180,7 @@
+                 it.id == playlistId
+             } ?: return@LaunchedEffect
+ 
+-        if (catalogLoadingDismissed && (dismissedCatalogPlaylistId == null || dismissedCatalogPlaylistId == playlistId) && remoteRequest == null) return@LaunchedEffect
++        if (catalogLoadingDismissed && (dismissedCatalogPlaylistId == null || dismissedCatalogPlaylistId == playlistId) && remoteRequest == null && !manualRefreshRequested) return@LaunchedEffect
+         catalogLoadingDismissed = false
+         startupCatalogJob = currentCoroutineContext()[Job]
+         val openingStartedAt = SystemClock.elapsedRealtime()
+@@ -1209,7 +1213,9 @@
+                         playlistCatalogRepository.hasActiveCache(playlistId)
+                     }
+                     Log.i("StartupPerf", "etapa=catalogo_abertura cache=$cacheAvailable remoto=${remoteRequest != null} pedidoJaImportado=$remoteCatalogReady")
+-                    if (!cacheAvailable || remoteRequest != null && !remoteCatalogReady) {
++                    val manualSyncNeeded = manualRefreshRequested && manualCatalogRefresh.needsSync(
++                        playlistId, playlistCacheDao.getActiveGeneration(playlistId)?.generationId)
++                    if (!cacheAvailable || remoteRequest != null && !remoteCatalogReady || manualSyncNeeded) {
+ 
+ 
+                         br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("catalogo_importacao") {
+@@ -1253,7 +1259,9 @@
+                         playlistCatalogRepository.hasActiveCache(playlistId)
+                     }
+                     Log.i("StartupPerf", "etapa=catalogo_abertura cache=$cacheAvailable remoto=${remoteRequest != null} pedidoJaImportado=$remoteCatalogReady")
+-                    if (!cacheAvailable || remoteRequest != null && !remoteCatalogReady) {
++                    val manualSyncNeeded = manualRefreshRequested && manualCatalogRefresh.needsSync(
++                        playlistId, playlistCacheDao.getActiveGeneration(playlistId)?.generationId)
++                    if (!cacheAvailable || remoteRequest != null && !remoteCatalogReady || manualSyncNeeded) {
+ 
+ 
+                         br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("catalogo_importacao") {
+@@ -1278,10 +1286,18 @@
+             // Record only after ACTIVE has been committed; the request remains pending
+             // until preparation/navigation finishes, without downloading it twice.
+             if (remoteRequest != null) playlistStorage.markPortalCatalogReady(remoteRequest)
++            if (manualRefreshRequested) {
++                val generation = playlistCacheDao.getActiveGeneration(playlistId)?.generationId
++                    ?: error("A lista atualizada ainda nao esta ativa.")
++                withContext(Dispatchers.IO) { check(manualCatalogRefresh.markImported(playlistId, generation)) }
++            }
+             activePlaylistContent = content
+             activePlaylistContentSourceId = playlistId
+             br.com.flaviotorres.iptvpremium.core.startup.StartupTiming.measureSuspend("catalogo_finalizacao") {
+-                prepareCatalogBeforeHome(activePlaylist, isRefresh = false, showHistoryImport = showHistoryImport)
++                prepareCatalogBeforeHome(activePlaylist, isRefresh = manualRefreshRequested, showHistoryImport = showHistoryImport)
++            }
++            if (manualRefreshRequested) {
++                withContext(Dispatchers.IO) { check(manualCatalogRefresh.complete(playlistId)) }
+             }
+             catalogLoadingState = null
+             Log.i("StartupPerf", "etapa=abertura_concluida duracaoMs=${SystemClock.elapsedRealtime()-openingStartedAt}")
+@@ -1645,7 +1661,7 @@
+                         var owner: Context? = context
+                         while (owner is ContextWrapper && owner !is android.app.Activity) owner = owner.baseContext
+                         (owner as? android.app.Activity)?.let {
+-                            br.com.flaviotorres.iptvpremium.core.storage.CacheRestartActivity.restart(it)
++                            br.com.flaviotorres.iptvpremium.core.storage.CacheRestartActivity.restart(it, activePlaylistId)
+                         }
+                     },
+                     onConfiguracoesClick = {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheRestartActivity.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheRestartActivity.kt
+@@ -50,10 +50,13 @@
+                     // Keep the Room catalogue: rebuilding it would require a full import.
+                     // Preferences, registry, access, favorites and history stay untouched.
+                     clearExperienceCache(applicationContext.cacheDir, applicationContext.externalCacheDir)
++                    intent.getStringExtra("refresh_playlist")?.takeIf { it.isNotBlank() }?.let {
++                        check(ActivePlaylistRefresh(applicationContext).request(it))
++                    }
+                 }.isSuccess
+             }
+             if (!success) Toast.makeText(this@CacheRestartActivity,
+-                "Parte do cache não pôde ser limpa. O aplicativo será reaberto.", Toast.LENGTH_LONG).show()
++                "Parte da atualização não pôde ser preparada. O aplicativo será reaberto.", Toast.LENGTH_LONG).show()
+             startActivity(Intent(this@CacheRestartActivity, MainActivity::class.java)
+                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+             finishAndRemoveTask()
+@@ -62,9 +65,10 @@
+     }
+ 
+     companion object {
+-        fun restart(activity: Activity) {
++        fun restart(activity: Activity, playlistId: String? = null) {
+             activity.startActivity(Intent(activity, CacheRestartActivity::class.java)
+-                .putExtra("previous_pid", Process.myPid()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
++                .putExtra("previous_pid", Process.myPid())
++                .putExtra("refresh_playlist", playlistId).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+         }
+     }
+ }
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/ActivePlaylistRefresh.kt
+@@ -0,0 +1,25 @@
++package br.com.flaviotorres.iptvpremium.core.storage
++
++import android.content.Context
++
++/** Durable one-shot request: cache cleanup/restart must refresh only the playlist selected by the user. */
++internal class ActivePlaylistRefresh(context:Context) {
++    private val preferences=context.applicationContext.getSharedPreferences("active_playlist_refresh",Context.MODE_PRIVATE)
++    fun pendingPlaylistId():String?=preferences.getString("playlist",null)?.takeIf {it.isNotBlank()}
++    fun request(playlistId:String):Boolean {
++        val id=playlistId.trim()
++        if(id.isEmpty())return false
++        return preferences.edit().clear().putString("playlist",id).commit()
++    }
++    fun needsSync(playlistId:String,activeGeneration:String?):Boolean =
++        pendingPlaylistId()==playlistId &&
++            (activeGeneration.isNullOrBlank() || preferences.getString("imported_generation",null)!=activeGeneration)
++    fun markImported(playlistId:String,generation:String):Boolean {
++        if(pendingPlaylistId()!=playlistId || generation.isBlank())return false
++        return preferences.edit().putString("imported_generation",generation).commit()
++    }
++    fun complete(playlistId:String):Boolean {
++        if(pendingPlaylistId()!=playlistId)return false
++        return preferences.edit().clear().commit()
++    }
++}
