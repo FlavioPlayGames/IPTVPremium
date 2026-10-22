@@ -1,0 +1,56 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt
+@@ -3,20 +3,31 @@
+ import br.com.flaviotorres.iptvpremium.R
+ import br.com.flaviotorres.iptvpremium.ui.theme.PremiumTheme
+ 
+-/** Harmonised high-definition theme strips; use the finished stone and metal without recolouring. */
++/** Original icon drawings with pearl or graphite inset colours; no runtime recolouring. */
+ internal data class MarblePngAsset(val resource:Int,val width:Int,val height:Int,val crop:MarbleRegion)
+ internal object MarbleHomePngAssets {
+     private val crops=mapOf(
+-        R.drawable.home_original_gold_white to listOf(MarbleRegion(22,206,478,582),MarbleRegion(509,123,878,575),MarbleRegion(919,113,1311,588),MarbleRegion(1335,148,1693,589),MarbleRegion(1727,176,2148,584)),
+-        R.drawable.home_original_blue_white to listOf(MarbleRegion(22,220,479,612),MarbleRegion(479,135,894,611),MarbleRegion(921,112,1340,612),MarbleRegion(1359,152,1725,612),MarbleRegion(1750,210,2154,611)),
+-        R.drawable.home_original_pink_white to listOf(MarbleRegion(23,196,460,593),MarbleRegion(477,104,874,590),MarbleRegion(914,107,1313,592),MarbleRegion(1352,117,1728,593),MarbleRegion(1764,164,2152,595)),
+-        R.drawable.home_original_purple_white to listOf(MarbleRegion(26,217,476,591),MarbleRegion(490,134,894,597),MarbleRegion(920,136,1322,601),MarbleRegion(1347,149,1716,605),MarbleRegion(1748,194,2145,603)),
+-        R.drawable.home_original_red_white to listOf(MarbleRegion(31,187,479,583),MarbleRegion(492,124,889,582),MarbleRegion(927,114,1310,583),MarbleRegion(1341,140,1695,591),MarbleRegion(1726,164,2135,583)),
+-        R.drawable.home_original_gold_gray to listOf(MarbleRegion(16,189,471,593),MarbleRegion(477,126,898,592),MarbleRegion(927,110,1337,589),MarbleRegion(1364,121,1723,591),MarbleRegion(1757,174,2156,593)),
+-        R.drawable.home_original_blue_gray to listOf(MarbleRegion(19,199,471,610),MarbleRegion(489,151,889,608),MarbleRegion(911,108,1318,614),MarbleRegion(1343,152,1713,615),MarbleRegion(1734,182,2155,611)),
+-        R.drawable.home_original_pink_gray to listOf(MarbleRegion(35,206,485,570),MarbleRegion(500,115,895,576),MarbleRegion(932,104,1324,586),MarbleRegion(1357,136,1725,591),MarbleRegion(1768,181,2146,581)),
+-        R.drawable.home_original_purple_gray to listOf(MarbleRegion(22,192,482,613),MarbleRegion(497,110,905,613),MarbleRegion(927,90,1321,610),MarbleRegion(1353,119,1722,617),MarbleRegion(1758,161,2151,614)),
+-        R.drawable.home_original_red_gray to listOf(MarbleRegion(19,165,468,607),MarbleRegion(475,98,890,594),MarbleRegion(914,98,1332,602),MarbleRegion(1355,123,1735,611),MarbleRegion(1764,165,2160,607)))
++        R.drawable.home_original_gold_white to listOf(MarbleRegion(9,188,457,517),MarbleRegion(457,164,875,544),MarbleRegion(883,165,1303,543),MarbleRegion(1310,153,1717,563),MarbleRegion(1723,181,2169,545)),
++        R.drawable.home_original_gold_gray to listOf(MarbleRegion(9,189,460,519),MarbleRegion(460,167,879,546),MarbleRegion(889,167,1309,545),MarbleRegion(1316,154,1727,564),MarbleRegion(1733,182,2170,547)),
++        R.drawable.home_original_blue_white to listOf(MarbleRegion(12,208,454,518),MarbleRegion(460,172,873,544),MarbleRegion(881,174,1301,535),MarbleRegion(1309,166,1716,561),MarbleRegion(1725,197,2168,538)),
++        R.drawable.home_original_blue_gray to listOf(MarbleRegion(12,208,455,519),MarbleRegion(460,171,874,545),MarbleRegion(881,174,1301,535),MarbleRegion(1308,166,1716,562),MarbleRegion(1725,197,2168,539)),
++        R.drawable.home_original_pink_white to listOf(MarbleRegion(9,190,462,515),MarbleRegion(468,164,875,537),MarbleRegion(889,170,1301,534),MarbleRegion(1310,158,1707,551),MarbleRegion(1725,184,2167,538)),
++        R.drawable.home_original_pink_gray to listOf(MarbleRegion(11,189,459,515),MarbleRegion(465,162,872,537),MarbleRegion(886,170,1294,535),MarbleRegion(1304,158,1700,551),MarbleRegion(1718,182,2159,539)),
++        R.drawable.home_original_purple_white to listOf(MarbleRegion(12,213,468,523),MarbleRegion(468,186,876,547),MarbleRegion(884,183,1298,546),MarbleRegion(1309,160,1715,563),MarbleRegion(1729,199,2167,546)),
++        R.drawable.home_original_purple_gray to listOf(MarbleRegion(13,214,468,522),MarbleRegion(468,187,874,547),MarbleRegion(883,183,1294,546),MarbleRegion(1306,159,1710,563),MarbleRegion(1726,199,2164,546)),
++        R.drawable.home_original_red_white to listOf(MarbleRegion(9,204,455,513),MarbleRegion(459,189,878,544),MarbleRegion(891,177,1311,540),MarbleRegion(1321,175,1727,561),MarbleRegion(1737,195,2172,545)),
++        R.drawable.home_original_red_gray to listOf(MarbleRegion(9,204,453,513),MarbleRegion(458,189,874,544),MarbleRegion(887,177,1305,541),MarbleRegion(1316,175,1720,561),MarbleRegion(1730,195,2164,544)))
++    private val dimensions=mapOf(
++        R.drawable.home_original_gold_white to (2172 to 724),
++        R.drawable.home_original_gold_gray to (2170 to 725),
++        R.drawable.home_original_blue_white to (2172 to 724),
++        R.drawable.home_original_blue_gray to (2172 to 724),
++        R.drawable.home_original_pink_white to (2172 to 724),
++        R.drawable.home_original_pink_gray to (2172 to 724),
++        R.drawable.home_original_purple_white to (2172 to 724),
++        R.drawable.home_original_purple_gray to (2171 to 724),
++        R.drawable.home_original_red_white to (2172 to 724),
++        R.drawable.home_original_red_gray to (2172 to 724))
+     private fun resource(lightMode:Boolean,theme:PremiumTheme):Int = when(theme) {
+         PremiumTheme.GOLD -> if(lightMode)R.drawable.home_original_gold_white else R.drawable.home_original_gold_gray
+         PremiumTheme.BLUE -> if(lightMode)R.drawable.home_original_blue_white else R.drawable.home_original_blue_gray
+@@ -26,8 +37,8 @@
+     }
+     fun forMode(lightMode:Boolean,theme:PremiumTheme=PremiumTheme.GOLD):List<MarblePngAsset> {
+         val id=resource(lightMode,theme)
+-        val width=2172
+-        return crops.getValue(id).map{MarblePngAsset(id,width,724,it)}
++        val (width,height)=dimensions.getValue(id)
++        return crops.getValue(id).map{MarblePngAsset(id,width,height,it)}
+     }
+     val icons:List<MarblePngAsset> get()=forMode(false)
+     val resourceIds:Set<Int> get()=crops.keys

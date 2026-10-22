@@ -1,0 +1,14 @@
+Somente 10 PNGs e seu mapa de recortes foram alterados.
+app/src/main/res/drawable-nodpi/home_original_red_gray.png
+app/src/main/res/drawable-nodpi/home_original_red_white.png
+app/src/main/res/drawable-nodpi/home_original_purple_gray.png
+app/src/main/res/drawable-nodpi/home_original_purple_white.png
+app/src/main/res/drawable-nodpi/home_original_pink_gray.png
+app/src/main/res/drawable-nodpi/home_original_pink_white.png
+app/src/main/res/drawable-nodpi/home_original_blue_gray.png
+app/src/main/res/drawable-nodpi/home_original_blue_white.png
+app/src/main/res/drawable-nodpi/home_original_gold_gray.png
+app/src/main/res/drawable-nodpi/home_original_gold_white.png
+app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt
+Atualizar, importacao, cache, foco, tamanhos, alinhamento, navegacao e player preservados.
+Artes editadas a partir dos desenhos originais enviados pelo usuario. Interiores: perola no modo claro e grafite no escuro.
