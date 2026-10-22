@@ -1,0 +1,1 @@
+PASS: actual PremiumTheme enum extracted before/after; existing EMERALD/CYAN callers fail strict warning compilation before and compile without deprecation warnings after. Aliases remain GOLD; five real enum colors retained.

@@ -1,0 +1,7 @@
+assembleDebug assembleDebugAndroidTest compileReleaseKotlin
+BUILD SUCCESSFUL in 1m 6s
+83 actionable tasks: 14 executed, 69 up-to-date
+Configuration cache entry reused.
+
+Confirmed versionName 1.10, versionCode >=12 in all five debug APK outputs.
+New instrumented cache policy tests compiled; seven policy tests executed on JVM. Native suite not executed in cloud.

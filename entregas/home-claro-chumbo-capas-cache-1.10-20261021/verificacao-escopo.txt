@@ -1,0 +1,7 @@
+PASS: nine delivered files match compile inputs; versionName 1.10, default minimum versionCode 12, higher local codes preserved.
+PASS: neutral black input maps to soft white 0.78 in Light and lead gray 0.18 in Dark, before existing theme hue matrix. Transparent alpha and saturated metal endpoint retained; shared filter on all five icons and reflections. No image resource payload or restoration.
+PASS: carousel chosen title retained first; at most twenty cards; RAM ahead of local-file hits; candidates come only from already loaded eligible catalogue items. Cache lookup bounded to 125 known URLs on IO, no directory scan, no full library query.
+PASS: secondary cards use RAM/local retained file only, including while MediaOpeningPriority.busy; only selected card may download. Details preparation, priority and minimum movie opening interval unchanged.
+PASS: Home seeds composed layers from existing in-memory image cache; transient cold decode shows themed preparation instead of the unstyled text menu; functional fallback still available.
+PASS: supplied device logs both BUILD SUCCESSFUL and OK (97 tests); four deprecation warnings originate from old EMERALD/CYAN references. Supported aliases retain GOLD and compile without those warnings in strict source smoke test.
+LIMIT: seven policy tests run on JVM. Instrumentation compiled only in cloud; no emulator available. Preview is a composition, not an Android screenshot.
