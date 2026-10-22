@@ -1,0 +1,106 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
+@@ -56,8 +56,26 @@
+         // The format chosen in the portal is authoritative, including refreshes.
+         // Keep the original M3U URL as metadata only; an Xtream error must not
+         // silently switch the importer or replace the catalog with a M3U import.
+-        syncFromXtream(source.id, source).also {
++        syncXtreamWithRetry(source).also {
+             Log.i(TAG, "IMPORT_RESULTADO formato=XTREAM resultado=SUCESSO")
++        }
++    }
++
++    /** Retry the chosen Xtream format; cancellation and local storage failures stay terminal. */
++    private suspend fun syncXtreamWithRetry(source: PlaylistSource.XtreamCodes): String {
++        var attempt = 1
++        while (true) {
++            try {
++                return syncFromXtream(source.id, source)
++            } catch (cancelled: CancellationException) {
++                throw cancelled
++            } catch (error: Exception) {
++                if (attempt >= 4 || containsStorageFailure(error)) throw error
++                val pauseMillis = 500L shl (attempt - 1)
++                Log.w(TAG, "XTREAM_NOVA_TENTATIVA tentativa=${attempt + 1}/4 pausaMs=$pauseMillis motivo=${error.javaClass.simpleName}")
++                delay(pauseMillis)
++                attempt++
++            }
+         }
+     }
+ 
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt
+@@ -25,6 +25,9 @@
+ import br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle
+ import br.com.flaviotorres.iptvpremium.ui.theme.*
+ import kotlin.math.roundToInt
++
++// Keep the approved PNGs intact; soften colour by exactly 25% in both layouts/modes.
++private val homeIconSaturationFilter=ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.75f) })
+ 
+ internal data class MarbleHomeLayers(val backdrop:ImageBitmap,val icons:List<ImageBitmap>,val assets:List<MarblePngAsset>)
+ 
+@@ -80,7 +83,7 @@
+ internal fun MarbleLayeredHomePicture(layers:MarbleHomeLayers,focused:Int?,enlargement:Float,normalEnabled:Boolean,modifier:Modifier=Modifier) {
+     val theme=ThemeState.selected
+     val light=CatalogStyle.light
+-    val filter:ColorFilter?=null // Each theme PNG already contains its final colours.
++    val filter=homeIconSaturationFilter
+     val backdropFilter=remember(theme,light){marbleBackdropFilter(theme,light)}
+     BoxWithConstraints(modifier) {
+         val pictureWidth=maxWidth;val pictureHeight=maxHeight
+@@ -135,7 +138,7 @@
+     val image=if(index<5)layers.icons[index]else layers.backdrop
+     val asset=if(index<5)layers.assets[index]else MarblePngAsset(0,MarbleHomeGeometry.width,MarbleHomeGeometry.height,MarbleHomeGeometry.icons[index])
+     val light=CatalogStyle.light
+-    val filter=if(index<5)null else marbleBackdropFilter(ThemeState.selected,light)
++    val filter=if(index<5)homeIconSaturationFilter else marbleBackdropFilter(ThemeState.selected,light)
+     val painter=remember(image,asset,ThemeState.selected,light){object:Painter(){
+         override val intrinsicSize=Size(asset.crop.width.toFloat(),asset.crop.height.toFloat())
+         override fun DrawScope.onDraw(){
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MarbleArtwork.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MarbleArtwork.kt
+@@ -63,11 +63,42 @@
+         decode.withLock {
+             peek(id)?:try {
+                 val options=BitmapFactory.Options().apply {inScaled=false;inMutable=true;inSampleSize=if(id==R.drawable.marble_brand_gold)4 else if(wallpaper)2 else 1}
+-                BitmapFactory.decodeResource(context.resources,id,options)?.also { if(id==R.drawable.marble_home_white||id==R.drawable.marble_home_black) balanceMovieMetal(it) }?.asImageBitmap()?.also {bitmaps.put(id,it)}
++                BitmapFactory.decodeResource(context.resources,id,options)?.also {
++                    if(id==R.drawable.marble_home_white||id==R.drawable.marble_home_black) balanceMovieMetal(it)
++                    if(id in darkHomeInsetAssets) brightenDarkHomeInsets(it)
++                }?.asImageBitmap()?.also {bitmaps.put(id,it)}
+             } catch(_:OutOfMemoryError){clear();null}
+         }
+     }
+ }
++/** Only dark-mode icon sheets: lift neutral inset midtones once on IO.
++ * A row buffer avoids a second full-size bitmap; coloured metal and alpha stay intact. */
++private val darkHomeInsetAssets=setOf(
++    R.drawable.home_original_gold_gray,R.drawable.home_original_blue_gray,
++    R.drawable.home_original_pink_gray,R.drawable.home_original_purple_gray,
++    R.drawable.home_original_red_gray)
++private fun brightenDarkHomeInsets(bitmap:android.graphics.Bitmap) {
++    val row=IntArray(bitmap.width)
++    for(y in 0 until bitmap.height) {
++        bitmap.getPixels(row,0,bitmap.width,0,y,bitmap.width,1)
++        for(x in row.indices) {
++            val pixel=row[x]
++            if((pixel ushr 24)==0)continue
++            val red=(pixel ushr 16)and 255;val green=(pixel ushr 8)and 255;val blue=pixel and 255
++            val high=maxOf(red,green,blue);val low=minOf(red,green,blue)
++            // Neutral grey panels receive +15%; feather edges without lifting black outlines.
++            val neutral=((18-(high-low))/12f).coerceIn(0f,1f)
++            val shadows=((low-24)/16f).coerceIn(0f,1f)
++            val highlights=((220-high)/40f).coerceIn(0f,1f)
++            val gain=1f+.15f*neutral*shadows*highlights
++            if(gain<=1f)continue
++            row[x]=(pixel and -0x1000000)or((red*gain).roundToInt() shl 16)or
++                ((green*gain).roundToInt() shl 8)or(blue*gain).roundToInt()
++        }
++        bitmap.setPixels(row,0,bitmap.width,0,y,bitmap.width,1)
++    }
++}
++
+ /** Balance the popcorn's overexposed warm highlights before applying any theme colour.
+  * Runs once on the IO decoder; neutral marble, captions and other icons are untouched. */
+ private fun balanceMovieMetal(bitmap:android.graphics.Bitmap,fullImage:Boolean=false) {
