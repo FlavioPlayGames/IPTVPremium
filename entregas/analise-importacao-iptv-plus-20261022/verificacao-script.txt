@@ -1,0 +1,4 @@
+PASS: JavaScript saved without execution; size and SHA256 match
+PASS: rejected html response; no success manifest
+PASS: rejected bom-html response; no success manifest
+PASS: rejected empty response; no success manifest
