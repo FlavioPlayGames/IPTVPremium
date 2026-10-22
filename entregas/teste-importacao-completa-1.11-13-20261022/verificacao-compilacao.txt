@@ -1,0 +1,4 @@
+BUILD SUCCESSFUL: assembleDebug, assembleDebugAndroidTest, compileReleaseKotlin
+18 testes de regressão compilados para Android e executados com sucesso na JVM. Não executados em dispositivo nesta sessão cloud.
+30 verificações JVM/transporte executadas e aprovadas.
+Recursos locais substitutos somente para compilar: não incluídos nesta entrega.

@@ -1,0 +1,13 @@
+PASS Index imports three category lists only
+PASS Index order follows movies series channels
+PASS Movie category requires one filtered request
+PASS Xtream parser keeps 250 item batches
+PASS All category movies survive streaming
+PASS Missing movie playback URLs are built
+PASS Channel transport stays in Xtream
+PASS Provider ignoring category filter is detected
+PASS Xtream errors never download fallback M3U
+PASS Complete mode downloads all three sections
+PASS Complete mode uses full endpoints
+PASS Complete mode keeps 250-item streaming writes
+OK (12 transport checks)
