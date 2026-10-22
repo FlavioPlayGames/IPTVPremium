@@ -19,3 +19,7 @@ Câmera realista em grafite e prata, igual para todos os temas, comparada nos fu
 Prévia da câmera realista aplicada ao cartão de artista sem foto na tela do filme, com o nome abaixo. Simulação visual; sem alteração no aplicativo.
 
 ![Câmera na tela do filme](camera-na-tela-do-filme.png)
+
+Três opções inspiradas em pipoca, claquete e fita de filme: clássico, minimalista e prata. Cada opção é um visual único para todos os temas. Nome abaixo do cartão. Apenas proposta visual.
+
+![Três opções de cinema em cores neutras](tres-opcoes-cinema-neutro.png)
