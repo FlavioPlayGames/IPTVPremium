@@ -1,0 +1,19 @@
+PASS apply, private config preservation, correct version, backup and idempotence: False 10 True
+PASS apply, private config preservation, correct version, backup and idempotence: True 10 True
+PASS apply, private config preservation, correct version, backup and idempotence: False 35 True
+PASS apply, private config preservation, correct version, backup and idempotence: False 11 True
+PASS apply, private config preservation, correct version, backup and idempotence: False 10 False
+PASS refused before writes: unknown-source
+PASS refused before writes: unknown-gradle
+PASS rollback includes Gradle and local.properties: True
+PASS rollback includes Gradle and local.properties: False
+PASS alternative Gradle format, comments, version and idempotence: literal
+PASS alternative Gradle format, comments, version and idempotence: literal-crlf
+PASS alternative Gradle format, comments, version and idempotence: literal-high
+PASS alternative Gradle format, comments, version and idempotence: mixed
+PASS alternative Gradle format, comments, version and idempotence: other-property-name
+PASS alternative Gradle format, comments, version and idempotence: multiline
+PASS exact user maxOf/.also syntax, minimum enforced, complete Gradle preservation, idempotence: 9 True 13
+PASS exact user maxOf/.also syntax, minimum enforced, complete Gradle preservation, idempotence: 12 True 13
+PASS exact user maxOf/.also syntax, minimum enforced, complete Gradle preservation, idempotence: 25 True 26
+PASS exact user maxOf/.also syntax, minimum enforced, complete Gradle preservation, idempotence: 12 False 13
