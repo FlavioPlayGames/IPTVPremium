@@ -1,0 +1,433 @@
+[
+  {
+    "path": "app/build.gradle.kts",
+    "allowMissing": false,
+    "sha": "fabbf939764c8930ba3b7065ca6aafea1216914e23994d7a595a35cebdc56a1e",
+    "allowed": [
+      "4cecec00c4230297fe6f21bd3ac9c896bf81831f78200e9d3dad52bfc83ca454",
+      "556dfcd1173054936984b0ba92df73b5cd18ded82b6170877b10821eab712af4",
+      "568e9f52e911f65c3db0408b4b069829c9a4d861985114a8ad284346fd757493",
+      "65f49123b75c8d613e4cac59848cbe2ee208f9b2769c1042236d6b82d6443697",
+      "90f664e5e289edeef1ac8857bdfaaccaf10b57695a23a7acf7ded375f8de4768",
+      "d5186cb3080b5686af9ff626ef7e030e7d97c75d2ce14aadebc828d7ac95ca7d",
+      "e0044028507638b7715d1706a17203b16a856ea30393747a67174d389e4ef033",
+      "fabbf939764c8930ba3b7065ca6aafea1216914e23994d7a595a35cebdc56a1e"
+    ]
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "allowMissing": false,
+    "sha": "e2221de66ed01dded3804761c4f1b836ec63c418a2db2ac93224fddbb68223cc",
+    "allowed": [
+      "0431ab6981d4c536d6891a8ef43d438b4a5b89322b305461e9ebbc35ae6786fc",
+      "078fcc16efdb5bb2f330ee5421cacdfcc2f0dc3fb75891356b9fd441541f23a3",
+      "260e744c03301e0f36ecc98f662352cc02193280eeb5282dfac1ab1befc4fe3a",
+      "489aeab7d2d620167f8a297e756966a1752a9980929052a2e877cd6f10c3653e",
+      "d2404abc437a7c42c67aac81c214ec4a0162b66c5504229fcbf018594cfcd477",
+      "e2221de66ed01dded3804761c4f1b836ec63c418a2db2ac93224fddbb68223cc",
+      "e8914d829eb094437e85a5b185f9c12eb45299cd8bf8cfb47d6df255c94ddbc3",
+      "fcf61552c18b1f23ec1f570322bcacae4c09fbf6bb07eb47d103196b4b227c35"
+    ]
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt",
+    "allowMissing": false,
+    "sha": "34110e4710f1eed3f81aea7d9b3f15811d3d8e60dd975da9dbf4f069cd5a5751",
+    "allowed": [
+      "02c8f5344a10a970b61b9635d6c927fed7385f706fa03d851a3c1404a2132994",
+      "07f900dc93edeaa4e5471b10007a669aa29faa80c71b703f59c62998e47453eb",
+      "0d294b86db8153daeb6e7808813159ca9c8fdb28c92e0b018b650ae1b5f7be79",
+      "34110e4710f1eed3f81aea7d9b3f15811d3d8e60dd975da9dbf4f069cd5a5751",
+      "3974e7ab18a8cff7146ede894703ce48d58139c34c4d03146d2e275d1ef11967",
+      "3fd90e237ea6527a8c31d0af2cd3f36be9f1a8337f671abaa1e07eefb668dc60",
+      "422ecbe89cfebcaddd4a68ab39240729d4febf9d3b89254738565ffc8272d50c",
+      "50292fd3b2aafa00aeeb99283bbecb3651e3099732281a5b8a1e9565e060e609",
+      "57a58dd7925097b0d959f19f7506350a80d41c27e5310b7325446f81afa3750d",
+      "618b2924b1d817fc5b533cc9928ba56bf5dbf3e87eaa0fc7fd073ad2bc2a6623",
+      "8f65881b9dcdb18164e21132f26950582220e97deb9f52e29147c4c16c4bf451",
+      "938b93a0d464259f701d818c283bffbb863e466ccf511d31c8b4cf47cd7c50e0",
+      "9ee3c5ed15e112fb78cce80a15bba8fd94ece87dea29ab9ab0b03d6b1275e7fd",
+      "b168f4b4a19664b867af7505bce6983e539e11cc42babf0d7c83f2147ed588a4",
+      "b1cdc4372cc292affeddf08b6a374c4a3dcbe9d73480b9d27053170bff7c95cb",
+      "de8c2f9956ff7b65b9bc46149e122dd3018e7b38c7b81f573abcf007ed8227f4",
+      "e8dc39bcdff52d1948eb5e185150f22866235351560efb428f1f3d42bb373f2e",
+      "ea214acf6ac78c681023021d4daa715462da853d92ca45937db7db4dbe2c9ea8",
+      "ee2b585ebd058f04529e5ce1b1273f4cb37eb39a71fcc7653c9763f55e458aa4",
+      "fe55f5e74f815543716678dba969ace5e65a89c609e2dc1f34f6738f2afdf752"
+    ]
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbledHomeScreen.kt",
+    "allowMissing": false,
+    "sha": "84aadfa3981a33e5d41734b27b76f77ac3079b295a75f8fa2379200e2af85113",
+    "allowed": [
+      "3af38d4a3fff8bce0abbd1817b51c7caa0a5bead4cc5604283224c9d43f8701c",
+      "761c3fa06b3a5a9958df54327b90623dafd1076ee8cdf948242c8629bc2d0fbf",
+      "84aadfa3981a33e5d41734b27b76f77ac3079b295a75f8fa2379200e2af85113",
+      "a4fb3c8529a35bdecdf00b1fef188e216429d8f8596ceb78aa9105ef7904e809",
+      "b651d19a0a5c691999d4ea9e41f1c6a7a307c3fd1a2c4248cc6bf18f35ba9b35",
+      "bcd9a4b1e245370832cfef75801ae0f66cee8e9917bc78a9bf61166a4174bcf2",
+      "c534f27ef9848de5a60c4c13cb2e5a48544c3660cf61ff5e85238d9bd01e9c78",
+      "dcf9de11e0c6c52ef8c8ded3c9d24f0faf045c63d698594b35c655d790d7acc9"
+    ]
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "allowMissing": false,
+    "sha": "b28058c9ed8f6a4b2c1f24f279bf89cd9220f289f2d652a134c7cdb1b21a88f0",
+    "allowed": [
+      "10c4d11f6eee61a7abc5b043f0cee3eb0e4abe8c294bff8a0c8e30b9bbc9fff1",
+      "34321953e658893f4206b15e4681513e3e2af5f89fe101e9e4ba2e7b49cb04df",
+      "41b9788fbf7790ed8bff40d254936562290aca6289abc18bab270abc34d3f7ae",
+      "4f10df6dd19fbaaafa82f8501dfde690b9ad9d6cecf6d0676517afe4ed40b0a8",
+      "59fdc30c1734c89a7142d8f37718810797c1748e67aaa40d57dd46d1ad96da3f",
+      "78b8a375a2439ff965f898dc41842709130501c475748ede8d26c2ae22c5f6ee",
+      "89ef77dffa5f17d2f60a6a603f06c02dd6e1c5d1ec5d4851b11da44b460f689e",
+      "b28058c9ed8f6a4b2c1f24f279bf89cd9220f289f2d652a134c7cdb1b21a88f0"
+    ]
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MarbleArtwork.kt",
+    "allowMissing": false,
+    "sha": "81631bdb6ff88a0174c8e19aafd3a7e00a6eec7ddb241c8118165ba71d13218b",
+    "allowed": [
+      "332a733467af9ad80d59d035a5f55cc1a43be1ffbebe28da353e7ecabd7f758c",
+      "3b9f7ff2b0b965d240e48d18b483fff7daaa905641b2057b608654ad621a1228",
+      "434e2d921b4540acacd20f9e6f9475c808bd1e0709708a185cfa23e59e097132",
+      "4e88835d6350a472851f3fefa5d78435e9d3730249f64b499f9259d1070b15a1",
+      "4eeeb26ed1cd3a41a8b4e612dbe6c3cdcff90c7c79445861d982cb87cbf66441",
+      "5245335b1f096f2ee7cee3a792a781fc2205bc04f5e50f0e182a428dfafa3cfc",
+      "70d417f9ac5cd1003bf4695ac55616af14b4cd02a110375353069a1ddea7c143",
+      "78fb6e8dc783737aa62e81c7db650181c388cf8fcca59b38d413cdcc8476f156",
+      "7c3d3d38b22ef8947a95411b603374c1e83ab5df08a8a026e461ac688807459f",
+      "81631bdb6ff88a0174c8e19aafd3a7e00a6eec7ddb241c8118165ba71d13218b",
+      "8c635f3a96943c98019044e12727ebb1b85f1938aeca80122b346ae324e9c867",
+      "924add2e0242859060a3699dd0cbcc2af7a375b485e0c36797c27ff7fd2d542a",
+      "acd53032312af363682979c9061cfd8153903eda05af8134b1a2b7aabcc0ed08",
+      "c0e382799492d69553a6df1f843f7afc14402e5783b54c467a86ae7c184f8014",
+      "c57cc34d3c596e49b3a1dba10f7729c2019b6853ce3c82fee26082faa1af4a5d",
+      "de017b483c5cc5ed4d9fe637c792090627a1cc0cc53dcb061755b74e2ab215d2",
+      "eea1e0f79b93f10bfac807c83c0cf21e5447e5174d711cb3507ab1a246500d9b",
+      "f3304caba82518331e6ffbee05475b23099372185450a18c298ccc45e093f7c3",
+      "f6af7fd9dddfeed12b4c4fc11d4750e627469d82079c81c790df6582db1fef9d",
+      "f6bf7a65fed6c2f2c8d84224def66575e2c0ca6ced96a845e53ef43c62d3fad1"
+    ]
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/PremiumThemes.kt",
+    "allowMissing": false,
+    "sha": "d114803b04e01d3e057efb9c911799d28c495aa0cc0a84ce88307ce603f42e5a",
+    "allowed": [
+      "07fa512a2a72695c310a329cfcbefcaa00171e167f305c0eaa64b37dfa66b91d",
+      "720ebf404eacd5b237b48e3d1344198eaa3090325c33d46069e8a52eb1eb5db3",
+      "7eb2716a6f73f96c3f66d44f85660b1152bded02aa08d04c78630ca2a9224c18",
+      "a2d945a98ad6279c4b4dc47f5a86c951c770024582375d314e7260306190e1e4",
+      "b23cb240dc6a7c23d3f35b4f37d455d36c989ba62dd4897c974bb0acd80a01fc",
+      "d114803b04e01d3e057efb9c911799d28c495aa0cc0a84ce88307ce603f42e5a",
+      "d3b3b4e5943f6318a5ce26e26b8ebd3b34dad7c727d7521c453429349318320e",
+      "f02dfa9c24f2f42e3ea56c402dd1cf632af6402425186d4ca32383068760d897"
+    ]
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/CachedCarouselPolicy.kt",
+    "allowMissing": true,
+    "sha": "28d5996394b00cc2effa89ed63382c1bfc3a504cf35879e2f2be06535d27ab50",
+    "allowed": [
+      "28d5996394b00cc2effa89ed63382c1bfc3a504cf35879e2f2be06535d27ab50",
+      "2edca1b81fc5ab798ac44634a3fc8809d55fec2634eef8525c4a083281958552",
+      "786a8d7cedfb367dacce3c77c06d7fbbd1229fae7dea8bb4a93d2eac81952735",
+      "e94d4dbac99c3385743a6052ecfdc66d914ad016ae9790a320500949cfc0d16b"
+    ]
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/movies/CachedCarouselPolicyDeviceTest.kt",
+    "allowMissing": true,
+    "sha": "135eeec6a9091b2c70f9ec08bee29636740fdea8a924d25dc45b8e06f9b9220c",
+    "allowed": [
+      "135eeec6a9091b2c70f9ec08bee29636740fdea8a924d25dc45b8e06f9b9220c",
+      "73b0c75ec52881e98d0a02ff6e5ca8cf26779f6a21409fa3db237303344a93a4",
+      "a354030faf62e90a752656830dfc450c45e81419b5c3957894e8adca7abf880c",
+      "c2c5abf35f7f83608d49276d49728bb02cdf92b0609b77631a6c5dc11a6f3460"
+    ]
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/HomeIconSurfacePolicy.kt",
+    "allowMissing": true,
+    "allowed": [
+      "29b1d8a66030e00bbb020e3618230050d9796486348494d9ef212cf0d5dd1472",
+      "5dcb570e0389c44de59d0ac4a6b93dbd1d8f53c97cb4720d7c8a6d261f5f153a",
+      "76683c92f9ce39434ed91cd3c7ae1dd239cc818913fad86d252e507bd44bf836",
+      "a906a0baae61e9f443e61f9776a5236ce8bf7eaaba2a4c3c0cc85f9751da23f7"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/theme/HomeIconSurfacePolicyDeviceTest.kt",
+    "allowMissing": true,
+    "allowed": [
+      "598d85d6d4b35092a2f45c075260986e2c5e1c92d356f6d99f3e93cbda3a6bd6",
+      "615c2ce3ec7b846c4d9a7760f35e07b678e5b06b72d9bca8f420babfcab9e2a9",
+      "88df20b25b2e55eb9e86d2642b9e5cece1f0476ca00b918fc8d682e04b7d8b43",
+      "e28b3363eb66c1ef26295b0762f3c2452b2b2d99218d57bc5cc6ef8e6b0ecd2d"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt",
+    "allowMissing": false,
+    "sha": "3d670e679cb0a81d7010835fc856f62297a73ad45504b8e8af99c0c3e62846dc",
+    "allowed": [
+      "0b7131d45cb3b654cfbaac32f56f545747aa5325d037c3822e178e3f00b39962",
+      "3d670e679cb0a81d7010835fc856f62297a73ad45504b8e8af99c0c3e62846dc",
+      "4fa89fadb9097ddba1f187d94c63950bcb905b5bcad7c99419a922f1344c0e98",
+      "72f68137582f399b33dfea46fa506e56415a812edf2b0281b1426bd621d13de0",
+      "77cbdf6699aeedb6e8e1dbba99f3f62f65186a8d4344a2dece0b86a96cfd82c1",
+      "7f38d1e05775af4e720ff237507a5c80f708471c4f4dc91af6302b7512c757e0",
+      "966349e2634b52433f3935bc99202b52a32d99f4bd2db76c1641c84cead13cee",
+      "98f4f3085d016ff30fbd615d10bbd6dedd4e25a30ef0153e23cb9e287c649a46",
+      "c752c5a1acba4806a9ac019415dc70576c6790d8095daab5968e859b2ec4848b",
+      "d4fd346bfe2892043123b2cb33d9c0472049acb7ecfa013de198ea09ffbe0c99",
+      "e0df6b3e4aab5b1986c4fc992141c9db9c9f2b2498c5e4eb8a9aadaead5ce1ef",
+      "e7a6f61728243185759d4390f50bb478e2665029e451e5d8923b03e07071da24"
+    ]
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/home/StaticHomeModeArtworkDeviceTest.kt",
+    "allowMissing": true,
+    "sha": "f9ba403edf4a6c1b679dcbcdcd87aadc84baf0a687e100843f71ae3962fd24cc",
+    "allowed": [
+      "a2759e9a7d560c2a2fd3b456c5c10f14e98e3914785efb5dc770e5919a989c87",
+      "f71ab5db254bfc2c541b7021d56fd789950b8b633f89fd4137f6fc96ef1d8773",
+      "f9ba403edf4a6c1b679dcbcdcd87aadc84baf0a687e100843f71ae3962fd24cc",
+      "fc25f39947a10cf0f6d675183ffa1f7c8fb45827584838ca7ac414f486dd38c1"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_finished_channels_light.png",
+    "allowMissing": true,
+    "allowed": [
+      "bf9caf9cc15146a38a08763f01b6070e14dc016af6fc6a771173c104c888d549"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_finished_movies_light.png",
+    "allowMissing": true,
+    "allowed": [
+      "3e39d197c3c0205fd0ebc67c7230424356829a509c25e0738693df067ee09289"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_finished_series_light.png",
+    "allowMissing": true,
+    "allowed": [
+      "a0540c20dd5f071d9948005bce28bae894c712e6c7b7439ffaa763da68280438"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_finished_kids_light.png",
+    "allowMissing": true,
+    "allowed": [
+      "796dfde78291b2b52c95ec66ae8defb170a0d8910bb7cb4da6a0346cc151d2b3"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_finished_lists_light.png",
+    "allowMissing": true,
+    "allowed": [
+      "88b6508c9efd7e654c87ba2ce3d6b5b45b4b97a4b14e65e8d4b04196006288b1"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_finished_channels_dark.png",
+    "allowMissing": true,
+    "allowed": [
+      "45fcd3615de09b0121750e6db847d8124c4d71a7e427a71ef7b4a8e648f1f504"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_finished_movies_dark.png",
+    "allowMissing": true,
+    "allowed": [
+      "57c95081b985ce3fc470a3fbbb936a984ac354a4f8c3bc105e77079d4176c123"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_finished_series_dark.png",
+    "allowMissing": true,
+    "allowed": [
+      "8bf1ce91d17519457e3c92bf4a3554cf41c280863b24221c7c6ef90e79cf08d8"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_finished_kids_dark.png",
+    "allowMissing": true,
+    "allowed": [
+      "6ef8c2bfca24c8652ae75042c2c06da68b9f0613be3336e6c859af30fdbc43d1"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_finished_lists_dark.png",
+    "allowMissing": true,
+    "allowed": [
+      "f6eb6b269e79f4c1bcfefbb58f4f84c0a7595544f7c3fe295c5cb2d120203e48"
+    ],
+    "delete": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_classic_channels.webp",
+    "delete": true,
+    "allowed": [
+      "26f9c7cbf9aae3c113ca0bfc685e9548f65f0898237f2bcdc29088f280b4864b"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_classic_movies.webp",
+    "delete": true,
+    "allowed": [
+      "cd8b0584cd8eaee110271f76b1c1c77ade26b4fce4d6bf32cfd3c4a8b36f3e5d"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_classic_series.webp",
+    "delete": true,
+    "allowed": [
+      "d6c122affd3bd9fe8b0fdc4c4b32c0a74dc0e57f091c4bab82dcab754680980f"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_classic_kids.png",
+    "delete": true,
+    "allowed": [
+      "315cf0f0a3ab7f6678f9ca2aad7d0b55824cdde4ee5a900db7fcb9c6ca8ddd05"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_classic_lists.webp",
+    "delete": true,
+    "allowed": [
+      "390c09830032f0b449fb3a9d203dd8ca26b3fb0040bce3b36657f9738d34a6f5"
+    ]
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/HomeMetalTintPolicy.kt",
+    "allowMissing": true,
+    "sha": "aaae8cde1483466e520ab1714ef808a699b1ec1a7dc67f0bc871344684f391cc",
+    "allowed": [
+      "4344e192f7ca813af58802eeb2a32032c676e6e940f294e2619fa12f10297081",
+      "8c02d49ee9a702a75655be5665f85c6c70a50896037156d3b8f5cd90af9d4980",
+      "aaae8cde1483466e520ab1714ef808a699b1ec1a7dc67f0bc871344684f391cc",
+      "c6635ed41449014c1490293322ff13d2bf3af70b8859cbde7502973a3050d05c"
+    ]
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/theme/HomeMetalTintPolicyDeviceTest.kt",
+    "allowMissing": true,
+    "sha": "7d149a1706deb0d5c5387341978123e8b8ae469e66b3de39d20c2259035f9a50",
+    "allowed": [
+      "38446d1311d65f02768453da26f46fa5083615480d98844962a02b7e74b3663f",
+      "7d149a1706deb0d5c5387341978123e8b8ae469e66b3de39d20c2259035f9a50",
+      "e18783b0b7e9ba36088b709e45b52ed981ab368f76fa9c4bba016617ba8d8c0d",
+      "fcf0b6254c3069ad42b3bdeef2fc0742a26b56a51b8053a15a3c0cfd178d1e32"
+    ]
+  },
+  {
+    "path": "app/src/androidTest/java/br/com/flaviotorres/iptvpremium/ui/home/HomeApprovedArtworkDeviceTest.kt",
+    "allowMissing": true,
+    "sha": "42fea3487936145a171ddcbd9cf4c5eedba42b78f3bb48ecff0acf89143526e8",
+    "allowed": [
+      "12903929c18bb1db8e8c26f1f19a4fe012e30427c0baf8ddcc7f16b346777cbf",
+      "42fea3487936145a171ddcbd9cf4c5eedba42b78f3bb48ecff0acf89143526e8",
+      "85f6cedfe31bb7ad05fdcccde2b670ce3957f8a62b376fc2d9bf83cde65e739c",
+      "d52ee4fcac178938ee286cc3e3fa0553b692e751a1d6822bdb1889d5fbe61243"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_approved_channels_light.png",
+    "allowMissing": true,
+    "sha": "650bf5101e6bddbaec79b8b8b112f43a01c1f76a621d482b8a508ff2cc55324b",
+    "allowed": [
+      "650bf5101e6bddbaec79b8b8b112f43a01c1f76a621d482b8a508ff2cc55324b"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_approved_movies_light.png",
+    "allowMissing": true,
+    "sha": "3e6072be37bbba41f40d61c8fa246ea3d9966c8b8bccac6fd7a9b27d725a4632",
+    "allowed": [
+      "3e6072be37bbba41f40d61c8fa246ea3d9966c8b8bccac6fd7a9b27d725a4632"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_approved_series_light.png",
+    "allowMissing": true,
+    "sha": "8d1687a3e8e1b44f94811d9ae5b4e355812e745171eb2ef3e6b6ed5ce8dd243f",
+    "allowed": [
+      "8d1687a3e8e1b44f94811d9ae5b4e355812e745171eb2ef3e6b6ed5ce8dd243f"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_approved_kids_light.png",
+    "allowMissing": true,
+    "sha": "a2d57d015e9c19111cfe94ea1effc8fc367b1af5fb682f6a5afa0cba955ded85",
+    "allowed": [
+      "a2d57d015e9c19111cfe94ea1effc8fc367b1af5fb682f6a5afa0cba955ded85"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_approved_lists_light.png",
+    "allowMissing": true,
+    "sha": "fcc7a8e3edd3dee1450f628eed95112b8b818c5c17c1497719933421a2503c65",
+    "allowed": [
+      "fcc7a8e3edd3dee1450f628eed95112b8b818c5c17c1497719933421a2503c65"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_approved_channels_dark.png",
+    "allowMissing": true,
+    "sha": "184425a4448bdf58a95e6fe5370cd664adf6d550cecbf44e669b47b59732b924",
+    "allowed": [
+      "184425a4448bdf58a95e6fe5370cd664adf6d550cecbf44e669b47b59732b924"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_approved_movies_dark.png",
+    "allowMissing": true,
+    "sha": "a2be1aa4e7f341560e336b738670438c9d0eb6dc97fa184a1e3dbef081348ff1",
+    "allowed": [
+      "a2be1aa4e7f341560e336b738670438c9d0eb6dc97fa184a1e3dbef081348ff1"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_approved_series_dark.png",
+    "allowMissing": true,
+    "sha": "26fe9f1b7b22823ff05ec69b025074a1465a47b5a5b91d769e64a08c042bc987",
+    "allowed": [
+      "26fe9f1b7b22823ff05ec69b025074a1465a47b5a5b91d769e64a08c042bc987"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_approved_kids_dark.png",
+    "allowMissing": true,
+    "sha": "4e8ca7093b8e5d5f122926a8f74b7a05f2038ce9c3ee02d73a60b2f176ec0c73",
+    "allowed": [
+      "4e8ca7093b8e5d5f122926a8f74b7a05f2038ce9c3ee02d73a60b2f176ec0c73"
+    ]
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_approved_lists_dark.png",
+    "allowMissing": true,
+    "sha": "1244ad9a4b1ac99ae8fefb6932257caba9e1e404f255860ab8d3f38ab12d955e",
+    "allowed": [
+      "1244ad9a4b1ac99ae8fefb6932257caba9e1e404f255860ab8d3f38ab12d955e"
+    ]
+  }
+]

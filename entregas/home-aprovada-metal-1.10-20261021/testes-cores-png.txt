@@ -1,0 +1,11 @@
+PASS: home_approved_kids_dark.png; neutral pixels=111763; metal recolour samples=2870061
+PASS: home_approved_channels_dark.png; neutral pixels=424468; metal recolour samples=1475020
+PASS: home_approved_movies_dark.png; neutral pixels=188659; metal recolour samples=2442084
+PASS: home_approved_movies_light.png; neutral pixels=136271; metal recolour samples=2476149
+PASS: home_approved_lists_dark.png; neutral pixels=263984; metal recolour samples=2375828
+PASS: home_approved_series_light.png; neutral pixels=293670; metal recolour samples=2037546
+PASS: home_approved_channels_light.png; neutral pixels=411159; metal recolour samples=1818178
+PASS: home_approved_kids_light.png; neutral pixels=73026; metal recolour samples=2509557
+PASS: home_approved_series_dark.png; neutral pixels=302457; metal recolour samples=2097818
+PASS: home_approved_lists_light.png; neutral pixels=246968; metal recolour samples=2337360
+PASS: ten approved PNGs; 2452425 neutral pixels unchanged under all four non-gold themes; alpha preserved everywhere. Gold artwork uses source bytes unchanged.
