@@ -1,0 +1,56 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheDatabase.kt",
+    "sha": "76dc634cc21bfae1bee3191b3bf5d067f4b55fc4101e3f37922d36f70b438c1b",
+    "allowed": [
+      "76dc634cc21bfae1bee3191b3bf5d067f4b55fc4101e3f37922d36f70b438c1b",
+      "f8b2eafa3f1ec7a15595db0f35ef0a0597a3325733bfb89d9ea0977ad4362208"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/DemandCatalogImporter.kt",
+    "sha": "1f3f88d6aadec681833411d1a9382f38ab4d38e2e346a9bc38aab152bc1dbaf8",
+    "allowed": [
+      "1f3f88d6aadec681833411d1a9382f38ab4d38e2e346a9bc38aab152bc1dbaf8",
+      "399594773efd32f38eb19b76756e4a2ce0d09f5c155927810a7c54fcb6eb7c43",
+      "95aa5855f383f3ce2f8cf8a98a70b5098901fc34faeb635b0bd7c20fa6565f38"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/MemoryCatalogBuffer.kt",
+    "sha": "d5ef1c5dc1722999e84141f3ea284bd07f6b2ce7ec1bf4401c090f56a8cf3001",
+    "allowed": [
+      "d5ef1c5dc1722999e84141f3ea284bd07f6b2ce7ec1bf4401c090f56a8cf3001"
+    ],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/diagnostics/ImportDiagnostics.kt",
+    "sha": "2f1e24edc57b4bc97bf59f2684398cf819ac263eaa9734813d44967515e5f353",
+    "allowed": [
+      "2f1e24edc57b4bc97bf59f2684398cf819ac263eaa9734813d44967515e5f353"
+    ],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt",
+    "sha": "21bbb9b4b980fb95e3725f6282343ff4a81958ed9474661ee7f4bb7733c48683",
+    "allowed": [
+      "21bbb9b4b980fb95e3725f6282343ff4a81958ed9474661ee7f4bb7733c48683",
+      "27d5b746805bfe3186767400d9c92a984bc5c976d275823c353985fc0f0fdadd",
+      "38ccfa9535813af23af6df1ab191bfb71e10da75fd0f4bbe962786aba9a48fd8"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/DefaultPlaylistHttpClient.kt",
+    "sha": "065b96f25883eb353834d0583686178b1596204905ad108642f3cc5d0e7f8279",
+    "allowed": [
+      "065b96f25883eb353834d0583686178b1596204905ad108642f3cc5d0e7f8279",
+      "b5ae73f9535c94586b7238e45c4c25e7a876657de3fe665e27780103a7baac99"
+    ],
+    "allowMissing": false
+  }
+]

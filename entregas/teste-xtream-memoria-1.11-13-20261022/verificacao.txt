@@ -1,0 +1,7 @@
+PASS compileDebugKotlin + compileReleaseKotlin: BUILD SUCCESSFUL, fontes finais idênticos aos seis arquivos do pacote.
+PASS 15 checks JVM de transporte sobre DefaultPlaylistRepository compilado, HTTP falso e BuildConfig debug de teste: três índices sobrepostos antes da primeira resposta; categorias em ordem; 501 filmes preservados em lotes 250/250/1; URLs de reprodução; transporte de canais; filtro ignorado detectado; erro Xtream sem fallback M3U; endpoints de seção completa.
+PASS buffer JVM com modelos reais: ordem, reset, cancelamento antes do append e isolamento de seções.
+PASS sintaxe PowerShell dos três scripts.
+PASS instalador em projeto temporário: aplicação, reaplicação, retorno ao builder em disco e agendamento serial, recusa de fonte modificada antes de escrever.
+PASS hashes de todos os arquivos dos dois ZIPs.
+Não executado na TV ou no emulador. Não alegado ganho de tempo, pico de RAM ou validação de todas as telas/reprodução. Os testes JVM não substituem execução Room/SQLite Android nem testam o agendador completo no dispositivo.
