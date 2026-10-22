@@ -1,0 +1,4 @@
+PASS: base-109; finished PNGs installed; old known artwork/mask removed; read-only verification; exact backups; local Kids/private settings/unrelated PNG preserved; reapplication; atomic rejection of unknown edits.
+PASS: first-110; finished PNGs installed; old known artwork/mask removed; read-only verification; exact backups; local Kids/private settings/unrelated PNG preserved; reapplication; atomic rejection of unknown edits.
+PASS: mask-110; finished PNGs installed; old known artwork/mask removed; read-only verification; exact backups; local Kids/private settings/unrelated PNG preserved; reapplication; atomic rejection of unknown edits.
+PASS: windows-bom-crlf; finished PNGs installed; old known artwork/mask removed; read-only verification; exact backups; local Kids/private settings/unrelated PNG preserved; reapplication; atomic rejection of unknown edits.
