@@ -1,0 +1,8 @@
+PASS compileDebugKotlin: BUILD SUCCESSFUL, fontes do java (2).zip com os cinco arquivos da entrega; estrutura Android isolada disponível.
+PASS testes JVM da instrumentação com stub android.util.Log: resultado, propagação de erro, cancelamento, isolamento entre sessões concorrentes e ausência de mensagens de exceção.
+PASS 9 testes JVM de CategoryImportPolicy sobre os fontes atualizados: prioridade de acesso e ordem ociosa sem grupos de sete.
+PASS PowerShell: sintaxe dos dois scripts.
+PASS instalador em projeto temporário: aplicação, reaplicação e recusa de fonte modificada sem escrever outros arquivos.
+PASS coletor: aceita esquema fechado; rejeita texto extra, URL, rótulo desconhecido e valores não numéricos.
+PASS conteúdo ZIP e hashes conferidos; cinco arquivos de produção.
+Não executado em TV/emulador nesta máquina. Não medido tempo real de importação; nenhum ganho de velocidade foi alegado.

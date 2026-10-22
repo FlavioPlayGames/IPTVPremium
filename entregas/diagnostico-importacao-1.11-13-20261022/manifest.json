@@ -1,0 +1,32 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/diagnostics/ImportDiagnostics.kt",
+    "sha": "2f1e24edc57b4bc97bf59f2684398cf819ac263eaa9734813d44967515e5f353",
+    "before": "",
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/DemandCatalogImporter.kt",
+    "sha": "399594773efd32f38eb19b76756e4a2ce0d09f5c155927810a7c54fcb6eb7c43",
+    "before": "95aa5855f383f3ce2f8cf8a98a70b5098901fc34faeb635b0bd7c20fa6565f38",
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uCacheImporter.kt",
+    "sha": "f3ad064e01737eac0fe41dde6861675ed7fb5573ae43a4662f76740fe1e552b4",
+    "before": "d2f95cce85b728c33385b89c2a16ededad6be313d1e9c817e8f4eb43bf0e83d7",
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt",
+    "sha": "27d5b746805bfe3186767400d9c92a984bc5c976d275823c353985fc0f0fdadd",
+    "before": "38ccfa9535813af23af6df1ab191bfb71e10da75fd0f4bbe962786aba9a48fd8",
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/DefaultPlaylistHttpClient.kt",
+    "sha": "065b96f25883eb353834d0583686178b1596204905ad108642f3cc5d0e7f8279",
+    "before": "b5ae73f9535c94586b7238e45c4c25e7a876657de3fe665e27780103a7baac99",
+    "allowMissing": false
+  }
+]
