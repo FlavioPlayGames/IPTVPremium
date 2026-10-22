@@ -11,3 +11,7 @@ Mais opções: máscaras de teatro, câmera de cinema e nome em destaque.
 Câmera nos cinco temas, com versões clara e escura. O nome permanece abaixo e fora do cartão. Proposta visual; sem alteração no aplicativo.
 
 ![Câmera nos cinco temas, claro e escuro](camera-cinco-temas-claro-escuro.png)
+
+Câmera realista em grafite e prata, igual para todos os temas, comparada nos fundos claro e escuro. O nome permanece abaixo do cartão. Apenas proposta visual.
+
+![Câmera realista para todos os temas](camera-realista-todos-temas.png)
