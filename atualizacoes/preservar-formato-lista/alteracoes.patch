@@ -1,0 +1,28 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt
+@@ -53,19 +53,12 @@
+             "Xtream Codes direto; sincronizando catálogo para o Room."
+         )
+ 
+-        val alternative = source.fallbackM3uUrl?.takeIf(String::isNotBlank)?.let { link ->
+-            suspend {
+-                syncM3u(PlaylistSource.M3u(source.id, source.name, source.isEnabled, link)).also {
+-                    Log.i(TAG, "IMPORT_RESULTADO formato=M3U resultado=SUCESSO")
+-                }
+-            }
+-        }
+-        ImportAlternatives.run(
+-            primary = { syncFromXtream(source.id, source).also { Log.i(TAG, "IMPORT_RESULTADO formato=XTREAM resultado=SUCESSO") } },
+-            alternative = alternative,
+-            eligible = { !containsStorageFailure(it) },
+-            onFallback = { Log.w(TAG, "IMPORT_ALTERNATIVA origem=XTREAM destino=M3U motivo=${it.javaClass.simpleName}") }
+-        )
++        // The format chosen in the portal is authoritative, including refreshes.
++        // Keep the original M3U URL as metadata only; an Xtream error must not
++        // silently switch the importer or replace the catalog with a M3U import.
++        syncFromXtream(source.id, source).also {
++            Log.i(TAG, "IMPORT_RESULTADO formato=XTREAM resultado=SUCESSO")
++        }
+     }
+ 
+     private suspend fun <T> localCatalogWrite(action: suspend () -> T): T = try {
