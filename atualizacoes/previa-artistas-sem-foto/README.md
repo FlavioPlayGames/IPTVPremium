@@ -15,3 +15,7 @@ Câmera nos cinco temas, com versões clara e escura. O nome permanece abaixo e 
 Câmera realista em grafite e prata, igual para todos os temas, comparada nos fundos claro e escuro. O nome permanece abaixo do cartão. Apenas proposta visual.
 
 ![Câmera realista para todos os temas](camera-realista-todos-temas.png)
+
+Prévia da câmera realista aplicada ao cartão de artista sem foto na tela do filme, com o nome abaixo. Simulação visual; sem alteração no aplicativo.
+
+![Câmera na tela do filme](camera-na-tela-do-filme.png)
