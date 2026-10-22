@@ -1,0 +1,27 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MarbleArtwork.kt",
+    "sha": "23422977912d27e8555585d2034111b02c3241fd3a792c84eb16f7d9ced468bd",
+    "before": "57e0c5d6ee48db6369b0ece222d9eebbd967dc4dcd525100673e0eeb767a77cb"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/ThemeArtwork.kt",
+    "sha": "8802340b722433a4689870bd201009f19782b84443d18992d97297f77b381764",
+    "before": "471e0ac5dd6b06b70cdc5b50f768e843cdf411c85e572267138a6db5b0e8f366"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsScreen.kt",
+    "sha": "c18795c5fd0b830ceaff735fd784a21aa8d7c857a7c3101eb239be833e1f3c04",
+    "before": "b107d7f0ec470177042163913448d339d6fe6795df2c4f066b380038789ad86e"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogLayoutPreview.kt",
+    "sha": "9927e0fc5de06b4488f75391da563868fafd6d6d6d7855f4e5778d10806a2368",
+    "before": "276c1437d9097874da53c8af770041fed99a709dfd8538f3fcf069c7d902597c"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "sha": "d7c69d9676ab20bbcad34f3e23bd29bf58801f10453cf5785e4e4c60b1f2a777",
+    "before": "5c99474310d89699e86eeb042b645ca6e1fe3dc6b728167d357e1836cd81b0ad"
+  }
+]

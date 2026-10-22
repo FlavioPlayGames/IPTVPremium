@@ -1,0 +1,8 @@
+PASS manifest e hashes dos cinco arquivos Kotlin; lista fechada de 32 nomes.
+PASS comparação com java.zip: somente cinco arquivos visuais/navegação alterados; nenhum arquivo de importação/cache/banco modificado.
+PASS referência estática: nenhum dos 32 recursos permanece referenciado nos fontes Kotlin finais.
+PASS PowerShell: sintaxe; aplicação e reaplicação em projeto temporário; remoção apenas das 32 imagens da lista; arquivo home_original preservado; backup de todas as imagens removidas; fonte modificada bloqueia antes de escrever.
+PASS referência XML desconhecida bloqueia limpeza antes de remover imagem.
+PASS compileDebugKotlin final: BUILD SUCCESSFUL. Recursos de verificação removidos antes da compilação; fontes finais idênticos ao conteúdo do pacote. Na cópia local, 31 arquivos presentes, 33.995.565 bytes.
+Kids: usa recurso azul ou rosa da Home já existente; desfoque estático reutilizado no cache, gerado em background. Nenhum PNG/JPEG adicional ou imagem antiga incluído no pacote.
+Não executado na TV/emulador. Não feita comparação visual de Home/Kids nesta máquina.
