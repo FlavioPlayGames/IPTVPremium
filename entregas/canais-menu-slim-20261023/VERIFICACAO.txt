@@ -1,0 +1,22 @@
+Compilacao Kotlin isolada: BUILD SUCCESSFUL em 46s.
+Fontes empacotados iguais aos compilados; hashes verificados.
+Versao mantida: 1.11 (13). Nenhum teste adicionado ao aplicativo.
+Recursos ausentes no ZIP original foram representados somente no ambiente isolado; aliases nao fazem parte da entrega.
+Sem teste em TV fisica ou controle remoto.
+M3U nativa preserva leitura unica do arquivo compartilhado; adiamento de endpoints de rede exclusivo do Xtream.
+
+PASS actual synchronizer: list import skips live; persistent generation marker awaits Channels access
+PASS actual synchronizer: first access imports only live, concurrent/repeated access reuses committed catalogue
+PASS actual synchronizer: provider failure leaves retry marker and no partial published rows; retry succeeds
+PASS actual synchronizer: leaving Channels cancels import, cleans stage and retains pending marker
+PASS actual synchronizer: refresh race never publishes old live results into a newer generation
+PASS actual DAO: search beyond first 4000 items, category scope, literal wildcards, sorting, favourites, parental rules, source/generation isolation
+PASS actual DAO: staged live publication atomic, interruption rolls back marker and channels; on-demand categories preserved
+PASS current apply CRLF/BOM
+PASS current idempotence
+PASS rejects local changes before any mutation
+PASS backups outside app/src
+PASS preceding-focus apply CRLF/BOM
+PASS preceding-focus idempotence
+PASS rejects local changes before any mutation
+PASS backups outside app/src
