@@ -1,0 +1,11 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt",
+    "sha": "756014d64f6244373bda2819f0a42b63fa3cf934059cb3645a09cab3e60f0216",
+    "before": [
+      "6dd674ac73522493c193d1dc28464ebc8080e26397f691cea88e299d84d6d1f1"
+    ],
+    "allowMissing": false,
+    "remove": false
+  }
+]
