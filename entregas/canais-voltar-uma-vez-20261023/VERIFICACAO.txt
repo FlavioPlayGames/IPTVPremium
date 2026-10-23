@@ -1,0 +1,5 @@
+Compilacao final :app:compileDebugKotlin: BUILD SUCCESSFUL.
+PASS installer CRLF/BOM= False , repeat apply, reject conflicts before mutation
+PASS installer CRLF/BOM= True , repeat apply, reject conflicts before mutation
+
+Sem testes adicionados ao aplicativo. Confirmar em TV: Voltar com foco em categoria sai com um toque; foco fora das categorias retorna primeiro a elas; expansao de Atualizar e Configuracoes fica limitada aos icones.
