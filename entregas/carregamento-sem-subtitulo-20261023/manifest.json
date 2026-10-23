@@ -1,0 +1,11 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/AppStartupLoadingScreen.kt",
+    "sha": "ed09259e9ef63e6f0ca43ba3cf1fa78a51791bdc4697691564617ba3c1740fc4",
+    "before": [
+      "c2662e64f8f0156151e34b7476d2da3333cd9a176b5d5a0663cee88759a51147"
+    ],
+    "allowMissing": false,
+    "remove": false
+  }
+]
