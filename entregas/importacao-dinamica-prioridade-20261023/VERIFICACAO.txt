@@ -1,9 +1,9 @@
-Compilacao Android: :app:compileDebugKotlin BUILD SUCCESSFUL.
+Compilacao final: :app:compileDebugKotlin BUILD SUCCESSFUL.
 
-PASS: nested/overlapping imports, cancellation, failure cleanup, network preemption
-
+PASS: importacoes aninhadas e simultaneas, cancelamento, falhas e interrupcao de rede.
 PASS installer CRLF/BOM= False , repeat apply, reject conflicts before mutation
 PASS installer CRLF/BOM= True , repeat apply, reject conflicts before mutation
 
-Preservados: regra 5/125, lotes 500, genericas compartilhadas e remocao do Fanart.
-Sem testes adicionados ao aplicativo. Sem medicao em TV fisica; conferir engrenagem e navegacao no aparelho.
+Preservados: capas 5/125, lotes 500, genericas compartilhadas e remocao do Fanart.
+Sem testes no aplicativo. Verificar na TV: animacao de carregamento, engrenagem, retorno em Canais e foco na primeira estrela.
+Nao foram medidos tempos em TV fisica.

@@ -45,6 +45,15 @@
     "remove": false
   },
   {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/ReferenceDetailHeader.kt",
+    "sha": "13341315101dbbf4fd7507c06219c77fd777d57afb317aebf72099238516bf86",
+    "before": [
+      "60c99606e183aee6e8880d51a3a2e78b144c5f3de62e56743a1d8dc61df75553"
+    ],
+    "allowMissing": false,
+    "remove": false
+  },
+  {
     "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/CategoryPosterPrefetch.kt",
     "sha": "c571477093d1dacb4ffed3ff435e74cfccd8d2672bdf09076c230fb3b98c8cce",
     "before": [

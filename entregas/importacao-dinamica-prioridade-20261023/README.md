@@ -8,8 +8,9 @@ Aplicar depois da remoção do Fanart. Mantém a versão configurada e as demais
 - Capas visíveis começam a preparação sem a espera extra de 100 ms; até cinco por lote visível, mantendo limite global de seis conexões e de duas antecipações em segundo plano.
 - Mantém RAM → disco → rede, cache de 125 por seção, antecipação de cinco em cinco apenas após ociosidade e imagens genéricas compartilhadas somente quando não há capa. Não restaura imagens removidas nem Fanart.
 
-- Home: amostragem com margem adicional para a engrenagem e atualizar não cortarem as bordas ao ampliar.
-- Canais: ESC/Voltar da prévia vai direto às categorias; ao sair da tela cheia sem menus abertos, retorna à prévia com categorias. Menus de formato e teclado continuam fechando primeiro.
+- Home: margem no recorte da engrenagem para não cortar sua ampliação.
+- Canais: ESC/Voltar da prévia vai direto às categorias. Sair da tela cheia retorna com categorias abertas.
+- Avaliação de filmes e séries: primeira estrela cresce 12% ao receber foco, como o coração. Mantém uma estrela selecionada por vez e sem animações de avaliação.
 
 ## Aplicar no PowerShell
 
