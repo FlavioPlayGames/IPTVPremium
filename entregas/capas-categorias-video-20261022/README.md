@@ -1,5 +1,6 @@
 # Capas, categorias e vídeo — 1.11 (13)
 
+- Foco inicial na lista lateral, preferindo o ultimo canal assistido; Direita vai ao video e Esquerda retorna a linha anterior. Sem importar paginas anteriores apenas para recuperar o canal salvo.
 - Remove a seta e o nome da categoria do cabeçalho de Canais. Voltar continua retornando às categorias; em tela cheia, primeiro retorna à prévia.
 - Vídeo contido na moldura, com cantos menores; prazo de conexão de 7 segundos por tentativa, sem reiniciar o prazo ao repetir buffering.
 - Controle de imagem dentro da tela cheia, no canto inferior direito: Encaixar, Preencher ou Esticar. Direita leva ao controle; OK alterna; Esquerda retorna ao vídeo. Mantém o mesmo player.

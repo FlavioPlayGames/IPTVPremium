@@ -20,3 +20,7 @@ PASS after-margin apply CRLF/BOM
 PASS after-margin idempotence
 PASS rejects local change atomically app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
 PASS rejects local change atomically app/src/main/res/drawable-nodpi/poster_generic_frames.webp
+
+Foco inicial atualizado: compilacao Kotlin isolada final aprovada.
+PASS upgrade from previous published package; all final files verified.
+Foco/navegacao com controle fisico: ainda nao verificados na TV.

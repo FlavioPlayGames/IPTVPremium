@@ -815,6 +815,7 @@ fun LiveTvScreen(
     var rootOrigin by remember{mutableStateOf(Offset.Zero)}
     val videoFocus=remember{FocusRequester()}
     val pictureFocus=remember{FocusRequester()}
+    var leftReturnFocus by remember { mutableStateOf<FocusRequester?>(null) }
     var pictureControlFocused by remember{mutableStateOf(false)}
     val latestPreviewChannel by rememberUpdatedState(selectedChannel)
     val latestConnection by rememberUpdatedState(connectionState)
@@ -935,6 +936,12 @@ fun LiveTvScreen(
                 modifier = Modifier
                     .width(leftPaneWidth)
                     .fillMaxHeight()
+                    .onPreviewKeyEvent { event ->
+                        if (event.key == Key.DirectionRight && selectedChannel != null && videoBounds.width > 0f) {
+                            if (event.type == KeyEventType.KeyDown) videoFocus.requestFocus()
+                            true
+                        } else false
+                    }
                     .background(
                         brush = br.com.flaviotorres.iptvpremium.ui.components.CatalogGlass.categoryPanelBrush,
                         shape = RoundedCornerShape(if (compactLayout) 16.dp else 20.dp)
@@ -1009,6 +1016,7 @@ fun LiveTvScreen(
                 ) {
                     CategoryList(
                         categories = channelCategories,
+                        onRowFocused = { leftReturnFocus = it },
                         selectedCategory = selectedCategory,
                         categoryCounts = categoryCounts,
                         compactLayout = compactLayout,
@@ -1073,12 +1081,14 @@ fun LiveTvScreen(
                     ) {
                         PagedChannelList(
                             channels = pagedChannels,
+                            restoredChannel = pinnedChannel,
+                            onRowFocused = { leftReturnFocus = it },
                             selectedChannelId = selectedChannelId,
                             favoriteChannelIds = favoriteChannelIds,
                             compactLayout = compactLayout,
                             onChannelSelected = { channelId ->
                                 if(channelId==selectedChannelId&&connectionState.unavailable)retryChannelSerial++
-                                pinnedChannel=availableChannels.firstOrNull{it.id==channelId}
+                                pinnedChannel=availableChannels.firstOrNull{it.id==channelId} ?: pinnedChannel?.takeIf { it.id == channelId }
                                 selectedChannelId = channelId
                             },
                             onFavoriteClick = { channelId -> toggleChannelFavorite(channelId) }
@@ -1086,12 +1096,13 @@ fun LiveTvScreen(
                     } else {
                         ChannelList(
                             channels = displayedChannels,
+                            onRowFocused = { leftReturnFocus = it },
                             selectedChannelId = selectedChannelId,
                             favoriteChannelIds = favoriteChannelIds,
                             compactLayout = compactLayout,
                             onChannelSelected = { channelId ->
                                 if(channelId==selectedChannelId&&connectionState.unavailable)retryChannelSerial++
-                                pinnedChannel=availableChannels.firstOrNull{it.id==channelId}
+                                pinnedChannel=availableChannels.firstOrNull{it.id==channelId} ?: pinnedChannel?.takeIf { it.id == channelId }
                                 selectedChannelId = channelId
                             },
                             onFavoriteClick = { channelId -> toggleChannelFavorite(channelId) }
@@ -1349,6 +1360,10 @@ fun LiveTvScreen(
                 .onPreviewKeyEvent {event->
                     val ok=event.key==Key.DirectionCenter||event.key==Key.Enter||event.key==Key.NumPadEnter
                     when {
+                        !isLiveFullScreen && event.key == Key.DirectionLeft && leftReturnFocus != null -> {
+                            if (event.type == KeyEventType.KeyDown) leftReturnFocus?.requestFocus()
+                            true
+                        }
                         isLiveFullScreen&&!pictureControlFocused&&event.key==Key.DirectionRight->{
                             if(event.type==KeyEventType.KeyDown)pictureFocus.requestFocus();true
                         }
@@ -1718,6 +1733,7 @@ private fun cleanCategoryDisplayName(value: String): String {
 @Composable
 private fun CategoryList(
     categories: List<ChannelCategory>,
+    onRowFocused: (FocusRequester) -> Unit,
     selectedCategory: ChannelCategory,
     categoryCounts: Map<ChannelCategory, Int>,
     compactLayout: Boolean,
@@ -1745,6 +1761,7 @@ private fun CategoryList(
         ) { category ->
             CategoryItem(
                 focus = if (category.id == categories.getOrNull(selectedIndex)?.id) selectedFocus else null,
+                onRowFocused = onRowFocused,
                 title = cleanCategoryDisplayName(category.title),
                 count = categoryCounts[category] ?: 0,
                 isSelected = category == selectedCategory,
@@ -1759,6 +1776,7 @@ private fun CategoryList(
 
 @Composable
 private fun CategoryItem(
+    onRowFocused: (FocusRequester) -> Unit,
     title: String,
     count: Int,
     isSelected: Boolean,
@@ -1766,10 +1784,11 @@ private fun CategoryItem(
     onSelect: () -> Unit,
     focus: FocusRequester? = null
 ) {
+    val rowFocus = remember { FocusRequester() }
     LaunchedEffect(focus) {
         if (focus != null) {
             androidx.compose.runtime.withFrameNanos { }
-            focus.requestFocus()
+            rowFocus.requestFocus()
         }
     }
     var isFocused by remember {
@@ -1781,7 +1800,7 @@ private fun CategoryItem(
 
     Row(
         modifier = Modifier
-            .then(if (focus != null) Modifier.focusRequester(focus) else Modifier)
+            .focusRequester(rowFocus)
             .fillMaxWidth()
             .height(if (compactLayout) 40.dp else 46.dp)
             .then(if (br.com.flaviotorres.iptvpremium.ui.components.CatalogStyle.regular) Modifier.clip(shape) else Modifier)
@@ -1800,6 +1819,7 @@ private fun CategoryItem(
             .kidsFocus(isFocused,isSelected)
             .onFocusChanged {
                 isFocused = it.isFocused
+                if (it.isFocused) onRowFocused(rowFocus)
             }
             .onKeyEvent { event ->
                 val selectKey =
@@ -1844,6 +1864,8 @@ private fun CategoryItem(
 @Composable
 private fun PagedChannelList(
     channels: LazyPagingItems<Channel>,
+    restoredChannel: PreviewChannel?,
+    onRowFocused: (FocusRequester) -> Unit,
     selectedChannelId: String,
     favoriteChannelIds: Set<String>,
     compactLayout: Boolean,
@@ -1907,13 +1929,28 @@ private fun PagedChannelList(
         return
     }
 
+    var entryFocused by remember { mutableStateOf(false) }
+    val entryId = remember { selectedChannelId }
+    val snapshot = channels.itemSnapshotList
+    val entryIndex = snapshot.items.indexOfFirst { it.id == entryId }
+        .let { if (it < 0) 0 else it + snapshot.placeholdersBefore }
+    // The saved channel can be outside the first loaded page. Keep a small local
+    // entry rather than fetching every preceding page just to recover focus.
+    val savedEntry = remember { restoredChannel?.takeIf { it.id == entryId && snapshot.items.none { row -> row.id == entryId } } }
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState(if (savedEntry != null) 0 else entryIndex)
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
         verticalArrangement =
             Arrangement.spacedBy(
                 if (compactLayout) 5.dp else 8.dp
             )
     ) {
+        if (savedEntry != null) item(key = "restored_${savedEntry.id}") {
+            ChannelRow(savedEntry, savedEntry.id == selectedChannelId, savedEntry.id in favoriteChannelIds,
+                compactLayout, { onChannelSelected(savedEntry.id) }, { onFavoriteClick(savedEntry.id) },
+                focusOnEntry = !entryFocused, onRowFocused = { entryFocused = true; onRowFocused(it) })
+        }
         items(
             count = channels.itemCount,
             key = { index ->
@@ -1926,6 +1963,7 @@ private fun PagedChannelList(
                 channels[index]
                     ?: return@items
 
+            if (channel.id == savedEntry?.id) return@items
             val previewChannel =
                 PreviewChannel(
                     id = channel.id,
@@ -1938,6 +1976,8 @@ private fun PagedChannelList(
 
             ChannelRow(
                 channel = previewChannel,
+                focusOnEntry = !entryFocused && savedEntry == null && (channel.id == entryId || (entryId.isBlank() && index == 0)),
+                onRowFocused = { entryFocused = true; onRowFocused(it) },
                 isSelected =
                     channel.id == selectedChannelId,
                 isFavorite =
@@ -1995,6 +2035,7 @@ private fun PagedChannelList(
 @Composable
 private fun ChannelList(
     channels: List<PreviewChannel>,
+    onRowFocused: (FocusRequester) -> Unit,
     selectedChannelId: String,
     favoriteChannelIds: Set<String>,
     compactLayout: Boolean,
@@ -2016,7 +2057,11 @@ private fun ChannelList(
         return
     }
 
+    var entryFocused by remember { mutableStateOf(false) }
+    val entryId = remember { channels.firstOrNull { it.id == selectedChannelId }?.id ?: channels.first().id }
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState(channels.indexOfFirst { it.id == entryId }.coerceAtLeast(0))
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
         verticalArrangement =
             Arrangement.spacedBy(
@@ -2029,6 +2074,8 @@ private fun ChannelList(
         ) { channel ->
             ChannelRow(
                 channel = channel,
+                focusOnEntry = !entryFocused && channel.id == entryId,
+                onRowFocused = { entryFocused = true; onRowFocused(it) },
                 isSelected = channel.id == selectedChannelId,
                 isFavorite = channel.id in favoriteChannelIds,
                 compactLayout = compactLayout,
@@ -2050,8 +2097,19 @@ private fun ChannelRow(
     isFavorite: Boolean,
     compactLayout: Boolean,
     onSelect: () -> Unit,
-    onFavoriteClick: () -> Unit
+    onFavoriteClick: () -> Unit,
+    focusOnEntry: Boolean = false,
+    onRowFocused: (FocusRequester) -> Unit = {}
 ) {
+    val rowFocus = remember(channel.id) { FocusRequester() }
+    var entryFocusRequested by remember(channel.id) { mutableStateOf(false) }
+    LaunchedEffect(focusOnEntry) {
+        if (focusOnEntry && !entryFocusRequested) {
+            withFrameNanos { }
+            rowFocus.requestFocus()
+            entryFocusRequested = true
+        }
+    }
     var isFocused by remember {
         mutableStateOf(false)
     }
@@ -2087,6 +2145,7 @@ private fun ChannelRow(
 
     Row(
         modifier = Modifier
+            .focusRequester(rowFocus)
             .fillMaxWidth()
             .height(
                 if (compactLayout) 42.dp else 50.dp
@@ -2133,6 +2192,7 @@ private fun ChannelRow(
             .kidsFocus(isFocused,isSelected)
             .onFocusChanged { focusState ->
                 isFocused = focusState.isFocused
+                if (focusState.isFocused) onRowFocused(rowFocus)
                 if (!isFocused) { selectKeyHeld = false; selectKeyDownTime = 0L }
             }
             .onPreviewKeyEvent { event ->
