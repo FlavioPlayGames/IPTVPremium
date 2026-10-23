@@ -1,0 +1,30 @@
+Versão 1.12; versionCode validado no manifesto: 14.
+Compilação final: :app:compileDebugKotlin :app:processDebugMainManifest — BUILD SUCCESSFUL.
+Verificações externas ao APK:
+PASS Xtream initial movies only; series and channels on access; reentry uses completed sections
+PASS concurrent access imports section once; failed access keeps pending marker and releases priority
+PASS M3U downloads once, defers mixed sections to compressed files, imports on access and persists across new synchronizer
+PASS M3U empty deferred sections complete without network; update regenerates pending sections
+PASS cancelled section never publishes partial rows; changing base generation rejects stale publication
+PASS confirmed auth denial ends immediately without four retries
+PASS segmented fallback imports only requested section and preserves movies
+PASS failed M3U update preserves previous active source fragments and catalogue
+PASS deleted deferred file recovers only requested section from M3U source
+PASS deferred store closes partial fragments, protects retained generations and rejects unsafe paths
+PASS optional opening work awaits foreground import then resumes
+PASS production M3U HTTP: gzip negotiation, UTF-8 and incremental lines
+PASS production M3U HTTP: access refusal preserved
+PASS production M3U HTTP: consumer failure propagated and connection closed
+PASS production M3U HTTP: cancellation propagated through new connection watcher
+PASS production SQL + generated Room schema: full series/episodes copy, untouched movies/live, marker removal and rollback
+PASS installer apply BOM= False prior version= 1.12
+PASS installer idempotence BOM= False prior version= 1.12
+PASS conflict rejected before any mutation; private properties untouched; backup outside app/src
+PASS installer apply BOM= True prior version= 1.11
+PASS installer idempotence BOM= True prior version= 1.11
+PASS conflict rejected before any mutation; private properties untouched; backup outside app/src
+Integridade do ZIP, manifesto, fontes e SHA-256 do pacote conferida.
+Cache de capas RAM + disco preservado. Sem inclusão de testes no aplicativo.
+Não houve medição em TV física nem teste visual com controle; verificar navegação, primeiro acesso e retomada na TV.
+Em lista já pronta, use Atualizar lista para testar a nova divisão.
+M3U continua exigindo a leitura integral do arquivo único; as seções pendentes são separadas localmente e importadas ao acessar.
