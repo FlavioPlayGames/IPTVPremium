@@ -1,0 +1,22 @@
+Compilacao Kotlin isolada: BUILD SUCCESSFUL em 44s.
+Recursos ausentes no ZIP original foram representados apenas no ambiente isolado; aliases nao incluidos nesta entrega.
+Sem teste em TV ou controle fisico. Testes de host fora do aplicativo.
+PASS anime precedence and provider/category hints, accented/plural animation labels
+PASS both general images distributed across 1000 IDs; selection stable across recompositions/categories
+PASS missing/invalid URL distinction; normal HTTP(S) covers remain real-image candidates
+PASS accent-safe SQL narrowing, including names with no ASCII token
+PASS identity: quality variants match; numbers, +, region, language, seasons and bad shared EPG stay distinct
+PASS lazy ordered fallback; duplicate URL skipped; healthy transport prevents later-list access
+PASS failure after playback advances to last-resort other list
+PASS successful original avoids resolver; cancellation stops playback and removes listeners
+PASS exhaustion reports unavailable and never records failed channels as watched
+PASS 7-second startup deadline is not extended by repeated buffering events
+PASS 7-second stall during playback advances to alternative
+PASS before-margin apply CRLF/BOM
+PASS before-margin idempotence
+PASS rejects local change atomically app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
+PASS rejects local change atomically app/src/main/res/drawable-nodpi/poster_generic_frames.webp
+PASS after-margin apply CRLF/BOM
+PASS after-margin idempotence
+PASS rejects local change atomically app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt
+PASS rejects local change atomically app/src/main/res/drawable-nodpi/poster_generic_frames.webp
