@@ -1,0 +1,27 @@
+Teste 1 - versao 1.12-T1, versionCode minimo 14
+
+Compilacao Android isolada: compileDebugKotlin + processDebugMainManifest, BUILD SUCCESSFUL.
+Manifesto gerado confirma versionName 1.12-T1 e versionCode 14.
+
+10 verificacoes externas passaram usando classes de producao compiladas:
+- Parser aceita arrays, wrappers conhecidos, IDs numericos, campos nulos e campos desconhecidos aninhados; recusa respostas invalidas/truncadas.
+- Home liberada antes de terminar o download dos itens.
+- Primeiro lote fica utilizavel antes de a resposta completa terminar.
+- Parser percorre 100000 itens de um Reader gerado, sem acumular lista completa.
+- Recuperacao por categoria preserva itens sem categoria do catalogo existente.
+- Atualizacao igual nao regrava payloads; apenas um titulo alterado produz uma regravacao.
+- Reordenacao atualiza posicoes; remocao so depois de resposta completa validada.
+- Resposta vazia inesperada, resposta invalida e falha local preservam catalogo anterior.
+- Recusa de autenticacao preserva cache; novo coordenador reutiliza estados completos persistentes.
+- Troca de lista cancela download anterior e mantem enderecamento independente.
+
+O harness JVM usa DAO simulado para executar os corpos transacionais de producao e um adaptador externo de JsonReader baseado em Gson. Isso nao equivale a executar Room/Android na TV. O APK usa android.util.JsonReader real; adaptador e testes nao entram na entrega do aplicativo.
+
+SQLite real, com SQL de producao e esquema gerado pelo Room: recuperacao limitada a categorias preserva registros sem categoria e outras listas; conclusao completa remove ausentes; falha tardia desfaz alteracoes; chaves estrangeiras removem estados/ledger ao remover geracao; consultas IN respeitam limite antigo de parametros.
+
+PowerShell real: aplicacao sobre tres bases conhecidas (ZIP auditado, Filmes-primeiro e importacao otimizada), BOM/CRLF, idempotencia sem backup extra, recusa de conflitos antes de escrever, restauracao completa dos bytes anteriores e remocao dos fontes novos, propriedades privadas intocadas.
+
+Banco experimental e fragmentos locais separados do catalogo anterior. Fontes cadastradas, dados do usuario e cache de imagens sao compartilhados entre versoes.
+Sem APK pre-compilado nesta entrega: Preparar-Teste-1.ps1 -Testar gera assembleDebug no projeto local completo.
+Sem validacao em TV fisica. O usuario fara a comparacao visual, sem ADB e sem conectar a TV ao computador.
+Nao foi medido ganho em segundos ou percentual. Somente Xtream usa o nucleo experimental; M3U ainda usa o caminho anterior.
