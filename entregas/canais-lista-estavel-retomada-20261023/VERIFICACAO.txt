@@ -1,0 +1,7 @@
+Compilacao final :app:compileDebugKotlin :app:processDebugMainManifest: BUILD SUCCESSFUL.
+Manifesto gerado: versionName 1.12, versionCode 14.
+PASS: auxiliar real de rolagem verificado fora do APK: linhas visiveis, bordas parciais, linhas fora da tela e retorno circular.
+PASS installer CRLF/BOM= False , repeat apply, reject conflicts before mutation
+PASS installer CRLF/BOM= True , repeat apply, reject conflicts before mutation
+
+Sem testes adicionados ao aplicativo. Validar no controle fisico: rolagem nas bordas, confirmacao por OK/3s, retomada por lista ao reabrir e fechar aplicativo. Nao houve teste na TV.
