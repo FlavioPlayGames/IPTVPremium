@@ -1,0 +1,18 @@
+Compilacao Kotlin isolada: BUILD SUCCESSFUL em 1m28s.
+Pacote, fontes e entradas compiladas identicos, hashes verificados.
+Versao mantida: 1.11 (13). Nenhum teste adicionado ao aplicativo.
+Recursos ausentes no ZIP de codigo original possuem aliases somente no ambiente isolado; nao incluidos nesta entrega.
+Teste do cache executa o objeto real extraido sem alteracao, com doubles de Context/BitmapFactory; nao mede GPU ou TV.
+Bitmaps genericos comprimidos residem no APK; RAM e inicializada uma vez por processo.
+Sem teste fisico de inicializacao, controle remoto, rede ou tempos de importacao na TV.
+
+PASS idle gate: work stays paused while backgrounded, every input restarts quiet interval
+PASS actual session + collectLatest: input cancels running work, preserves pending run, idle resumes, selected media preempts
+PASS replaced playlist cannot publish stale history completion
+PASS all persisted/debug/release import profiles use Xtream=500 and M3U=500
+PASS exact cache object: 100 concurrent prepares decode exactly four shared bitmaps
+PASS navigation/trim never evicts or redecodes generic artwork; total decoded memory 1.5 MiB
+PASS current apply CRLF/BOM
+PASS current idempotence
+PASS rejects local changes before any mutation
+PASS backups outside app/src
