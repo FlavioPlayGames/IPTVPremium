@@ -1,0 +1,21 @@
+Compilacao Kotlin isolada com codigo do ZIP atualizado: BUILD SUCCESSFUL em 2m37s.
+Campo do servico tambem removido da configuracao do build isolado.
+Nenhuma referencia ativa ao servico em Kotlin ou app/build.gradle.kts.
+Auxiliar exclusivo removido, links externos retirados e configuraçao local limpa por chave.
+Sem alteracao da versao e sem testes adicionados ao APK.
+Recursos ausentes no ZIP de codigo original possuem aliases apenas no build isolado; nao incluidos na entrega.
+Sem teste fisico no aparelho.
+
+PASS TVmaze alone supplies matched series artwork and correct episode season; no key or extra service required
+PASS no unnecessary background or episode request when not needed
+PASS ambiguous/remake matches remain rejected
+PASS network failure safely falls back; cancellation remains cancellable
+PASS first apply without BOM
+PASS idempotence without BOM
+PASS removed helper and original private configuration retained only in local backup; Unicode/other keys preserved
+PASS conflicting source stops before touching any source or local configuration
+PASS first apply with UTF8 BOM
+PASS idempotence with UTF8 BOM
+PASS removed helper and original private configuration retained only in local backup; Unicode/other keys preserved
+PASS conflicting source stops before touching any source or local configuration
+PASS pacote validado contra fontes atuais; local.properties e google-services.json nao publicados.

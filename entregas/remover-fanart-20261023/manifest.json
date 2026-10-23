@@ -1,0 +1,56 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/ArtworkHttpCache.kt",
+    "before": [
+      "da39c42b55cce3dc43553a625ea29d62a0089b23ef04c6204e83946f8b9c2532"
+    ],
+    "sha": "9e8dd45eb3f72381dc160b76bc29a55f6bf5c956c95f206c1655d19a12737bb1",
+    "allowMissing": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesArtworkFallback.kt",
+    "before": [
+      "c35029a5c24fa28a489fb29e6d9759df0085ae9b83ee32a5d26e8e08f2e26ed9"
+    ],
+    "sha": "62bc0de03f23ac9513b31f12a6a19b93584c11ce3d9298d06a7a51137f1ed9ff",
+    "allowMissing": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt",
+    "before": [
+      "14b1da8d7cd9de1b28144969470213bcced1890f3b309dd65baa028228d79904"
+    ],
+    "sha": "1cc3b4d4b2189f374290981cbc1896044c1a4a366f78743f3ef207b10f32380e",
+    "allowMissing": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt",
+    "before": [
+      "037a175b652346ac01b50391a6a409a3e20100a393410dc603dd74f32f12059f"
+    ],
+    "sha": "35383164b2b5286ccf8120aa42444f9de44578c90e6230b97b0e4e9746ecc889",
+    "allowMissing": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/MovieFanartArtwork.kt",
+    "before": [
+      "32854aa9b315f39a1212552252b28150e2a807dc7c8496186e28fd5e083d9afe"
+    ],
+    "sha": "",
+    "allowMissing": true,
+    "remove": true
+  },
+  {
+    "path": "app/build.gradle.kts",
+    "sha": "bceaee53ac9089bafe3854c86d0edde6836daf8737875ac240305e26c805bece",
+    "before": [
+      "e882e660c2ff8162925af57739136cedb35642178f1c574e7584eece0c0be315"
+    ],
+    "allowMissing": false,
+    "remove": false
+  }
+]
