@@ -1,0 +1,18 @@
+Versão 1.12, versionCode mínimo 14.
+
+Compilação Android isolada: compileDebugKotlin + processDebugMainManifest, BUILD SUCCESSFUL.
+13 verificações externas de fluxo passaram usando as classes de produção compiladas:
+- Sobreposição de leitura/gravação com fila limitada, 10 mil filmes e lotes de até 500.
+- Filmes primeiro, Séries/Canais por acesso, reutilização sem HTTP ao reentrar.
+- Concorrência, falha, cancelamento e recusa de publicação de geração ultrapassada.
+- Fallback segmentado preserva ordem e seção solicitada.
+- M3U com fragmentos persistentes, recuperação, falhas e catálogo anterior preservado.
+- 1200 episódios: somente duas gravações de série (original e capa alterada), sem perder episódios.
+- Prioridade de importação preservada.
+SQLite real usando SQL de produção e esquema gerado pelo Room: publicação de seção preserva campos, episódios, outras seções e desfaz movimentos após falha.
+Instalador PowerShell: CRLF/BOM, versões conhecidas, atualização sobre Filmes-primeiro, idempotência, rejeição de conflito antes de escrever, backup fora do app e propriedades privadas preservadas.
+
+Testes externos não acompanham o aplicativo. Nenhum teste em TV física foi feito.
+Não há APK pré-compilado nesta entrega: -Testar executa assembleDebug no projeto local.
+Atualização diferencial completa entre gerações não foi implementada; a deduplicação de metadados repetidos de séries M3U ocorre durante a importação.
+Nenhuma promessa de redução percentual ou tempo em segundos sem medição no aparelho.
