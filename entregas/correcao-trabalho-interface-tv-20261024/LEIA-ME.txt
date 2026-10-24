@@ -1,0 +1,45 @@
+REDUCAO DE TRABALHO REPETIDO NA INTERFACE
+
+Complementa as correcoes anteriores. Altera apenas UserActivityPriority.kt e
+MarbleArtwork.kt, com backup automatico. Mantem o visual e os efeitos existentes.
+
+ALTERACOES
+- Reutiliza as cores metalicas calculadas por tema. Cache limitado a 256 cores
+  por tema; sem bitmaps adicionais. A leitura do tema continua observavel pelo
+  Compose e a matriz usada pelos fundos permanece independente.
+- Os comandos do controle estendem o prazo de um unico temporizador, em vez de
+  cancelar e criar uma coroutine a cada evento. Continua exigindo 10 segundos
+  sem interacao para liberar trabalho opcional, revogando-o imediatamente ao usar
+  o controle. Ocultar o app continua cancelando o temporizador.
+
+VALIDACAO
+Gradle :app:compileDebugKotlin: BUILD SUCCESSFUL.
+5.000 comparacoes de cor nos cinco temas: resultado exatamente igual ao original.
+Troca de temas e limite do cache: OK.
+1.000 eventos de controle reutilizam um temporizador: OK.
+Prazo de 10 segundos, revogacao imediata e entrada/saida de segundo plano: OK.
+Instalador: aplicacao, repeticao, backup/restauracao byte a byte e rejeicao previa
+  de fontes alterados: OK.
+Estes testes validam comportamento; o ganho de fluidez precisa ser medido na TV.
+
+APLICAR E COMPILAR
+Extraia em Downloads\correcao-trabalho-interface-tv. Dentro do projeto:
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-trabalho-interface-tv\Aplicar.ps1" -Projeto (Get-Location).Path -Testar
+
+INSTALAR SEM RUN/DEBUG
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-trabalho-interface-tv\Instalar-TV.ps1" -Projeto (Get-Location).Path
+
+Inicie a captura por UID anterior e abra o aplicativo pelo controle.
+Com mais de um dispositivo, informe -Dispositivo com o identificador da TV.
+
+TESTE
+Sem importar ou atualizar listas, navegue em canais, filmes e series usando os
+mesmos temas e categorias habituais. Abra um conteudo que funciona normalmente
+e volte para a grade. Finalize com Ctrl+C e envie navegacao-apos-correcao.txt.
+As medicoes UiStallPerf e as correcoes anteriores do player continuam presentes.
+
+DESFAZER
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-trabalho-interface-tv\Desfazer.ps1" -Projeto (Get-Location).Path -Testar
+
+Instale novamente com Instalar-TV.ps1 apos restaurar.

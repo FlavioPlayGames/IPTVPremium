@@ -1,0 +1,7 @@
+PASS: 1000 control events reuse one timer
+PASS: optional work starts only after 10 seconds since last interaction
+PASS: input revokes idle permission immediately
+PASS: background cancels timer and foreground starts a fresh quiet interval
+
+PASS: exact original colour values for 5000 inputs across all five themes
+PASS: theme changes and bounded palette eviction preserve results
