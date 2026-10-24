@@ -1,0 +1,11 @@
+PASS: assembleDesempenho completed with R8 optimization and conservative Kotlin rules (7m19s).
+PASS: Kotlin sequence facade names are preserved; kotlin.sequences.d alias is absent.
+PASS: all 14,419 program classes audited across DEX files; no cross-package non-public parent/interface found.
+PASS: DEX checker validated with legal and deliberately invalid superclass fixtures.
+PASS: APK is not debuggable and uses the same signing certificate as the previous test APK.
+PASS: all four ABI versions of LibVLC JNI are present.
+Runtime startup still requires verification on the user's TV; the previous local APK did not reproduce the user's exact obfuscated hierarchy.
+
+PASS: fresh setup, idempotency and exact rollback; Gradle bytes preserved
+PASS: existing setup, idempotency and exact rollback; Gradle bytes preserved
+PASS: user edits rejected before changes

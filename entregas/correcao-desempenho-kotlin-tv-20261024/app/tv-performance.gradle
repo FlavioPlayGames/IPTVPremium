@@ -1,0 +1,17 @@
+// Separate build type; existing versions, credentials and build types stay in their own files.
+def androidExtension = project.extensions.getByName('android')
+def referenceDebug = androidExtension.buildTypes.getByName('debug')
+def referenceRelease = androidExtension.buildTypes.getByName('release')
+androidExtension.buildTypes.create('desempenho') { variant ->
+    variant.initWith(referenceRelease)
+    variant.debuggable = false
+    variant.signingConfig = referenceDebug.signingConfig ?: androidExtension.signingConfigs.getByName('debug')
+    variant.applicationIdSuffix = referenceDebug.applicationIdSuffix
+    variant.versionNameSuffix = referenceDebug.versionNameSuffix
+    variant.matchingFallbacks.add('release')
+    variant.optimization { settings ->
+        settings.enable = true
+        settings.packageScope = ['br.com.flaviotorres.iptvpremium.**', 'androidx.**', 'kotlin.**', 'kotlinx.**'] as Set
+    }
+    variant.proguardFiles(project.file('tv-performance-rules.pro'))
+}

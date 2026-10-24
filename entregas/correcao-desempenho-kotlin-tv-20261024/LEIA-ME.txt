@@ -1,0 +1,52 @@
+CORRECAO DA INICIALIZACAO DA VARIANTE DESEMPENHO
+
+A captura da TV apresentou IllegalAccessError entre uma classe reorganizada
+pelo R8 e uma fachada kotlin.sequences inacessivel. Essa falha pertence ao APK
+otimizado, nao ao catalogo IPTV. A compilacao anterior nao identificou o erro
+em execucao no aparelho.
+
+CORRECAO
+- Desativa renomeacao/reempacotamento por obfuscacao nesta variante de teste.
+- Preserva as classes, membros e hierarquias da biblioteca kotlin.**.
+- Mantem as otimizacoes R8 permitidas para o aplicativo e AndroidX.
+- Mantem identificacao, assinatura debug do projeto, dados e depuracao desativada.
+
+O pacote atualiza as regras da variante ja instalada. Tambem pode preparar a
+variante caso a configuracao anterior tenha sido desfeita. O instalador aceita
+as regras anteriores conhecidas, valida os arquivos e cria backup.
+Nenhuma lista precisa ser importada novamente.
+
+APLICAR E COMPILAR
+Extraia em Downloads\correcao-desempenho-kotlin-tv. Dentro do projeto:
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-desempenho-kotlin-tv\Aplicar.ps1" -Projeto (Get-Location).Path -Testar
+
+A alteracao das regras exige passar novamente pelo R8; pode levar varios minutos.
+
+INSTALAR
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-desempenho-kotlin-tv\Instalar-TV.ps1" -Projeto (Get-Location).Path
+
+O script atualiza com install -r; nao desinstala nem limpa dados. Com mais de um
+dispositivo, informe -Dispositivo com o identificador da TV.
+Inicie a mesma captura por UID antes de abrir pelo controle, sem Run/Debug.
+Confirme primeiro que chega a Home; depois navegue por conteudos que funcionam.
+O log esperado continua BuildPerf: variant=desempenho debuggable=false.
+
+VALIDACAO
+APK completo gerado com R8, sem depuracao e com a assinatura anterior preservada.
+14.419 classes do DEX verificadas: nenhuma superclasse/interface nao publica
+referenciada por classe de outro pacote dentro do APK.
+Nomes canonicos das fachadas kotlin.sequences preservados; alias do tipo
+kotlin.sequences.d ausente. Validador testado com exemplo legal e ilegal.
+Instalador: instalacao nova e atualizacao da configuracao anterior, idempotencia,
+restauracao exata e rejeicao de fontes alterados: OK.
+A hierarquia ofuscada exata da TV nao foi reproduzida no APK local anterior;
+a abertura no aparelho continua sendo uma verificacao necessaria.
+
+VOLTAR A ULTIMA DEBUG GERADA, SEM LIMPAR DADOS
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-desempenho-kotlin-tv\Instalar-TV.ps1" -Projeto (Get-Location).Path -Variante debug
+
+DESFAZER ESTA APLICACAO
+Desfazer.ps1 restaura o estado imediatamente anterior a esta aplicacao. Se ela
+apenas atualizou as regras antigas, desfazer restaura as regras antigas tambem;
+para usar o aplicativo, prefira a debug pelo comando acima.
