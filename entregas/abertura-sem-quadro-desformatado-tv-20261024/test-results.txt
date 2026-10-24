@@ -1,0 +1,7 @@
+PASS: first usable layout waits one traversal, matching layout releases permanently
+PASS: fullscreen/insets geometry changes reset initial stability
+PASS: newly available insets require a matching traversal; missing insets do not trap the app
+PASS: empty geometry resets stability; real multiwindow dimensions supported without assuming TV orientation/resolution
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 29s
+PowerShell: aplicação, reaplicação, rollback byte a byte/removendo helpers e rejeição de fontes divergentes: PASS
+Testes JVM da lógica de layout; sem teste instrumentado Android/Compose/TV nem confirmação visual.

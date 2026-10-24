@@ -1,0 +1,8 @@
+<resources>
+
+    <style name="Theme.IPTVPremium" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Match the actual loading screen before Compose has its first layout. -->
+        <item name="android:windowBackground">#0C0E11</item>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+</resources>
