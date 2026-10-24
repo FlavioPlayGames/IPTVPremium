@@ -1,0 +1,7 @@
+PASS: indices absent only during block and restored before successful result
+PASS: write failure and cancellation after committed DROP both restore indices
+PASS: cancellation inside import restores in an active NonCancellable context
+PASS: repair failure cannot report success and preserves original failure
+PASS: concurrent imports serialize ownership of global indices
+PASS: actual opening repair restores missing indices atomically and healthy opening performs no DDL
+PASS: portal round-trip preserves explicit protocols; correlation is stable and logs contain no credentials, names, URLs or raw IDs

@@ -1,0 +1,86 @@
+{
+  "sqlite": "3.53.1",
+  "rows": {
+    "cached_movies": 44724,
+    "cached_series": 20170
+  },
+  "indexes": [
+    "CREATE INDEX IF NOT EXISTS `index_cached_movies_playlistId_generationId_categoryId` ON `cached_movies` (`playlistId`, `generationId`, `categoryId`)",
+    "CREATE INDEX IF NOT EXISTS `index_cached_movies_playlistId_generationId_name` ON `cached_movies` (`playlistId`, `generationId`, `name`)",
+    "CREATE INDEX IF NOT EXISTS `index_cached_movies_playlistId_generationId_addedAtEpochSeconds` ON `cached_movies` (`playlistId`, `generationId`, `addedAtEpochSeconds`)",
+    "CREATE INDEX IF NOT EXISTS `index_cached_series_playlistId_generationId_categoryId` ON `cached_series` (`playlistId`, `generationId`, `categoryId`)",
+    "CREATE INDEX IF NOT EXISTS `index_cached_series_playlistId_generationId_name` ON `cached_series` (`playlistId`, `generationId`, `name`)"
+  ],
+  "results": [
+    {
+      "trial": 0,
+      "mode": "defer5",
+      "load_s": 0.24608529498800635,
+      "restore_s": 0.22377631900599226,
+      "total_s": 0.4698616139939986
+    },
+    {
+      "trial": 0,
+      "mode": "current2000",
+      "load_s": 0.6357484559994191,
+      "restore_s": 3.597000613808632e-06,
+      "total_s": 0.6357520530000329
+    },
+    {
+      "trial": 1,
+      "mode": "defer5",
+      "load_s": 0.24077287799445912,
+      "restore_s": 0.20952859497629106,
+      "total_s": 0.4503014729707502
+    },
+    {
+      "trial": 1,
+      "mode": "current2000",
+      "load_s": 0.4714668050291948,
+      "restore_s": 2.5819754227995872e-06,
+      "total_s": 0.4714693870046176
+    },
+    {
+      "trial": 2,
+      "mode": "current2000",
+      "load_s": 0.4547391580417752,
+      "restore_s": 2.1180021576583385e-06,
+      "total_s": 0.4547412760439329
+    },
+    {
+      "trial": 2,
+      "mode": "defer5",
+      "load_s": 0.2302567419828847,
+      "restore_s": 0.2023105610278435,
+      "total_s": 0.4325673030107282
+    },
+    {
+      "trial": 3,
+      "mode": "defer5",
+      "load_s": 0.23267524602124467,
+      "restore_s": 0.20368071499979123,
+      "total_s": 0.4363559610210359
+    },
+    {
+      "trial": 3,
+      "mode": "current2000",
+      "load_s": 0.5141938830493018,
+      "restore_s": 9.297975338995457e-06,
+      "total_s": 0.5142031810246408
+    },
+    {
+      "trial": 4,
+      "mode": "defer5",
+      "load_s": 0.2502297780010849,
+      "restore_s": 0.21487261698348448,
+      "total_s": 0.4651023949845694
+    },
+    {
+      "trial": 4,
+      "mode": "current2000",
+      "load_s": 0.4620868169586174,
+      "restore_s": 2.1170126274228096e-06,
+      "total_s": 0.46208893397124484
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalPlaylistCodec.kt",
+    "sha": "672cabb0a3c3af9adae440023caa3de8cb90d9f061c353129f7116d41150eb4b",
+    "before": [
+      "9199924da38d24159572f1ff126e3a0f8babaebbe32614d8a28a9ad34d772bd4"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheDatabase.kt",
+    "sha": "ed9a328dfda03f363fa3ad9e320364a9eaf066861db2c742d02e497d20194fac",
+    "before": [
+      "f8b2eafa3f1ec7a15595db0f35ef0a0597a3325733bfb89d9ea0977ad4362208"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/XtreamBulkIndexes.kt",
+    "sha": "bf49b827d2224ad420c437ec081e1e55cd7bdab52038f99baa451709d6780a8b",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/storage/PlaylistProtocolTrace.kt",
+    "sha": "b13831a8b7eb326fb29043a57dcb9616619aa49edc565e2ec2bd351a3e7e289d",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/storage/PlaylistStorage.kt",
+    "sha": "02d567db64ad2c28c985d23e3dcf66a70d8c1a7f2d6eded62c90c833f92757fa",
+    "before": [
+      "c47a18aaa78cf488ef02edf394b53ee7f17d701950e947ccb2ee230a354f20fb"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt",
+    "sha": "32242175a0ab3046582c3cc06d456ad70aca1c02150f0febf3991a1ead08f6f7",
+    "before": [
+      "d2ead62e67a3461b69ee0a236fabdaf02ee02600391860f89dacf999a4cf5882"
+    ],
+    "allowMissing": false
+  }
+]

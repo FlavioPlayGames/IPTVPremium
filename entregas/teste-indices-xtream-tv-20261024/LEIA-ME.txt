@@ -1,0 +1,16 @@
+Experiência: índices adiados no Xtream (meta de reduzir o tempo; 15 segundos não garantidos).
+Aplicar após os testes anteriores de transações de 2.000 e separador JSON. Requer variante desempenho configurada. Não apaga dados.
+
+Durante a carga de filmes e séries Xtream, cinco índices de categoria/nome/data são retirados e reconstruídos em transação antes de marcar o catálogo pronto. Chaves primárias e índices providerOrder permanecem para a recuperação por categoria. O esquema Room continua versão 4; não há FTS, nova tabela ou migração. A reconstrução também inclui gerações antigas ainda armazenadas, portanto pode reduzir ou anular o ganho de carga. Consultas a filmes/séries durante a carga podem ficar mais lentas enquanto esses índices estão ausentes. Canais e M3U não recebem esta mudança.
+
+Segurança: um coordenador por processo serializa os donos dos índices. Nenhuma transação fica aberta durante a rede. O finally restaura os índices mesmo sob cancelamento; esta reconstrução precisa terminar antes de liberar a operação. Se o processo morrer, onOpen repara os índices ausentes. Reparar na abertura pode acrescentar tempo após uma importação interrompida. O retorno READY só acontece depois de restauração bem-sucedida. Falhas preservam a geração ativa.
+
+Diagnóstico do tipo: PlaylistProtocolPerf registra portal_received, storage_save, storage_read, sync_requested e sync_started com uma impressão digital do ID e o tipo. Não registra ID original, nome, URL ou credenciais. Leituras/gravações repetidas com tipo inalterado são suprimidas. Não há conversão automática entre M3U e Xtream; esta etapa busca a origem da divergência observada.
+
+Medição: use XTREAM_TOTAL (inclui reconstrução), XtreamBulkPerf phase=load/restored/open_repair, XtreamWritePerf e XtreamFramingPerf. Não compare somente o tempo dos endpoints, que não inclui a reconstrução final dos índices.
+
+Testes locais: compilação Kotlin; sucesso, falha, cancelamento durante a importação e após DROP confirmado, falha de reparo, concorrência, reparo real de abertura via interface SQLite e preservação do protocolo portal. Modelo no SQLite com 44.724 filmes e 20.170 séries, geração antiga presente, cinco repetições, conferência de integridade, contagens, ordem e reparo de cada subconjunto de índices removidos. Não substitui o teste Android na TV.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho; pode levar vários minutos. Instalar-TV.ps1 instala sem apagar dados e não abre o aplicativo. Inicie a captura anterior, abra o aplicativo, envie uma lista Xtream pelo site e atualize a MESMA lista uma vez. Envie o log e informe se o loading terminou. Não teste M3U nesta rodada.
+
+Desativar: Desfazer.ps1 -Projeto CAMINHO -Testar e depois Instalar-TV.ps1. Este desfazer restaura a importação anterior e os registros de protocolo anteriores, mas MANTÉM o callback de reparo e seu helper. Isso permite reconstruir os índices na próxima abertura mesmo se a TV tiver encerrado a importação anterior no meio. Os backups completos de todos os fontes ficam em .indices-xtream-tv-backups. Não restaure manualmente uma versão anterior sem antes abrir a versão com reparo após uma interrupção.

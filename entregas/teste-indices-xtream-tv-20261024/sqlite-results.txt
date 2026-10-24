@@ -1,0 +1,3 @@
+PASS: real SQLite preserves old/new row counts, order fields and all indices; every interrupted DROP subset repairs
+current2000 median_s= 0.4715 range= [0.4547, 0.6358]
+defer5 median_s= 0.4503 range= [0.4326, 0.4699]
