@@ -1,0 +1,56 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "sha": "ea5391f6b29d7f9d7298297189ba9e42575de9dc9252a2d6ad4940d93efe9c41",
+    "before": [
+      "24badad8dad72325a1bad3cbd88b4676ae192f68844f27d16507125257467a41"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/LibVlcPlaybackAdapter.kt",
+    "sha": "e0e014a68083a3bec75a9dee6a0b03568dda122b21f45dd50c1f9e86e521c066",
+    "before": [
+      "b01e4a96eef79e4b498b29ea42b7cc5f467ed413f7268de574d4e757a6c6f493"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+    "sha": "9fd219bc5355b57325b0ab2c3efc28a9f20702d831fc1770dd063ca4716651d3",
+    "before": [
+      "06ffd1e50601825e83fccb6776936a2a7ab08ee18e99977f6c4fa348cb5ec564"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt",
+    "sha": "676a9b876d19aac2e6e4ee67b1e8289f917f093863f3309fa340897cd9dcbf74",
+    "before": [
+      "328861c7ca9677646cb76fae3684ec522995b44fa36f83ecfa7d0077e55fd4fa"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "43d5fa6de3504d5b540671787ed9e5e228b5fce17a72765d2a167f3c6e950cfe",
+    "before": [
+      "adcea86db587bff96cf60a62d8accaacc8fa2dfe86cb8997774bdafdbe5212e7"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesArtworkIdentityResolver.kt",
+    "sha": "6b7d915d564f5c7381c48d9093cc62283aa1c5bf04b37520efd3382e800cd398",
+    "before": [
+      "28352d128420dbc9044ebc9adeb0903a7c7092a34874f02b0207552e9ff1bd98"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogYearLabel.kt",
+    "sha": "07ddbcad727c697d471a30b2f8e1838a76bd2bf79e7ca9dee6de7c5c297c3a01",
+    "before": [],
+    "allowMissing": true
+  }
+]

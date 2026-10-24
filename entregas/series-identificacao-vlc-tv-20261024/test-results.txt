@@ -1,0 +1,9 @@
+PASS: 13 display-year cases preserve explicit metadata, accept one bracketed year and reject conflicting years/title numbers
+PASS: unknown-year homonyms remain unresolved without proof; trusted official images distinguish either series, even with an incorrect provider year
+PASS: third-party files, spoofed hosts, non-HTTP and malformed paths cannot prove identity
+PASS: a translated details poster does not invalidate the same verified candidate ID/title
+PASS: official title verification and ambiguity protection; previous year/explicit-ID identification remains working
+PASS: cancellation propagates; no guessed series or hard-coded title mapping
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 37s
+PowerShell: aplicação, reaplicação, validação de hashes antes de copiar, rollback exato e remoção do helper: PASS
+Teste do resolvedor com respostas simuladas e testes puros de ano; sem reprodução nativa/instrumentação Android TV.
