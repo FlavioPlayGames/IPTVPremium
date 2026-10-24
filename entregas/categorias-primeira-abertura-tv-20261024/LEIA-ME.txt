@@ -1,0 +1,16 @@
+Base cumulativa 2a4b31b (resumos por geração), validada com RAM <1 ms e disco Filmes 170-194 ms / Séries 3-4 ms. Mudança restrita à geração do nome do resumo e diagnóstico de leitura inicial.
+
+O hash SHA-256 vira hexadecimal com tabela de caracteres, sem criar 32 formatadores de texto. O resultado é idêntico ao anterior, incluindo zeros à esquerda: nomes, chave por playlist/geração/tipo, extensão .bin, cabeçalho, conteúdo e checksum permanecem compatíveis. Não é necessário apagar resumos, cache, dados ou reimportar. Não afirma que o Formatter era responsável por todos os 170-194 ms: esse tempo também inclui inicialização do orçamento de cache e leitura/validação.
+
+Novas medições CategoryCountStagePerf, somente ao procurar em disco:
+- file_key: serialização da chave, hash e nome do arquivo (inclui inicialização criptográfica se houver).
+- storage_retain: obtenção do orçamento de armazenamento e proteção da leitura, incluindo sua eventual primeira varredura.
+- file_read: leitura dos bytes do resumo.
+- verify_decode: checksum, cabeçalho, grupos, validação e atualização de acesso do arquivo.
+CategoryCountCachePerf continua medindo o total da obtenção, incluindo espera interna; categoryMetadata_* inclui também consulta de geração, categorias e filtros. Não some pai e filhos. Logs não incluem IDs, URLs ou credenciais.
+
+Limites, cancelamento, fallback ao Room e política de Kids/PIN não mudam. Não cria tarefas antecipadas nem altera importação, histórico, capas, reserva ou player. O efeito real na primeira abertura só poderá ser medido no aparelho; os testes locais verificam compatibilidade e comportamento.
+
+Teste: aplique e instale; inicie Capturar-Limpeza.ps1 antes de abrir o aplicativo. Abra Filmes e Séries; feche o aplicativo e abra de novo (não basta voltar à Home) e repita, duas vezes se possível. Não limpe o cache, pois queremos ler os resumos existentes. Depois alterne também com Kids. Finalize a captura com Ctrl+C e envie Downloads/armazenamento-limpeza.txt. Não precisa trocar/atualizar/importar a lista.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho; Instalar-TV.ps1 instala pela ABI com -r, sem limpar dados; Desfazer.ps1 restaura os dois arquivos. Hashes são validados antes de aplicar e há backup.

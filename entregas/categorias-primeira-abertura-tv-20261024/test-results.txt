@@ -1,0 +1,11 @@
+PASS: direct hex matches legacy Formatter for all 256 byte values and empty/hash boundaries
+PASS: legacy file name remains identical; stage diagnostics preserve disk hits
+PASS: RAM reuse, disk restart, null/empty/Unicode IDs, separate generations/lists/media
+PASS: corrupt disk summary rejected, recomputed and repaired
+PASS: cancellation leaves no partial result, concurrent readers share one query
+PASS: unavailable disk and zero global cache budget preserve working Room/RAM result
+PASS: disk bounded to twelve summaries / 512 KiB; oldest generation reloaded after eviction
+PASS: real repository shares raw counts across Kids/access changes, reapplies projection and grants; new generation/list/media triggers fresh query
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 31s
+PowerShell: instalação, reaplicação, rejeição de fontes divergentes e rollback byte a byte: PASS
+Testes locais com DAO simulado; sem teste instrumentado de Room/Compose/TV.
