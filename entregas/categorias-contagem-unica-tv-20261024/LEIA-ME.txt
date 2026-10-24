@@ -1,0 +1,11 @@
+Base cumulativa: 9ea022f, miniaturas e progresso validados pelo usuário.
+
+Abertura dos metadados de Filmes/Séries/Kids: usa a contagem agrupada por categoria para obter também o total. Remove a consulta COUNT(*) adicional; Kids deixa de solicitar a mesma contagem agrupada duas vezes na abertura. Inclui itens sem categoria (NULL/vazia), mantém a regra anterior da chave de legendados no total de Kids, a filtragem de categorias e a seleção/ordenação atual. Filmes passa a verificar a playlist antes de publicar os metadados retornados, como Séries já fazia.
+
+Não é cache novo: a primeira consulta agrupada ainda lê o catálogo no banco. Não garante abertura instantânea após reiniciar o processo. Não muda banco/importação, controle parental, capas, antecipação de cinco fileiras ou player. Não altera os métodos de contagem usados em outros caminhos.
+
+CatalogReadPerf operation=categoryMetadata_MOVIES e categoryMetadata_SERIES registram o total do trabalho; dentro deles aparecem get*CountsByCategory/get*Categories, sem getMovieCount/getSeriesCount adicional desta abertura. Não some os tempos do pai e dos filhos.
+
+Teste no aparelho: capture; abra Filmes, Séries e Kids, volte entre as abas e entre em categorias. Confira os totais e a fluidez. Feche/abra o app e repita. Não precisa limpar cache, trocar lista nem reimportar. Após 2 minutos na Home, encerre com Ctrl+C e envie Downloads/armazenamento-limpeza.txt. Ganho real de tempo precisa desse teste na mesma TV.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho; Instalar-TV.ps1 instala a ABI compatível com -r; Desfazer.ps1 restaura os três arquivos. Valida hashes antes de alterar e mantém backup.

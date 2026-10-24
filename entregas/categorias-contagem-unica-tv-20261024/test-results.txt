@@ -1,0 +1,4 @@
+PASS: 120 comparisons of production totals with SQLite COUNT(*), including null, empty and subtitle categories
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 32s
+PowerShell: aplicação, reaplicação, rollback byte a byte e rejeição de arquivos divergentes: PASS
+Sem teste instrumentado na TV.
