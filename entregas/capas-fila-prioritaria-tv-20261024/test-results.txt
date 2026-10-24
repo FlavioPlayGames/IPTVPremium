@@ -1,0 +1,8 @@
+PASS: recent visible requests overtake queued older work and all visible requests precede queued anticipation
+PASS: aging stops newer requests indefinitely postponing a still-visible cover
+PASS: six total connections and two anticipated connections remain enforced with mixed queues
+PASS: cancelling queued/active requests and operation failure release permits without executing stale entries
+
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 41s
+Device/runtime measurement pending.
+PowerShell: install/reapply/exact rollback and modified-source rejection PASS

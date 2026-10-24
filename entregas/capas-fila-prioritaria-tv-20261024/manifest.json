@@ -1,0 +1,18 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "811031574bd2008f253ab52048510d7692919588e62c905ddf0e7b7f678a8d16",
+    "before": [
+      "b168621c928ccb718aa1fecd555eb53c136c101d636c54046c3f899e1e2dd268"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterNetworkBudget.kt",
+    "sha": "5121285e6c9c04ef959eeeee1bbfc872aa7b80188ee36548e49c8e6da6d9f7b6",
+    "before": [
+      "e825a05a2cd8af7992b3c294db76952d929ac8117664f9b3d23f299e627ee21d"
+    ],
+    "allowMissing": false
+  }
+]

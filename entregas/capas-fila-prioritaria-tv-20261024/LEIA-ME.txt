@@ -1,0 +1,15 @@
+Fila prioritária de capas. Base: pacote capas-visiveis-tv já aplicado, usado no último log.
+
+Substitui os semáforos FIFO pela fila com as mesmas cotas: seis operações totais e no máximo duas de antecipação. Havendo pedidos visíveis aguardando, nenhum novo pedido antecipado é escolhido para a próxima vaga. As operações já iniciadas não são interrompidas apenas para reordenar a fila; o cancelamento por visibilidade da versão anterior continua.
+
+Entre pedidos visíveis aguardando, atende primeiro o mais recente. Para evitar adiar continuamente uma capa antiga ainda visível, se o mais antigo já esperou pelo menos 750 ms, ele volta à frente. Este valor NÃO é timeout nem garantia de tempo máximo: vagas ocupadas e servidor lento ainda podem aumentar a espera. Cancelamento de pedidos na fila, depois da concessão e durante a operação devolve a vaga. Retomadas são notificadas fora do monitor para não prender a fila durante IO.
+
+Diagnóstico: PosterDownloadResult distingue success, cancelled, priority_busy, priority_interrupted, activity_interrupted, http_status, timeout, io_error, cache_budget, image_too_large, empty_body, image_prepare e falhas de caminho/commit. Registra tipo de exceção e código HTTP, nunca URL, mensagem de exceção ou credenciais. Um erro IO sem cancelamento da coroutine continua classificado como IO; interrupção por prioridade é inferida pelos sinais ativos no momento do erro. Eventos de resultado são apenas para chamadas que entraram no download; pedidos cancelados ainda na fila não têm evento de download. PosterLoadPerf stage=load só é emitido após verificar que a coroutine continua ativa, evitando apresentar uma chamada já cancelada como falha comum. Cancelamento observado após IOException volta a propagar CancellationException, sem virar ausência de capa por cinco minutos.
+
+Não altera importação, banco, capacidade de RAM/disco, resolução, quantidade de conexões, antecipação de cinco capas ou política de limpeza. Não garante eliminar atrasos de rede.
+
+Validação: compileDesempenhoKotlin e testes de prioridade recente, envelhecimento, preferência sobre antecipação, cotas simultâneas 6/2, cancelamento e falhas sem vazamento de vagas; instalador reaplicável, rollback exato e rejeição de fontes diferentes. A classificação dos resultados foi compilada/revisada; teste real de transporte e desempenho continua no aparelho.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar gera assembleDesempenho. Instalar-TV.ps1 mantém instalação por ABI com -r sem limpar dados. Desfazer.ps1 restaura os dois arquivos da base.
+
+Inicie Capturar-Limpeza.ps1 antes de abrir. Repita início de filmes, navegação ao meio, troca para séries e retorno a capas vistas. Não atualize/importa lista nem limpe caches. Se notar atraso, anote o horário aproximado. Ao terminar fique na Home por dois minutos, Ctrl+C e envie Downloads/armazenamento-limpeza.txt. Os dados serão comparados levando em conta o cache já aquecido.
