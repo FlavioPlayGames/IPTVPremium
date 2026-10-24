@@ -1,0 +1,5 @@
+PASS: irregular reader batches produce <=2000-row writes, preserve order, flush tails and are idempotent
+PASS: retry reset discards buffered and persisted attempt and restarts provider order
+PASS: cancellation before a tail flush prevents DAO writes
+PASS: local failure is propagated and buffer is not silently lost
+PASS: unbuffered stages retain immediate writes and first-wins duplicates remain first

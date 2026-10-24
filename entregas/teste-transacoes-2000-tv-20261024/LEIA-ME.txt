@@ -1,0 +1,12 @@
+Teste de transações de até 2.000 registros - Xtream filmes e séries.
+Aplicar sobre o projeto atual, com variante desempenho já configurada. Preserva diagnósticos HTTP e correções anteriores.
+
+A leitura/parsing continua em lotes de até 500 e com o limite de caracteres existente. O escritor acumula entidades para uma chamada Room de até 2.000 registros. Há no máximo 1.999 registros pendentes por tipo entre chamadas; não há transação aberta enquanto aguarda rede. Restos são gravados antes de marcar a geração como READY. Índices, esquema, banco ativo e ativação de gerações não foram alterados.
+
+Escopo: importação direta completa de filmes e séries Xtream. Canais e M3U permanecem como antes. A recuperação por categorias continua com escritores temporários e cópia em lotes de 500. Se o provedor exigir esse caminho, esta experiência não testa lotes maiores nele.
+
+Validação local: compileDesempenhoKotlin aprovado; testes do escritor com lotes irregulares, ordem, flush final, repetição do flush, reset de tentativa, cancelamento antes da gravação, falha local, comportamento imediato dos escritores temporários e duplicatas first-wins. Instalador testado para reaplicação, restauração e rejeição de arquivo divergente. Sem validação na TV nesta etapa.
+
+Medição: XtreamWritePerf informa type, rows, transactionLimit e durationMs de cada gravação acumulada. O último lote pode aparecer depois do log do endpoint, pois é gravado ao finalizar a importação. Compare XTREAM_TOTAL e a soma XtreamWritePerf; parsingMs/gravacaoMs por endpoint, isoladamente, não incluem necessariamente os restos finais. Os logs HTTP anteriores continuam disponíveis para distinguir variação de conexão.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho. Instalar-TV.ps1 instala sem apagar dados e sem abrir o aplicativo. Inicie a captura anterior, abra o aplicativo e atualize a mesma lista uma vez. Depois navegue em filmes/séries/canais e envie o log. Não precisa apagar dados ou cadastrar outra lista. A otimização da compilação pode levar vários minutos. Desfazer.ps1 restaura os dois fontes deste teste; para reinstalar a versão anterior, use -Testar ao desfazer e depois Instalar-TV.ps1.

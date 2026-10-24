@@ -1,0 +1,18 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt",
+    "sha": "d2ead62e67a3461b69ee0a236fabdaf02ee02600391860f89dacf999a4cf5882",
+    "before": [
+      "82bcce69f76b20d42c16e96b6e95f58668a67b0f3703b831bb769a06ae82e6b4"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/XtreamCatalogWriter.kt",
+    "sha": "380cd9e148d339830b6001930da4fedd0adf3d3500d92a844b6470d592d2e273",
+    "before": [
+      "adca26dd131826738259514986fef020998b92279828a526f00594cf731b885c"
+    ],
+    "allowMissing": false
+  }
+]
