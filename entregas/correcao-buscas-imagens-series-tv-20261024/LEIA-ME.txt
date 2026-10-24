@@ -1,0 +1,16 @@
+Reduzir consultas alternativas desnecessárias nas imagens de séries.
+Base: projeto com a correção de permanência/prioridade das imagens (pacote 0692acb). Mantém a leitura direta Xtream e as demais correções.
+
+Uma falha agora pertence à lista exata de URLs testadas. Quando o TMDB fornece uma nova foto, a falha da capa antiga não dispara uma consulta alternativa antes de testar a nova referência. O sucesso remove a falha anterior. Um fundo falho não dispara outra busca enquanto houver outro candidato válido ainda disponível ou pendente. Fotos alternativas já encontradas são reaproveitadas.
+
+A busca suplementar recebe apenas os números dos episódios que precisam de imagem, em vez de toda a temporada. A chave considera o conjunto exato de episódios, não apenas se ele está vazio. A consulta/resposta suplementar também usa o cache por rota compartilhado entre a abertura e a ficha, evitando executar duas buscas idênticas e repetir resultados vazios já concluídos. O serviço pode devolver o catálogo completo de episódios; o aplicativo seleciona somente os números solicitados. Continua buscando alternativas quando as referências atuais realmente falham ou estão ausentes.
+
+Mantém fotos já carregadas, preferência por imagens oficiais e rejeição de capas verticais. Não altera a importação, banco, tamanho dos lotes ou player. O ganho visual depende dos tempos de rede e deve ser confirmado na TV.
+
+Validação: compileDesempenhoKotlin e testes de falha antiga contra referências novas, falhas atuais/missing, alternativa já disponível, ordem dos fundos, consulta compartilhada entre cópias, isolamento por temporada e reuso de resposta vazia. A apresentação Compose ainda precisa do teste visual no aparelho.
+
+Log: etapa=alternativas inicio/fim pode aparecer por instância da tela. A nova etapa=alternativas consulta fica dentro da operação compartilhada e identifica a consulta suplementar efetivamente executada, antes do cache HTTP. As mensagens não incluem URLs/credenciais.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho. Instalar-TV.ps1 instala sem apagar dados e não abre o app. Não precisa importar/atualizar listas. Inicie a captura anterior, abra Nurses e O Conto da Aia, aguarde o carregamento e troque algumas temporadas; depois volte às temporadas já abertas. Confira se fotos e fundo permanecem, e envie o log. O build otimizado pode demorar alguns minutos.
+
+Desfazer.ps1 -Projeto CAMINHO -Testar restaura a versão anterior desta correção; use Instalar-TV.ps1 para reinstalar. Backup: .buscas-imagens-series-tv-backups.

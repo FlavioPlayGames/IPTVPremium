@@ -1,0 +1,4 @@
+PASS: old cover failure cannot trigger a fallback for new official photos; actual failures/missing images still trigger; existing alternatives are reused
+PASS: another failed backdrop does not cause extra work while a candidate exists; exhausted candidates still allow recovery
+PASS: preview and final page share fallback request/result; another season receives its own request
+PASS: completed empty supplemental results are memoized instead of repeating on recomposition
