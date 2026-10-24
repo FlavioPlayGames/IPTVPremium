@@ -1,0 +1,1 @@
+PASS: production season function processes names and images off UI without changing results

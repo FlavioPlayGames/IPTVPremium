@@ -1,0 +1,22 @@
+PASS evento de erro sem estado ERROR aciona motor alternativo
+PASS troca preserva posicao e libera motor anterior
+PASS falha nos dois motores encerra sem loop
+PASS ticker nao exibe erro definitivo durante recuperacao AUTHENTICATION
+PASS estado e evento duplicados fazem uma troca AUTHENTICATION
+PASS ticker nao exibe erro definitivo durante recuperacao SOURCE_UNAVAILABLE
+PASS estado e evento duplicados fazem uma troca SOURCE_UNAVAILABLE
+PASS DRM nao entra em tentativas inuteis
+PASS troca preserva escolha de pausa
+PASS rede tenta duas reconexoes e depois motor alternativo
+PASS sair cancela troca pendente
+PASS redirecionamento recusado troca uma vez sem duas reconexoes
+PASS limpeza nativa pendente adia proximo decoder sem bloquear UI
+PASS voltar durante limpeza cancela abertura adiada
+PASS nova abertura aguarda limpeza
+PASS abertura continua depois da limpeza
+PASS HTTP 401 encerra sem reconectar ou trocar motor
+PASS HTTP 403 encerra sem reconectar ou trocar motor
+PASS falha VLC generica usa uma alternativa sem repetir VLC
+PASS 403 confirmado apos VLC encerra ciclo
+PASS stop libera sessao imediatamente e posicao salva permanece
+PASS evento tardio depois da saida nao reabre player

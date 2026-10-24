@@ -1,0 +1,54 @@
+SAIDA DO PLAYER, ACESSO NEGADO E TEMPORADAS
+
+Complementa os pacotes anteriores; aplica cinco arquivos e guarda backup.
+
+ALTERACOES
+- Ao sair, salva a posicao e inicia o encerramento no proprio evento de Voltar,
+  antes de esconder a SurfaceView; nao aguarda o fim da transicao de navegacao.
+- Cancela recuperacoes e impede reabertura tardia da rota que esta saindo.
+- Pausa o VLC durante uma desconexao temporaria da superficie, conservando a
+  regra anterior de aguardar READY para voltar a iniciar a reproducao.
+- Respostas HTTP 401/403 confirmadas no Media3 nao repetem a carga nem acionam
+  reconexoes/trocas automaticas. O erro de acesso negado permanece visivel.
+- Falha generica do VLC tenta uma alternativa, sem duas recriacoes identicas
+  do VLC. Falhas de rede conhecidas conservam o tratamento anterior.
+- Parsing e preparacao das imagens e nomes da temporada passam para IO.
+
+O VLC nao informa o codigo HTTP no evento generico usado pelo adaptador. Por
+isso nao rotulamos toda falha dele como 403: o acesso negado so e confirmado
+quando o Media3 informa 401/403. Nao foram acrescentadas sondagens de rede.
+
+VALIDACAO
+Gradle :app:compileDebugKotlin: BUILD SUCCESSFUL.
+Testes do controlador: recuperacao, preservacao da posicao/pausa, cancelamento,
+encerramento com 401/403, alternativa unica apos VLC e eventos tardios: OK.
+Funcao real da temporada com resposta simulada: trabalho fora da UI e mesmos
+nomes/imagens resultantes: OK.
+Bloco real da politica de carga com tipos simulados: 401/403 diretos e envolvidos
+na causa nao repetem; outros erros preservam a politica anterior: OK.
+Instalador: aplicacao, repeticao, restauracao byte a byte e rejeicao previa de
+fontes modificados: OK.
+Os codecs nativos e o ganho de fluidez precisam ser conferidos na TV.
+
+APLICAR
+Extraia em Downloads\correcao-saida-temporadas-tv. Dentro do projeto:
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-saida-temporadas-tv\Aplicar.ps1" -Projeto (Get-Location).Path -Testar
+
+INSTALAR SEM RUN/DEBUG
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-saida-temporadas-tv\Instalar-TV.ps1" -Projeto (Get-Location).Path
+
+Inicie a captura por UID anterior e abra o aplicativo pelo controle.
+Com mais de um dispositivo conectado, informe -Dispositivo com o ID da TV.
+
+TESTE
+Sem importar novamente, mantenha VLC como principal. Abra um episodio e volte
+rapidamente durante o carregamento. Abra outro; teste pausa/retomada e troque
+entre temporadas. Se um conteudo voltar a apresentar acesso negado, confira se
+as tentativas terminam em vez de repetir. Envie navegacao-apos-correcao.txt.
+UiStallPerf, VlcSurfacePerf e PlayerReleasePerf continuam disponiveis.
+
+DESFAZER
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-saida-temporadas-tv\Desfazer.ps1" -Projeto (Get-Location).Path -Testar
+
+Instale novamente com Instalar-TV.ps1 apos restaurar.
