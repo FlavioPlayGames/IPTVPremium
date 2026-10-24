@@ -1,0 +1,47 @@
+CORRECAO DO PLAYER - COMPLEMENTO DA CORRECAO DE NAVEGACAO
+
+Base: java.zip restaurado enviado pelo usuario; os arquivos deste pacote nao
+substituem os dois arquivos da correcao anterior de navegacao.
+
+ALTERACOES
+- Media3: configura redirecionamentos HTTP/HTTPS explicitamente.
+- Se ainda houver uma resposta HTTP 3xx recusada, evita duas reconexoes identicas
+  e tenta o mecanismo alternativo dentro do limite de uma troca automatica.
+- VLC: stop e liberacao nativa executam em fila dedicada fora da interface.
+- A proxima abertura aguarda a limpeza sem bloquear a interface; voltar cancela
+  a abertura pendente. A limpeza continua mesmo depois de fechar a tela.
+- Remove a chamada redundante de stop antes de release no controlador.
+- Tag PlayerReleasePerf registra o tempo de desligamento nativo e de desconexao
+  da superficie, sem links ou credenciais.
+
+APLICAR
+Extraia o ZIP em Downloads\correcao-player-tv e execute dentro do projeto:
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-player-tv\Aplicar.ps1" -Projeto (Get-Location).Path -Testar
+
+O script valida os arquivos e faz backup antes de aplicar. Depois instale pelo
+Android Studio. Nao e necessario importar ou atualizar listas para este teste.
+
+TESTE NA TV
+Capture o log por UID como no teste anterior. Abra um episodio que apresentava
+falha, volte enquanto estiver carregando e abra outro conteudo. Confira se o
+controle responde durante a saida e se a reproducao seguinte inicia normalmente.
+Envie o log, incluindo PlayerReleasePerf e eventuais erros Media3/VLC.
+
+VALIDACAO LOCAL
+Compilacao Gradle :app:compileDebugKotlin: BUILD SUCCESSFUL.
+16 verificacoes JVM de recuperacao/cancelamento e espera da limpeza: passaram.
+Instalador: aplicacao, idempotencia, restauracao byte a byte, remocao do arquivo
+novo ao desfazer e rejeicao previa de fontes modificados: passaram.
+Os testes usam adaptadores simulados; nao reproduzem os codecs ou a rede da TV.
+
+LIMITES
+Habilitar redirecionamentos nao garante que o servidor forneca um destino valido.
+A desconexao da superficie permanece na thread Android exigida pelo LibVLC e
+agora tem medicao propria. A resolucao do travamento precisa ser validada na TV.
+Este pacote nao altera importacao nem trata os engasgos restantes da grade.
+
+DESFAZER
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-player-tv\Desfazer.ps1" -Projeto (Get-Location).Path -Testar
+
+Instale novamente o aplicativo apos restaurar os fontes.
