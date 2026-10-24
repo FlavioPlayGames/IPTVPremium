@@ -1,0 +1,14 @@
+Prioridade das capas visíveis. Base: pacote capas-sem-espera-tv já aplicado, conforme o último teste.
+
+1. O coordenador da grade informa as URLs visíveis. Carregamentos de cards fora desse conjunto aguardam; se saírem da área visível durante a carga, o trabalho é cancelado. Quando voltam a aparecer, podem reiniciar, sem registrar o cancelamento como capa permanentemente ausente. RAM já disponível continua instantânea. Quando não há grade registrada, mantém o comportamento normal de outros chamadores.
+2. HTTP recebe um observador filho da própria coroutine de carga: cancelamento desconecta a conexão em IO, ajudando a liberar o slot sem esperar o readTimeout. Não cria tarefa global nem cancela requisições de outras imagens. Uma operação não cancelável de decode/recompressão já iniciada ainda pode terminar.
+3. A antecipação da categoria deixa de percorrer todas as páginas até o final. Atende as capas visíveis, espera 200 ms e solicita no máximo as próximas cinco. Cancelamento/mudança da área visível interrompe esta antecipação. Mantém seis downloads totais, dos quais até dois antecipados.
+4. Apenas essa antecipação curta pode ocorrer durante a navegação, sem aguardar os dez segundos de ociosidade; permanece sujeita à mudança da área visível, rolagem, pressão de RAM, importação e seleção de mídia. As outras chamadas antecipadas mantêm a política anterior de interrupção por atividade.
+
+Não altera importação, Room, resolução das imagens, cache de falhas, limite de RAM, teto de cache ou a meta total de 400 MB. O tempo de rede ainda varia; não garante que todas as capas apareçam sem atraso.
+
+Validação: compileDesempenhoKotlin, testes de cancelamento e retomada por visibilidade, separação entre filmes/séries, saída da grade e desconexão durante IO bloqueado; instalador idempotente, rollback exato e rejeição de fonte divergente. Comportamento Compose real e melhora visual precisam do teste no aparelho.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar; Instalar-TV.ps1 mantém instalação por ABI com -r sem apagar dados; Desfazer.ps1 restaura a versão anterior. A base precisa conter o helper PosterRequestLocks do pacote anterior.
+
+Capturar-Limpeza.ps1: abra o app e repita a navegação inicial, o salto para o meio da lista e a troca para séries. Volte também a algumas capas vistas. Se houver atraso anote o horário aproximado. Volte à Home por dois minutos, Ctrl+C e envie Downloads/armazenamento-limpeza.txt. Não atualize lista nem limpe caches. PosterLoadPerf continua registrando os tempos de arquivo, preparação e fila, sem URLs ou credenciais.

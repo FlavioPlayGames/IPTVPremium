@@ -1,0 +1,7 @@
+PASS: leaving viewport cancels old load without returning a permanent failure; reentry restarts and completes
+PASS: empty viewport blocks offscreen loads; kinds stay isolated; release permits non-grid callers
+PASS: cancellation disconnects IO while the owner is still blocked, freeing it before its timeout
+
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 25s
+PowerShell: install/reapply/exact rollback/modified-source rejection PASS
+No Android TV runtime measurement of this patch yet.
