@@ -1,0 +1,15 @@
+Base cumulativa a583709 (contagem única), preservando miniaturas/progresso 9ea022f e fluidez da grade.
+
+Resumo das contagens de Filmes e Séries: cache limitado em RAM e persistência descartável em cacheDir/catalog_category_counts_v1, por playlist + UUID da geração ACTIVE + tipo. Primeira leitura da versão calcula GROUP BY no Room; próximas leituras usam RAM. Uma nova instância/processo pode ler o resumo do disco. Importação/atualização recebe novo UUID, portanto não reutiliza contagens da versão anterior. Troca de lista usa outra chave. Não altera importação, banco, schema, FTS ou índices. Canais não são incluídos: seu catálogo pode ser publicado dentro da mesma geração.
+
+Só contagens brutas são guardadas; Kids, kidsOnly, cadeados/PIN e nomes/ordem das categorias são aplicados na leitura, com a mesma política existente. Metadados usam uma única geração e um único estado de acesso para a leitura. Séries continuam ocultando categorias vazias; Filmes preserva a regra atual. Itens sem categoria não desaparecem do total.
+
+Limites: doze resumos em RAM e no disco; até 512 KiB de resumos em disco, até 128 KiB por arquivo; até 4096 grupos e 32768 caracteres de IDs por resumo. Não guarda filmes, episódios, capas, URLs nem credenciais. Reservas/leituras respeitam AppCacheStorage, que já limita o cache total. Resumos grandes demais são servidos pelo Room sem retenção. São gravados em temporário e renomeados, com SHA-256 do conteúdo. Arquivo ausente, corrompido ou sem espaço volta ao Room sem bloquear a navegação por erro de cache. Cancelamento propaga normalmente; não há worker/tarefa de fundo novo.
+
+CategoryCountCachePerf: kind=MOVIES|SERIES source=database|ram|disk groups=N totalMs=N. Mede obtenção das contagens, incluindo espera interna/serialização quando aplicável. categoryMetadata_* mede também categorias/filtros/geração; não some tempos do pai e filhos. Logs não incluem IDs de lista nem credenciais. A primeira abertura após instalar pode continuar com o custo anterior (cache ainda vazio). A rapidez visual completa depende também de Paging/composição/capas.
+
+Teste: inicie Capturar-Limpeza.ps1. Abra Filmes e Séries, depois Kids e repita as trocas. Feche e reabra o app sem limpar cache e repita, para medir disco após novo processo. Troque de lista, se houver outra disponível, e confira os totais; ao atualizar uma lista, confira novamente (novo resumo deve vir do banco). Não precisa reimportar para testar as trocas normais. Home por dois minutos, Ctrl+C e envie Downloads/armazenamento-limpeza.txt, com observação de qualquer diferença visual. Não execute limpar cache neste teste de persistência.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho. Instalar-TV.ps1 mantém instalação pela ABI com -r e sem apagar dados. Desfazer.ps1 restaura os dois arquivos e remove o helper novo; resumos restantes são cache descartável e a versão anterior não os lê.
+
+Testes locais: compilação Kotlin, comportamento do cache e projeção do repositório com DAO simulado; não constituem teste instrumentado de Room/Compose/TV. Ganho real será medido no aparelho.

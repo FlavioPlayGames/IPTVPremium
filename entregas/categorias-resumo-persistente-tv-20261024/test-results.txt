@@ -1,0 +1,9 @@
+PASS: RAM reuse, disk restart, null/empty/Unicode IDs, separate generations/lists/media
+PASS: corrupt disk summary rejected, recomputed and repaired
+PASS: cancellation leaves no partial result, concurrent readers share one query
+PASS: unavailable disk and zero global cache budget preserve working Room/RAM result
+PASS: disk bounded to twelve summaries / 512 KiB; oldest generation reloaded after eviction
+PASS: real repository shares raw counts across Kids/access changes, reapplies projection and grants; new generation/list/media triggers fresh query
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 26s
+PowerShell: aplicação, reaplicação, rollback exato e remoção do helper, rejeição de fontes divergentes antes de alterar: PASS
+Cache/repositório: execução local com DAO simulado, sem teste instrumentado Room/Compose/TV.
