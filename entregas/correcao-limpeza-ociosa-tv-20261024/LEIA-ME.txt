@@ -1,0 +1,10 @@
+Correção: limpeza do catálogo antigo respeita a navegação.
+Aplicar sobre a versão atual com a variante desempenho já configurada.
+
+A limpeza aguarda o período inicial existente e só trabalha quando o aplicativo está ocioso ou fora de primeiro plano. Ao usar o controle, abrir mídia ou importar, o trabalho é cancelado e pode retomar depois. Um lote SQLite já em execução pode terminar antes da pausa. Não altera esquema, índices, importação nem regras de reprodução.
+
+Compilação Kotlin aprovada. Seis testes aprovados, incluindo pausa e retomada com o gerenciador real de gerações. Instalador testado para aplicação repetida, restauração e rejeição de arquivos divergentes. A piscada do menu ainda precisa ser verificada na TV; a relação com a limpeza é uma hipótese.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho; a otimização pode levar vários minutos. Instalar-TV.ps1 instala sem apagar os dados e sem abrir o aplicativo. Desfazer.ps1 restaura o backup dos fontes.
+
+Teste: inicie a captura antes de abrir. Atualize a mesma lista uma vez para gerar um catálogo antigo. Navegue por mais de 60 segundos, pare por 10 a 15 segundos e volte a navegar. Registre se o menu pisca. A tag StorageMaintenancePerf informa phase=start, phase=paused e phase=complete. Envie o log completo, sem compartilhar credenciais publicamente.

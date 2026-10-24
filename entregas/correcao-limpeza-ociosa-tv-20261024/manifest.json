@@ -1,0 +1,26 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/ForegroundStorageGate.kt",
+    "sha": "1a24ea447a30cb7bedfdb31c77f553426b46eb7cc7d045d272bdb093af6dfec5",
+    "before": [
+      "ed5c593945a6fef86790ff7f5c197ca247924ae7d29cc3bcd51a2b04e5402387"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheGenerationManager.kt",
+    "sha": "6d6b50ace33a9e60cf5f02c69cb2788ebe248f9f32ec2e7dcea5bd85d3270398",
+    "before": [
+      "9d2eae0bde7d73b48bad4c7bd6dce162f01b2eb67174f5d205db3bdb0872ec61"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/UserActivityPriority.kt",
+    "sha": "b14cf5edd37bcecfeeb598a9483a8e2e073b0bffe20ee7643ca745a0ccbf6fef",
+    "before": [
+      "a7fc62121c7f3b51c3d2e9e64f2de989f1f510277365b2c9d3f8af7828329138"
+    ],
+    "allowMissing": false
+  }
+]
