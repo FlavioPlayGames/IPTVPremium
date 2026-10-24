@@ -1,0 +1,18 @@
+Acionamento e diagnóstico da manutenção. Base exata: java.zip enviado após o teste da limpeza rápida.
+
+A versão anterior sinalizava a manutenção na liberação inicial do catálogo e na importação; depois de uma passagem, podia aguardar até 15 minutos por outra. Enquanto as condições de prioridade bloqueavam o trabalho, não havia registro do motivo. Isso impede atribuir uma causa única aos logs antigos: ausência de phase=start não comprova falha da exclusão.
+
+Alterações:
+- MainActivity.onResume solicita verificação, sem liberar a trava de abertura inicial.
+- Ao entrar na rota Home, AppNavigation solicita verificação. A solicitação é coalescida pelo worker existente. Não exige atualizar/importar a lista.
+- StorageMaintenancePerf registra signal/request/wake, espera por próxima solicitação ou intervalo periódico, e estado do worker.
+- Enquanto a verificação está bloqueada, registra a condição nas mudanças de estado e a cada 30 segundos: opening, import, media, grace ou user_activity. O log inclui todos os booleanos para mostrar bloqueios simultâneos. eligible informa que não há bloqueio entre os estados observados, não prova que a limpeza foi executada. graceMs é a duração configurada, não uma contagem regressiva.
+- O diagnóstico só lê estados em memória enquanto espera. Não varre arquivos nem consulta SQLite nessas mensagens.
+
+Mantém carência inicial de 60 segundos, pausa por uso/abertura/importação, lotes de 500, teto de cache de 100 MB, meta de 400 MB totais e proteção de dados ativos. Uma solicitação não ignora essas condições. Não muda Room, índices, esquema ou retenção. Não força a manutenção durante reprodução nem garante teto absoluto durante uma atualização.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho. Instalar-TV.ps1 escolhe a ABI e instala com -r, sem desinstalar ou apagar dados. Desfazer.ps1 restaura os quatro arquivos anteriores.
+
+Captura: inicie Capturar-Limpeza.ps1, abra o aplicativo e navegue normalmente por filmes/séries. Volte à Home e aguarde três minutos sem controle/reprodução. Não é necessário importar nem atualizar. Encerre com Ctrl+C e envie Downloads/armazenamento-limpeza.txt. Se a manutenção ficar bloqueada, o registro deve mostrar qual condição a mantém em espera; não repita importações para tentar dispará-la.
+
+Validação local: compilação Kotlin e testes das prioridades, cancelamento/retomada entre lotes, diagnósticos e instalador. Teste real no aparelho pendente. A mudança de acionamento é testada por compilação e revisão; não há teste instrumentado de navegação Android neste ambiente.
