@@ -1,0 +1,11 @@
+Base cumulativa c56c980, última versão instalada. Pedido: retirar ano dos cartões e deixar nota/favorito, priorizando fluidez.
+
+Filmes e Séries: a linha de metadados abaixo do título mostra Nota: N.N e o coração de favorito; quando não há nota válida, mostra Nota: 0.0. Retira ano/Ano: — e duração dessa linha. Mantém capa, título, dimensões, foco, favorito, barra de progresso e carregamento das imagens. Não acrescenta consultas, componentes ou rede.
+
+Remove também o callback/efeito de gravação de anos dos detalhes, o controle de deduplicação na navegação e o método fillMissingSeriesYear do DAO. Os três arquivos são restaurados exatamente ao estado 6721c3a anterior à experiência de persistência de ano. Anos que já estavam gravados continuam como metadados locais; não há limpeza de registros para removê-los. A ficha de detalhes continua usando seus metadados existentes. O helper de formatação de ano de 6721c3a fica sem referências nos cartões e não é chamado; não cria trabalho em runtime.
+
+Preserva a identificação de séries pela capa oficial, as miniaturas e o diagnóstico de encerramento do VLC; abertura 92ffd2d e leitura rápida do cache continuam na base cumulativa. Não altera importação, armazenamento, player, histórico ou reserva de capas.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho. Instalar-TV.ps1 instala pela ABI com -r sem limpar dados. Desfazer.ps1 restaura os cinco arquivos. Valida hashes antes de copiar e mantém backup. Não precisa limpar cache, reimportar nem fazer novo teste longo de reprodução; confira apenas a apresentação dos cartões ao usar normalmente.
+
+Validação: compilação Kotlin/KSP e aplicação/reaplicação/rollback/rejeição de fontes divergentes. Alteração visual de baixo impacto, sem novos testes que repitam a implementação. Conferência visual no aparelho continua necessária.

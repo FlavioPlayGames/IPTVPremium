@@ -1,0 +1,4 @@
+compileDesempenhoKotlin/KSP: BUILD SUCCESSFUL in 37s
+PowerShell: aplicação, reaplicação, validação de hashes/rejeição antes de copiar e rollback byte a byte: PASS
+Conferência de fontes: sem referências dos cartões a catalogYearLabel; callback/SQL de preenchimento de ano removidos; nota e favorito preservados.
+Sem teste visual instrumentado no aparelho.
