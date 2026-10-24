@@ -1,0 +1,8 @@
+before exit: zero=null fifty=50 loaded=180 loads=[1:Refresh:0:30, 1:Append:30:60, 1:Append:90:60, 1:Append:150:60]
+reentry after access: zero=null loaded=180 loads=[1:Refresh:0:30, 1:Append:30:60, 1:Append:90:60, 1:Append:150:60] state=CombinedLoadStates(refresh=NotLoading(endOfPaginationReached=false), prepend=NotLoading(endOfPaginationReached=false), append=NotLoading(endOfPaginationReached=false), source=LoadStates(refresh=NotLoading(endOfPaginationReached=false), prepend=NotLoading(endOfPaginationReached=false), append=NotLoading(endOfPaginationReached=false)), mediator=null)
+REPRODUCED: initial cached snapshot displayed placeholders; pre-collection get calls did not trigger the missing page
+PASS: production post-collection hints load missing visible items without a new generation/refresh/category change; loaded items are untouched
+
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 32s
+TV/Compose/SQLite runtime validation pending.
+PowerShell: apply/reapply/exact rollback/modified-source rejection PASS
