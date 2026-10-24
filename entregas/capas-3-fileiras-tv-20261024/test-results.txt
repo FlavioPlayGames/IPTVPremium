@@ -1,0 +1,9 @@
+PASS: repeated fast movement pauses anticipation; slower continued movement resumes it after the quiet-fast interval
+PASS: held/repeated navigation extends the pause; stop resumes at 900ms after the final rapid event
+PASS: a large page yields only 15 compressed covers in groups of five and prepares only the nearest five
+PASS: cancelling mid-window stops the active batch and never starts the third group
+PASS: short/final pages and empty categories stay bounded
+
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 45s
+PowerShell: install/reapply/exact rollback and modified-source rejection PASS
+No TV runtime measurement of this version yet.

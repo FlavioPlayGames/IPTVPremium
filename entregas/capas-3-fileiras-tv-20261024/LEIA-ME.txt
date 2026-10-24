@@ -1,0 +1,18 @@
+Capas: janela de até 15 itens à frente, com pausa na navegação rápida.
+Base exata: correcao-retorno-catalogos-tv (d16c4fc), utilizado na última captura. Mantém as correções de visibilidade individual, limpeza de páginas antigas e gatilhos do histórico.
+
+Atende primeiro os arquivos das capas visíveis. Depois de 200 ms com a área estável, consulta a página local a partir do item posterior ao último visível e antecipa no máximo 15 posições, em grupos de cinco. Ao avançar, a janela acompanha a área visível; arquivos existentes são reutilizados. Categorias curtas e URLs vazias não geram busca além da janela. Não percorre toda a categoria. O limite é de 15 posições, equivalente a três fileiras no layout de cinco colunas; outras quantidades de colunas não alteram este limite.
+
+Apenas as cinco posições mais próximas são preparadas como bitmaps no LRU de RAM existente. As outras dez ficam como arquivos comprimidos em disco; o processamento transitório de download/recompressão já existente continua. Não aumenta a capacidade de RAM ou disco, nem cria 15 bitmaps persistentes extras. Séries usa sua pasta correta também na preparação antecipada.
+
+Pausa por velocidade: observa os sinais de movimentação/foco da grade. Três intervalos consecutivos de até 180 ms (quatro sinais) ativam rapid=true e cancelam a passagem de antecipação vigente. Segurar/repetir comandos rápidos estende a pausa. Após 900 ms sem nova sequência rápida, rapid=false permite retomar, inclusive se o usuário continuar com movimentos mais lentos. Rolagem ativa também interrompe o trabalho, como antes. Não aguarda os dez segundos de inatividade para esta janela curta. Trabalho de rede cancelado segue a desconexão em IO já implementada; uma etapa não cancelável já iniciada pode terminar.
+
+As capas realmente visíveis continuam sendo atendidas pelos próprios cards durante a pausa. Mantém seis operações de download totais, até duas antecipadas e preferência da fila para pedidos visíveis. Mudança de categoria/aba, seleção de mídia, importação e pressão de RAM continuam limitando a antecipação. Não altera o processamento de importação nem os gatilhos do histórico. O ganho real depende da rede e da velocidade de navegação e deve ser medido na TV.
+
+PosterAheadPerf registra kind, rapid e window=15, sem URLs ou credenciais. PosterLoadPerf e PosterDownloadResult continuam separando tempos e resultados.
+
+Validação local: compileDesempenhoKotlin; testes de sequência rápida, retomada durante movimentos mais lentos, extensão da pausa por repetição, limite de 15 em três grupos, preparação só das cinco próximas, cancelamento no meio da janela e categorias curtas/vazias. Instalador testado para reaplicação, backup/restauração exata e rejeição de fontes divergentes. Sem teste instrumentado de controle remoto/Compose neste ambiente.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho. Instalar-TV.ps1 escolhe ABI e instala com -r, mantendo dados. Desfazer.ps1 restaura a base.
+
+Capturar-Limpeza.ps1: abra Filmes e navegue normalmente, depois segure a direção para avançar rápido por alguns segundos e volte ao ritmo normal. Repita em Séries e verifique também Filmes > Séries > Filmes e Kids. Observe se as capas aparecem antes de entrar na fileira e se a navegação segue fluida. Volte à Home dois minutos, Ctrl+C e envie Downloads/armazenamento-limpeza.txt. Não importe/atualize lista nem limpe o cache.
