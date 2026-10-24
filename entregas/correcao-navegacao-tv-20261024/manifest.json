@@ -1,0 +1,16 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt",
+    "before": [
+      "d56758701bdc8f7a29a6f1d002268dc4dad1a47385146d40b248ab90cbf609b9"
+    ],
+    "sha": "a550f60282b8d5c19c9d36750f57e378c9cf81f13f05e9630cd8bbb58e76ea8f"
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsPolicy.kt",
+    "before": [
+      "e37a21fb71a41b9bff4fe7cbdb0f07350b22a6066c5e05ac4482aa9e6c2f8dcb"
+    ],
+    "sha": "0cc344872bf76866832709dd42434a0de128936d0a05295a2456aa9dedddecb6"
+  }
+]

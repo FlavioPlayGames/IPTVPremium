@@ -1,0 +1,9 @@
+Validacao local:
+- Gradle :app:compileDebugKotlin com os 207 fontes restaurados, recursos e configuracao disponiveis no ambiente: BUILD SUCCESSFUL (2m57s).
+- Compilacao Kotlin dos dois arquivos alterados: OK.
+- Ordem e prioridade das categorias iguais ao original em 100 catalogos embaralhados: OK.
+- Leitura simulada lenta fora da thread de interface, mantendo resposta da interface: OK.
+- Propagacao de cancelamento sem publicar resultado cancelado: OK.
+- Instalador PowerShell: aplicacao, repeticao sem novo backup, restauracao exata dos bytes e rejeicao de arquivo modificado: OK.
+
+Estes testes nao medem desempenho em uma TV real.

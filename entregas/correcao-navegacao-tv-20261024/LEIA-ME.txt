@@ -1,0 +1,37 @@
+CORRECAO DE NAVEGACAO - PROJETO RESTAURADO
+
+Base: ultimo java.zip enviado (file_000000007dd4820e9cdf7518f3280672).
+Altera apenas PlaylistCatalogRepository.kt e KidsPolicy.kt.
+
+O QUE MUDA
+- Mantem consultas e processamento posterior do repositorio fora da thread da interface.
+- Move a preparacao dos fluxos de catalogo para IO.
+- Reutiliza expressoes regulares e calcula as chaves de ordenacao uma vez por nome,
+  mantendo a mesma ordem anterior.
+- Registra operacoes de leitura que passam de 100 ms na tag CatalogReadPerf.
+  Os tempos incluem espera; nao representam apenas tempo de CPU ou de SQL.
+
+Nao muda banco, credenciais, favoritos, historico, versao ou algoritmo de importacao.
+Nao promete reduzir os 89,6 s de importacao: este teste trata o bloqueio da navegacao.
+
+APLICAR
+1. Extraia este ZIP em Downloads\correcao-navegacao-tv.
+2. No PowerShell, dentro da pasta IPTVPremium, execute:
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-navegacao-tv\Aplicar.ps1" -Projeto (Get-Location).Path -Testar
+
+O script valida os dois arquivos antes de alterar qualquer um, guarda backup e compila
+assembleDebug. Nao instala automaticamente na TV. Instale o APK pelo Android Studio.
+Se acusar arquivo diferente, envie o aviso; nao copie por cima de mudancas recentes.
+
+VALIDAR NA TV
+Com a captura ADB por UID funcionando, inicie uma nova captura, abra filmes, series
+e canais, navegue e alterne categorias. Confira resposta ao controle e envie o log.
+Compare Slow dispatch, Skipped frames e CatalogReadPerf com a captura anterior.
+
+DESFAZER
+Na mesma pasta do projeto:
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-navegacao-tv\Desfazer.ps1" -Projeto (Get-Location).Path -Testar
+
+Gere e instale novamente para que a TV use os fontes restaurados.
