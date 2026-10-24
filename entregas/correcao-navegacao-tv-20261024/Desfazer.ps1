@@ -7,7 +7,7 @@ if(!$Backup){
  if(!$folder){throw 'Backup da navegacao nao encontrado.'}
  $Backup=$folder.FullName
 }
-$entries=@(Get-Content -Raw -LiteralPath (Join-Path $Backup 'rollback.json') | ConvertFrom-Json)
+$entries=ConvertFrom-Json -InputObject ([IO.File]::ReadAllText((Join-Path $Backup 'rollback.json')))
 function TextHash([string]$Path){
  $s=[IO.File]::ReadAllText($Path).Replace("`r`n","`n").TrimStart([char]0xFEFF)
  $sha=[Security.Cryptography.SHA256]::Create()

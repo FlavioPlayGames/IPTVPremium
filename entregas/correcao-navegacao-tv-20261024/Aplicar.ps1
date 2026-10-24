@@ -7,7 +7,7 @@ function TextHash([string]$Path){
  $sha=[Security.Cryptography.SHA256]::Create()
  try{return ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($s)))).Replace('-','').ToLowerInvariant()}finally{$sha.Dispose()}
 }
-$entries=@(Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'manifest.json') | ConvertFrom-Json)
+$entries=ConvertFrom-Json -InputObject ([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'manifest.json')))
 foreach($e in $entries){
  $source=Join-Path $PSScriptRoot $e.path
  $target=Join-Path $root $e.path
