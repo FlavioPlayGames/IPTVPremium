@@ -1,0 +1,18 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/DefaultPlaylistHttpClient.kt",
+    "sha": "914141daa5631838702818beac4a24c50fade8b877fab274b2d2f440a70c0453",
+    "before": [
+      "b5ae73f9535c94586b7238e45c4c25e7a876657de3fe665e27780103a7baac99"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/PlaylistResponseBody.kt",
+    "sha": "e420e20a7476076b58d9d647fbc7b277e8419b07350613eef6c4b581495d738d",
+    "before": [
+      "1b9a982632418d1751bfebca2dbaff70e730d378dc16a01b2e6c70976bfe18f2"
+    ],
+    "allowMissing": false
+  }
+]

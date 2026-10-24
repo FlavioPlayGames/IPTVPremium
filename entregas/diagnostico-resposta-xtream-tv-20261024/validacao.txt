@@ -1,0 +1,3 @@
+PASS: identity preserves UTF-8 bytes and measures real read calls
+PASS: gzip preserves UTF-8 bytes and measures real read calls
+PASS: unsupported encoding remains rejected and trace only logs allowlisted actions

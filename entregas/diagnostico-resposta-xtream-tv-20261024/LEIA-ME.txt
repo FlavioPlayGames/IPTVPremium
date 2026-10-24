@@ -1,0 +1,16 @@
+Diagnóstico da resposta Xtream - sem mudança do método de importação.
+Aplicar sobre a versão atual com a variante desempenho configurada. Preserva correções anteriores.
+
+Novos campos:
+ateCabecalhosMs: desde a criação da conexão até obter o status HTTP (inclui conexão, DNS, TLS e espera; não isola o servidor).
+leitorProntoMs: tempo acumulado até preparar o leitor, incluindo cabeçalho gzip.
+leituraRedeMs: soma das durações das chamadas de leitura do fluxo HTTP; inclui espera, cópias e escalonamento. Não equivale a tempo puro de servidor.
+leituraCorpoMs: soma das leituras do corpo descomprimido, incluindo leituras de rede. Sobrepõe leituraRedeMs; não somar os dois. O cabeçalho gzip é lido antes do contador do corpo.
+leituraRedePicoMs: maior duração de uma chamada de leitura HTTP.
+Parsing/gravação continuam com a medição existente. O tempo restante também pode incluir enquadramento JSON, conversão de texto e escalonamento.
+
+Os logs identificam ações fixas como get_series; não acrescentam URL, credenciais ou corpo. Nenhuma requisição extra, alteração de timeout ou cache. Contadores medem blocos de leitura, sem registrar cada item.
+
+Validação: compilação Kotlin; testes de conteúdo UTF-8 identity/gzip, contagem de bytes e tempo, rejeição de codificação e segurança do nome do endpoint; aplicação repetida e restauração do instalador. Sem teste em TV nesta etapa.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila a variante desempenho (pode demorar vários minutos). Instalar-TV.ps1 instala sem apagar dados e não abre o aplicativo. Inicie a captura anterior, abra o app e atualize a mesma lista uma vez. Envie o log completo. Não precisa apagar ou importar outra lista. Desfazer.ps1 restaura os fontes deste pacote.
