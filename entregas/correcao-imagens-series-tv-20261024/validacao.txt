@@ -1,0 +1,7 @@
+PASS: official images win, duplicates/invalid URLs are removed, failed sources advance and vertical posters are rejected
+PASS: concurrent preview/page requests share one result, successful data stays available and different routes are isolated
+PASS: null/timeouts do not poison later loads and a failed update cannot erase cached success
+PASS: cancellation releases request ownership and leaves no detached request blocking the remaining page
+PASS: route metadata cache remains bounded and respects recent use
+PASS: real series-info parser chooses episode-specific photos before covers and preserves IDs, episodes and backdrop
+PASS: failed photo requests do not clear a previously shown photo and working fallbacks still load

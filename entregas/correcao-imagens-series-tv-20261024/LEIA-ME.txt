@@ -1,0 +1,14 @@
+Correção de seleção e permanência das imagens de séries.
+Base: java.zip restaurado + teste de leitura direta Xtream. Este pacote mantém a importação atual.
+
+Caminhos corrigidos: miniatura oficial da temporada no TMDB antes da imagem do provedor; campos específicos de episódio antes de cover/cover_big; fundo oficial antes do fundo indicado pelo provedor; imagens verticais de capa rejeitadas para fundo e cartões horizontais, inclusive quando vêm da RAM. Se uma referência de fundo falha, a próxima é tentada. Uma imagem válida da mesma série/episódio permanece durante a tentativa de substituição, sem se misturar com outra série/episódio.
+
+A ficha é composta tanto na abertura animada quanto na página. As duas instâncias compartilham agora consultas e resultados por rota, evitando pedidos duplicados simultâneos. Resultados positivos são notificados às duas instâncias: uma resposta vazia/timeout de uma instância não apaga um resultado positivo obtido pela outra. O cache tem limite de 24 metadados/temporadas e não armazena bitmaps, URLs de reprodução ou credenciais. Ele termina com a rota; não inicia tarefas destacadas. As miniaturas não reiniciam seu estado visual quando apenas a lista de candidatos muda.
+
+Diagnóstico adicional: SeriesSeasonArtworkPerf registra temporada/quantidade de stills/tempo. SeriesImagePriority registra rejeição de imagem vertical. Os logs não contêm URLs ou credenciais.
+
+Validação: compileDesempenhoKotlin e sete cenários locais: prioridade/falhas/dimensões; concorrência entre cópias da página; nulos e sucesso preservado; cancelamento; cache limitado/isolado; parsing real de get_series_info preservando episódios e preferindo stills; falhas de imagem sem apagar a anterior. O teste JVM adapta apenas os genéricos do iterador JSONObject no host; o fonte Android mantém o código normal. Não há teste visual Compose nem validação na TV neste ambiente.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho. Instalar-TV.ps1 instala sem apagar dados e não abre o app. Não precisa reimportar a lista: inicie a captura anterior e abra Nurses: Plantão em Enfermagem e O Conto da Aia. Espere as imagens, confira se continuam após terminar a abertura, troque de temporada e volte. Envie o log e diga se fundo e miniaturas permaneceram corretos. As capas da grade não receberam um novo carregador neste pacote.
+
+Desfazer.ps1 -Projeto CAMINHO -Testar restaura os fontes anteriores; depois Instalar-TV.ps1 reinstala. Backup: .imagens-series-tv-backups.
