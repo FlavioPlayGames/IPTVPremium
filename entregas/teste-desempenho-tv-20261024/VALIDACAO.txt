@@ -1,0 +1,11 @@
+PASS: assembleDesempenho completed with R8 optimization (10m43s first build).
+PASS: universal APK is not debuggable (checked APK badging, not only build configuration).
+PASS: APK signing certificate matches the debug signing configuration.
+PASS: application ID and version fields preserved; BuildConfig differs only in DEBUG and BUILD_TYPE.
+PASS: all four ABI versions of LibVLC and its JNI library are present in the universal APK.
+
+PASS: preserved original Gradle bytes/BOM/CRLF; idempotent apply; exact rollback
+PASS: changed rejected before changing source or Gradle
+PASS: conflict rejected before changing source or Gradle
+
+PASS: direct APK update, explicit rollback APK selection and ambiguous-device rejection tested with a simulated ADB.

@@ -1,0 +1,22 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt",
+    "sha": "fa016671aae13deb026144b3addde4ac192bafbae83f59cd7ba5ac866d200520",
+    "before": [
+      "d91143434819d6f0acce5c9843b5ccd94fb6e1d3a81bd6735e932409a26a469a"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/tv-performance.gradle",
+    "sha": "845f04a852c8545a0804498ea220c2c3a9cffd49a3c62e442c318b4fcd1ba040",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/tv-performance-rules.pro",
+    "sha": "86d48f9eb0901135450b9b93885a61f17c42feb664100718416518d9ccf370e1",
+    "before": [],
+    "allowMissing": true
+  }
+]

@@ -1,0 +1,46 @@
+TESTE DE COMPILACAO OTIMIZADA PARA TV
+
+Variante: desempenho. Nao depuravel, com otimizacao R8 e a assinatura da variante
+debug deste mesmo projeto. Mantem applicationId, versao, configuracoes e dados.
+O pacote nao contem APK assinado na nuvem: ele e gerado no seu computador.
+
+ARQUIVOS
+- MainActivity.kt: mantem UiStallPerf e acrescenta BuildPerf nesta variante.
+- app/tv-performance.gradle: configura a nova variante separadamente.
+- app/tv-performance-rules.pro: preserva as ligacoes nativas do LibVLC e os
+  nomes usados nas amostras de pilha do aplicativo.
+- app/build.gradle.kts: o instalador apenas acrescenta uma chamada apply ao fim.
+  Os bytes existentes, versoes, dependencias e dados particulares nao sao
+  substituidos pelo conteudo de outro projeto. O backup permite restaurar tudo.
+
+APLICAR E COMPILAR
+Extraia em Downloads\teste-desempenho-tv. Dentro do projeto:
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\teste-desempenho-tv\Aplicar.ps1" -Projeto (Get-Location).Path -Testar
+
+A primeira compilacao passa pelo otimizador R8 e pode demorar mais que a debug.
+O APK sera app/build/outputs/apk/desempenho/app-universal-desempenho.apk.
+
+INSTALAR SEM RUN/DEBUG
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\teste-desempenho-tv\Instalar-TV.ps1" -Projeto (Get-Location).Path
+
+O script usa install -r. Nao desinstala nem limpa dados. Caso a assinatura nao
+coincida com a instalada na TV, o Android recusara a atualizacao; envie o erro.
+Com mais de um dispositivo, informe -Dispositivo com o identificador da TV.
+
+MEDIR
+Inicie o mesmo codigo de captura por UID e depois abra pelo controle da TV.
+O log deve mostrar: BuildPerf: variant=desempenho debuggable=false.
+Nao importe nem atualize listas. Navegue pelas mesmas categorias de canais,
+filmes e series. Abra um conteudo que funciona e volte para a grade.
+Finalize com Ctrl+C e envie navegacao-apos-correcao.txt.
+Compare as duracoes dos bloqueios, nao somente o numero total de mensagens:
+as capturas podem ter percursos e duracoes diferentes.
+
+VOLTAR AO DEBUG ANTERIOR
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\teste-desempenho-tv\Desfazer.ps1" -Projeto (Get-Location).Path -Testar
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\teste-desempenho-tv\Instalar-TV.ps1" -Projeto (Get-Location).Path -Variante debug
+
+O teste compara compilacoes. Nao demonstra antecipadamente que todos os
+engasgos estao resolvidos; o resultado precisa ser medido na TV.
