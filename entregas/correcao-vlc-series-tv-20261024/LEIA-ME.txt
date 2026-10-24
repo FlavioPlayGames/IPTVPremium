@@ -1,0 +1,50 @@
+VLC E SERIES - AJUSTES DO CICLO DE VIDEO E PREPARACAO DOS METADADOS
+
+Complemento dos pacotes de navegacao, player e interface ja aplicados.
+Escopo: ajustes locais; sem migracao de banco, nova arquitetura ou mudanca na importacao.
+
+ALTERACOES
+- VLC aguarda onSurfacesCreated antes de iniciar a preparacao nativa via play().
+- Uma superficie ja anexada nao e desconectada e reconectada desnecessariamente.
+- Perda e recriacao da superficie preservam a escolha de pausa/reproducao.
+- Fechar cancela inicios pendentes; callbacks tardios nao reiniciam a sessao fechada.
+- Mantem a fila anterior de encerramento nativo fora da interface.
+- VlcSurfacePerf registra ATTACHED e READY para conferir o ciclo na TV.
+- Normalizacao de titulos, parsing e selecao das artes das series rodam em IO.
+- Expressoes de normalizacao sao reutilizadas, preservando os resultados anteriores.
+- Metadados dos cards de series sao reutilizados durante mudancas de foco.
+- Prefixo das categorias de canais reutiliza a mesma expressao regular.
+
+VALIDACAO
+Compilacao Gradle :app:compileDebugKotlin: BUILD SUCCESSFUL.
+Testes JVM: espera da superficie, ordem invertida de chegada, inicio unico,
+recriacao, pausa, callbacks apos fechar, titulo normalizado igual ao original
+em 500 entradas, consulta fora da UI, cancelamento e rejeicao de ambiguidades: OK.
+Instalador: aplicacao, idempotencia, restauracao byte a byte, remocao do helper
+novo ao desfazer e rejeicao de fontes alterados antes de modificar: OK.
+Os testes nao executam os codecs nativos da TV. A reducao dos erros de superficie
+e o ganho de fluidez ainda precisam ser confirmados em uma nova captura.
+
+APLICAR
+Extraia em Downloads\correcao-vlc-series-tv. Dentro do projeto:
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-vlc-series-tv\Aplicar.ps1" -Projeto (Get-Location).Path -Testar
+
+INSTALAR SEM RUN/DEBUG
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-vlc-series-tv\Instalar-TV.ps1" -Projeto (Get-Location).Path
+
+O instalador ADB para o aplicativo e atualiza o APK com install -r, sem apagar
+dados. Com mais de um dispositivo, use -Dispositivo com o identificador da TV.
+Inicie a captura por UID anterior e depois abra o aplicativo pelo controle.
+
+TESTE
+Mantenha VLC como principal. Sem importar ou atualizar listas, abra series,
+navegue entre episodios, volte durante o carregamento e abra outro conteudo.
+Confira pausa e retomada tambem. Navegue nas categorias de canais e series.
+Finalize a captura com Ctrl+C e envie navegacao-apos-correcao.txt.
+O log deve incluir VlcSurfacePerf, PlayerReleasePerf e UiStallPerf.
+
+DESFAZER
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-vlc-series-tv\Desfazer.ps1" -Projeto (Get-Location).Path -Testar
+
+Depois instale novamente com Instalar-TV.ps1.

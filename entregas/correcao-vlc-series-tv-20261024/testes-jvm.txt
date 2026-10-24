@@ -1,0 +1,9 @@
+PASS: media waits for confirmed native surface and starts only once
+PASS: surface can arrive before media preparation
+PASS: surface recreation resumes once; pause cancels pending resume
+PASS: late callbacks after close cannot restart native playback
+PASS: explicit play during surface loss waits; initial paused preparation remains possible
+PASS: cached title regexes preserve previous results for 500 inputs
+PASS: direct TMDB identity resolves off UI with the same response
+PASS: cancelling artwork lookup propagates cancellation
+PASS: ambiguous matches are still rejected

@@ -1,0 +1,56 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/LibVlcPlaybackAdapter.kt",
+    "sha": "46556d6ccdbc528b2976fe09b453306e341bcb5dacf2812c23d2873e1c8f0cc7",
+    "before": [
+      "d4889c1b41fdf58caf5e0e997532c36ca6fa247d60223228113033106383210e"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/VlcSurfaceStartGate.kt",
+    "sha": "02cb563b48e0d54fe531ed51f583c95c7647ee336e629dcd7288fd37564a523e",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesArtworkFallback.kt",
+    "sha": "26416640ca363520444c4e9f168d5643e88088e2b4cf3aa17ccba934bcd92af9",
+    "before": [
+      "62bc0de03f23ac9513b31f12a6a19b93584c11ce3d9298d06a7a51137f1ed9ff"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesArtworkIdentityResolver.kt",
+    "sha": "28352d128420dbc9044ebc9adeb0903a7c7092a34874f02b0207552e9ff1bd98",
+    "before": [
+      "1b0296e9b0a3f720aec355c63bc408ada13cb2fb15f8a5ebb6c0d8cf0f06da54"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt",
+    "sha": "3be9db1bc853ec2563102c0234b5e03c6d42709e0e3ecc23734bd4c9107fd8fb",
+    "before": [
+      "73a979f5553f7946018b7c6f05d30d6d48e82510ab96e14d23d4eab4baaada22"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt",
+    "sha": "8659170eedbb330147bc380f0ba3dd46ed0c359e7c1df9072e3d9f35f2ab4928",
+    "before": [
+      "35383164b2b5286ccf8120aa42444f9de44578c90e6230b97b0e4e9746ecc889"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+    "sha": "b159672bb5517f06f3026c7315d3728e579e7e5dec04e107f7050ce6524d76dc",
+    "before": [
+      "660d5ff18c9ff6dcde68963c612ad5beb47fd4c60effc674969275dbee3c86ae"
+    ],
+    "allowMissing": false
+  }
+]
