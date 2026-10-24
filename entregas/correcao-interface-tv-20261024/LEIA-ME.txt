@@ -1,0 +1,53 @@
+INTERFACE TV - PREPARACAO DAS IMAGENS E MEDICAO DOS ENGASGOS
+
+Este pacote complementa as correcoes anteriores de navegacao e do player.
+Nao altera importacao, selecao de player, imagens, resolucao ou efeitos visuais.
+
+O QUE MUDA
+- Prepara bitmaps finais das capas, detalhes e artes do tema em segundo plano,
+  antes de publica-los no cache usado pela interface (Bitmap.prepareToDraw).
+- Nas versoes DEBUG, acrescenta UiStallPerf: amostras da pilha da thread principal
+  quando o pulso da interface atrasa pelo menos 400 ms; no maximo uma por segundo.
+  A amostragem pausa quando a Activity para. Nao faz requisicoes de rede.
+- PlayerReleasePerf, do pacote anterior, continua medindo o encerramento do VLC.
+
+A preparacao pode ajudar no primeiro desenho, mas nao comprova a causa dos
+engasgos anteriores. O novo log permitira identificar o trabalho que restar.
+O log anterior tinha um agente de instrumentacao do Android Studio. Para este
+teste, instale o APK diretamente pelo ADB, sem Run/Debug ou Apply Changes.
+O APK continua sendo DEBUG; este teste nao mede desempenho de uma release otimizada.
+
+APLICAR E COMPILAR
+Extraia em Downloads\correcao-interface-tv. Dentro do projeto, execute:
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-interface-tv\Aplicar.ps1" -Projeto (Get-Location).Path -Testar
+
+INSTALAR NA TV SEM INSTRUMENTACAO DO STUDIO
+Conecte a TV pela depuracao Wi-Fi. Na mesma pasta do projeto:
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-interface-tv\Instalar-TV.ps1" -Projeto (Get-Location).Path
+
+O script seleciona o unico dispositivo conectado, para o aplicativo e instala
+app-universal-debug.apk com install -r, preservando dados. Se houver mais de um
+dispositivo, informe -Dispositivo com o identificador de adb devices.
+Ele nao abre o aplicativo: inicie a captura anterior e abra pelo controle da TV.
+
+TESTE
+Nao importe novamente. Coloque VLC como principal conforme combinado. Navegue
+em filmes, series e categorias; abra um episodio e volte durante o carregamento.
+Abra outro conteudo. Pare a captura com Ctrl+C e envie o log.
+Inclua UiStallPerf, CatalogReadPerf e PlayerReleasePerf, presentes na captura por UID.
+
+VALIDACAO LOCAL
+Gradle :app:compileDebugKotlin: BUILD SUCCESSFUL.
+Monitor em JVM: captura de pilha durante bloqueio simulado e pausa ao parar: OK.
+Instalador de fontes: aplicacao, idempotencia, backup/restauracao byte a byte,
+remocao do helper novo e rejeicao de fontes alterados antes de modificar: OK.
+Instalacao ADB simulada: update sem apagar dados ou parametros de instrumentacao;
+mais de um dispositivo interrompe a operacao antes de instalar: OK.
+O desempenho real e o comportamento dos codecs precisam ser validados na TV.
+
+DESFAZER
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\correcao-interface-tv\Desfazer.ps1" -Projeto (Get-Location).Path -Testar
+
+Depois instale novamente pelo script Instalar-TV.ps1.
