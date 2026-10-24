@@ -1,0 +1,3 @@
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 1m 1s
+PowerShell: instalação, reaplicação, restauração byte a byte e rejeição antes de modificar fontes divergentes: PASS
+Sem teste instrumentado na TV.

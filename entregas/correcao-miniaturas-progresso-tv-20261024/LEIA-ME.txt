@@ -1,0 +1,11 @@
+Base: projeto cumulativo com a correção de retomada da grade adef6c1. Três arquivos alterados. Não muda a importação, reserva de cinco fileiras, cache de imagens ou limites de armazenamento.
+
+Miniaturas: a primeira composição consulta RAM somente para a referência preferida, sem exibir uma referência alternativa em RAM enquanto a oficial carrega do disco/rede. As referências da playlist aguardam a consulta limitada de metadados/temporada terminar, para não aparecerem antes da identificação das fotos oficiais. Fotos oficiais já em memória continuam imediatas. Se não houver oficial, as alternativas continuam disponíveis. Isto não valida o conteúdo de uma imagem entregue pelo provedor; não há identificação visual automática de séries.
+
+Progresso: o player entrega a duração real descoberta ao histórico local, tanto no retorno quanto na troca manual de episódio. A duração do catálogo continua como alternativa. O progresso não é inventado se nenhuma duração existir. O histórico continua exigindo 10 segundos de posição para registro. A linha preenchida agora acompanha a cor do tema, como o halo já fazia. Episódios antigos sem duração podem exigir reproduzir e sair uma vez para atualizar o histórico.
+
+Validação: compilação Kotlin em ambiente local; aplicação/reaplicação/rejeição de fontes divergentes e rollback. Não é teste instrumentado de reprodução/Compose na TV. O log recebido termina durante a reprodução e não registra o retorno descrito pelo usuário.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho. Instalar-TV.ps1 instala pela ABI sem apagar dados. Desfazer.ps1 restaura os três arquivos.
+
+Teste: inicie Capturar-Limpeza.ps1, abra O Conto da Aia na temporada já assistida, reproduza um episódio e saia após mais de 10 segundos. Repita algumas vezes, inclusive após navegar em outra série, e observe se a imagem errada desapareceu e a barra acompanha a posição. Teste outra cor do tema e a troca manual de episódio. Pare com Ctrl+C e envie Downloads/armazenamento-limpeza.txt. Não precisa limpar cache nem reimportar.
