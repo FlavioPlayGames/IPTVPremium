@@ -1,0 +1,4 @@
+PASS: device ABIs arm64-v8a,armeabi-v7a select arm64-v8a without data clearing
+PASS: device ABIs arm64-v8a,armeabi-v7a select armeabi-v7a without data clearing
+PASS: device ABIs x86_64,x86 select refuse unsupported APK without data clearing
+PASS: capture auto-selects device, filters own app UID and writes UTF-8 log

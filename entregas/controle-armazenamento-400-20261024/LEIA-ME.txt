@@ -1,0 +1,18 @@
+Controle e medição de armazenamento: meta de 400 MB decimais no total.
+Base: projeto atual com leitura direta Xtream e correções de imagens de séries. Mantém os dados do usuário.
+
+Mudanças:
+1. Cache descartável: teto padrão de 350 MB reduzido para 100 MB, com imagens até 75 MB, episódios 10 MB, respostas 5 MB e legendas 5 MB. Outros arquivos, inclusive APKs de atualização, podem disputar o mesmo teto global de 100 MB; não recebem 100 MB extras. Downloads maiores que o orçamento disponível podem ser recusados pelo mecanismo de reserva existente.
+2. Na manutenção, o orçamento pode cair abaixo de 100 MB para tentar manter app + dados dentro de 400 MB com margem de 20 MB. Quando a medição do Android não estiver disponível, usa estimativa de arquivos e margem de 50 MB. Dados do Android já incluem o cache, que não é somado de novo.
+3. Instalar-TV.ps1 escolhe o APK da arquitetura suportada pelo aparelho (TV ou celular), sem instalar o universal nem limpar dados. Requer APKs ABI que assembleDesempenho já gera no projeto. No build usado como referência, os APKs ARM tinham cerca de 65/79 MiB e o universal 227 MiB; isso não é a medida completa instalada no seu aparelho.
+4. AppStoragePerf informa total, app, dados, cache incluído, cache gerenciado e excedente. StorageCleanupPerf registra antes/depois, diferença e duração de uma passagem completa. Os logs IPTVStorage mantêm banco principal, WAL, páginas livres e gerações por estado.
+
+Limite real: esta etapa NÃO garante um teto absoluto de 400 MB em qualquer situação. Se app + catálogos/dados não descartáveis já excederem a meta, reduzir o cache a zero não resolve; o log mostrará overTargetBytes. Não apaga catálogos ativos, listas cadastradas, histórico nem favoritos para forçar esse número. Não faz VACUUM: excluir linhas pode deixar o arquivo SQLite do mesmo tamanho com páginas livres reutilizáveis. Importações e operações em andamento também podem ocupar espaço temporário. Precisamos da medição no aparelho para decidir eventual compactação ou mudança na retenção de catálogos.
+
+A limpeza continua respeitando a navegação, abertura de mídia e importação. O arquivo/lote já em execução pode terminar; leitores e reservas de cache ativos não são apagados para forçar o limite imediatamente. A RAM não recebeu um novo limite neste pacote.
+
+Validação: compileDesempenhoKotlin; testes do cálculo sem cache duplicado, pressão sobre o orçamento, proteção de arquivos em uso e dados externos às raízes descartáveis; testes PowerShell simulados da escolha de ABI, recusa de APK incompatível, instalação sem apagar dados e captura UTF-8 pelo UID. Instalador testado para reaplicação, restauração e rejeição de fontes divergentes. Não há medição real do espaço do celular neste ambiente.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho. Instalar-TV.ps1 instala no aparelho conectado; conecte apenas o aparelho que estava acima de 800 MB ou passe -Dispositivo com o serial correto. Não desinstale o app. Inicie Capturar-Limpeza.ps1; abra o app, atualize a lista uma vez, espere terminar e deixe na Home por pelo menos 5 minutos sem reproduzir ou usar o controle. Depois Ctrl+C. Envie Downloads/armazenamento-limpeza.txt e o total mostrado nas configurações do Android. Não use o endereço antigo da TV para capturar o celular.
+
+Desfazer.ps1 -Projeto CAMINHO -Testar restaura o orçamento/diagnósticos anteriores; depois Instalar-TV.ps1 reinstala o APK ABI compatível. Backup: .armazenamento-400-backups. O script de captura não altera o aparelho.

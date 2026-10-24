@@ -1,0 +1,3 @@
+PASS: Android cache is not double-counted; total target/reserve and conservative estimate adjust disposable budget
+PASS: lower limit evicts disposable files, protects active readers and user data, then trims after release; budget can recover
+PASS: persistent disposable cache ceiling reduced from 350 MB to 100 MB
