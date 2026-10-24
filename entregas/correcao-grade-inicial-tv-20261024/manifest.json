@@ -1,0 +1,38 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogGridPagingConfig.kt",
+    "sha": "c0476e3e1dca075c5deb7e638594ff50bef6751bcf6366bb21ee718367f4f6fc",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogViewportRecovery.kt",
+    "sha": "81a988ddd0e353e2febe4741921b85a9193d2ba455fa5c172d6619ffaeb100f9",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterReserve.kt",
+    "sha": "ec25699fc4fd469ef9c1c9d7072dde9f411ba5dcce5452d1fd087ebadc0f96c9",
+    "before": [
+      "366471f7b0491231c68eed3ad5b98555529aa2949ef0e462fbe312f4d425257d"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt",
+    "sha": "c3f20a12ae1d337442759c863e70a415180879fd943f46caf91ea420a771a5f5",
+    "before": [
+      "d95a327fa6a8a2a6d51a08cd622224b37f8b824689af6dfef16c7b73ec1eb44d"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/CategoryPosterPrefetch.kt",
+    "sha": "428412c586f83f5f8f07d4537448e7ec8a2eedaf6b188dcc738a32158385676c",
+    "before": [
+      "9b62d9f2de56e0fa258b4ae3c0c7f11930d1390e93a08c9fff70be5cba58f7d3"
+    ],
+    "allowMissing": false
+  }
+]

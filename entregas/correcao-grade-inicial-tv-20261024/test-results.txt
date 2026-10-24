@@ -1,0 +1,10 @@
+jumpThreshold=-2147483648 loads=43 present=true offsets=[0, 30, 90, 150, 210, 270, 330, 390]
+jumpThreshold=60 loads=6 present=true offsets=[0, 2485, 9984, 0, 4985, 27]
+PASS: actual Paging presenter restores a distant placeholder using a bounded jump instead of an intervening page scan
+PASS: recovery waits for an idle stalled viewport, cancels when data arrives, never retries normal loading/empty catalog, and runs at most once
+PASS: reserve respects the requested five-row ceiling
+
+First distant restoration: old 43 loads vs new 2; new total 6 after four additional distant restores.
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 50s
+No instrumented TV/Compose/SQLite runtime validation.
+PowerShell: apply/reapply/exact rollback/modified-source rejection PASS
