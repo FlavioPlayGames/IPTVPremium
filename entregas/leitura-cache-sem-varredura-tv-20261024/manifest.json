@@ -1,0 +1,10 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheStorageBudget.kt",
+    "sha": "0acaaefe09d857cc7a05774ce40f27a39d5760ac86686b99d80455a2e9964d9f",
+    "before": [
+      "e6307ab92a97cec214514cf734608f7a82d361e0c2e34739010846f4607750f2"
+    ],
+    "allowMissing": false
+  }
+]

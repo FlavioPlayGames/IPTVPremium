@@ -1,0 +1,20 @@
+PASS: cold reads skip inventory; maintenance indexes/trims; nested readers survive repeated close and zero pressure until last release
+PASS: first write still scans and enforces limits; temporary/target reservations and active readers survive maintenance; cleanup resumes after release
+PASS: explicit accounting inventories all files even after an unindexed read
+PASS: per-kind image limits still enforce reservations without deleting pinned readers
+PASS: paths and symlinks outside disposable roots remain rejected
+
+REGRESSÃO DOS RESUMOS:
+PASS: direct hex matches legacy Formatter for all 256 byte values and empty/hash boundaries
+PASS: legacy file name remains identical; stage diagnostics preserve disk hits
+PASS: RAM reuse, disk restart, null/empty/Unicode IDs, separate generations/lists/media
+PASS: corrupt disk summary rejected, recomputed and repaired
+PASS: cancellation leaves no partial result, concurrent readers share one query
+PASS: unavailable disk and zero global cache budget preserve working Room/RAM result
+PASS: disk bounded to twelve summaries / 512 KiB; oldest generation reloaded after eviction
+PASS: real repository shares raw counts across Kids/access changes, reapplies projection and grants; new generation/list/media triggers fresh query
+ 
+
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 26s
+PowerShell: aplicação, reaplicação, rejeição antes de alterar arquivos divergentes e rollback exato: PASS
+Testes locais; repositório com DAO simulado, sem teste instrumentado de Room/Android TV.

@@ -1,0 +1,15 @@
+Base cumulativa: 2b47968 (diagnóstico da primeira leitura de resumos), com resumos persistentes 2a4b31b. Alteração autorizada pelo usuário no controle compartilhado do cache; um arquivo modificado.
+
+retain(file) protege e indexa apenas o arquivo necessário. Não chama ensureIndex nem inicia inventário/limpeza geral ao abrir uma leitura. O estado initialized continua falso até uma operação que realmente precise do inventário completo. Reserve (pré-gravação), manutenção, pressão de armazenamento, remoção explícita e consulta do tamanho total conservam a varredura e as regras anteriores. A atualização de limites continua respeitando arquivos com leitores/reservas ativos; depois da liberação, a manutenção pode removê-los. Não há worker de fundo novo.
+
+A liberação da leitura agora é idempotente: chamar close duas vezes na mesma proteção não pode reduzir o contador de outro leitor. A varredura não zera o mapa dos leitores. Caminhos/symlinks fora das raízes descartáveis continuam rejeitados. A enumeração geral permanece sincronizada: uma leitura ainda pode aguardar outra operação que já esteja executando sob o mesmo lock; a mudança elimina o disparo da varredura pela própria leitura, sem prometer tempo zero em toda concorrência.
+
+Mantém teto de cache e limite de armazenamento total existentes. Não apaga dados, não muda importação, resumos, proteção parental, capas, reserva de cinco fileiras, histórico, player ou banco. Arquivos removidos pelo sistema/limpeza continuam sendo recalculados/baixados pelo caminho existente.
+
+Diagnóstico preservado: CategoryCountStagePerf stage=storage_retain deve diminuir quando a primeira leitura não tiver outra operação concorrente inicializando o inventário. No teste anterior essa etapa levou 212-275 ms, enquanto file_read levou 0-2 ms. Compare também CategoryCountCachePerf e categoryMetadata_MOVIES; são medidas diferentes e não devem ser somadas. Não foi medido o ganho na TV nesta entrega.
+
+Teste: aplique/instale e inicie Capturar-Limpeza.ps1 antes de abrir o app. Abra Filmes e Séries; feche completamente e reabra duas vezes se possível, sem limpar o cache. Alterne com Kids e navegue normalmente para exercitar capas. Depois deixe dois minutos na Home para registrar a manutenção e o armazenamento. Ctrl+C e envie Downloads/armazenamento-limpeza.txt com observações de qualquer engasgada. Não precisa atualizar/importar/trocar lista.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho. Instalar-TV.ps1 mantém instalação por ABI com -r; Desfazer.ps1 restaura o arquivo. Hashes são validados antes de aplicar, com backup.
+
+Validação local: compilação Kotlin; testes de inventário, limites global/por tipo, leitores simultâneos, dupla liberação, proteção dos temporários/destinos de gravação e rejeição de caminhos externos; regressão dos resumos/repositório com DAO simulado. Não substitui teste instrumentado de Android/TV.
