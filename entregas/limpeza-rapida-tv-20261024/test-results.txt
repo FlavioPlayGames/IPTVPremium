@@ -1,0 +1,10 @@
+PASS: opening and visible use block cleanup; elapsed initial grace is not restarted by input
+PASS: foreground import cancels cleanup and acquires its turn without deadlock
+PASS: hidden app may perform maintenance without user-idle permission
+PASS: media opening and independently signaled import pause and resume cleanup
+PASS: actual generation manager pauses between batches, resumes remaining rows and only touches STALE generation
+PASS: input priority exposes lifecycle visibility independently of idle state
+
+compileDesempenhoKotlin: BUILD SUCCESSFUL in 28s
+PowerShell: install, idempotency, exact-byte rollback, modified-source rejection PASS
+No device measurement for this new batching configuration.

@@ -1,0 +1,11 @@
+Limpeza mais rápida, sobre o pacote controle-armazenamento-400 já aplicado.
+
+Lotes de exclusão de 100 para 500 registros, pausa de 25 para 10 ms. Mantém cancelamento entre lotes e a prioridade de navegação/importação/reprodução. Um lote SQLite já iniciado pode terminar antes da pausa. Não altera esquema, índices, política de retenção, importação nem dados protegidos. Não garante teto permanente de 400 MB durante atualizações.
+
+StorageDeletePerf separa registros, número de lotes, tempo aguardando DAO/SQLite e duração total por tabela. databaseMs inclui espera pelo executor/banco, não é CPU pura. A economia de tempo real precisa ser medida na TV; esta versão muda apenas o agendamento e tamanho das exclusões.
+
+Após limpar, o orçamento do cache é recalculado imediatamente. Na versão anterior, ele podia permanecer em zero até a próxima manutenção, mesmo havendo espaço após remover os catálogos antigos. Mantém teto de cache de 100 MB e a margem do limite total de 400 MB.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar gera assembleDesempenho; Instalar-TV.ps1 instala o APK da ABI compatível sem desinstalar/apagar dados. Capturar-Limpeza.ps1 registra no Downloads/armazenamento-limpeza.txt. Atualize uma vez, aguarde Home e deixe o aparelho ocioso por 5 minutos; se a limpeza continuar, aguarde phase=complete. Depois use o controle para verificar a navegação. Não é necessário acumular nove atualizações novamente. Compare registros por segundo e duração por geração, não só duração total, pois a quantidade de catálogos antigos agora é menor.
+
+Desfazer.ps1 restaura os dois arquivos anteriores. Compilação Kotlin e testes locais não substituem validação visual na TV.
