@@ -1,0 +1,14 @@
+PASS: 266 differential cases preserve fields, IDs, ordering, types, leniency, Unicode and bounded missing-bracket recovery
+PASS: write failures propagate unchanged, late read errors abort, cancellation stops emission
+BENCH pass=1 mode=direct ms=379.759153
+BENCH pass=1 mode=legacy ms=630.237189
+BENCH pass=2 mode=legacy ms=364.154545
+BENCH pass=2 mode=direct ms=280.555875
+BENCH pass=3 mode=direct ms=155.062266
+BENCH pass=3 mode=legacy ms=323.840985
+BENCH pass=4 mode=legacy ms=335.228228
+BENCH pass=4 mode=direct ms=175.049403
+
+PASS: repository imports direct fields, constructs stream URLs and uses one catalog request
+PASS: nonstandard numeric ID retries legacy once, clears partial batches, preserves exact IDs and remembers compatibility for next update
+PASS: transport and database failures are not misclassified as JSON compatibility or retried
