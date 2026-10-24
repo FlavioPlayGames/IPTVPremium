@@ -1,0 +1,4 @@
+PASS: production SQL fills exact ACTIVE series once, survives reopened database, preserves valid years, isolates playlist/generation/ID, rejects invalid input, leaves category counts unchanged and uses primary-key lookup across 5005 rows.
+compileDesempenhoKotlin/KSP: BUILD SUCCESSFUL in 57s
+PowerShell: aplicação, reaplicação, rollback byte a byte e rejeição de fontes divergentes antes de alterar: PASS
+SQLite do host usando query de produção; sem teste instrumentado Room/Paging/TV.
