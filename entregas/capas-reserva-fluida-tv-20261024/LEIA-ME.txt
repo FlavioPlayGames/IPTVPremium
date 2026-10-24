@@ -1,0 +1,17 @@
+Reserva progressiva de capas: candidata reversível para comparar a fluidez, sobre capas-3-fileiras-tv (f816f53).
+
+A reserva inicial é de 15 posições (3 fileiras de cinco). Consumir uma fileira planeja mais 15: ficam 25 posições à frente (5 fileiras). A próxima reposição é limitada a 30 posições (6 fileiras), um teto conservador para preservar processamento, armazenamento e navegação. A reserva não cresce indefinidamente nem percorre toda a categoria. Retorno para cima, salto além da reserva, categoria nova ou pausa rápida reiniciam o planejamento com 15; arquivos físicos já disponíveis são reutilizados.
+
+O coordenador sobrevive às atualizações normais da área visível dentro da mesma categoria: mantém downloads ainda úteis, inclusive os que acabaram de entrar na tela, reaproveita os concluídos e busca o necessário para completar o novo alvo. Apenas duas tarefas antecipadas ficam ativas; não cria um Job/uma trava HTTP para cada uma das 30 posições. Processa em grupos de cinco, com até duas operações concorrentes. As capas realmente visíveis continuam com prioridade no orçamento global de seis operações.
+
+A preparação em RAM continua limitada às cinco posições mais próximas no LRU existente. As outras são arquivos comprimidos em disco. Não amplia limites de RAM/disco, não altera importação nem histórico. O maior tempo ativo da antecipação ainda pode ter custo; a melhora sem perda de fluidez PRECISA ser confirmada na TV. Não promete baixar três fileiras em três segundos: servidor, recompressão e o limite intencional de duas conexões antecipadas influenciam o prazo.
+
+Navegação rápida mantém o detector anterior e pausa/cancela a reserva. Ao voltar ao ritmo normal pode retomar. Selecionar filme/série, importar, pressão de RAM, busca bloqueada ou sair da composição também interrompem. Rolagem normal não cancela toda a reserva; aguarda estabilizar a área por 200 ms para atualizar o planejamento. Uma etapa não cancelável já iniciada pode terminar.
+
+PosterReservePerf registra kind, target, ready e active. target pode ser menor que 15/25/30 quando faltam capas, há URLs repetidas ou fim da categoria. ready significa que o coordenador confirmou o arquivo durante sua passagem, não contagem absoluta de todos os arquivos no disco. Os testes não medem GPU nem a navegação física da TV.
+
+Validação: compileDesempenhoKotlin; testes de crescimento 15->25->30, teto e reset, reaproveitamento sem pedidos repetidos, manutenção de operações úteis durante avanço normal, no máximo duas tarefas, pausa/retomada e ausência de repetição infinita ao falhar; instalador reaplicável com rollback exato e rejeição de fontes divergentes.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar; Instalar-TV.ps1 mantém a instalação por ABI com -r sem apagar dados. Desfazer.ps1 -Projeto CAMINHO -Testar seguido de Instalar-TV.ps1 restaura a base de três fileiras fixas caso a fluidez piore. A referência estável permanece f816f53 até validar a candidata.
+
+Capturar-Limpeza.ps1: na entrada de Filmes, aguarde alguns segundos para formar a reserva; desça uma fileira por vez em ritmo normal. Faça também navegação rápida e retome devagar. Repita em Séries, entre e saia de um filme/série e observe se volta a antecipar. Não atualize a lista nem limpe o cache. Volte à Home dois minutos, Ctrl+C e envie Downloads/armazenamento-limpeza.txt, informando se houve alguma perda de fluidez. Se piorar, use Desfazer.ps1; não é preciso limpar dados.

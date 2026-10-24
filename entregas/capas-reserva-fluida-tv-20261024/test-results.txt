@@ -1,0 +1,9 @@
+PASS: reserve grows 3 rows to 5 after consuming one, stays within six-row ceiling, resets on reverse/jump
+PASS: completed overlapping files stay reused; moving one row adds fifteen requests, repeated viewport adds none; RAM batches <=5
+PASS: normal advancement retains in-flight posters that became visible and never exceeds two anticipation operations
+PASS: fast-navigation/media pause stops current jobs without pumping more; resume starts the current reserve only
+PASS: failed anticipation does not cause an immediate infinite retry loop
+
+compileDesempenhoKotlin: BUILD SUCCESSFUL on final bounded implementation
+PowerShell: apply/reapply/exact rollback/modified-source rejection PASS
+TV fluidity/performance not measured in this environment.

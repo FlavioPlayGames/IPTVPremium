@@ -1,0 +1,24 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterReserve.kt",
+    "sha": "366471f7b0491231c68eed3ad5b98555529aa2949ef0e462fbe312f4d425257d",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/CategoryPosterPrefetch.kt",
+    "sha": "9b62d9f2de56e0fa258b4ae3c0c7f11930d1390e93a08c9fff70be5cba58f7d3",
+    "before": [
+      "d6f6dad4212ae895a2f27f2350e6088567e940a78e6a364b8af61edbf72c1ed5"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "adcea86db587bff96cf60a62d8accaacc8fa2dfe86cb8997774bdafdbe5212e7",
+    "before": [
+      "2a88678bba5c1716de9318c2b3dc3463e32a0b290257835ba4ab791bfaccae2f"
+    ],
+    "allowMissing": false
+  }
+]
