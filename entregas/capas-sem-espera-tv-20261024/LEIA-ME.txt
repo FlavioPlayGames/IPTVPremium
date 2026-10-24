@@ -1,0 +1,17 @@
+Capas: remover espera entre URLs diferentes e evitar decodificação simultânea da mesma imagem.
+Base: java.zip enviado, mais diagnóstico de manutenção. Não altera importação, tamanho/resolução das imagens, concorrência de rede (6 total/2 antecipação), slots de decode (2), limites de RAM ou disco.
+
+Antes, 64 Mutex eram selecionados por hash de URL; URLs diferentes podiam compartilhar a mesma fila e esperar inclusive por downloads lentos. Agora cada URL tem sua própria trava, removida ao terminar o último usuário/aguardante. Cancelamento e falhas também liberam a referência. Isso não garante eliminar todo atraso de 2 s: rede, filas dos seis downloads, recompressão, IO e decode continuam existindo.
+
+Decodificação: pedidos da mesma imagem aguardam a mesma trava, reconsultam RAM e evitam decodificar simultaneamente o mesmo bitmap. Imagens diferentes continuam usando os dois slots existentes; não amplia a RAM.
+
+PosterLoadPerf não grava URLs nem credenciais:
+stage=load: tempo de load sem o preparo inicial do registro de falhas; hits imediatos de RAM não geram este evento.
+stage=ready: fileMs inclui espera da trava, disco e eventual download; decodeMs inclui espera da trava/slots, decode e prepareToDraw.
+stage=download: queueMs espera pelo orçamento de rede; fetchAndPrepareMs inclui conexão, download, gravação e prepareDownloaded, não apenas bytes de rede. Eventos sem identidade individual permitem comparar distribuições, não correlacionar URLs. Não são tempo total desde a entrada visual da tela.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho. Instalar-TV.ps1 instala a ABI do aparelho sem apagar dados. Desfazer.ps1 restaura os arquivos anteriores.
+
+Inicie Capturar-Limpeza.ps1 antes de abrir o app. Entre em filmes e séries, navegue por algumas linhas e volte a capas já vistas. Ao notar o atraso, anote o horário aproximado para cruzarmos com o registro. Depois volte à Home e aguarde 2 minutos. Ctrl+C e envie Downloads/armazenamento-limpeza.txt. Não precisa importar ou atualizar listas; mantenha os caches para testar reutilização.
+
+Validação: Kotlin compile e testes de concorrência/cancelamento das travas, reaplicação/restauração do pacote e recusa de fontes diferentes. Melhoria visual e tempos reais precisam de teste no aparelho.

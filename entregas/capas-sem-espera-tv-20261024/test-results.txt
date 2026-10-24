@@ -1,0 +1,8 @@
+PASS: colliding URL hashes run independently; same key waits; cancelled waiter leaves active owner protected
+PASS: cancelling current owner releases key and resumes queued caller without leaking entries
+PASS: concurrent cache misses decode once after recheck; unique keys leave no permanent lock map
+PASS: exceptions release leases
+
+compileDesempenhoKotlin: BUILD SUCCESSFUL
+PowerShell: install/reapply/exact rollback and modified-source rejection PASS
+No runtime/visual validation on TV yet.
