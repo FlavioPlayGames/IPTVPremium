@@ -1,0 +1,9 @@
+PASS: a previously hidden card cannot block another visible card, independently of paging/history/kind
+PASS: leaving card placement cancels its load; returning resumes without a permanent blank state
+PASS: prior rows are cleared before any new pager work; new data is delivered after the clear
+PASS: access/query changes cancel old work and clear old data before the replacement catalogue
+
+compileDesempenhoKotlin: BUILD SUCCESSFUL on final sources
+PowerShell: install/reapply/exact rollback/modified-source rejection PASS
+History trigger call sites reviewed: authorized catalogue preparation and successful automatic update only; no onResume/route fallback request.
+No instrumented Compose/Android TV test in this environment.
