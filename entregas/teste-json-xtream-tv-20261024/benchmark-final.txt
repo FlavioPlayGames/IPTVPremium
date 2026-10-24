@@ -1,0 +1,14 @@
+PASS: late I/O failure aborts, cancellation stops further emissions, and consumer timing excludes callback work
+PASS: 508 valid, malformed, nested, Unicode and bounded-reader cases emit exactly the baseline batches and results
+BENCH pass=2 mode=baseline chars=18940757 ms=278.345266
+BENCH pass=2 mode=candidate chars=18940757 ms=197.418717
+BENCH pass=3 mode=candidate chars=18940757 ms=195.236416
+BENCH pass=3 mode=baseline chars=18940757 ms=213.684821
+BENCH pass=4 mode=baseline chars=18940757 ms=201.757235
+BENCH pass=4 mode=candidate chars=18940757 ms=193.643206
+BENCH pass=5 mode=candidate chars=18940757 ms=216.115784
+BENCH pass=5 mode=baseline chars=18940757 ms=226.278715
+BENCH pass=6 mode=baseline chars=18940757 ms=205.268404
+BENCH pass=6 mode=candidate chars=18940757 ms=193.957626
+BENCH pass=7 mode=candidate chars=18940757 ms=197.503424
+BENCH pass=7 mode=baseline chars=18940757 ms=244.060573

@@ -1,0 +1,14 @@
+Teste: reduzir cópias no separador JSON do Xtream.
+Aplicar sobre a versão atual, depois do teste de transações de 2.000. Requer variante desempenho configurada.
+
+O separador usa um buffer reutilizável para montar diretamente cada lote, evitando uma string intermediária por registro e a lista de strings/joinToString. A pilha de delimitadores usa um vetor de caracteres. Continua usando o parser org.json existente para validar e mapear os lotes. Limites de leitura (500 itens/limite de caracteres), regra de recuperação de JSON incompleto, índices, esquema, transações de 2.000 e M3U permanecem como antes.
+
+XtreamFramingPerf informa:
+framingMs: tempo dentro do separador excluindo chamadas ao Reader e ao consumidor; inclui controle de estrutura, cópias e montagem de lotes, e pode incluir escalonamento/GC.
+readerMs: tempo das chamadas Reader.read; inclui decodificação, descompactação e espera por dados. Não é tempo puro de rede.
+consumerMs: callbacks que incluem parsing e escrita/acumulação. Não somar esses campos novamente a parsingMs/gravacaoMs: há sobreposição.
+O flush final das entidades pendentes continua aparecendo em XtreamWritePerf e em XTREAM_TOTAL.
+
+Validação: comparação diferencial de 508 casos com o leitor anterior (lotes e resultados idênticos), sete cenários do parser Android JSON, limites de lote, EOF incompleto, Unicode, comentários, leitura de um caractere, aninhamento, erro de I/O após o fechamento do array e cancelamento. Benchmark sintético neste ambiente não garante ganho na TV. Nenhuma alteração em fontes externos ao pacote.
+
+Aplicar.ps1 -Projeto CAMINHO -Testar compila assembleDesempenho (pode demorar vários minutos). Instalar-TV.ps1 instala sem apagar dados e não abre o aplicativo. Use a captura anterior, abra o app e atualize a mesma lista Xtream uma ou duas vezes. Depois navegue e envie o log. Não precisa testar M3U agora. Desfazer.ps1 -Projeto CAMINHO -Testar recompila os fontes anteriores; depois use Instalar-TV.ps1 para voltar à versão anterior na TV.

@@ -1,0 +1,23 @@
+PASS nested strings, escaped delimiters, Unicode and single-char input boundaries match legacy
+PASS ignored primitives and mixed arrays preserve recognized data
+PASS Android JSON leniency: comments, omitted entries, single quotes and unquoted keys
+PASS BOM and whitespace are accepted
+PASS missing closing bracket recovery and upper character limit
+PASS unfinished object, string, nesting and trailing comma cannot activate partial response
+PASS batch count and text budget are bounded independently of catalog length
+7 framing/legacy-parser scenarios passed using Android JSON
+
+PASS: late I/O failure aborts, cancellation stops further emissions, and consumer timing excludes callback work
+PASS: 508 valid, malformed, nested, Unicode and bounded-reader cases emit exactly the baseline batches and results
+BENCH pass=2 mode=baseline chars=18940757 ms=318.81123
+BENCH pass=2 mode=candidate chars=18940757 ms=373.04345
+BENCH pass=3 mode=candidate chars=18940757 ms=239.797113
+BENCH pass=3 mode=baseline chars=18940757 ms=310.656778
+BENCH pass=4 mode=baseline chars=18940757 ms=345.555485
+BENCH pass=4 mode=candidate chars=18940757 ms=237.309326
+BENCH pass=5 mode=candidate chars=18940757 ms=288.276848
+BENCH pass=5 mode=baseline chars=18940757 ms=465.956152
+BENCH pass=6 mode=baseline chars=18940757 ms=467.820641
+BENCH pass=6 mode=candidate chars=18940757 ms=420.506782
+BENCH pass=7 mode=candidate chars=18940757 ms=392.205277
+BENCH pass=7 mode=baseline chars=18940757 ms=308.611933
