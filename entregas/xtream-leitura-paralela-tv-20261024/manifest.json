@@ -1,0 +1,16 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt",
+    "sha": "eea24cf339e0dba7bdaee8d931fe935e948a6f1957265a7f3491dd67e9d7e660",
+    "before": [
+      "cbc8a0c32249881e6db4b725435624c709b45271dc75b0dcc4e5685ae5f78af4"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/XtreamReadAhead.kt",
+    "sha": "c5d96f3444f0ef8d7c9ad215026c58305855cf9fd6e3f85608fa77e78c76d10b",
+    "before": [],
+    "allowMissing": true
+  }
+]
