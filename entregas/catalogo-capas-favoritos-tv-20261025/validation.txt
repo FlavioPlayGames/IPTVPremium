@@ -1,0 +1,7 @@
+Kotlin desempenho: BUILD SUCCESSFUL.
+Pure Kotlin behavioural tests PASS: separate Kids/main favourites for movie/series/channel kinds and playlists; same-ID add/remove does not alter normal set; legacy keys unchanged.
+Duration tests PASS: confirmed TMDB minutes preferred and converted once, real short movies allowed, provider fallback, invalid values and overflow guarded.
+Geometry tests PASS: larger posters in representative 4/5-column viewports, 2 complete rows, metadata retained.
+Installer: 15 PASS cases across 366e723, 00c7f16, ecf2860, 8dd88ee, 89d6509: apply/idempotency/exact rollback/new-file removal, local-modification rejection, corrupted-artwork rejection.
+Delivery sources match compiled workspace. Import pipeline and player sources unchanged.
+Real TV validation still needed for scope persistence across app restart, visual size, Home logo and Eu e Meu Guarda-Chuva metadata. Series-menu flicker pending user video.

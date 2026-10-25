@@ -1,0 +1,15 @@
+﻿Catálogos: capas maiores, logo Home Kids, favoritos próprios e duração de filmes.
+Pacote cumulativo, incluindo ajustes visuais anteriores. Aceita versões recentes até 89d6509.
+
+Filmes/Séries principais: mais área para as capas, espaços e padding reduzidos, lateral mais proporcional. Mantém nomes, notas, favoritos, 2 fileiras e opções 8/10. Estilo normal preservado.
+Home Kids: usa a mesma marca de massinha dos catálogos. Bichinhos e navegação mantidos.
+Favoritos Kids: filmes/séries/canais têm chaves próprias por lista. Começam vazios na primeira utilização. Adicionar/remover no Kids não afeta a área principal nem compartilha com o SharedLibrary. Favoritos principais e sincronização anteriores preservados. Seleção nos detalhes e filtros dos catálogos usam o escopo correto. Histórico de reprodução não alterado.
+Duração: após confirmar a identidade TMDB, runtime em minutos passa a ser a referência das informações do filme, convertido com proteção contra overflow. Sem runtime válido, mantém segundos positivos do provedor. Não adivinha minutos com base no tamanho de um número e não fixa duração por título. Reabra Eu e Meu Guarda-Chuva para validar na lista real.
+Importação, cache de capas e lógica dos players preservados.
+
+Aplicar.ps1 -Projeto <pasta> -Testar confere fontes, cria backup e compila desempenho.
+Instalar-TV.ps1 instala sem desinstalar nem apagar dados.
+Desfazer.ps1 restaura o backup de código desta etapa; não apaga favoritos gravados no aparelho.
+Capturar.ps1 registra a validação no aparelho.
+
+Falha intermitente das categorias de Séries continua pendente do vídeo do usuário.

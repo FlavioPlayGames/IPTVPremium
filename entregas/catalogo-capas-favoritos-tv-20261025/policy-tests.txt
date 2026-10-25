@@ -1,0 +1,3 @@
+PASS favourite isolation, same-ID toggle, all kinds/playlists and legacy keys
+PASS confirmed TMDB units/priority, shorts, missing/invalid/overflow values
+PASS larger poster geometry with two complete rows and metadata preserved
