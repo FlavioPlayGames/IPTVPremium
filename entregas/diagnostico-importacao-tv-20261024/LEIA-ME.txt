@@ -1,0 +1,108 @@
+﻿COLETOR DETALHADO DE IMPORTACAO - IPTVPremium - PowerShell 5.1 ou superior
+Nao instala APK, nao altera o importador, nao limpa dados/cache e nao solicita root.
+Limpa buffers do Logcat, reseta estatisticas gfxinfo e coleta diagnosticos via ADB.
+
+PRIMEIRA MEDICAO (mesma versao atual do app, SEM aplicar outra correcao)
+Conectar a TV por depuracao Wi-Fi, deixar o aplicativo na Home e executar:
+ powershell.exe -NoProfile -ExecutionPolicy Bypass -File CAMINHO\Coletar.ps1 -Inicio Quente -Operacao Atualizacao
+Depois que aparecer "Salvando em", faca UMA atualizacao da lista M3U.
+No teclado do computador, I marca o instante aproximado do clique e V marca
+quando a Home/catalogo ficou visivel. Nao e preciso Enter. Espere cerca de 10s
+depois de V e pressione Q para finalizar com relatorio e ZIP.
+Se nao marcar I/V, o relatorio usa proxies que realmente existirem nos logs,
+identificando-os; sem marcador suficiente o campo fica N/D.
+A captura tambem termina sozinha em 180s. Para listas demoradas:
+ -DuracaoSegundos 480
+Prefira Q a Ctrl+C para garantir fechamento, exames finais e compactacao.
+No ISE/terminal com entrada redirecionada use a duracao: teclas podem nao existir.
+
+AMOSTRAGEM
+- Meta de 2 segundos para meminfo de cada processo do app, MemAvailable,
+  /proc/stat (CPU por nucleo e iowait), /proc/pid/stat e /proc/pid/io.
+- Processos encontrados por pidof e ps, incluindo processos auxiliares nomeados
+  com o prefixo do pacote. Logcat usa UID e acompanha mudancas de PID.
+- top por thread e tamanhos de banco/WAL/SHM a cada aproximadamente 6s.
+- CPU, netstats, gfxinfo e inventario do banco no inicio/fim quando aplicavel.
+- Cada comando tem timeout. As amostras NAO se sobrepoem: conexao lenta ou
+  dumpsys lento podem alongar a cadencia. Duracoes reais ficam registradas.
+Para alvo de 1s: -IntervaloSegundos 1. Pode pesar mais na TV.
+Para controle de interferencia: -SoLogcat desativa amostragem periodica,
+mas mantem logs, marcos, exames de inicio/fim e resumo. Nao misture esses
+resultados com os detalhados na mesma comparacao.
+
+LOGS E PERMISSOES
+Guarda logcat bruto do app com threadtime e logs de sistema para ANR, mortes,
+LMK, SQLite, renderizacao e marcos. Se --uid nao existir, guarda captura geral
+bruta e deriva arquivo por PIDs encontrados, sem apagar o original.
+Arquivos privados do banco e /proc/io dependem de run-as/permissoes da TV.
+Se forem negados, o erro bruto e preservado e os campos ficam N/D.
+NAO transforma falta de permissao, marcador ou dado em zero.
+Tamanho por tabela/indice requer sqlite3/dbstat disponiveis no aparelho.
+O comando SQL final usa abertura readonly. Nao executa VACUUM nem checkpoint.
+
+REDE E DNS
+Bytes de corpo HTTP, compressao e esperas vem de PlaylistConnection/COMPACTACAO.
+Os arquivos netstats sao preservados para analise. /proc/net/dev e do sistema,
+NAO representa bytes exclusivos do app. O relatorio nao faz essa confusao.
+DNS, TCP/TLS e custo separado dos indices ficam N/D sem instrumentacao especifica.
+O tempo ate cabecalhos e agregado (pode incluir DNS, conexao, TLS e servidor).
+Para tentar resolver o dominio no momento de um erro DNS, acrescente:
+ -HostDns "dominio-do-provedor.com"
+Apenas dominio, sem URL, usuario ou senha. O coletor tenta getent/nslookup/ping;
+comandos ausentes ou ICMP bloqueado nao provam falha DNS. Saidas ficam brutas.
+
+PERFETTO (execucao EXTRA de investigacao)
+Acrescente -Perfetto. Captura scheduler, frequencia CPU, block I/O, categorias
+ART/GC e UI quando a TV permitir. Sessao tem identificador exclusivo, duracao
+limitada, buffer RAM de 8MiB e limite de arquivo de 33.500.000 bytes.
+Pode aumentar a carga e pode atingir o limite antes de terminar uma lista longa.
+Verifique perfetto-status/perfetto-inicio e o tamanho/alcance do trace.
+Se indisponivel ou bloqueado, os demais diagnosticos continuam.
+Trace pode ser aberto em https://ui.perfetto.dev. Ele nao e enviado pelo script.
+Nao use apenas o tempo com Perfetto para concluir se a meta real foi atingida.
+
+3 EXECUCOES COMPARAVEIS
+Repita Coletar.ps1 tres vezes com a MESMA lista, build, aparelho e operacao,
+sem instalar APK, limpar cache ou fazer outras tarefas entre elas.
+-Inicio Quente e um rotulo: deixe o processo ja aberto na Home.
+Para processo a frio: -Inicio Frio -ReiniciarApp (force-stop e abre novamente).
+Frio NAO significa disco/cache vazio. Nao misture frio e quente.
+Depois execute Comparar.ps1. Ele calcula media e desvio padrao amostral,
+separa grupos e avisa quando ha menos de 3 resultados de sucesso.
+SYNC e clique ate tela visivel sao metricas distintas. Ambas aparecem quando
+existirem marcadores suficientes. Mesmo numero de entradas nao garante mesma
+lista: confirme manualmente que nao trocou o provedor/catalogo.
+
+ARQUIVOS POR EXECUCAO (Downloads\diagnostico-iptv\DATA-TIPO-OPERACAO-ID)
+- logcat-app-bruto.txt, logcat-sistema-bruto.txt: originais completos coletados.
+- logcat-app-processos.txt, etapas.txt, eventos-e-erros.txt: visoes derivadas.
+- amostras.jsonl: todas as amostras, saidas brutas, erros, timestamps e duracoes.
+- memoria-io.csv: PSS Java/Native/Graphics/total, heap alocado quando reconhecido,
+  MemAvailable, contadores fisicos de I/O e CPU do processo (100% = um nucleo).
+- memoria-total-app.csv: soma dos processos encontrados no ciclo (leituras
+  sequenciais; se um valor faltar o agregado fica N/D), com instantes dos picos.
+- cpu-nucleos.csv: uso de cada nucleo e iowait do sistema.
+- threads-amostras.csv / threads-ranking.csv: nomes, CPU e tempo observado.
+- banco-wal.csv: evolucao do banco, WAL e arquivos temporarios reconhecidos.
+- aparelho/pacote: modelo, Android, fingerprint, ABI, versao/build/instalacao.
+- cpu/gfx/netstats inicio e fim; banco-final; DNS opcional; trace opcional.
+- resumo.txt, resumo.json, execucoes.csv: tempos, percentuais, entradas/s, GC,
+  picos amostrados com instante, I/O observado, alertas e distancia de 15/17s.
+- um ZIP com o mesmo nome base da pasta: este e o arquivo para enviar.
+
+LIMITES DE INTERPRETACAO
+Picos amostrados nao sao picos absolutos. Memoria Java PSS difere do heap alocado.
+GC concorrente nao e pausa: somamos apenas os valores do campo "paused".
+Indices estao incluidos no custo de transacoes Room, sem tempo proprio medido.
+M3U atual registra rede+parsing agregados: nao sao separados por estimativa.
+Se endpoints se sobrepoem, tempos nao sao aditivos; o relatorio sinaliza isso.
+Frequencia de atualizacao do progresso fica N/D sem log especifico do app.
+Mortes e ANR de sistema sao correlacionados por pacote/PIDs quando identificaveis.
+O coletor nao garante diagnosticar um evento que o Android nao disponibilizar.
+
+TESTADO NO AMBIENTE
+Execucao PowerShell com ADB simulado, arquivos e ZIP reais; Perfetto indisponivel;
+analise de log real com quatro importacoes; marcos sinteticos I/V; unidades de GC;
+alerta DNS; picos/threads/I-O simulados; media/desvio amostral em tres execucoes.
+Nao houve acesso a TV real nem validacao em Windows PowerShell 5.1 neste ambiente;
+o codigo usa sintaxe/APIs compativeis com 5.1, e foi executado no PowerShell 7.

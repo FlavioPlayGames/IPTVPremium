@@ -1,0 +1,9 @@
+PASS PowerShell script parse checks
+PASS complete collector with fake ADB, timed stop, raw logs/samples/CSV/JSON/TXT/ZIP
+PASS optional unavailable Perfetto does not prevent other diagnostics
+PASS logcat-only control mode without periodic samples
+PASS memory PSS vs allocated heaps, process CPU/proc-I/O, thread ranking and clock calibration with simulated device
+PASS real log: 4 known durations and missing-data semantics; synthetic click/visible, GC unit conversion, DNS alert, non-overlapping stage totals; 3-run mean and sample standard deviation
+
+Executed with PowerShell 7 on Linux. Uses PowerShell 5.1-compatible syntax and .NET APIs, but Windows PowerShell 5.1 and a real TV were not available for execution.
+No app files or TV data modified by these tests.
