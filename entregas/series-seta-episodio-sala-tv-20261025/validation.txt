@@ -1,0 +1,5 @@
+PASS: local 4K room uses sample 2 for Full HD (quarter decoded pixels); smaller/invalid resources stay sample 1; sample never undersizes requested dimensions
+PASS: install, idempotency, exact-byte rollback
+PASS: modified source rejected before changing files
+PASS: compileDesempenhoKotlin / KSP successful.
+PASS: approved Channels and player contrast remain identical.

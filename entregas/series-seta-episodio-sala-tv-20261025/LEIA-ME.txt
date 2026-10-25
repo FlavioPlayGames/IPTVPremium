@@ -1,0 +1,39 @@
+SERIES: SETA PARA O EPISODIO E IMAGEM DA SALA - 25/10/2026
+Base: detalhes-assistir-retomar-tv (0736573) ja aplicado no projeto.
+Altera somente SeriesDetailsScreen.kt, SeriesScreen.kt e ThemeArtwork.kt.
+
+CONTROLE
+- Assistir continua recebendo foco ao entrar/retornar aos detalhes.
+- Depois de descer para Temporadas, outra seta Baixo solicita explicitamente
+  o ultimo episodio assistido daquela temporada, em vez de usar a proximidade
+  horizontal do botao da temporada.
+- Se o bloco saiu da area visivel, primeiro rola ate ele e depois solicita foco.
+- Se nao houver historico valido na temporada escolhida, vai ao primeiro bloco.
+- Setas laterais continuam navegando pelas temporadas e episodios normalmente.
+
+SALA DE CARREGAMENTO
+- Preparacao da imagem local da sala/TV antecipada para o catalogo de Series.
+- Mesma foto e mesmo enquadramento, com destino Full HD (1920x1080).
+- Apenas essa foto usa decodificacao amostrada: uma fonte 3840x2160 gera
+  aproximadamente um quarto dos pixels, em vez de decodificar 4K inteiro.
+- Imagem pronta fica retida no cache RAM existente e e reutilizada nos detalhes.
+- Outros assets/Home/capas mantem seus caminhos de carregamento.
+- SeriesRoomPerf mostra cached, ready e elapsedMs. A primeira abertura com
+  cache frio ainda exige decodificacao; o ganho real precisa ser medido na TV.
+
+PRESERVADO
+Grafite e contraste do player, VLC/Media3, Canais aprovado, avaliacao, importacao,
+resolucao/cores/HDR do video, historico e limites existentes do cache.
+Nao altera arquivos de recursos nem introduz downloads de imagem de carregamento.
+
+TESTE
+Aplique/compile com Aplicar.ps1 -Projeto ... -Testar e atualize com Instalar-TV.ps1.
+Nao desinstale nem limpe dados. Rode Capturar.ps1, entre em Series e abra uma serie
+com varios episodios e historico mais para o meio/fim da temporada. Teste as duas
+setas Baixo, laterais, retorno do player e a aparicao da sala em outras series.
+Envie Downloads\validacao-series-seta-sala-tv.txt.
+O ultimo arquivo enviado tinha os mesmos bytes da captura antiga de Canais e
+nao permite medir o novo teste de Series; esta captura tem nome diferente.
+
+Aplicador valida os tres arquivos e guarda backup; Desfazer.ps1 restaura.
+Compilacao Kotlin/KSP e calculo da amostragem validados; teste final na TV.
