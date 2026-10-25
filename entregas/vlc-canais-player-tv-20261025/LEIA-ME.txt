@@ -1,0 +1,49 @@
+VLC, CANAIS E TITULO DO PLAYER - 25/10/2026
+Base exata: backup enviado em 25/10 mais o pacote restaurar-correcoes-tv (caafbfd).
+Nao aplicar diretamente sobre outro backup ou sobre o java.zip sem o pacote anterior.
+
+CANAIS
+- Primeiro acesso sem canal salvo: consulta o primeiro canal permitido de Todos,
+  em ordem de catalogo, e reproduz na previa, mantendo Todos como lista.
+- Com historico: recupera o ultimo que chegou a reproduzir, sua categoria e foco.
+- Primeiro OK em outro canal seleciona/reproduz; OK no canal atual expande a tela
+  sem trocar midia/superficie. Canal indisponivel permite nova tentativa.
+- Navegacao do menu slim usa somente a rolagem manual nas bordas, sem a rolagem
+  automatica de foco disputando a posicao. Mantem a volta entre fim/inicio.
+- Formato da imagem desaparece com o nome apos 3 segundos sem atividade.
+  O painel de configuracao aberto permanece utilizavel ate fechar.
+- Respeita Kids e controle parental; canal sem URL nao inicia automaticamente.
+
+VLC: AJUSTE PARA VALIDAR NA TV
+- Configuracao Fontconfig valida com diretorios reais e cache gravavel privado.
+- Configuracao preparada em IO antes de criar o LibVLC. Mantem fontes de todos
+  os alfabetos disponiveis, sem baixar fontes e sem alterar as legendas salvas.
+- Suprime apenas o titulo automatico nativo; o player ja desenha seu cabecalho.
+- A fila de encerramento nativo continua serial e fora da interface, sem abrir
+  outro decodificador antes de terminar a liberacao anterior.
+- Log VlcFontPerf mede a configuracao; VlcReleaseStepPerf mede o encerramento.
+- A captura anterior mostrou erro Fontconfig e stop de 45.975 ms na primeira
+  abertura. Isso e uma pista, nao prova de causa exclusiva. A correcao precisa
+  ser medida no mesmo episodio na TV; nao ha garantia de corrigir todo fluxo.
+
+PLAYER DE FILMES
+- Nome em texto, como nos episodios; nao baixa/decodifica logotipo no player.
+- Logo/fundo dos detalhes e miniaturas dos episodios continuam preservados.
+
+SEM ALTERACOES
+Importadores, rede de importacao, esquema, DAO, indices, versao, dependencias,
+credenciais e configuracao desempenho. Apenas leitura pontual do catalogo para
+primeiro canal foi adicionada ao repository; nada e reimportado.
+
+USO NO POWERSHELL DENTRO DO PROJETO
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\vlc-canais-player-tv\Aplicar.ps1" -Projeto (Get-Location).Path -Testar
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\vlc-canais-player-tv\Instalar-TV.ps1" -Projeto (Get-Location).Path
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\vlc-canais-player-tv\Capturar.ps1"
+
+Teste o episodio de O Conto da Aia no VLC, volte e abra no Media3. Depois entre
+em Canais, teste dois OKs, navegue o menu em tela cheia e aguarde 3 segundos.
+Para primeiro acesso sem historico use uma lista sem canal assistido, sem limpar
+os dados do app. Captura fica em Downloads\validacao-vlc-canais-tv.txt.
+
+Aplicador valida hashes, salva backup e rejeita fontes inesperadas antes de copiar.
+Desfazer.ps1 restaura os arquivos anteriores e remove apenas o helper adicionado.

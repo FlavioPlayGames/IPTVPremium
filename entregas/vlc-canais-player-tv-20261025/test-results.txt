@@ -1,0 +1,10 @@
+PASS: first channel uses Todos order, independent of category, search, favourite filter; source invalidated
+PASS: blank streams skipped with bounded page reads
+PASS: Kids restriction preserved; automatic entry never picks adult/general category
+PASS: empty or absent active catalogue returns no playback
+PASS: query errors/cancellation propagate and release the source
+PASS: Fontconfig XML is valid, preserves system fonts/all alphabets, escapes paths, uses private writable cache, needs no external DTD
+PASS: Kotlin/KSP desempenho compilation successful.
+PASS: install, idempotency, exact-byte rollback and removal of added helper
+PASS: modified source rejected before changing files
+PASS: importers, import HTTP, DAO, entities and database match uploaded backup byte for byte.
