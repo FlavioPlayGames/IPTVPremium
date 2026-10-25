@@ -1,0 +1,20 @@
+BUILD SUCCESSFUL in 1m 43s.
+br.com.flaviotorres.iptvpremium.data.remote.Import25HttpTest: 1 testes, zero falhas/erros/ignorados.
+br.com.flaviotorres.iptvpremium.data.sync.ImportBatchPipelineTest: 6 testes, zero falhas/erros/ignorados.
+br.com.flaviotorres.iptvpremium.data.sync.ImportFormatPreservationTest: 8 testes, zero falhas/erros/ignorados.
+br.com.flaviotorres.iptvpremium.data.sync.LargeImport25Test: 1 testes, zero falhas/erros/ignorados.
+Total: 16 testes passaram.
+Integracao Room: 44.724 filmes e 20.170 series, sem ativar geracao antes da conclusao.
+Fila: apenas um lote aguardando; ordem preservada; sobreposicao de processamento e gravacao verificada com tempo virtual (nao e benchmark da TV).
+Falha no leitor/escritor e cancelamento abortam a operacao, sem sucesso parcial.
+M3U HTTP: identidade e gzip preservam linhas/acentos; cancelar leitura bloqueada solicita desconexao e encerra a operacao.
+Timeouts originais verificados em conexoes de teste: Xtream 10s/15s; M3U 15s/30s.
+Formato Xtream/M3U, novas tentativas existentes, catalogo anterior em falha e cancelamento preservados.
+Compilacao isolada usa configuracao/recursos locais e aliases apenas de validacao para quatro capas ausentes do java.zip. Esses arquivos nao integram o pacote.
+Nao executado na TV fisica do usuario; nenhuma promessa de tempo fixo.
+
+PASS exact ZIP base; CRLF+BOM False preservation, backup, idempotence
+PASS exact ZIP base; CRLF+BOM True preservation, backup, idempotence
+PASS refusal before writes: unknown-source
+PASS refusal before writes: unknown-helper
+PASS rollback restores originals and removes new helper

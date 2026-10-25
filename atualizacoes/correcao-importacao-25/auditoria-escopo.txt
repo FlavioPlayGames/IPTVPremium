@@ -1,0 +1,7 @@
+Base: ultimo java.zip enviado, file_00000000c2c0820ea253d9295b493001.
+app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/DefaultPlaylistHttpClient.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt
+app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/ImportBatchPipeline.kt
+225 outros fontes Kotlin preservados byte a byte.
+Dois fontes existentes alterados e um novo auxiliar.
+Nenhuma alteracao em UI, navegacao, player, modelos, parser, formato, historico, caches, politicas de memoria, tamanho de lote ou versao.

@@ -1,0 +1,196 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/DefaultPlaylistHttpClient.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/remote/DefaultPlaylistHttpClient.kt
+@@ -33,7 +33,14 @@
+ class DefaultPlaylistHttpClient : PlaylistHttpClient {
+ 
+     override suspend fun <T> withReader(url: String, consume: suspend (java.io.Reader) -> T): T =
+-        withContext(Dispatchers.IO) { coroutineScope {
++        readImport(url, 10_000, 15_000, consume)
++
++    private suspend fun <T> readImport(
++        url: String,
++        connectTimeoutMs: Int,
++        readTimeoutMs: Int,
++        consume: suspend (java.io.Reader) -> T
++    ): T = withContext(Dispatchers.IO) { coroutineScope {
+             val endpoint = catalogTraceEndpoint(url)
+             val started = System.nanoTime()
+             val connection = URL(url).openConnection() as HttpURLConnection
+@@ -47,8 +54,8 @@
+             try {
+                 currentCoroutineContext().ensureActive()
+                 configure(connection)
+-                connection.connectTimeout = 10_000
+-                connection.readTimeout = 15_000
++                connection.connectTimeout = connectTimeoutMs
++                connection.readTimeout = readTimeoutMs
+                 status = connection.responseCode
+                 headersMs = elapsedMillis(started)
+                 Log.i(TAG, "READER_HEADERS endpoint=$endpoint http=$status ateCabecalhosMs=$headersMs")
+@@ -166,70 +173,30 @@
+     override suspend fun readLines(
+         url: String,
+         onLine: suspend (String) -> Unit
+-    ) = withContext(Dispatchers.IO) {
++    ) {
+         val endpoint = endpointKind(url)
+-        val startedNs = System.nanoTime()
+-        val connection = URL(url).openConnection() as HttpURLConnection
+-        var status = -1
+-        var responseBody: PlaylistResponseBody? = null
+-        var phase = "CONNECT"
+-        var lines = 0
+-
+-        try {
+-            currentCoroutineContext().ensureActive()
+-            configure(connection)
+-            status = connection.responseCode
+-            phase = "STATUS"
+-
+-            if (status == 401 || status == 403) throw PlaylistAccessDeniedException("Acesso negado pelo provedor. Confira a lista e suas credenciais.")
+-            if (status !in 200..299) {
+-                logResult(
+-                    endpoint = endpoint,
+-                    status = status,
+-                    mime = safeMime(connection.contentType),
+-                    bodyKind = "HTTP_ERROR",
+-                    bodyLength = 0,
+-                    durationMillis = elapsedMillis(startedNs)
+-                )
+-                throw IllegalStateException(
+-                    "Erro HTTP $status ao acessar a lista."
+-                )
+-            }
+-
+-            phase = "READ_LINES"
+-            PlaylistResponseBody(connection).also { responseBody = it }.stream
+-                .bufferedReader(Charsets.UTF_8)
+-                .use { reader ->
+-                    while (true) {
+-                        currentCoroutineContext().ensureActive()
+-                        val line = reader.readLine() ?: break
+-                        lines++
+-                        onLine(line)
++        val started = System.nanoTime()
++        var lines = 0L
++        var lastProgress = started
++        // Use the import reader's cancellation/connection cleanup, gzip handling and header diagnostics.
++        // get() and the movie/series detail request paths are deliberately untouched.
++        readImport(url, 15_000, 30_000) { source ->
++            val reader = if (source is java.io.BufferedReader) source else source.buffered()
++            while (true) {
++                currentCoroutineContext().ensureActive()
++                val line = reader.readLine() ?: break
++                lines++
++                onLine(line)
++                if (lines == 1L || lines % 512L == 0L) {
++                    val now = System.nanoTime()
++                    if (lines == 1L || now - lastProgress >= 5_000_000_000L) {
++                        Log.i(TAG, "STREAM_PROGRESS endpoint=$endpoint linhas=$lines duracaoMs=${elapsedMillis(started)}")
++                        lastProgress = now
+                     }
+                 }
+-
+-            Log.i(
+-                TAG,
+-                "STREAM endpoint=$endpoint http=$status " +
+-                        "mime=${safeMime(connection.contentType)} " +
+-                        "linhas=$lines duracaoMs=${elapsedMillis(startedNs)}"
+-            )
+-        } catch (error: Exception) {
+-            if (status in 200..299 || status == -1) {
+-                Log.w(
+-                    TAG,
+-                    "STREAM etapa=$phase endpoint=$endpoint " +
+-                            "http=${if (status == -1) "SEM_RESPOSTA" else status} " +
+-                            "linhas=$lines erro=${error.javaClass.simpleName} " +
+-                            "duracaoMs=${elapsedMillis(startedNs)}"
+-                )
+-            }
+-            throw error
+-        } finally {
+-            connection.disconnect()
+-            responseBody?.let { Log.d(TAG, "COMPACTACAO endpoint=$endpoint ${it.statistics()}") }
+-        }
+-        Unit
++            }
++        }
++        Log.i(TAG, "STREAM endpoint=$endpoint linhas=$lines duracaoMs=${elapsedMillis(started)}")
+     }
+ 
+     private fun configure(connection: HttpURLConnection) {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt
+@@ -1081,9 +1081,11 @@
+                     batches++
+                     sampleHeap()
+             }
+-            val stats = httpClient.withReader(url) { reader ->
++            val stats = br.com.flaviotorres.iptvpremium.data.sync.ImportBatchPipeline.run<PlaylistContent, br.com.flaviotorres.iptvpremium.data.parser.XtreamArrayStream.Stats>(
++                produce = { enqueue ->
++                    httpClient.withReader(url) { reader ->
+                 if (direct) {
+-                    val measured = br.com.flaviotorres.iptvpremium.data.parser.XtreamDirectCatalogReader.read(reader, endpoint, parser) { batch -> receiveMeasured(batch) }
++                    val measured = br.com.flaviotorres.iptvpremium.data.parser.XtreamDirectCatalogReader.read(reader, endpoint, parser) { batch -> enqueue(batch) }
+                     parsingMs = measured.decodeMs
+                     Log.i("XtreamDirectPerf", "endpoint=$endpoint records=${measured.records} characters=${measured.characters} decodeMs=${measured.decodeMs} readerMs=${measured.readerMs}")
+                     br.com.flaviotorres.iptvpremium.data.parser.XtreamArrayStream.Stats(measured.records, measured.characters, measured.recoveredClosingBracket)
+@@ -1092,10 +1094,13 @@
+                         val parseStart = SystemClock.elapsedRealtime()
+                         val batch = withContext(Dispatchers.Default) { parser.parseCatalogBatch(endpoint, chunk) }
+                         parsingMs += SystemClock.elapsedRealtime() - parseStart
+-                        receiveMeasured(batch)
++                        enqueue(batch)
+                     }
+                 }
+             }
++                },
++                consume = { batch -> receiveMeasured(batch) }
++            )
+             if (stats.records > 0 && accepted == 0L && endpoint != "get_live_streams") {
+                 throw IllegalStateException("A API Xtream retornou itens sem identificadores válidos em $endpoint.")
+             }
+@@ -1110,7 +1115,7 @@
+         }
+         finally {
+             val runtime = Runtime.getRuntime()
+-            Log.i("XtreamEndpointPerf", "endpoint=$endpoint modo=STREAM leitor=${if (direct) "JSON_READER" else "LEGADO"} aceitos=$accepted parsingMs=$parsingMs gravacaoMs=$writeMs lotes=$batches gravacaoPicoMs=$slowestWriteMs totalMs=${SystemClock.elapsedRealtime()-start} heapKb=${(runtime.totalMemory()-runtime.freeMemory())/1024} heapPicoObservadoKb=$sampledPeakKb status=$outcome")
++            Log.i("XtreamEndpointPerf", "endpoint=$endpoint modo=STREAM leitor=${if (direct) "JSON_READER" else "LEGADO"} filaLotes=1 aceitos=$accepted parsingMs=$parsingMs gravacaoMs=$writeMs lotes=$batches gravacaoPicoMs=$slowestWriteMs totalMs=${SystemClock.elapsedRealtime()-start} heapKb=${(runtime.totalMemory()-runtime.freeMemory())/1024} heapPicoObservadoKb=$sampledPeakKb status=$outcome")
+         }
+     }
+ 
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/ImportBatchPipeline.kt
+@@ -0,0 +1,32 @@
++package br.com.flaviotorres.iptvpremium.data.sync
++
++import kotlinx.coroutines.CoroutineDispatcher
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.channels.Channel
++import kotlinx.coroutines.coroutineScope
++import kotlinx.coroutines.launch
++
++/** One waiting batch, one writer. Ordering and the original staging/activation contract are preserved. */
++internal object ImportBatchPipeline {
++    const val pendingBatches = 1
++
++    suspend fun <T, R> run(
++        produce: suspend (suspend (T) -> Unit) -> R,
++        consume: suspend (T) -> Unit,
++        writerDispatcher: CoroutineDispatcher = Dispatchers.IO
++    ): R = coroutineScope {
++        val queue = Channel<T>(pendingBatches)
++        val writer = launch(writerDispatcher) {
++            for (batch in queue) consume(batch)
++        }
++        try {
++            val result = produce { queue.send(it) }
++            queue.close()
++            writer.join() // A complete JSON response is not a complete import until the last write succeeds.
++            result
++        } finally {
++            queue.cancel()
++            writer.cancel()
++        }
++    }
++}
