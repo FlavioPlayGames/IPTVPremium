@@ -1,0 +1,15 @@
+﻿Kids Cinema Final — aplicação sobre kids-pequeno-cinema-tv cdd23dc.
+
+Visual de catálogo: cortinas, fundo creme, poltronas, seleção de massinha, estrela dourada na capa selecionada e cabeçalhos.
+Azul e rosa. Filmes e Séries mantêm duas fileiras de 4 ou 5 capas (8/10), proporção vertical 2:3, nota e favorito.
+Canais Kids: mesmo cenário, lista e logos provenientes da lista IPTV; sem guia nem dias, com área de TV ampliada. Logo indisponível usa ícone simples.
+Home: novos recortes dos bichinhos no atlas transparente; cenário da Home anterior mantido.
+Foco: categorias aguardam restauração do último canal; lista retém linhas em atualização quando já disponíveis; âncora na coluna esquerda protege o foco durante troca de lista; Organizar não recebe foco enquanto a transição está pendente. Busca/teclado e tela cheia são excluídos dessa transferência. Diagnóstico: LiveEntryFocus.
+Importadores, banco, reprodução/decodificador e controles de tela cheia não alterados. EPG de Canais fora do Kids preservado.
+
+Aplicar.ps1 -Projeto <pasta> -Testar verifica hashes, faz backup e compila assembleDesempenho.
+Instalar-TV.ps1 instala sem desinstalar ou limpar dados.
+Desfazer.ps1 restaura o backup desta etapa; depois compile/instale novamente.
+Capturar.ps1 captura os logs do aplicativo, inclusive foco.
+
+A prévia aprovada orienta o visual; capas/logos são reais da lista. Fidelidade e comportamento de foco precisam de validação visual na TV.

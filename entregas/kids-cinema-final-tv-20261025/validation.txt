@@ -1,0 +1,7 @@
+Kotlin desempenho: BUILD SUCCESSFUL.
+Installer: apply/idempotency/exact byte rollback PASS; modified source rejection PASS; corrupt WebP rejection PASS.
+Manifest sources exactly match validated workspace. No import/data/player source in delivery.
+Artwork alpha checked against cream background; no rectangular matte or fringe visible in new atlas.
+8/10 vertical poster geometry retained. Kids channel EPG/day guards retained; TV uses available height.
+Focus transition excludes keyboard/fullscreen and respects explicit toolbar focus. LiveEntryFocus diagnostics available.
+Actual TV focus behavior and visual fidelity pending device validation; full APK build through Aplicar.ps1 -Testar.
