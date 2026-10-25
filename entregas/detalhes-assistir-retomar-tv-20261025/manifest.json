@@ -1,0 +1,34 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "sha": "3a632a3747445f3f1a5f91c09028c6360c67f4340b98bbabb08ac47637546ff3",
+    "before": [
+      "d7e7471a494e402d02dcd23c24a298234c6f95c45b19abc851655e35c7f29b6b"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/ReferenceDetailHeader.kt",
+    "sha": "c21f69663e3501bbd15e28cb0949293947166e4a21fa09dd9c5056e5c934f648",
+    "before": [
+      "13341315101dbbf4fd7507c06219c77fd777d57afb317aebf72099238516bf86"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt",
+    "sha": "a476e97ea331b11a08947571188bb4faaf3617ab830e43cf0c8ddf866481af20",
+    "before": [
+      "1e4da8e594fbc1f2fa1ebde53e0af522fc87b0a98dcb8e2d0f216fc6951b530e"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt",
+    "sha": "7be0f2ef2a7e4ac51e183ea32fb9082611438c49d814c19548b464a947eda9db",
+    "before": [
+      "676a9b876d19aac2e6e4ee67b1e8289f917f093863f3309fa340897cd9dcbf74"
+    ],
+    "allowMissing": false
+  }
+]

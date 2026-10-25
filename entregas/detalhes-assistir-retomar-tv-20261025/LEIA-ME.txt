@@ -1,0 +1,37 @@
+DETALHES: ASSISTIR, RETOMADA VISIVEL E AVALIACAO - 25/10/2026
+Base: projeto atual com player grafite e contraste aprovados (31f6042).
+Quatro arquivos alterados: ReferenceDetailHeader, MovieDetailsScreen,
+SeriesDetailsScreen e AppNavigation. Nao modifica players ou importadores.
+
+COMPORTAMENTO
+- Ao entrar/retornar aos detalhes de filme ou serie, foco direto em Assistir.
+- Nao escolhe o foco pela ordem da sinopse/favorito/avaliacao.
+- Na serie, recupera temporada e ultimo episodio do historico local.
+- Mantem o botao da temporada e o bloco do episodio visiveis nas listas.
+- Rolagem das listas e foco independentes: a miniatura nao rouba o foco.
+- A retomada da temporada segue o episodio efetivamente assistido quando ha
+  historico, inclusive ao avancar automaticamente de uma temporada a outra.
+- A previa da animacao de entrada nao recebe foco; a pagina final recebe
+  apenas depois que a animacao termina. Voltar do player reaplica Assistir.
+- Sem historico, conserva a escolha valida/primeira temporada disponivel.
+- Ao focar a avaliacao, primeira estrela amarela e discretamente ampliada.
+- OK inicia a edicao na primeira estrela; esquerda/direita preenchem ate a
+  nota escolhida; outro OK salva. Limpar/Voltar continuam disponiveis.
+- Imagens/metadados chegando depois nao ficam solicitando foco novamente.
+
+PRESERVADO
+Visual grafite do player, Canais aprovado, VLC/Media3, importacao, banco,
+cache, configuracao desempenho e todas as cores originais do video.
+Usa o historico ja existente, sem sincronizacao adicional pela rede.
+
+USO
+Aplicar.ps1 -Projeto ... -Testar compila desempenho e guarda backup.
+Instalar-TV.ps1 -Projeto ... atualiza sem desinstalar nem limpar dados.
+Desfazer.ps1 permite restaurar os quatro arquivos anteriores.
+Compilacao Kotlin/KSP validada; teste final de foco com controle na TV.
+
+TESTE NA TV
+Entre em um filme com sinopse longa e confirme foco em Assistir.
+Entre numa serie ja assistida: foco em Assistir, temporada e episodio visiveis.
+Reproduza outro episodio e volte; repita com serie de varias temporadas.
+Navegue ate Avalie: primeira estrela amarela; OK, setas, confirmar a nota.

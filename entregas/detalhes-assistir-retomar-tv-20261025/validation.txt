@@ -1,0 +1,4 @@
+PASS: install, idempotency, exact-byte rollback
+PASS: modified source rejected before changing files
+PASS: compileDesempenhoKotlin / KSP successful.
+PASS: approved Channels and player contrast source files remain identical.
