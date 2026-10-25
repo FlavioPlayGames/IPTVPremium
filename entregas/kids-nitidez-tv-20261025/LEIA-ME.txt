@@ -1,0 +1,13 @@
+﻿Kids: urso na borda e nitidez. Pacote cumulativo.
+Aceita kids-cinema-final-tv (366e723), kids-capas-maiores-tv (00c7f16) ou kids-sem-cadeiras-tv (ecf2860).
+
+Fundos dos catálogos azul/rosa refeitos com o urso encostado no canto inferior esquerdo e sem cadeiras.
+Exportação Full HD (1920x1080), WebP sem perdas, a partir das novas artes. Filtragem de escala de alta qualidade nos fundos e sprites locais. Exportar em resolução maior não substitui detalhe nativo da arte.
+Cache de artes decodificadas segue limitado a 16 MiB; fundo Full HD ativo e atlas juntos cabem no limite. Decodificação continua fora da thread principal.
+Capas: mantidas as 8/10 opções e proporção vertical, sem mudanças no carregamento ou cache de capas. Textos/controles já são renderizados na resolução do aparelho.
+Inclui ajustes anteriores de espaço, molduras e ícones. Home, importação e players preservados.
+
+Aplicar.ps1 -Projeto <pasta> -Testar: valida arquivos, cria backup e compila desempenho.
+Instalar-TV.ps1 instala sem desinstalar nem apagar dados.
+Desfazer.ps1 restaura o backup desta etapa; depois compile/instale novamente.
+Confira a nitidez e a fluidez na TV.

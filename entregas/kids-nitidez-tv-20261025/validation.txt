@@ -1,0 +1,6 @@
+Kotlin desempenho + final resources: BUILD SUCCESSFUL.
+Installer: 9 PASS cases across 366e723, 00c7f16, ecf2860 (apply/idempotency/exact rollback, modified-source rejection, corrupt-artwork rejection).
+Exported blue/pink images: 1920x1080; decoded WebP pixels exactly match 8-bit resized PNG reference (lossless roundtrip PASS).
+Active Full HD background + atlas = 14585856 bytes, below 16 MiB decoded-cache budget.
+Artwork visually inspected: bear touches bottom-left edge, no chairs.
+Delivery matches validated workspace. Actual TV sharpness/fluency still needs device validation.
