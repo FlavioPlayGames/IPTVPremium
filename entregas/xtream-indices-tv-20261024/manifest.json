@@ -1,0 +1,27 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheDatabase.kt",
+    "sha": "2f330cea44f99a8b8d451877aac4c728f7e86ea5d8545f674b3fe8eca5813e89",
+    "before": [
+      "f8b2eafa3f1ec7a15595db0f35ef0a0597a3325733bfb89d9ea0977ad4362208",
+      "75480009c8a11ea94b7afc1e3c6eb60ff7cc44a23c91a13ae7db5fd853f8802c"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/entity/CachedMovieEntity.kt",
+    "sha": "532b3fc80125bdc2e794629123d3ce4bc64cdad0500eb61e52d74a8d57d16b14",
+    "before": [
+      "d41737bbfbfeb6f70b76c684175a6308745581502cad56494bde88d39433e422"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/entity/CachedSeriesEntity.kt",
+    "sha": "046b72827fbca51e5f06cbfa6fd175f9633e225a537ce2e3638ff4af8195829f",
+    "before": [
+      "88f0a41449849947d65f96deaf19b28442f79b393b914a1e6722520750c1dbed"
+    ],
+    "allowMissing": false
+  }
+]

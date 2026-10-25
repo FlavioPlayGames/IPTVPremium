@@ -1,0 +1,35 @@
+BUILD SUCCESSFUL: :app:compileDesempenhoKotlin (KSP + recursos)
+SQLite 3.53.1: 20 DAO SELECT methods, 80 bound query cases, identical results
+No added full table scans; integrity_check ok
+Exact migration 4->5 matches generated Room indices; all tested rows preserved
+Migration 5->4 restores indices, rows preserved
+PowerShell: apply, idempotency, rollback bridge, reapply, changed source rejected
+No Android TV execution or APK assembly performed in cloud.
+
+PASS: FIFO rows, one writer, all batches consumed before completion; simulated pipeline=810 ms versus serial=1200 ms (virtual time, not TV benchmark)
+PASS: backpressure bounds live batches to one consumer, three queued and one blocked producer
+PASS: original read/write failures propagate; peer finishes cleanup before retry/reset is possible
+PASS: caller cancellation joins cleanup and empty endpoints finish without writes
+ 
+PASS: repository imports direct fields, constructs stream URLs and uses one catalog request
+PASS: nonstandard numeric ID retries legacy once, clears partial batches, preserves exact IDs and remembers compatibility for next update
+PASS: transport and database failures are not misclassified as JSON compatibility or retried
+ 
+PASS streaming matches legacy fields, URLs, category types and provider order across batches
+PASS missing outer bracket recovery preserved; mixed invalid records do not reject good later batch
+PASS malformed full endpoint retries twice, staged categories preserve first occurrence and order
+PASS category retry discards previous partial writes and only retries failing category
+PASS staged keyset merge crosses multiple batches with correct order
+PASS full-endpoint retry removes earlier persisted partial batches
+PASS 32 simultaneous callers share the same progressive import
+PASS failed category preserves active generation and discards all staging imports
+PASS local write failure is not retried as provider error and leaves previous active intact
+PASS transport failure after persisted batches discards partial generation
+PASS cancellation during streamed writes preserves active and releases generation
+PASS adaptive series category mode remains available on subsequent sync
+PASS learned provider category IDs remain part of later VOD fallback
+PASS failed adaptive category mode recovers through full endpoint and cleans stages
+PASS adaptive category merge disk failure does not trigger full network fallback
+PASS alternate parser retains the legacy repository contract
+16 real repository/synchronizer/writer integration scenarios passed; persistence simulated
+ 

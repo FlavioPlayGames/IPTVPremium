@@ -1,0 +1,40 @@
+IPTVPremium - reducao de indices da importacao
+
+Aplicar sobre o java.zip enviado em 24/10, mantendo a leitura paralela atual.
+Altera apenas o banco Room e as anotacoes de indices de filmes e series.
+Remove permanentemente indices de nome BINARY e data de inclusao de filmes,
+e de nome BINARY de series. Mantem chave primaria, categoria e providerOrder.
+Nao altera parsing, players, capas, historico, limites ou formato Xtream/M3U.
+
+O banco passa de versao 4 para 5. A migracao elimina apenas esses tres indices;
+nao elimina tabelas ou registros nem exige reimportacao. Bancos novos ja nascem
+sem os indices. Os mesmos indices tambem deixam de pesar nas cargas M3U.
+A primeira abertura aplica a migracao: aguarde a Home antes do teste cronometrado.
+
+TESTAR
+1. Aplicar.ps1 -Projeto CAMINHO -Testar
+2. Instalar-TV.ps1 -Projeto CAMINHO
+3. Capturar-Limpeza.ps1
+4. Atualizar a mesma lista Xtream, esperar a Home. Conferir busca, ordenacao
+   alfabetica, categorias, favoritos e continuar assistindo. Navegar normalmente.
+5. Ficar na Home por dois minutos e encerrar captura com Ctrl+C.
+Comparar XtreamWritePerf / XtreamEndpointPerf (gravacaoMs) e SYNC_RESUMO.
+A rede pode variar; ganho local de SQLite nao garante tempo total de 15 segundos.
+
+VALIDACAO LOCAL
+Compilacao Kotlin/KSP desempenho; consultas reais do DAO no SQLite com 44.724
+filmes e 20.170 series em duas geracoes; 80 casos de consulta com resultados
+iguais, sem novas varreduras completas; integridade do banco; migracao ida e
+volta preservando linhas; instalador idempotente e rejeicao de fontes alterados.
+Mediana de quatro ensaios sinteticos: filmes 0,4764 -> 0,2142 s;
+series 0,1421 -> 0,1050 s. Maquina de desenvolvimento, NAO medicao na TV.
+Planos mudam em quatro casos: outros indices cobrem o mesmo prefixo.
+Latencias de leitura locais variam; fluidez e ganho devem ser confirmados na TV.
+
+DESFAZER COM SEGURANCA
+Executar Desfazer.ps1 -Projeto CAMINHO -Testar, depois Instalar-TV.ps1.
+O script restaura as entidades anteriores e instala uma ponte de migracao 5->4
+no arquivo PlaylistCacheDatabase.kt para recriar os tres indices ao abrir.
+Nao substitua diretamente por um APK antigo sem essa ponte, pois ele nao conhece
+a versao 5 do banco. Nao desinstale nem limpe dados para fazer o teste.
+Pode reaplicar este pacote apos a reversao. Backups ficam no proprio projeto.

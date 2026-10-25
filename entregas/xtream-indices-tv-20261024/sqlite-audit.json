@@ -1,0 +1,1362 @@
+{
+  "sqlite": "3.53.1",
+  "queryMethods": 20,
+  "queryCases": 80,
+  "failures": [],
+  "writeTrials": [
+    {
+      "trial": 0,
+      "mode": "before",
+      "cached_movies": 0.5049401030410081,
+      "cached_series": 0.1397621800424531
+    },
+    {
+      "trial": 0,
+      "mode": "pruned",
+      "cached_movies": 0.26167762698605657,
+      "cached_series": 0.10745345201576129
+    },
+    {
+      "trial": 1,
+      "mode": "pruned",
+      "cached_movies": 0.21712439804105088,
+      "cached_series": 0.10855298297246918
+    },
+    {
+      "trial": 1,
+      "mode": "before",
+      "cached_movies": 0.4814735779655166,
+      "cached_series": 0.15525140799582005
+    },
+    {
+      "trial": 2,
+      "mode": "before",
+      "cached_movies": 0.46028776199091226,
+      "cached_series": 0.14446572703309357
+    },
+    {
+      "trial": 2,
+      "mode": "pruned",
+      "cached_movies": 0.21113846899243072,
+      "cached_series": 0.1024769339710474
+    },
+    {
+      "trial": 3,
+      "mode": "pruned",
+      "cached_movies": 0.21135539596434683,
+      "cached_series": 0.09539703099289909
+    },
+    {
+      "trial": 3,
+      "mode": "before",
+      "cached_movies": 0.4712735049542971,
+      "cached_series": 0.1345532630220987
+    }
+  ],
+  "plans": [
+    {
+      "method": "sharedMovieCandidates",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId>?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId>?)"
+      ],
+      "beforeMs": 0.6279859808273613,
+      "prunedMs": 0.47808897215873003
+    },
+    {
+      "method": "sharedMovieCandidates",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId>?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId>?)"
+      ],
+      "beforeMs": 0.33787201391533017,
+      "prunedMs": 0.5136170075275004
+    },
+    {
+      "method": "sharedMovieCandidates",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId>?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId>?)"
+      ],
+      "beforeMs": 0.32540701795369387,
+      "prunedMs": 0.4550429875962436
+    },
+    {
+      "method": "sharedMovieCandidates",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId>?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId>?)"
+      ],
+      "beforeMs": 0.4248109762556851,
+      "prunedMs": 0.88317203335464
+    },
+    {
+      "method": "sharedSeriesCandidates",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId>?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId>?)"
+      ],
+      "beforeMs": 0.5506679881364107,
+      "prunedMs": 0.39067299803718925
+    },
+    {
+      "method": "sharedSeriesCandidates",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId>?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId>?)"
+      ],
+      "beforeMs": 0.36607502261176705,
+      "prunedMs": 0.33140898449346423
+    },
+    {
+      "method": "sharedSeriesCandidates",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId>?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId>?)"
+      ],
+      "beforeMs": 0.3342520212754607,
+      "prunedMs": 0.34615996992215514
+    },
+    {
+      "method": "sharedSeriesCandidates",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId>?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId>?)"
+      ],
+      "beforeMs": 0.38157496601343155,
+      "prunedMs": 0.44456898467615247
+    },
+    {
+      "method": "streamMovieStage",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "beforeMs": 0.18760701641440392,
+      "prunedMs": 0.1424369984306395
+    },
+    {
+      "method": "streamMovieStage",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "beforeMs": 0.14272797852754593,
+      "prunedMs": 0.20787498215213418
+    },
+    {
+      "method": "streamMovieStage",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "beforeMs": 0.11953199282288551,
+      "prunedMs": 0.455973029602319
+    },
+    {
+      "method": "streamMovieStage",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "beforeMs": 0.11914002243429422,
+      "prunedMs": 0.11714495485648513
+    },
+    {
+      "method": "streamSeriesStage",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "beforeMs": 0.20530197070911527,
+      "prunedMs": 0.19610999152064323
+    },
+    {
+      "method": "streamSeriesStage",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "beforeMs": 0.22917997557669878,
+      "prunedMs": 0.14586502220481634
+    },
+    {
+      "method": "streamSeriesStage",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "beforeMs": 0.14640198787674308,
+      "prunedMs": 0.18398102838546038
+    },
+    {
+      "method": "streamSeriesStage",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=? AND providerOrder>?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "beforeMs": 0.2248479868285358,
+      "prunedMs": 0.17206498887389898
+    },
+    {
+      "method": "getParentalSeriesById",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "beforeMs": 0.03452197415754199,
+      "prunedMs": 0.029772985726594925
+    },
+    {
+      "method": "getParentalSeriesById",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "beforeMs": 0.010908988770097494,
+      "prunedMs": 0.009590003173798323
+    },
+    {
+      "method": "getParentalSeriesById",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "beforeMs": 0.008835981134325266,
+      "prunedMs": 0.009188021067529917
+    },
+    {
+      "method": "getParentalSeriesById",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "beforeMs": 0.00882497988641262,
+      "prunedMs": 0.00892201205715537
+    },
+    {
+      "method": "getMovieCount",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 2.1516240085475147,
+      "prunedMs": 2.145730017218739
+    },
+    {
+      "method": "getMovieCount",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 1.3051849673502147,
+      "prunedMs": 3.356205008458346
+    },
+    {
+      "method": "getMovieCount",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 2.087026950903237,
+      "prunedMs": 1.5715949703007936
+    },
+    {
+      "method": "getMovieCount",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 1.422163040842861,
+      "prunedMs": 1.5070750378072262
+    },
+    {
+      "method": "getSubtitledMovieCount",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "beforeMs": 94.72202102188021,
+      "prunedMs": 95.05525999702513
+    },
+    {
+      "method": "getSubtitledMovieCount",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "beforeMs": 92.55899104755372,
+      "prunedMs": 94.56401597708464
+    },
+    {
+      "method": "getSubtitledMovieCount",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "beforeMs": 92.34030300285667,
+      "prunedMs": 95.09166103089228
+    },
+    {
+      "method": "getSubtitledMovieCount",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "beforeMs": 94.43551697768271,
+      "prunedMs": 94.97509599896148
+    },
+    {
+      "method": "getSubtitledSeriesCount",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "beforeMs": 40.65077600535005,
+      "prunedMs": 55.25905097601935
+    },
+    {
+      "method": "getSubtitledSeriesCount",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "beforeMs": 47.27118299342692,
+      "prunedMs": 41.34451597929001
+    },
+    {
+      "method": "getSubtitledSeriesCount",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "beforeMs": 41.92695498932153,
+      "prunedMs": 42.8780359798111
+    },
+    {
+      "method": "getSubtitledSeriesCount",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER"
+      ],
+      "beforeMs": 42.676416982430965,
+      "prunedMs": 72.9880600119941
+    },
+    {
+      "method": "getFavoriteMoviesForStartup",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)"
+      ],
+      "beforeMs": 0.11875398922711611,
+      "prunedMs": 0.16384600894525647
+    },
+    {
+      "method": "getFavoriteMoviesForStartup",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)"
+      ],
+      "beforeMs": 0.025273009669035673,
+      "prunedMs": 0.019938976038247347
+    },
+    {
+      "method": "getFavoriteMoviesForStartup",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)"
+      ],
+      "beforeMs": 0.01918798079714179,
+      "prunedMs": 0.017974001821130514
+    },
+    {
+      "method": "getFavoriteMoviesForStartup",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)"
+      ],
+      "beforeMs": 0.01897697802633047,
+      "prunedMs": 0.018445949535816908
+    },
+    {
+      "method": "getActiveMovieById",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)",
+        "SCALAR SUBQUERY 1",
+        "SEARCH playlist_cache_generations USING INDEX index_playlist_cache_generations_playlistId_status (playlistId=? AND status=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)",
+        "SCALAR SUBQUERY 1",
+        "SEARCH playlist_cache_generations USING INDEX index_playlist_cache_generations_playlistId_status (playlistId=? AND status=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 0.11761300265789032,
+      "prunedMs": 0.18303398974239826
+    },
+    {
+      "method": "getActiveMovieById",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)",
+        "SCALAR SUBQUERY 1",
+        "SEARCH playlist_cache_generations USING INDEX index_playlist_cache_generations_playlistId_status (playlistId=? AND status=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)",
+        "SCALAR SUBQUERY 1",
+        "SEARCH playlist_cache_generations USING INDEX index_playlist_cache_generations_playlistId_status (playlistId=? AND status=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 0.015564961358904839,
+      "prunedMs": 0.01159199746325612
+    },
+    {
+      "method": "getActiveMovieById",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)",
+        "SCALAR SUBQUERY 1",
+        "SEARCH playlist_cache_generations USING INDEX index_playlist_cache_generations_playlistId_status (playlistId=? AND status=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)",
+        "SCALAR SUBQUERY 1",
+        "SEARCH playlist_cache_generations USING INDEX index_playlist_cache_generations_playlistId_status (playlistId=? AND status=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 0.01085101393982768,
+      "prunedMs": 0.06241200026124716
+    },
+    {
+      "method": "getActiveMovieById",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)",
+        "SCALAR SUBQUERY 1",
+        "SEARCH playlist_cache_generations USING INDEX index_playlist_cache_generations_playlistId_status (playlistId=? AND status=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX sqlite_autoindex_cached_movies_1 (playlistId=? AND generationId=? AND movieId=?)",
+        "SCALAR SUBQUERY 1",
+        "SEARCH playlist_cache_generations USING INDEX index_playlist_cache_generations_playlistId_status (playlistId=? AND status=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 0.012420001439750195,
+      "prunedMs": 0.011665979400277138
+    },
+    {
+      "method": "getMovieCountsByCategory",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 53.169441991485655,
+      "prunedMs": 4.4813790009357035
+    },
+    {
+      "method": "getMovieCountsByCategory",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 2.96089198673144,
+      "prunedMs": 2.7371009928174317
+    },
+    {
+      "method": "getMovieCountsByCategory",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 2.767742029391229,
+      "prunedMs": 2.842682006303221
+    },
+    {
+      "method": "getMovieCountsByCategory",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING COVERING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 3.051205014344305,
+      "prunedMs": 2.647451008670032
+    },
+    {
+      "method": "getMoviesPagingSource",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_addedAtEpochSeconds (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 66.22618704568595,
+      "prunedMs": 13.977047987282276
+    },
+    {
+      "method": "getMoviesPagingSource",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_addedAtEpochSeconds (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 62.28191498667002,
+      "prunedMs": 12.888230965472758
+    },
+    {
+      "method": "getMoviesPagingSource",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_addedAtEpochSeconds (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 59.69307798659429,
+      "prunedMs": 14.761023980099708
+    },
+    {
+      "method": "getMoviesPagingSource",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_addedAtEpochSeconds (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 161.8095999583602,
+      "prunedMs": 24.22863699030131
+    },
+    {
+      "method": "getMoviesPagingSourceByCategory",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 0.09662599768489599,
+      "prunedMs": 0.13787002535536885
+    },
+    {
+      "method": "getMoviesPagingSourceByCategory",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 0.010675983503460884,
+      "prunedMs": 0.007697963155806065
+    },
+    {
+      "method": "getMoviesPagingSourceByCategory",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 1.4299930189736187,
+      "prunedMs": 1.7569600022397935
+    },
+    {
+      "method": "getMoviesPagingSourceByCategory",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 0.07726199692115188,
+      "prunedMs": 0.09446596959605813
+    },
+    {
+      "method": "getMoviesPagingSourceFiltered",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 15.912963019218296,
+      "prunedMs": 16.275935980957
+    },
+    {
+      "method": "getMoviesPagingSourceFiltered",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 15.587105008307844,
+      "prunedMs": 15.55395097238943
+    },
+    {
+      "method": "getMoviesPagingSourceFiltered",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 11.502209003083408,
+      "prunedMs": 9.745872986968607
+    },
+    {
+      "method": "getMoviesPagingSourceFiltered",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_movies USING INDEX index_cached_movies_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 126.25694100279361,
+      "prunedMs": 120.14965404523537
+    },
+    {
+      "method": "getSeriesCount",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 1.0787919745780528,
+      "prunedMs": 0.8707499946467578
+    },
+    {
+      "method": "getSeriesCount",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 0.5656199646182358,
+      "prunedMs": 0.8072020136751235
+    },
+    {
+      "method": "getSeriesCount",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 0.6062840111553669,
+      "prunedMs": 0.546617025975138
+    },
+    {
+      "method": "getSeriesCount",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 0.5536900134757161,
+      "prunedMs": 0.5646650097332895
+    },
+    {
+      "method": "getSeriesCountsByCategory",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 1.796106982510537,
+      "prunedMs": 1.8963110051117837
+    },
+    {
+      "method": "getSeriesCountsByCategory",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 1.1982119758613408,
+      "prunedMs": 1.3639610260725021
+    },
+    {
+      "method": "getSeriesCountsByCategory",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 1.2140110484324396,
+      "prunedMs": 1.1579989804886281
+    },
+    {
+      "method": "getSeriesCountsByCategory",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING COVERING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=?)"
+      ],
+      "beforeMs": 1.5732510364614427,
+      "prunedMs": 1.2684979592449963
+    },
+    {
+      "method": "getSeriesPagingSource",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 6.628785980865359,
+      "prunedMs": 6.6658330033533275
+    },
+    {
+      "method": "getSeriesPagingSource",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 5.918900016695261,
+      "prunedMs": 5.501158011611551
+    },
+    {
+      "method": "getSeriesPagingSource",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 5.778381018899381,
+      "prunedMs": 5.463083973154426
+    },
+    {
+      "method": "getSeriesPagingSource",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 20.13186097610742,
+      "prunedMs": 20.54090501042083
+    },
+    {
+      "method": "getSeriesPagingSourceByCategory",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 0.08376303594559431,
+      "prunedMs": 0.054122006986290216
+    },
+    {
+      "method": "getSeriesPagingSourceByCategory",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 0.00950804678723216,
+      "prunedMs": 0.007714028470218182
+    },
+    {
+      "method": "getSeriesPagingSourceByCategory",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 0.666371954139322,
+      "prunedMs": 0.6180300260894
+    },
+    {
+      "method": "getSeriesPagingSourceByCategory",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_categoryId (playlistId=? AND generationId=? AND categoryId=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 0.16639201203361154,
+      "prunedMs": 0.05489203613251448
+    },
+    {
+      "method": "getSeriesPagingSourceFiltered",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 7.7077209716662765,
+      "prunedMs": 7.121508999262005
+    },
+    {
+      "method": "getSeriesPagingSourceFiltered",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 7.049433013889939,
+      "prunedMs": 6.9978220271877944
+    },
+    {
+      "method": "getSeriesPagingSourceFiltered",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 5.300494027324021,
+      "prunedMs": 4.948455956764519
+    },
+    {
+      "method": "getSeriesPagingSourceFiltered",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX index_cached_series_playlistId_generationId_providerOrder (playlistId=? AND generationId=?)",
+        "LIST SUBQUERY 1",
+        "SEARCH cached_categories USING INDEX index_cached_categories_playlistId_generationId_type (playlistId=? AND generationId=? AND type=?)",
+        "CREATE BLOOM FILTER",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "beforeMs": 56.606887956149876,
+      "prunedMs": 56.47329695057124
+    },
+    {
+      "method": "getFavoriteSeriesForStartup",
+      "sort": "DEFAULT",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "beforeMs": 0.0656619668006897,
+      "prunedMs": 0.07692200597375631
+    },
+    {
+      "method": "getFavoriteSeriesForStartup",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "beforeMs": 0.02068100729957223,
+      "prunedMs": 0.019013998098671436
+    },
+    {
+      "method": "getFavoriteSeriesForStartup",
+      "sort": "Z_A",
+      "category": "12",
+      "offset": 0,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "beforeMs": 0.01901201903820038,
+      "prunedMs": 0.019091996364295483
+    },
+    {
+      "method": "getFavoriteSeriesForStartup",
+      "sort": "A_Z",
+      "category": null,
+      "offset": 20000,
+      "before": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "pruned": [
+        "SEARCH cached_series USING INDEX sqlite_autoindex_cached_series_1 (playlistId=? AND generationId=? AND seriesId=?)"
+      ],
+      "beforeMs": 0.01816998701542616,
+      "prunedMs": 0.017907994333654642
+    }
+  ]
+}
