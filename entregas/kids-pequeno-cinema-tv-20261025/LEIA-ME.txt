@@ -1,0 +1,15 @@
+﻿Kids Pequeno Cinema — modos azul e rosa
+
+Home: coruja, leão e pinguins. Seleção com cápsula de textura de massinha, estrela e crescimento discreto do personagem.
+Catálogo de filmes e séries: cenário de cinema, painéis claros e contraste de texto ajustado.
+Mantidas as capas verticais 2:3 e duas fileiras com 4 ou 5 colunas (8 ou 10 capas), conforme configuração existente.
+Canais: formato e navegação atuais preservados; novo layout ainda será definido.
+Players, importação, rede, banco e carregamento de capas não alterados.
+Três imagens locais WebP (~315 KB no APK). Decodificação fora da thread principal e cache de imagens limitado a 16 MiB.
+
+Aplicar.ps1 -Projeto <pasta do projeto> -Testar: confere fontes, cria backup e compila assembleDesempenho.
+Instalar-TV.ps1 -Projeto <pasta do projeto>: instala a variante desempenho sem desinstalar ou apagar os dados.
+Desfazer.ps1 -Projeto <pasta do projeto>: restaura o último backup desta alteração; depois compile e instale novamente.
+Capturar.ps1: captura de diagnóstico opcional.
+
+Validado no ambiente de compilação Kotlin. Aparência e navegação finais precisam de validação visual na TV.

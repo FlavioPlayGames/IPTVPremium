@@ -1,0 +1,75 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogThemeBackdrop.kt",
+    "sha": "4cc5f9d34d2fee34699993c634c309cbd50aba0e05a5bb139acdb3f1501dc1d3",
+    "before": [
+      "889d11fe86491a03cc812eaf889058ed5f85aa76986c724eed8254eb1ef7ce98"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogTwoRowFrame.kt",
+    "sha": "2cfad673b419c05973811a1fc864315538a22133416c940b367cb5f7ed975e4e",
+    "before": [
+      "216da07d6561fc2eed75f52ec7304c56905df1bf5a51de8a4f9d2859b4e1494e"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsAppearance.kt",
+    "sha": "a50a3d0e229fb5d0932c089c94370b37e74d5f88e7de5c17acd42138ffdcfce8",
+    "before": [
+      "1c06fe41b1374911f5e9419d31ccbc80e6a5a2041e922ae667865ce2be4616a3"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "35ad1ff02f68e3f070f2bee7cb2d2966caed39168c7333830e00083623aa4c0a",
+    "before": [
+      "7a2e0fa37470371abec005aed242a09b269bd8ce05ea04349d594a3d92ce35de"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+    "sha": "1bb045cbd236ce96f29542041b9ade961b33feb8f6b4696e3c74666f18be829b",
+    "before": [
+      "67f30fa09991df8f0b779593da9fd8288fe5835e32b688eb803a20f9cbc909c9"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsCinema.kt",
+    "sha": "eda4849887b481c70b5a640af061bda8242751bbc079f4640cf2846c7dcf50ff",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/kids_cinema_blue.webp",
+    "sha": "2e3d74ada137cd33b6bbc6968a5b0750ca32c9c4ed0167ecc98664c380dff0bf",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/kids_cinema_pink.webp",
+    "sha": "89cad37356e4167ea4d15cf2c1e1545281def91aab19697234bf2bcfce6f5b2d",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/kids_cinema_sprites.webp",
+    "sha": "f6fba19770feee29e5900db2dfa571ebae81691c53f8e35956a836eb79695af0",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  }
+]

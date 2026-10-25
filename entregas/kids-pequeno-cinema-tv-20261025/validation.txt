@@ -1,0 +1,6 @@
+Kotlin/KSP desempenho: BUILD SUCCESSFUL.
+Installer: apply + idempotency + exact-byte rollback + new-file removal PASS; modified source rejected PASS; corrupted WebP rejected PASS.
+Catalog geometry unchanged: two rows; 4/5 columns; poster aspect 2:3.
+Players, channels implementation, importers and database untouched by package.
+Artwork: 321024 compressed bytes; shared decoded cache limited to 16 MiB; background decode off main thread.
+TV visual validation pending. Full APK compilation runs locally through Aplicar.ps1 -Testar.
