@@ -1,0 +1,13 @@
+﻿Kids sem cadeiras — pacote cumulativo.
+Aceita as versões kids-cinema-final-tv (366e723) e kids-capas-maiores-tv (00c7f16).
+
+Remove cadeiras dos fundos azul/rosa dos catálogos. Mantém cortinas, estrelas, fundo creme e ursinho. Home preservada.
+Filmes/Séries: margem inferior reduzida para 2,5% e lateral ligeiramente mais estreita para ampliar as capas em altura e largura. Proporção 2:3 e duas fileiras com 4/5 colunas (8/10 capas) preservadas.
+Inclui o ajuste anterior: sem molduras/divisores/ícones antigos; somente nota e favorito abaixo das capas; cabeçalho compacto.
+Canais usa o mesmo fundo sem cadeiras, com o tamanho de TV e os logos já existentes. Correção de foco mantida.
+Importação, cache das capas, reprodução e controles dos players preservados.
+
+Aplicar.ps1 -Projeto <pasta> -Testar verifica os arquivos, cria backup e compila desempenho.
+Instalar-TV.ps1 instala sem desinstalar nem apagar dados.
+Desfazer.ps1 restaura o backup desta etapa; depois compile e instale novamente.
+Validação visual final na TV.

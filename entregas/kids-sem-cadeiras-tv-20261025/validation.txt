@@ -1,0 +1,6 @@
+Kotlin desempenho and updated resources: BUILD SUCCESSFUL.
+Installer tests PASS for both 366e723 and 00c7f16: apply, idempotency, exact-byte rollback, modified-source rejection and corrupted WebP rejection.
+Delivery matches validated workspace.
+Movies/Series Kids bottom margin 2.5%, sidebar width 17.5%, sidebar gap 6dp; 2:3 art and 4/5-column preference retained.
+Blue/pink backgrounds visually inspected: no auditorium seats. Home assets unchanged.
+TV visual validation pending.

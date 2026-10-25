@@ -1,0 +1,70 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogTwoRowFrame.kt",
+    "sha": "48bb982d37f07fa347d5d143b6d4ff3ac3c539ba4d3aa0c87a0259fcdf7847be",
+    "before": [
+      "48bb982d37f07fa347d5d143b6d4ff3ac3c539ba4d3aa0c87a0259fcdf7847be",
+      "2cfad673b419c05973811a1fc864315538a22133416c940b367cb5f7ed975e4e"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsCinema.kt",
+    "sha": "02be29f683115b319d7bffea4d9fea3b1b406c19da8dac764a8d690afabe6af0",
+    "before": [
+      "02be29f683115b319d7bffea4d9fea3b1b406c19da8dac764a8d690afabe6af0",
+      "1eca1e78a4f93ecd5686bfcd87cca799e9433e83302405fcbc7b3d7adea55500"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt",
+    "sha": "da6904b5ef90f4d190b2806661247d6c3f07eb04d0239fe93c4eca5269938d17",
+    "before": [
+      "da6904b5ef90f4d190b2806661247d6c3f07eb04d0239fe93c4eca5269938d17",
+      "4ab4067eedad224f2956aaedd016c97611f761ce3328077b086fb553c7f26935"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "fb96d957b893363eace16fb47f6975f86e7c11089440722c3b6de7141fc045e5",
+    "before": [
+      "39429a0d92c8fed6a397d06eaebe07b36150713afe81804ebc1674adff417c03",
+      "d619f7cdd0bfb8cbf8962283828a23d062302c464a6aa4ee30c5e23d6e5bbcdb"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+    "sha": "bb591d2e3010579dc004e6b935c5fdc9b6c937b53f724356488b7998055dab4a",
+    "before": [
+      "57a833187e92280668b84a6956e6bc1ed50deff326a806f4abb690bb74d4b9b9",
+      "4b89c7ee1a49b5105c3ced6f899125a1ac7a350765a581f93bdd36c20898ca22"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/kids_catalog_blue.webp",
+    "sha": "fd2967864982a82861d5a92e1920c50abca8af15245db8c744224693a1a92e6f",
+    "before": [
+      "76d01856ce0c008806ceeb57a138e690d32394d6c10924a1d8d11958db287771"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/kids_catalog_pink.webp",
+    "sha": "505a9412b4cc26541c5bab5f2f986b40f862b63e54e97b52af9e3e62e9587454",
+    "before": [
+      "27bcd9f4210884f440efb66ee568d2578d763579ec3f5ae7836a6785272619ef"
+    ],
+    "allowMissing": false,
+    "binary": true
+  }
+]
