@@ -1,0 +1,108 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt",
+    "sha": "73d5581ca31114e348bb9f92228c41ef87d3a0f8d3ad1c880b76919260f76c0e",
+    "before": [
+      "8e585ede5815851e2e3dc2698cf0171a291655467f4557752b3e9fe1b01aa726"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "sha": "ea5391f6b29d7f9d7298297189ba9e42575de9dc9252a2d6ad4940d93efe9c41",
+    "before": [
+      "bc1b844b383ad89fef13fe2d917925b1bc0e37d26c2664f912c29f68bc3c10d6"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/LibVlcPlaybackAdapter.kt",
+    "sha": "e0e014a68083a3bec75a9dee6a0b03568dda122b21f45dd50c1f9e86e521c066",
+    "before": [
+      "b01e4a96eef79e4b498b29ea42b7cc5f467ed413f7268de574d4e757a6c6f493"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/startup/StartupWindowLayout.kt",
+    "sha": "5ddd24f37eb728d1af20e100ff9cd00aa914e1a347c13bb8fa013c89b579933a",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/startup/StartupWindowPresentation.kt",
+    "sha": "f98002469b7c8be31a763ab75559c0d2342969752cf119f24847ad31cd45ff93",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheStorageBudget.kt",
+    "sha": "0acaaefe09d857cc7a05774ce40f27a39d5760ac86686b99d80455a2e9964d9f",
+    "before": [
+      "e6307ab92a97cec214514cf734608f7a82d361e0c2e34739010846f4607750f2"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogCategoryCountCache.kt",
+    "sha": "a1d9ed6d9b50cad92d74f6e3f418c766e5d6ee53a93f7866fbb106e919448183",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt",
+    "sha": "77b73ed9c98dc20f28ddf82f0f931cb48af4f188aa4ced66b4c9c8e831570f75",
+    "before": [
+      "c3f20a12ae1d337442759c863e70a415180879fd943f46caf91ea420a771a5f5"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesArtworkIdentityResolver.kt",
+    "sha": "6b7d915d564f5c7381c48d9093cc62283aa1c5bf04b37520efd3382e800cd398",
+    "before": [
+      "28352d128420dbc9044ebc9adeb0903a7c7092a34874f02b0207552e9ff1bd98"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "7a2e0fa37470371abec005aed242a09b269bd8ce05ea04349d594a3d92ce35de",
+    "before": [
+      "adcea86db587bff96cf60a62d8accaacc8fa2dfe86cb8997774bdafdbe5212e7"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesViewModel.kt",
+    "sha": "2f64a8a5f5c1e43c287d2e15f8ec17639fbcf7eb1fc8daa39ede1a47f659a9bd",
+    "before": [
+      "d98d2ea7086f9ee41c82ca52221fef80677434c6e3463b69126adbf4e09a505c"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt",
+    "sha": "676a9b876d19aac2e6e4ee67b1e8289f917f093863f3309fa340897cd9dcbf74",
+    "before": [
+      "328861c7ca9677646cb76fae3684ec522995b44fa36f83ecfa7d0077e55fd4fa"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+    "sha": "e19e11e5d3ca445466fad24fd2c1d67d1d0aa7fcc3b18d85447f9526657154c9",
+    "before": [
+      "06ffd1e50601825e83fccb6776936a2a7ab08ee18e99977f6c4fa348cb5ec564"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesViewModel.kt",
+    "sha": "4059ccc9040bd646dd77b89f3e7bb1caff9caa0e74a65dcf63ab7f07b76b33d5",
+    "before": [
+      "a0052b672fea3dd67c0b04834a9b7f64ea69b9127d7c74472411d1b97c3cb604"
+    ],
+    "allowMissing": false
+  }
+]

@@ -1,0 +1,17 @@
+BASE CONFERIDA
+- Codigo Java/Kotlin recebido em java.zip nesta conversa.
+- Gradle raiz, catalogo de dependencias e wrapper recebidos em gradle.zip.
+- Configuracao app e variante desempenho recebidas em .zip.
+- applicationId: br.com.flaviotorres.iptvpremium.
+- versionName: 1.12, versionCode minimo 14, minSdk 28, targetSdk 37.
+- desempenho: derivada de release, debuggable=false, otimizacao habilitada.
+- Mesmo applicationId e assinatura debug local; nao cria um segundo aplicativo.
+- Regras existentes preservam Kotlin e ligacoes nativas VLC, sem ofuscacao.
+- Nenhuma dependencia, configuracao Gradle ou assinatura substituida pelo patch.
+- Nao foram incluidos local.properties, google-services.json, registros ou APK.
+
+LIMITES DA VALIDACAO
+Compilacao Kotlin/KSP da variante desempenho com configuracao enviada.
+Recursos e configuracao privada de teste sao locais ao ambiente de compilacao;
+nao foram enviados no pacote. APK completo e R8 serao gerados no computador
+pelo Aplicar.ps1 -Testar. Reproducao real e imagens remotas exigem teste na TV.

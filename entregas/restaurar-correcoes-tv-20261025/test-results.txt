@@ -1,0 +1,27 @@
+PASS: unknown-year homonyms remain unresolved without proof; trusted official images distinguish either series, even with an incorrect provider year
+PASS: third-party files, spoofed hosts, non-HTTP and malformed paths cannot prove identity
+PASS: a translated details poster does not invalidate the same verified candidate ID/title
+PASS: official title verification and ambiguity protection; previous year/explicit-ID identification remains working
+PASS: cancellation propagates; no guessed series or hard-coded title mapping
+PASS: cold reads skip inventory; maintenance indexes/trims; nested readers survive repeated close and zero pressure until last release
+PASS: first write still scans and enforces limits; temporary/target reservations and active readers survive maintenance; cleanup resumes after release
+PASS: explicit accounting inventories all files even after an unindexed read
+PASS: per-kind image limits still enforce reservations without deleting pinned readers
+PASS: paths and symlinks outside disposable roots remain rejected
+PASS: first usable layout waits one traversal, matching layout releases permanently
+PASS: fullscreen/insets geometry changes reset initial stability
+PASS: newly available insets require a matching traversal; missing insets do not trap the app
+PASS: empty geometry resets stability; real multiwindow dimensions supported without assuming TV orientation/resolution
+PASS: direct hex matches legacy Formatter for all 256 byte values and empty/hash boundaries
+PASS: legacy file name remains identical; stage diagnostics preserve disk hits
+PASS: RAM reuse, disk restart, null/empty/Unicode IDs, separate generations/lists/media
+PASS: corrupt disk summary rejected, recomputed and repaired
+PASS: cancellation leaves no partial result, concurrent readers share one query
+PASS: unavailable disk and zero global cache budget preserve working Room/RAM result
+PASS: disk bounded to twelve summaries / 512 KiB; oldest generation reloaded after eviction
+PASS: real repository shares raw counts across Kids/access changes, reapplies projection and grants; new generation/list/media triggers fresh query
+PASS: install, idempotency, exact-byte rollback and removal of added helper
+PASS: modified source rejected before changing files
+PASS: every importer, HTTP transport, DAO, entity and database source is byte-identical to the uploaded backup.
+PASS: PowerShell parser validation for all scripts.
+PASS: compileDesempenhoKotlin / KSP successful using uploaded app/root Gradle configuration.

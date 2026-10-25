@@ -1,0 +1,39 @@
+RECUPERACAO DE CORRECOES - BACKUP RECEBIDO EM 25/10/2026
+
+Base: java.zip enviado nesta conversa, configuracao Gradle e app do mesmo backup.
+O pacote altera apenas os 14 arquivos Kotlin listados no manifesto.
+Nao modifica importador, transporte HTTP, banco, migracoes, entidades, indices,
+versao, dependencias, credenciais, recursos visuais ou assinatura do aplicativo.
+
+RECUPERADO
+- Identificacao segura de series homonimas pelas imagens oficiais do TMDB.
+- Referencia da capa encaminhada para resolver fundo/miniaturas da serie correta.
+- Medicao das etapas de encerramento VLC, preservando a fila fora da interface.
+- Leitura do cache sem varrer todo o armazenamento; fechamento idempotente.
+- Contagem de categorias reaproveitada em RAM/disco, separada por lista/geracao/tipo.
+- Cartoes: Nota: 0.0 e favorito, sem ano nem duracao.
+- Protecao do primeiro desenho da janela contra layout provisorio.
+
+JA EXISTENTES NESTE BACKUP (preservados)
+- Fila serial de encerramento nativo VLC e sincronizacao do proximo player.
+- Sessao de imagens por serie e progresso assistido dos episodios.
+- Ajustes anteriores de navegacao, paginacao e antecipacao de capas.
+
+APLICAR E COMPILAR no PowerShell dentro do projeto:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\restaurar-correcoes-tv\Aplicar.ps1" -Projeto (Get-Location).Path -Testar
+
+INSTALAR (TV conectada ao ADB, somente um aparelho conectado):
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\restaurar-correcoes-tv\Instalar-TV.ps1" -Projeto (Get-Location).Path
+
+O APK desempenho e gerado no seu computador, usando a configuracao enviada.
+O instalador escolhe a arquitetura da TV. install -r tambem funciona na primeira
+instalacao. Nao cria outro aplicativo nem limpa dados. Abra pelo controle da TV.
+O pacote nao inclui google-services.json nem local.properties.
+
+O aplicador verifica todos os arquivos antes de copiar, guarda backup e recusa
+arquivos diferentes dos enviados. Para reverter use Desfazer.ps1 -Projeto ...
+Nao aplique sobre outra restauracao ou versao diferente.
+
+A validacao na TV continua necessaria: reproduzir e voltar nos dois players,
+abrir O Taxista/O Conto da Aia e retornar aos episodios, alternar catalogos.
+A importacao continua exatamente como estava no backup.
