@@ -1,0 +1,32 @@
+PLAYER GRAFITE TRANSLUCIDO FOSCO - 25/10/2026
+Base: projeto com menu-foco-imagem-tv e canais-troca-segura-tv ja aplicados.
+Muda somente PlaybackScreen.kt e adiciona NeutralPlayerControls.kt.
+
+VISUAL ESCOLHIDO
+- Grafite neutro translucido: #222222 com cerca de 72% de opacidade na barra
+  e 77% no painel de opcoes, deixando o video visivel. Sem desfoque/RenderEffect.
+- Texto branco suave #D0D0D0, secundarios #A8A8A8, sem azul ou metal.
+- Icone selecionado 30% maior e nome curto abaixo, sem quadrado, anel,
+  contorno de selecao, halo, sombra ou efeito de pressionamento.
+- Icones simples, com setas circulares e numero 10 para avancar/voltar.
+- Barra de tempo continua logo acima dos botoes na parte inferior da tela.
+- Progresso neutro sem halo. Foco na barra aumenta apenas o marcador.
+- Menus sem moldura na selecao: pequeno marcador lateral e destaque de texto.
+- Mesmo layout de transporte central/auxiliares a direita e mesmas acoes.
+
+ISOLAMENTO
+O novo visual e fornecido somente dentro do player regular de filmes/episodios.
+O padrao dos controles compartilhados continua sendo o anterior. Por isso os
+controles de Canais e sua configuracao de imagem nao recebem a nova paleta.
+Kids conserva o visual anterior. Video, HDR, cores originais, aparencia das
+legendas, Media3/VLC, historico, navegacao e importacao nao sao modificados.
+Nao usa imagens de fundo extras nem carrega novas fontes/icones pela rede.
+
+APLICAR E INSTALAR
+No PowerShell dentro do projeto, use Aplicar.ps1 -Projeto ... -Testar.
+Depois Instalar-TV.ps1 -Projeto ... . Nao desinstale nem limpe os dados.
+Compilacao Kotlin/KSP validada; APK completo gerado no computador.
+Confira na TV sobre uma cena clara e uma escura, navegando por todos os icones,
+barra, menus de audio/legendas e ajustes de imagem. Operacoes sao as mesmas.
+Se precisar de registro, Capturar.ps1 salva Downloads\validacao-player-grafite-tv.txt.
+Aplicador valida fontes, cria backup e oferece Desfazer.ps1 para restaurar.

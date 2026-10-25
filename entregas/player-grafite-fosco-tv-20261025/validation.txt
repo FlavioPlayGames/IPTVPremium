@@ -1,0 +1,5 @@
+PASS: install, idempotency, exact-byte rollback and removal of added helper
+PASS: modified source rejected before changing files
+PASS: compileDesempenhoKotlin / KSP successful using uploaded build configuration.
+PASS: approved Channels files match the previous delivery exactly.
+Scope: visual controls only; no video, decoder, stream, database or importer changes.
