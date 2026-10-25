@@ -1,0 +1,60 @@
+BUILD SUCCESSFUL :app:compileDesempenhoKotlin (including KSP/Room generated SQL)
+
+PASS bootstrap requests categories only and preserves pending markers
+PASS opening untouched catalogue prompts instead of implicitly fetching All
+PASS category loads once, keeps images, URLs, order and survives loader recreation
+PASS separate categories do not replace each other; series import is independent
+PASS ignored category parameter cannot publish another category
+PASS empty category is remembered, not requested on every return
+PASS explicit All replaces partial rows and completes only that media type
+PASS failure leaves previous categories intact and never marks failed scope ready
+PASS cancellation after writes discards staging and joins HTTP producer
+PASS generation switch cannot publish stale response
+PASS concurrent request for same category only downloads once
+PASS legacy full generation and M3U bypass remote lazy loader
+PASS new refresh gets fresh category markers without overwriting previous generation
+PASS different playlists cannot reuse another playlist's category rows or credentials
+PASS All series requests only series and preserves movie pending state
+PASS All series keeps malformed-full recovery through category staging
+PASS failed category bootstrap keeps previous active data and never falls back to M3U
+17 on-demand real repository / writer / synchronizer scenarios; DAO persistence simulated
+
+PASS movies: initial prompt; atomic category/All intent; cancel on replacement and route exit; generation change reloads
+PASS series: initial prompt; atomic category/All intent; cancel on replacement and route exit; generation change reloads
+
+PASS streaming matches legacy fields, URLs, category types and provider order across batches
+PASS missing outer bracket recovery preserved; mixed invalid records do not reject good later batch
+PASS malformed full endpoint retries twice, staged categories preserve first occurrence and order
+PASS category retry discards previous partial writes and only retries failing category
+PASS staged keyset merge crosses multiple batches with correct order
+PASS full-endpoint retry removes earlier persisted partial batches
+PASS 32 simultaneous callers share the same progressive import
+PASS failed category preserves active generation and discards all staging imports
+PASS local write failure is not retried as provider error and leaves previous active intact
+PASS transport failure after persisted batches discards partial generation
+PASS cancellation during streamed writes preserves active and releases generation
+PASS adaptive series category mode remains available on subsequent sync
+PASS learned provider category IDs remain part of later VOD fallback
+PASS failed adaptive category mode recovers through full endpoint and cleans stages
+PASS adaptive category merge disk failure does not trigger full network fallback
+PASS alternate parser retains the legacy repository contract
+16 real repository/synchronizer/writer integration scenarios passed; persistence simulated
+
+PASS: FIFO rows, one writer, all batches consumed before completion; simulated pipeline=810 ms versus serial=1200 ms (virtual time, not TV benchmark)
+PASS: backpressure bounds live batches to one consumer, three queued and one blocked producer
+PASS: original read/write failures propagate; peer finishes cleanup before retry/reset is possible
+PASS: caller cancellation joins cleanup and empty endpoints finish without writes
+
+PASS: repository imports direct fields, constructs stream URLs and uses one catalog request
+PASS: nonstandard numeric ID retries legacy once, clears partial batches, preserves exact IDs and remembers compatibility for next update
+PASS: transport and database failures are not misclassified as JSON compatibility or retried
+
+PASS exact DAO SQL MOVIES: category isolation, playlist isolation, full replacement and transaction rollback
+PASS exact DAO SQL SERIES: category isolation, playlist isolation, full replacement and transaction rollback
+PASS SQLite integrity_check
+PASS exact rollback callback SQL: only incomplete ACTIVE/READY generations are retired; full/other statuses untouched
+
+PowerShell: install, idempotency, reject modified source before changes, reject corrupt rollback bridge, safe rollback/removal of helper, reapply passed.
+Rollback compatibility database Kotlin compiled with ViewModel tests.
+Cloud tests do not include TV hardware, Android SQLite runtime, visual UI or APK assembly.
+Full-import compatibility scenarios use the pre-experiment synchronization harness and the current production parser/repository/writer.

@@ -1,0 +1,105 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "sha": "edcbf905a055b4579f1333b0771c8d694a9bffb3b717a917dc4422fa12e24925",
+    "before": [
+      "ea5391f6b29d7f9d7298297189ba9e42575de9dc9252a2d6ad4940d93efe9c41"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheDatabase.kt",
+    "sha": "2f330cea44f99a8b8d451877aac4c728f7e86ea5d8545f674b3fe8eca5813e89",
+    "before": [
+      "2f330cea44f99a8b8d451877aac4c728f7e86ea5d8545f674b3fe8eca5813e89",
+      "e83d49fb49b92844778ece8d50ec14e2a4ce7ad6d9a56dc0d5e19774986f4584"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/dao/PlaylistCacheDao.kt",
+    "sha": "c98c7a68fd3b1ff58ea270c06dd4d3214db8775647e6438567bab564a455b434",
+    "before": [
+      "8126dd5f313444fe8eddfea8739cd0e66298ccc88864c166f2fba13c1ee619e8"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt",
+    "sha": "d8f345f1de728636e4bd0cd0a258d718ca0821dfc652210037a6882ad9dcefcf",
+    "before": [
+      "eea24cf339e0dba7bdaee8d931fe935e948a6f1957265a7f3491dd67e9d7e660"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt",
+    "sha": "aeb4aafa8ecea14b05683b13620a97a353b10bdcf498ed4f9dff34ed16fb6cc2",
+    "before": [
+      "77b73ed9c98dc20f28ddf82f0f931cb48af4f188aa4ced66b4c9c8e831570f75"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt",
+    "sha": "793cbe068c9ab254ffda8deb39b3cdfd9d966ceced49d86b0526c8c34e2a0e52",
+    "before": [
+      "d2ead62e67a3461b69ee0a236fabdaf02ee02600391860f89dacf999a4cf5882"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/OnDemandXtreamCatalog.kt",
+    "sha": "0efb1e69b4be759ddcdace8a1ed39f2d6dd83a3b1c66276abeab1bf0463abf59",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/ProgressiveXtream.kt",
+    "sha": "5a58073446db21b9f74d77d38c48797a1a9241715d6f015b8bda4f5345f671d7",
+    "before": [
+      "00541fced613ee1086dfd1044e5b47a6fd0f443aa4167a5beb0e0e11987c5a28"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsAppearance.kt",
+    "sha": "66be6f940a15556c3e0a405e6dde86e70a1b8579d189414bf06471455b035a60",
+    "before": [
+      "1c06fe41b1374911f5e9419d31ccbc80e6a5a2041e922ae667865ce2be4616a3"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "d5a19f158e32cb91c3cf5855bcca6b5974896a7cc60614e445303fa1d28db0a3",
+    "before": [
+      "7a2e0fa37470371abec005aed242a09b269bd8ce05ea04349d594a3d92ce35de"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesViewModel.kt",
+    "sha": "7ccb9b7f54199bfea22a72d57a5087ee18076c0b358e21068acac0c663479eb3",
+    "before": [
+      "2f64a8a5f5c1e43c287d2e15f8ec17639fbcf7eb1fc8daa39ede1a47f659a9bd"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+    "sha": "cf1867629446a427d22c7717da5b4b070bdca3e0badf55a97ad606fc1a25705e",
+    "before": [
+      "e19e11e5d3ca445466fad24fd2c1d67d1d0aa7fcc3b18d85447f9526657154c9"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesViewModel.kt",
+    "sha": "95d95523658ce009d8acd34f3042ef749cf3fcbecdc99731bfbef599c15d0d94",
+    "before": [
+      "4059ccc9040bd646dd77b89f3e7bb1caff9caa0e74a65dcf63ab7f07b76b33d5"
+    ],
+    "allowMissing": false
+  }
+]

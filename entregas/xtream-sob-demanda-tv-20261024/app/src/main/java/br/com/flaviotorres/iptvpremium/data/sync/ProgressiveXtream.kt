@@ -1,0 +1,25 @@
+package br.com.flaviotorres.iptvpremium.data.sync
+
+import br.com.flaviotorres.iptvpremium.domain.model.PlaylistContent
+import br.com.flaviotorres.iptvpremium.domain.model.PlaylistSource
+
+/** Backpressure: a producer cannot read its next batch before this write completes. */
+interface XtreamCatalogSink {
+    val categoriesOnly: Boolean get() = false
+    val selectionType: String? get() = null
+    val selectionCategoryId: String? get() = null
+    val includeLive: Boolean get() = true
+    val includeOnDemand: Boolean get() = true
+    suspend fun append(endpoint: String, content: PlaylistContent)
+    suspend fun reset(endpoint: String)
+    suspend fun stage(endpoint: String): XtreamCatalogStage
+    suspend fun merge(stage: XtreamCatalogStage)
+    suspend fun discard(stage: XtreamCatalogStage)
+}
+class XtreamCatalogStage(val generationId: String, val endpoint: String, val sink: XtreamCatalogSink)
+interface ProgressiveXtreamRepository {
+    val supportsProgressiveXtream: Boolean get() = true
+    suspend fun importXtream(source: PlaylistSource.XtreamCodes, sink: XtreamCatalogSink)
+}
+/** Do not mistake a local write failure for a retryable provider response. */
+class XtreamCatalogWriteException(cause: Exception) : IllegalStateException("Falha ao gravar catalogo Xtream.", cause)

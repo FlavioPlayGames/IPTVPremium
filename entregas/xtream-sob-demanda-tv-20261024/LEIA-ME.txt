@@ -1,0 +1,61 @@
+IPTVPremium - teste Xtream com categorias primeiro e catalogo sob demanda
+Base: ultimo pacote xtream-indices-tv (banco versao 5). Sem nova migracao de esquema.
+
+O QUE MUDA
+Importar/atualizar Xtream agora autentica e salva apenas as categorias de
+Canais, Filmes e Series. Home nao espera todos os itens do provedor.
+Na primeira entrada em Filmes/Series, escolha uma categoria. Ela sera buscada,
+gravada em area temporaria e publicada de forma atomica quando terminar.
+O carregamento usa streaming e lotes limitados, nao o JSON inteiro na RAM.
+Uma categoria terminada, inclusive vazia, fica persistida ate atualizar a lista.
+Trocar categoria ou sair da tela cancela o carregamento anterior; respostas
+incompletas nao aparecem na grade. Geracao e playlist sao verificadas ao publicar.
+Categorias ainda nao consultadas e total ainda desconhecido mostram um traco.
+Na troca/atualizacao de lista e criada nova geracao e a verificacao recomeça.
+As capas continuam nos caches existentes. Players e metadados TMDB nao mudam.
+M3U mantem o fluxo anterior. Canais continuam buscando o catalogo ao abrir a aba.
+
+TODOS, BUSCA, FAVORITOS E HISTORICO
+Todos e busca global baixam o catalogo completo daquele tipo. Busca dentro de
+uma categoria carrega e pesquisa apenas aquela categoria. Favoritos tambem
+assegura o catalogo completo do tipo, para nao filtrar apenas uma amostra.
+A conclusao do tipo permite reconciliar os favoritos/historico locais.
+A sessao de importacao de historico entre listas aguarda os catalogos completos;
+ela nao dispara download de todos os itens em segundo plano neste teste.
+O historico ja salvo e preservado. Este limite deve ser considerado na avaliacao.
+
+Este teste mede TEMPO ATE HOME, TEMPO ATE CATEGORIA UTILIZAVEL e REABERTURA.
+Um SYNC_RESUMO curto aqui significa categorias prontas, NAO catalogo completo.
+Todos pode continuar demorando; categorias grandes e servidores que ignoram o
+parametro category_id tambem podem ser lentos. Nao ha paginacao remota de 50 itens.
+Se o servidor ignorar category_id, itens de outras categorias sao descartados.
+
+COMO TESTAR
+1. Executar Aplicar.ps1 -Projeto CAMINHO -Testar e Instalar-TV.ps1 -Projeto CAMINHO.
+2. Executar Capturar-Limpeza.ps1 ANTES de atualizar a lista Xtream.
+3. Atualizar a mesma lista para ativar o novo metodo (o cache completo anterior
+   continua funcionando normalmente enquanto nao atualizar).
+4. Medir chegada a Home. Entrar em Filmes, escolher uma categoria pequena/media.
+5. Trocar para outra categoria e voltar a primeira: nao deve baixar novamente.
+6. Abrir Series, escolher categoria, abrir uma serie e verificar imagens/episodios.
+7. Abrir Canais e conferir carregamento/reproducao. Se quiser, teste Todos por
+   ultimo, lembrando que esse comando pede todos os filmes/series ao servidor.
+8. Encerrar/reabrir o app: a categoria ja carregada deve continuar disponivel.
+9. Encerrar captura com Ctrl+C e enviar armazenamento-limpeza.txt, informando
+   quais categorias foram usadas e qualquer falha visual.
+Logs: modo=CATEGORIES_FIRST, OnDemandCatalogPerf, XtreamEndpointPerf,
+StartupPerf, PosterLoadPerf. A duracao por categoria inclui a publicacao/limpeza.
+
+VALIDACAO
+Compilacao Kotlin/KSP desempenho e testes locais de repositorio, sincronizador,
+escritor, controle de navegacao, SQL real das consultas e scripts PowerShell.
+Persistencia simulada nos testes Kotlin; SQL exercitado em SQLite do ambiente.
+Nao foi executado na TV nem montado APK neste ambiente; Aplicar -Testar monta.
+
+DESFAZER
+Executar Desfazer.ps1 -Projeto CAMINHO -Testar, depois Instalar-TV.ps1.
+A ponte de retorno invalida somente geracoes parciais na abertura seguinte,
+para que o importador anterior recarregue o catalogo completo. Catalogos que
+ja estejam completos nao sao invalidados. Favoritos/historico nao sao apagados.
+Nao troque diretamente para um APK antigo que ignore os marcadores parciais.
+Backups ficam em .xtream-sob-demanda-backups no projeto. Pode reaplicar o pacote.
