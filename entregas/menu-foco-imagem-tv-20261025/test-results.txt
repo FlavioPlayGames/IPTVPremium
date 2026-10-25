@@ -1,0 +1,7 @@
+PASS: circular cursor at top/end, empty/single lists and rapid forward/back navigation
+PASS: pinned playing channel appears once; loaded duplicates removed without empty/zero-height rows; source/visual indexes remain reversible
+PASS: visible rows stay fixed; only overflowing amount scrolls at viewport edges
+PASS: install, idempotency, exact-byte rollback and removal of added helper
+PASS: modified source rejected before changing files
+PASS: Kotlin/KSP desempenho compilation with uploaded Gradle configuration.
+PASS: import, HTTP transport, DAO, entities and database remain byte-identical to backup.

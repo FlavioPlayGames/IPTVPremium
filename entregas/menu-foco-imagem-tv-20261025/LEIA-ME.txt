@@ -1,0 +1,42 @@
+MENU DE CANAIS E ACESSO AO FORMATO DE TELA - 25/10/2026
+Base: pacote vlc-canais-player-tv (9c573c9) ja aplicado no projeto.
+Nao substitui o projeto completo; valida os seis arquivos envolvidos antes de copiar.
+
+VISUAL E CONTROLE
+- Um unico cursor logico. Apenas ele recebe contorno forte e fundo destacado.
+- Canal em reproducao: pequeno simbolo de play, sem outra borda de selecao.
+- Cima/baixo percorrem a lista e rolam apenas ao alcancar a borda.
+- Fim/inicio continuam circulares. Linhas duplicadas do canal salvo nao criam
+  espacos vazios. Recorte da lista impede texto/contorno fora da moldura.
+- Esquerda abre Categorias. Direita em Categorias retorna a Canais.
+- Direita em Canais leva direto ao botao Formato de tela.
+- Rodape do menu: -> Ajustar imagem, tambem clicavel.
+- Botao rotulado, com o mesmo desenho do player de filmes, fundo opaco,
+  preenchimento do tema, texto contrastante e borda branca ao receber foco.
+- OK abre as opcoes de imagem; Voltar fecha o painel e retorna ao video.
+- Sem menu aberto, nome/botao somem juntos apos 3s sem interacao; reaparecem
+  ao usar o controle. Menu aberto conserva o acesso visivel. O painel de ajuste
+  aberto permanece utilizavel ate fechar.
+
+VLC - MEDICAO DIRECIONADA, NAO NOVA PROMESSA DE CORRECAO
+- Nao troca codec, motor ou endereco do episodio e nao liga log nativo verboso.
+- VlcNativePerf registra abertura/buffering, bytes lidos/processados, quadros
+  decodificados/exibidos e audio, a cada aproximadamente 2,4s ate iniciar.
+- Nao registra endereco do video, usuario/senha ou titulo da lista.
+- VlcReleaseStepPerf permanece medindo a liberacao nativa.
+- O episodio de O Conto da Aia continuou falhando apos o ajuste de fontes.
+  Estas medidas servem para distinguir leitura, processamento e saida de video.
+
+TESTE
+1. Nao desinstale o aplicativo. Aplique com Aplicar.ps1 -Projeto ... -Testar.
+2. Instale com Instalar-TV.ps1 -Projeto ... e inicie Capturar.ps1.
+3. Navegue ate topo/fim da lista, atravesse a volta circular e teste Esquerda,
+   Direita, Formato de tela, OK, Voltar e desaparecimento dos controles.
+4. Tente o mesmo episodio no VLC por 20s. Se nao abrir, volte e aguarde mais
+   60s na tela de episodios antes de finalizar a captura no computador.
+5. Envie Downloads\validacao-menu-vlc-tv.txt.
+
+Compilacao Kotlin/KSP desempenho e testes de navegacao no ambiente de trabalho;
+APK completo sera compilado no seu computador, e a interacao real depende da TV.
+Aplicador cria backup; Desfazer.ps1 permite restaurar os arquivos anteriores.
+Importacao, banco, rede e demais configuracoes permanecem preservados.

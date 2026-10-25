@@ -1,0 +1,48 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/LibVlcPlaybackAdapter.kt",
+    "sha": "0f690976a01de2d5a1b98bf909828f938a5b15469f86f8f4d5cc640d5dbb23e7",
+    "before": [
+      "662aac40c9d64759ebd6a175b93b4a095ad80a414c2e25c764a0795107ee980e"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt",
+    "sha": "2641c5d392b951b235e3a7d9c96017632a8d7af9d22a71215eb4325e01dbbcf4",
+    "before": [
+      "ca9111d67f5cf28627eb0be7994789bf8b5b6c3e6c2f0fdf6679fd6094e28046"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveImageSettings.kt",
+    "sha": "87276eed6a7c54db9ae0b509e1157a46bcf8c4bd6ba561671fa3764dd68fa3e1",
+    "before": [
+      "1fb49f4ecb07a7ecfedcb49a6baf854db28afda6ebefe6edda9eb7c819d07553"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveMenuNavigation.kt",
+    "sha": "1c6382b78f3bcf3f29260c8a838ed48b5f0504495d55c19908ba1b361cf6d1f6",
+    "before": [],
+    "allowMissing": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveSlimMenu.kt",
+    "sha": "1a14a16b10b7bb14ce776230ce4b448046242f4d7aef4ca86eb77384c9f19aca",
+    "before": [
+      "fdde018858abb2bbd9a70ef1b39f7b70cccc6ed4f2908e9ee5b9334b258a829c"
+    ],
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt",
+    "sha": "c347dd8710f23f71b26765bdd6bf3738147dc7d8c16416e63d6f7c2cd551d1a0",
+    "before": [
+      "0b12021f88e5bb0c1d4129d57ab8da3f27b3e9b81919af38ad7223d0e7dee714"
+    ],
+    "allowMissing": false
+  }
+]
