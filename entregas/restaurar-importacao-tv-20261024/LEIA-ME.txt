@@ -1,0 +1,48 @@
+RESTAURACAO DO PROCESSO DE IMPORTACAO - referencia: java.zip enviado pelo usuario
+
+Restaura o importador completo do arquivo enviado, sem introduzir nova estrategia:
+- Filmes e series completos antes de liberar a Home.
+- Canais continuam carregando ao acessar a aba, como no arquivo de referencia.
+- Retira o carregamento de filmes/series por categoria, seus marcadores de
+  conclusao, controles na navegacao e o carregamento condicionado ao filtro.
+- Restaura a leitura sem o read-ahead acrescentado depois do arquivo enviado.
+- Restaura os indices de filmes/series exatamente como definidos nesse arquivo.
+- Mantem transacoes em lotes, streaming e recuperacao de falhas do importador
+  original, inclusive a regra de nao trocar Xtream por M3U automaticamente.
+
+Nao restaura o projeto inteiro. Preserva as melhorias anteriores de navegacao,
+capas, miniaturas, fundos, cache de contagens, notas e favoritos. Os ajustes de
+interface exclusivos do teste por categoria sao desfeitos junto com o teste.
+Players, dependencias, temas, recursos e configuracoes do projeto nao mudam.
+
+COMPATIBILIDADE DO BANCO
+O arquivo enviado usa banco versao 4. A TV ja pode estar na versao 5. O pacote
+usa versao 6 para restaurar os mesmos indices sem instalar um banco antigo por
+cima do atual. Migracoes 4->6 e 5->6 preservam tabelas e registros.
+A primeira abertura pode demorar mais para reconstruir os indices uma vez.
+Geracoes parciais deixadas pelo experimento sao marcadas como antigas, sem
+apagar seus registros. O fluxo normal recarrega a lista completa quando necessario.
+Catalogos completos nao sao invalidados. Favoritos, historico e arquivos de
+imagens nao sao apagados pelo pacote. Nao e preciso desinstalar nem limpar dados.
+
+APLICAR
+No terminal do projeto:
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File CAMINHO\Aplicar.ps1 -Projeto (Get-Location).Path -Testar
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File CAMINHO\Instalar-TV.ps1 -Projeto (Get-Location).Path
+Depois abra o aplicativo e atualize a mesma lista, para usar o importador restaurado.
+Capturar-Limpeza.ps1 continua disponivel para registrar o teste, se necessario.
+
+Todos os fontes sao validados antes de alterar/remover qualquer arquivo.
+Backup dos fontes substituidos/removidos: .restaurar-importacao-backups no projeto.
+Nao reinstale diretamente APKs antigos de banco 4/5 sobre o banco 6. O backup
+serve para revisao/recuperacao dos fontes com a compatibilidade do banco tratada.
+
+VALIDADO NO AMBIENTE LOCAL
+- Compilacao Kotlin/KSP desempenho.
+- Importador, DAO, contrato e indices comparados com o java.zip fornecido.
+- 16 cenarios do sincronizador/repositorio/escritor real, com persistencia simulada.
+- Regressao do parser direto, compatibilidade legada e propagacao de falhas.
+- SQL das migracoes 4->6 / 5->6, integridade e preservacao dos registros.
+- Tratamento de geracoes parciais sem invalidar catalogos completos.
+- Aplicacao PowerShell, backups exatos, idempotencia e rejeicao de fontes alterados.
+Nao houve teste de TV nem montagem de APK no ambiente; -Testar monta no projeto.

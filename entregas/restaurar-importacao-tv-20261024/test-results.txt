@@ -1,0 +1,34 @@
+BUILD SUCCESSFUL :app:compileDesempenhoKotlin (KSP/Room/resources)
+
+PASS importer, sink contract, DAO and entity indices exactly match the user-provided source
+PASS unrelated navigation, artwork, cache metadata, rating and favourite presentation preserved at pre-experiment version
+PASS migration 4->6 matches generated Room indices and preserves all fixture rows; integrity ok
+PASS migration 5->6 matches generated Room indices and preserves all fixture rows; integrity ok
+PASS incomplete experimental catalogue retired without deleting content or invalidating complete catalogue
+
+PASS exact replacement/removal, complete byte-preserving backups, idempotency
+PASS modified helper rejected before any source changes or removal
+
+PASS streaming matches legacy fields, URLs, category types and provider order across batches
+PASS missing outer bracket recovery preserved; mixed invalid records do not reject good later batch
+PASS malformed full endpoint retries twice, staged categories preserve first occurrence and order
+PASS category retry discards previous partial writes and only retries failing category
+PASS staged keyset merge crosses multiple batches with correct order
+PASS full-endpoint retry removes earlier persisted partial batches
+PASS 32 simultaneous callers share the same progressive import
+PASS failed category preserves active generation and discards all staging imports
+PASS local write failure is not retried as provider error and leaves previous active intact
+PASS transport failure after persisted batches discards partial generation
+PASS cancellation during streamed writes preserves active and releases generation
+PASS adaptive series category mode remains available on subsequent sync
+PASS learned provider category IDs remain part of later VOD fallback
+PASS failed adaptive category mode recovers through full endpoint and cleans stages
+PASS adaptive category merge disk failure does not trigger full network fallback
+PASS alternate parser retains the legacy repository contract
+16 real repository/synchronizer/writer integration scenarios passed; persistence simulated
+
+PASS: repository imports direct fields, constructs stream URLs and uses one catalog request
+PASS: nonstandard numeric ID retries legacy once, clears partial batches, preserves exact IDs and remembers compatibility for next update
+PASS: transport and database failures are not misclassified as JSON compatibility or retried
+
+No TV execution or APK assembly performed in cloud.
