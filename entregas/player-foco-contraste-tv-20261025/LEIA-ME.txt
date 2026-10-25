@@ -1,0 +1,14 @@
+CONTRASTE DO FOCO DO PLAYER - 25/10/2026
+Base: player-grafite-fosco-tv (1983351), visual ja aprovado na TV.
+Altera somente duas linhas de NeutralPlayerControls.kt:
+- foco passa de #E0E0E0 para #FFFFFF;
+- o nome abaixo do icone selecionado acompanha o branco do foco.
+Todo o restante conserva as cores anteriores: icones normais #BDBDBD,
+texto normal #D0D0D0, painel grafite, transparencia e aumento de 30% do foco.
+Nao acrescenta halo, borda, sombra ou desfoque. A cor forte e reservada ao foco.
+Nao altera Canais, Kids, video, reproducao, legendas ou importacao.
+
+Aplicar.ps1 -Projeto ... -Testar compila desempenho e cria backup das fontes.
+Instalar-TV.ps1 -Projeto ... atualiza a TV sem desinstalar nem limpar dados.
+Desfazer.ps1 -Projeto ... restaura o unico arquivo para o visual anterior.
+Compilacao Kotlin/KSP validada; confira o contraste no mesmo conteudo na TV.

@@ -1,0 +1,10 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/NeutralPlayerControls.kt",
+    "sha": "2cb0d0a4f39b2edfb387858c8bce6b6a4d5ebb108121bcea5767145dc662a5fb",
+    "before": [
+      "fb6d3a88e58ef413d2963fadbcb048108a766baa0560f402737c8557a57e3b52"
+    ],
+    "allowMissing": false
+  }
+]

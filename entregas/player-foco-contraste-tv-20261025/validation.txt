@@ -1,0 +1,4 @@
+PASS: compileDesempenhoKotlin / KSP successful.
+PASS: install, idempotency, exact-byte rollback
+PASS: modified source rejected before changing files
+Scope: exactly two lines changed in one visual helper.
