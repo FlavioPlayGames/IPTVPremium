@@ -1,0 +1,14 @@
+﻿Kids: controles de massinha com cantos consistentes.
+Pacote cumulativo, incluindo alteracoes anteriores de capas, logo, favoritos e duracao. Aceita versoes recentes ate 27687d6.
+
+A textura passa a ser desenhada em nove partes: os cantos mantem proporcao e somente o miolo estica. Categorias, canais e pesquisa mantem o mesmo formato de Organizar, sem virar uma elipse longa. Geometria calculada no cache de desenho, sem recortar bitmaps ou criar imagens por foco.
+Organizar deixa de receber o preenchimento escuro do tema sob a massinha no Kids. Tema normal preservado.
+Retiradas as placas superiores Filmes/Series/Canais no Kids. Mantidos os titulos da coluna lateral.
+Navegacao: Kids e principais ja compartilham grade, Paging e antecipacao. Retirada a sombra da capa selecionada fora do Kids para reduzir custo visual, mantendo contorno e animacao de foco. Nao houve alteracao dos eventos de controle ou carregamento de dados.
+Carregamento Kids nao foi alterado: design pendente de definicao com o usuario.
+Telas de carregamento normais, players, importacao e cache de capas preservados.
+
+Aplicar.ps1 -Projeto <pasta> -Testar confere arquivos, cria backup e compila desempenho.
+Instalar-TV.ps1 instala sem desinstalar ou apagar dados.
+Desfazer.ps1 restaura o codigo anterior desta etapa.
+Confira bordas, formato e fluidez no aparelho. Falha intermitente do menu de Series ainda depende do video.

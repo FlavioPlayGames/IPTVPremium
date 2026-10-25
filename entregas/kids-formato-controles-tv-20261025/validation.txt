@@ -1,0 +1,8 @@
+Kotlin desempenho: BUILD SUCCESSFUL.
+Pure Kotlin geometry tests PASS: same corner width for short and long controls at equal height; complete output coverage, no overlapping patches or out-of-bounds source/destination, tiny/empty controls handled.
+Installer: 6 PASS cases across 89d6509 and 27687d6: apply/idempotency/exact byte rollback and added-file removal, modified-source rejection, corrupted-artwork rejection.
+Delivery source bytes match compiled workspace.
+AppNavigation including movie loading byte-identical to previous delivery. SeriesLoadingOverlay not changed or shipped.
+Kids backdrop no longer invokes section plaque. Movie/Series selected toolbar underfill transparent only in Kids.
+Paging, grid navigation and image prefetch unchanged; regular selected-poster shadow removed, focus outline retained.
+Final shape/edge appearance and smoothness require TV validation.
