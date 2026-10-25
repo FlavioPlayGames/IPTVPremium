@@ -1,0 +1,13 @@
+﻿Ajuste de fidelidade Kids — sobre a entrega kids-cinema-final-tv (366e723).
+
+Retira molduras de painéis, contornos antigos dos controles, divisores e ícones das categorias.
+Capas maiores: retira o título redundante FILMES KIDS/SÉRIES KIDS, reduz espaçamento e padding da grade e reserva uma única linha de metadados (Nota e coração), como na referência. O nome permanece no conteúdo da capa e na descrição acessível da imagem.
+Capas mantêm proporção 2:3 e opções 8/10, com duas fileiras. Seleção de massinha e estrela na capa mantidas.
+Cabeçalho do catálogo com marca compacta em grafite, coroa dourada e título alinhado à esquerda. Home preservada.
+Canais mantém os logos reais da lista, sem EPG/dias. Removidos os divisores e caixas antigas. Correção de foco anterior preservada.
+Catálogo fora do Kids mantém nomes, metadados e estilo anteriores. Importação, cache de capas, rede e players não modificados.
+
+Aplicar.ps1 -Projeto <pasta> -Testar verifica arquivos, cria backup e compila desempenho.
+Instalar-TV.ps1 instala sem desinstalar nem apagar dados.
+Desfazer.ps1 restaura o backup desta etapa; depois compile e instale novamente.
+Validação visual final depende da TV.
