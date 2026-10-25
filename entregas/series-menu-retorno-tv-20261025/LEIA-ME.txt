@@ -1,0 +1,27 @@
+SERIES: RETORNO AO CATALOGO - 25/10/2026
+Base: series-seta-episodio-sala-tv (a053138) ja aplicado.
+Altera apenas SeriesScreen.kt. Nao altera dados, imagens ou players.
+
+AJUSTE PARA VALIDAR O PISCAR DO MENU
+- Salva a grade como dona do foco antes de abrir os detalhes, inclusive no toque.
+- Prepara a restauracao da capa salva desde a primeira composicao do retorno.
+- Evita cancelar/reagendar uma restauracao que ja esta preparada para essa capa.
+- Destaque temporario de foco das categorias so aparece quando a navegacao
+  pertence ao menu; a categoria selecionada mantem seu destaque persistente.
+- Assim um foco transitorio em outra linha nao troca o contorno, fundo ou peso
+  do texto do menu durante a recuperacao do foco da grade.
+- Cores e navegacao normal das categorias sao mantidas.
+- SeriesReturnPerf registra restauracao da grade sem expor enderecos.
+
+O log enviado nao mostrou crash. O defeito visual relatado precisa ser
+conferido novamente na TV: esta correcao e restrita ao foco no retorno.
+Mantem as melhorias de Baixo para ultimo episodio e imagem da sala antecipada,
+assim como Assistir, estrelas, player grafite, Canais e importacao.
+
+Aplicar.ps1 -Projeto ... -Testar compila desempenho e salva backup das fontes.
+Instalar-TV.ps1 -Projeto ... atualiza a TV sem desinstalar nem limpar dados.
+Capturar.ps1 salva Downloads\validacao-series-menu-retorno-tv.txt.
+Abra/volte de varias series e confira menu e capa selecionada; depois use
+Esquerda/Direita para verificar que a navegacao do menu continua normal.
+Desfazer.ps1 restaura o unico arquivo para o comportamento anterior.
+Compilacao Kotlin/KSP validada; confirmacao visual na TV ainda necessaria.

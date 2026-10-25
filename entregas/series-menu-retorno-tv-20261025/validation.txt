@@ -1,0 +1,4 @@
+PASS: install, idempotency, exact-byte rollback
+PASS: modified source rejected before changing files
+PASS: compileDesempenhoKotlin / KSP successful.
+Scope: SeriesScreen.kt only; no playback/import/database/theme asset modifications.

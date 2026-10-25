@@ -1,0 +1,10 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+    "sha": "67f30fa09991df8f0b779593da9fd8288fe5835e32b688eb803a20f9cbc909c9",
+    "before": [
+      "2e049a85433f1f2a708fd4da42cfb972f522635ce85045e179985529db7c5cf7"
+    ],
+    "allowMissing": false
+  }
+]
