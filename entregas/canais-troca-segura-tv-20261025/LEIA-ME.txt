@@ -1,0 +1,31 @@
+CORRECAO DA TROCA DE CANAIS - 25/10/2026
+Base: menu-foco-imagem-tv, commit c4eed04, ja aplicado no projeto.
+Altera somente LiveTvScreen.kt, LiveSlimMenu.kt e LiveMenuNavigation.kt.
+
+FALHA IDENTIFICADA
+A captura registrou dois crashes do mesmo tipo:
+12:17:25 - indice 30 em pagina de tamanho 30;
+12:17:48 - indice 10 em pagina de tamanho 10.
+A lista mantinha callbacks de posicoes antigas enquanto LazyPagingItems.peek
+ja consultava a nova pagina menor. Nao foi falha de reproducao do VLC.
+
+CORRECAO
+- Quantidade e chaves de itens usam o mesmo snapshot imutavel da pagina.
+- Callbacks de chave antigos nao leem o Paging mutavel de uma categoria nova.
+- Leitura de conteudo confirma limite/identidade antes de usar indice da pagina.
+- Protecao aplicada na lista normal e no menu em tela cheia.
+- Com o menu aberto, ficam somente o menu e a indicacao -> Ajustar imagem.
+  Botao de formato e nome do canal nao ficam sobrepostos ao menu.
+- Direita fecha o menu e apresenta Formato de tela selecionado.
+- Player, VLC/Media3, importacao, banco e configuracao desempenho preservados.
+
+TESTE
+Aplique com Aplicar.ps1 -Projeto ... -Testar, instale com Instalar-TV.ps1 e rode
+Capturar.ps1. Nao desinstale nem limpe os dados. Teste somente Canais:
+troque rapidamente entre categorias grandes/pequenas, confirme canais, entre
+em tela cheia, navegue topo/fim, use Direita/OK para ajuste e Voltar.
+Envie Downloads\validacao-canais-corrigidos-tv.txt.
+
+O aplicador valida todos os arquivos, cria backup e permite Desfazer.ps1.
+Compilacao Kotlin/KSP desempenho e testes de regressao em ItemSnapshotList.
+APK completo sera gerado no seu computador; validacao visual final na TV.

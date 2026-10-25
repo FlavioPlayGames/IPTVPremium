@@ -1,0 +1,6 @@
+PASS: old key callbacks survive shrink 78 -> 30 -> 10 -> 0 -> 1; exact crash indexes 30/30 and 10/10 remain safe
+PASS: immutable snapshot keys preserve placeholders, stable IDs and out-of-range guards
+PASS: install, idempotency, exact-byte rollback
+PASS: modified source rejected before changing files
+PASS: Kotlin/KSP desempenho compilation successful.
+PASS: only three channel UI source files are included; players/import/database/configuration are not modified.
