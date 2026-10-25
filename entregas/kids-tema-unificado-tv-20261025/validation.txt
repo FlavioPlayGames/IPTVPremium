@@ -1,0 +1,9 @@
+Kotlin desempenho/resources: BUILD SUCCESSFUL.
+Installer: 12 PASS cases across 366e723, 00c7f16, ecf2860, 8dd88ee: apply/idempotency/exact-byte rollback/new-logo removal, modified-source rejection, corrupted-artwork rejection.
+Full HD blue/pink decoded WebP pixels exactly match exported PNG references. Transparent logo inspected on cream background.
+Active background + atlas + brand = 15814656 bytes, below 16 MiB art pool.
+Delivery matches validated workspace.
+Selection base is transparent in Kids; default clickable indication disabled only for Kids controls.
+Category labels may wrap to 2 lines at 14sp line height with reserved right-aligned counts; old Continue/Favorites icons omitted.
+Kids toolbar clocks share compact rendering; keyboard colors/selection scoped to Kids. Input/navigation logic preserved.
+Actual TV appearance and navigation pending validation. Series category flicker remains pending user video.

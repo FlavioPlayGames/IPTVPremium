@@ -1,0 +1,17 @@
+﻿Kids — tema unificado e categorias alinhadas. Pacote cumulativo.
+Aceita as entregas recentes 366e723, 00c7f16, ecf2860 e 8dd88ee.
+
+Cortinas mais finas nos fundos azul/rosa Full HD sem perdas. Urso apoiado no canto inferior esquerdo.
+Marca de massinha com coroa, em arte local transparente. Home e seus bichinhos preservados.
+Categorias mais largas: Continua/Favoritos sem icones nem espaco reservado a eles; nomes podem usar duas linhas, contagens reservadas à direita. Simbolos decorativos das pontas dos nomes omitidos apenas na exibição Kids, sem alterar IDs ou catálogo.
+Seleção: remove preenchimento claro sob a capsula e o realce padrao de clique/foco do Kids. Só a massinha indica a selecao.
+Canais sem logos e sem blocos brancos. Numeracao/estilo dos canais fora do Kids preservados.
+Organizar e busca seguem o mesmo acabamento claro/massinha. Relogio Kids compacto, fonte simples e escura.
+Teclado Kids com painel creme, letras grafite e teclas selecionadas em massinha azul/rosa. Navegacao, atalhos e repeticao das teclas preservados.
+Capas 8/10 e proporcao vertical mantidas. Importacao, cache de capas e controles dos players preservados.
+Falha intermitente de categorias em Series ainda depende do video para diagnostico; este pacote nao a declara resolvida.
+
+Aplicar.ps1 -Projeto <pasta> -Testar: valida, cria backup e compila desempenho.
+Instalar-TV.ps1 instala sem desinstalar nem apagar dados.
+Desfazer.ps1 restaura backup desta etapa; depois compile e instale novamente.
+Confira o visual, teclado e fluidez na TV.
