@@ -1,0 +1,19 @@
+﻿TESTE CONTROLADO DE PAINEIS OPACOS EM FILMES E SERIES
+
+Muda somente quatro expressoes de fundo: a barra/painel e o painel de categorias em MoviesScreen e SeriesScreen. No modo normal, usa cor base CatalogStyle.panel com alpha 1 e SolidColor. Os ramos Kids continuam exatamente iguais. CatalogGlass compartilhado com outras telas nao foi modificado; fundo/capas/icones/selecoes, tamanhos, animacoes, paginacao, SQL, importacao, players e cotas de RAM/disco permanecem.
+O helper de fundo PremiumPanelBackground tambem e reutilizado por controles/dilogos definidos nesses arquivos, que ficam opacos no modo normal. Esse teste trata os fundos dos paineis desses catalogos, nao pretende remover toda composicao alfa de icones, bordas, imagens ou selecao. O contorno e preenchimento de selecao continuam os aprovados. Sem novas texturas/imagens.
+
+IMPORTANTE: primeiro capture ORIGINAL com o APK atualmente instalado. So depois aplique/compile/instale o pacote opaco e capture OPACO. A ferramenta nao detecta automaticamente o modo do APK; o nome do teste e um rotulo. Em cada teste ela fecha e reabre o aplicativo, mantem o cache em disco, espera 45 segundos de aquecimento e mede tres minutos. Resetam somente contadores diagnosticos de frames; nao apagam dados, cache ou historico. Saia do player antes de iniciar.
+Durante o aquecimento entre em Filmes. Depois repita o mesmo percurso em ambos: cerca de um minuto em Filmes, um em Series, um voltando a Filmes. Mesma lista, mesma categoria, velocidade semelhante. Nao entrar em Kids/player/importacao durante esse comparativo. Ao iniciar o script, volte para a TV e mantenha o app visivel; a captura e temporizada e termina no PC.
+
+1 Testar-Paineis.ps1 -Modo Original
+2 Aplicar.ps1 -Projeto <pasta> -Testar
+3 Instalar-TV.ps1 -Projeto <pasta>
+4 Testar-Paineis.ps1 -Modo Opaco
+5 Envie os dois paineis-Original-<data>.zip e paineis-Opaco-<data>.zip de Downloads. Relate tambem a percepcao visual. Nao desinstale nem limpe dados/cache.
+
+A compilacao usa a variante desempenho atual. Nao cria outro projeto nem pacote. Aplicar valida hashes e cria backup. Desfazer.ps1 restaura os fontes anteriores; para voltar o APK e preciso recompilar assembleDesempenho e instalar com Instalar-TV.ps1. Nao execute Desfazer sobre alteracoes posteriores sem revisar a protecao de hash.
+
+MEMORIA: opacidade pode influenciar renderizacao, mas nao e uma correcao comprovada de RAM. Medir-Fluidez registra PSS/Java/Native/Graphics a cada 15 s e snapshots de gfxinfo/cpuinfo, com brutos, CSV e resumo. Picos de cada componente ocorrem em instantes diferentes: nao somar picos independentes. Captura tem alguma carga; nao inferir FPS apenas de percentis de frame ou GPU percentis anormais do driver.
+O teste nao reduz o banco ou implementa as novas regras de exclusao, troca de link ou descarte por uso. Ultimo armazenamento era cerca de 790 MB e ainda depende do catalogo M3U antigo. A reserva rotativa de imagens continua 24 MB sob pressao; nao e a fonte principal desse excesso.
+Mantem-se para a proxima correcao o contrato: todas as listas baixadas enquanto couberem; falta de espaco pode descartar o catalogo da menos usada preservando cadastro/dados pessoais e a ativa; exclusao explicita ou troca de fonte limpa dados exclusivos anteriores preservando so historico, sem apagar dados de outras listas ou configuracoes globais. Essas politicas ainda nao foram aplicadas neste teste.

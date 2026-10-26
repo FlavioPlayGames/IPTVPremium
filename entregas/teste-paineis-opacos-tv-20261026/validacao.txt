@@ -1,0 +1,11 @@
+Kotlin/KSP desempenho: BUILD SUCCESSFUL (49s). APK deve ser compilado no projeto completo pelo Aplicar.ps1 -Testar. Diff revisado: quatro expressoes de fundos, sem alteracao dos ramos Kids.
+PASS wrapper Original restart, warmup handoff, mode metadata and packaged result (fake ADB/collector)
+PASS wrapper Opaco restart, warmup handoff, mode metadata and packaged result (fake ADB/collector)
+PASS same restart procedure in both modes; no data/cache clear or uninstall
+
+PASS baseline stable normal
+PASS baseline stable changed
+PASS baseline stable corrupt
+PASS all PowerShell scripts parsed, including timed capture
+
+Coletor de memoria original previamente validado ponta a ponta com ADB simulado por 60 segundos, ambos formatos de TOTAL PSS, picos/timestamps, CSV/JSON, brutos e ZIP. A copia deste pacote altera somente a mensagem de roteiro. Ganho real de opacidade e RAM na TV pendente.
