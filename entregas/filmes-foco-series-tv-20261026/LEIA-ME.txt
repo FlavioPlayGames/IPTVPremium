@@ -1,0 +1,8 @@
+﻿FILMES: TESTE DE FOCO E RECORTE COM REFERENCIA EM SERIES
+Base: MoviesScreen.kt do java.zip recebido em 26/10/2026, apos grade livre.
+Unico fonte alterado: MoviesScreen.kt. Sem alteracao em banco/consultas/importacao, cache/prefetch, tamanho de capas, Series ou player.
+Catalogo normal de Filmes: registra observador de foco da janela somente durante OK pressionado, preservando cancelamento ao perder a janela; recorta o Box do poster em vez de cada imagem, como Series; mantem o no de sobreposicao de foco para evitar inserir/remover Box em cada troca de selecao. Kids conserva caminho anterior por condicoes explicitas. Mantem OK curto, favorito 1s, remocao Continuar 10s, restauracao, progresso e cor de selecao.
+Essas diferencas sao verificadas no codigo. Ainda nao sao causa confirmada da engasgada. Teste reversivel, ganho depende de medicao real.
+Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1 instala desempenho sem apagar dados/cache. Desfazer.ps1 restaura fonte; recompilar/reinstalar para reverter APK.
+Capturar.ps1: 45s de aquecimento, 180s de navegacao SOMENTE FILMES, mesma lista/categoria, movimentos lentos e rapidos e retorno a fileiras. Nao importar/limpar cache/entrar Kids/Series/player durante captura. Envie filmes-foco-series-FocoSeries-<data>.zip, nao o ZIP de instalacao.
+Depois da captura conferir: OK abre detalhes; segurar 1s favorita uma vez; desfavoritar; Continuar assistindo mantem 10s para remocao. Conferir selecao nas quatro bordas e duas fileiras. Se perder foco da janela enquanto segura OK, retornar sem acionar filme/favorito sozinho. Kids e Series podem ser conferidos depois do trecho medido.

@@ -1,0 +1,11 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "d4ea3f6a6622d8f22002ee4312d674fef3cb0b2a0f63ef43914089fd23e61bd2",
+    "before": [
+      "1d89986b2f623252241c363b6ca5b077a1428507f3f50e08888d56585f81967f"
+    ],
+    "allowMissing": false,
+    "binary": false
+  }
+]

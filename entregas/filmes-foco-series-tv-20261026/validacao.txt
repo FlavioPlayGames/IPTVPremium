@@ -1,0 +1,4 @@
+Kotlin/KSP: BUILD SUCCESSFUL in 37s (compileDesempenhoKotlin), versao final.
+Instalador: aplicacao/idempotencia/reversao exata aprovadas; modificacao local/pacote corrompido rejeitados antes de alterar fontes. Todos os PowerShell passaram no parser.
+Comparacao com java.zip recebido: unico Kotlin diferente ui/movies/MoviesScreen.kt. Kids conserva ramos anteriores; guardas de janela e recorte novo somente catalogo normal. Banco, importacao, Series, cache, esquema, ordenacao e tamanho de capas inalterados.
+Ainda pendentes na TV: ganho de fluidez, contorno completo no foco, OK curto/longo, perda da janela durante OK e remocao de Continuar. Nao ha validacao automatizada Android de eventos reais neste ambiente.
