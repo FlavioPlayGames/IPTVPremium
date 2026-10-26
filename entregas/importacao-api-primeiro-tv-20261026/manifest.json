@@ -1,0 +1,68 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt",
+    "sha": "2a1709ddf05cb444b49bc1ae1990a92e060a5685c44426ee14b99e45ecac76eb",
+    "before": [
+      "d2ead62e67a3461b69ee0a236fabdaf02ee02600391860f89dacf999a4cf5882"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "sha": "f6c6374ca4049b4196018ca4d1988f26c4fbfb0552d3d02a2c3b6f06ccf0c62f",
+    "before": [
+      "d9ac3bad57ff709f6b211979c0c8f096a7f6c511c84c4142373988c320fe6c79"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uEntryClassifier.kt",
+    "sha": "9dfc78ac3db338f9afa7adb215d0c6324a94fe037b5acb3b9e375805a63a15a1",
+    "before": [
+      "b8c085220cb46fa8a24d61abe683b37645ce5f28ecafc5f889f9385642ccf011"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/importer/M3uCacheImporter.kt",
+    "sha": "e21f5a87e79f4eff522306fee3f8eeb7ff9ed6ca26f8ea347d2d8c2248b6db55",
+    "before": [
+      "9b34ae5ac3ae67a2566627ee7088ffa6859cbb70031a219f0e66e140d254b832"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/StorageMaintenance.kt",
+    "sha": "7fe0da591e92265d9c7eb868ea1af20ff798eec66daab99793c0de12b7f3fdc3",
+    "before": [
+      "74de6c2a7d206be2de2ea20aceaea69a31e8618c907cead4f52b35a60e4f3b6a"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uTransportPolicy.kt",
+    "sha": "84cdd814346a17db16888dbfb6ff7b4078ae96ee3a2861520ea95def37d91336",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/AndroidM3uTransportStore.kt",
+    "sha": "4313c0b62574179e70b501a4c036682b6477aa919ae7d3fc617db013b6f5b477",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uAccountProbe.kt",
+    "sha": "b6f019a51be696c3c47c11d249a325b3c4e0bd8e3e05c135e2f4076f5f428a82",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  }
+]

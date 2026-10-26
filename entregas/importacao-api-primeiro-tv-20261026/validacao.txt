@@ -1,0 +1,59 @@
+Kotlin/KSP desempenho: BUILD SUCCESSFUL (1m03s). APK deve ser compilado no projeto completo pelo Aplicar.ps1 -Testar. Execucao e tempo na TV pendentes.
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.kotlin.org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.jetbrains.kotlin.com.intellij.util.containers.Unsafe (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Please consider reporting this to the maintainers of class org.jetbrains.kotlin.com.intellij.util.containers.Unsafe
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+PASS verified API selection persists across instances and refresh without new probe
+PASS configuration change renegotiates; no navigation probe
+PASS generic, filtered, signed, conflicting and unsupported-format URLs remain native
+PASS previous API choice cannot become native after a configuration change or negative probe
+PASS explicit unsupported API selection persists as native
+PASS network failure and cancellation do not store a fallback decision
+PASS account probe accepts active auth and rejects denied, malformed, truncated and oversized responses
+7 policy/probe scenarios passed
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.kotlin.org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.jetbrains.kotlin.com.intellij.util.containers.Unsafe (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Please consider reporting this to the maintainers of class org.jetbrains.kotlin.com.intellij.util.containers.Unsafe
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+  selected transport survives refresh; previous generation stays ACTIVE until caller activates READY
+PASS fresh candidate imports all three API catalogues, zero M3U reads, zero episodes, no live-pending marker
+PASS API write failure keeps ACTIVE generation and decision; never triggers M3U fallback
+PASS legacy M3U catalogue keeps original IDs/path without probing or conversion
+PASS cancelled API import discards incomplete generation and never starts M3U
+PASS native M3U recognises E1000/E1001 and preserves episode numbers instead of creating movies
+5 synchronizer scenarios passed (real manager/writer/policy; simulated DAO and HTTP)
+
+Compiling data.cache.importer.ImportTestKt
+  fixture transactions 11 -> 3; series writes 36 -> 30 (counts, not TV timings)
+PASS mixed M3U preserves every final field, stable IDs, categories, episode grouping and order
+PASS same series across transaction boundaries avoids identical upserts
+PASS changing and empty posters keep last-occurrence metadata across batches
+PASS interleaved repeated series and groups preserve first provider order and final metadata
+PASS title-based classification, missing attributes, Unicode, comments, BOM and duplicate URLs unchanged
+PASS character bound still flushes large metadata before record limit
+PASS invalid list leaves active generation intact
+PASS transport failure discards committed partial generation
+PASS write failure is terminal and does not publish partial data
+PASS cancellation during body consumption cleans staging and preserves active
+PASS READY is withheld until queued writes commit
+PASS bounded writer failure cancels producer rather than consuming complete playlist
+  synthetic sequentialMs=828 pipelineMs=462; same 10 writes and same records, simulated 40ms read/write blocks
+PASS read and write stages overlap with a bounded queue (simulated latency, not TV timing)
+PASS XUI entries without extensions distinguish films, EPG channels and grouped episodes
+14 M3U importer parity/failure/cancellation scenarios; DAO persistence simulated
+ 
+
+PASS baseline stable normal
+PASS baseline stable changed
+PASS baseline stable corrupt
+PASS all PowerShell scripts parsed, including timed capture

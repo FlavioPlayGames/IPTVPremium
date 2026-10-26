@@ -1,0 +1,30 @@
+﻿IMPORTACAO API-PRIMEIRO - PRIMEIRO TESTE, NOVAS ENTRADAS
+
+Base: projeto atual com classificacao M3U, cache rotativo e limpeza em lotes. Nao e a implementacao completa da futura atualizacao incremental/novo esquema. Este pacote valida a primeira escolha de transporte baseada em capacidade, sem migrar IDs de uma M3U ativa.
+
+COMO TESTAR:
+1 Aplicar.ps1 -Projeto <pasta> -Testar compila desempenho e faz backup dos fontes.
+2 Instalar-TV.ps1 instala APK compativel sem apagar dados.
+3 Capturar.ps1 -DuracaoSegundos 900. No site, cadastre uma NOVA entrada para o mesmo link get.php, como M3U, nome Teste API. Nao basta renomear a original; precisa de identificador de cadastro novo. Preserve a lista original, favoritos e historico. Se o site impedir outra entrada, envie a mensagem; nao apague a original para forcar o teste.
+4 Abra/importe essa nova entrada na TV. Depois atualize a NOVA entrada uma vez. Abra canais e uma serie conhecida para confirmar reproducao, episodios e imagens. Mantenha a TV no aplicativo (nao trocar para HDMI/computador durante importacao).
+5 Envie validacao-importacao-api-primeiro-tv-<data>.txt de Downloads. Informe tambem a percepcao visual do tempo. A lista antiga continua ocupando espaco durante esse teste; nenhum dado ativo antigo e apagado para atingir a meta.
+
+COMPORTAMENTO:
+- Somente entrada sem catalogo ACTIVE preexistente pode negociar pela primeira vez. Uma M3U antiga continua nativa; sua migracao e remapeamento de favoritos/historico ainda exigem etapa especifica. Entradas ja escolhidas como API continuam API em atualizacoes.
+- Candidato: http/https get.php com username/password, type ausente/m3u/m3u_plus e output ausente/ts/mpegts. Servidor nao e hardcoded. Parametros extras, filtros/assinaturas, fragmentos, credenciais conflitantes e tipos/output desconhecidos permanecem M3U. HLS/m3u8 explicito permanece nativo nesta primeira etapa para nao perder o formato de transmissao solicitado.
+- Prova de conta: resposta de no maximo 65536 caracteres, JSON completo, user_info.auth 1/true e status Active. Somente 404/405 da API sao capacidade negativa definitiva; conta invalida/expirada, 403, DNS, timeout e JSON invalido interrompem a tentativa, sem disparar importacao M3U grande.
+- Decisao por ID+configuracao persistida em preferencias com SHA256; nenhum link/usuario/senha novo e gravado nessa preferencia. Renomear a fonte nao refaz autenticacao de capacidade; mudar URL/credenciais exige nova verificacao quando a entrada ainda for elegivel. Uma troca de transporte de catalogo nativo existente permanece bloqueada.
+- Caminho confirmado importa categorias/canais/filmes/cabecalhos de series pelo importador Xtream existente, em streaming e lotes limitados. Nao importa episodios. Os tres tipos sao incluidos nesta primeira importacao M3U-compativel, sem marcador de canais pendentes. SeriesEpisodesRepository ja consulta get_series_info somente para a serie aberta.
+- A API pode ter apresentacao diferente de nomes/anos e ainda precisa de validacao funcional na TV. Nao declaramos equivalencia completa das series apenas por nomes. O cadastro/URL original permanece M3U; apenas o transporte interno fica API. Log IMPORT_TRANSPORTE informa transporte=XTREAM ou M3U_NATIVA. SYNC_RESUMO tipo=M3U ainda indica o tipo do cadastro, nao o transporte efetivo.
+- Mantem geracao READY antes da ativacao. Falhas/cancelamento descartam geracao incompleta, preservando ACTIVE. Atualizacao ainda usa o ciclo de geracoes atual; upsert por diferencas e esquema normalizado de M3U pura nao fazem parte desta entrega.
+- Corrige reconhecimento/extracao de episodios com ate seis digitos e temporadas com ate tres digitos no importador nativo. E1000 deixa de ser classificado como filme por falta de marcador reconhecido. Nao reclassifica dados ja salvos sem nova importacao.
+- Retira a chamada da medicao detalhada dbstat da manutencao normal. Logs normais de armazenamento e limpeza continuam; o levantamento de aproximadamente 29s nao roda mais.
+- Sem alteracao de schema/indices/dependencias, visual, players, RAM ou politica rotativa de capas.
+
+LIMITES:
+Ainda nao ha tempo medido na TV nem garantia de 15 segundos/400MB. O caminho API existente e reutilizado; nao afirmamos que toda a arquitetura de sincronizacao foi reescrita. A entrada antiga e seus dados ficam intactos neste primeiro teste. Dados pessoais da nova entrada seguem a regra atual do aplicativo, inclusive reconciliacao normal entre listas. Desfazer.ps1 reverte os fontes desta etapa, nao migra/apaga catalogos ou preferencias. Nao use apagar dados/desinstalar para aplicar.
+
+VALIDACAO: Kotlin/KSP desempenho; testes de politica e autenticacao (persistencia, reinicio, renomeacao, configuracao, filtros, HLS, recusas, JSON invalido, tamanho, cancelamento); sincronizador com gerenciador/escritor reais e DAO/HTTP simulados (tres catalogos, zero M3U/episodios, refresh, erro local sem fallback, ACTIVE preservado, catalogo legado nativo, cancelamento e E1000); regressao do importador nativo; instalador/backup/reversao/protecao de hashes. Teste na TV pendente.
+
+Referencias arquiteturais: OwnTV_Core SourceImporter (negociacao de fonte) e XtreamSyncer (episodios sob demanda): https://github.com/ahXN00/OwnTV_Core/blob/a9b9cdbf5f53a84d2f514046b4c504d6477a58a4/core/src/main/java/tv/own/owntv/core/setup/SourceImporter.kt e https://github.com/ahXN00/OwnTV_Core/blob/a9b9cdbf5f53a84d2f514046b4c504d6477a58a4/core/src/main/java/tv/own/owntv/core/sync/XtreamSyncer.kt . Sem importar dependencias ou copiar a interface desses projetos.
+Uma configuracao antes API nao passa a M3U se uma edicao de URL deixar a API indisponivel ou adicionar filtros: a tentativa para, preservando a escolha anterior e o catalogo ativo.
