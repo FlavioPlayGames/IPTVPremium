@@ -1,0 +1,9 @@
+Kotlin desempenho/resources: BUILD SUCCESSFUL.
+Pure Kotlin/coroutine tests PASS: data-ready only, failure/retry, once-only completion, cancel before late readiness; immediately-ready series returns without mandatory delay; pending readiness/failure/cancellation; one bounded interior focus region and fixed corner radius.
+Installer: 6 PASS cases across 27687d6 and 1ff8e23: apply/idempotency/exact byte rollback/new-file removal, changed-source rejection, corrupted-art rejection.
+Full HD neutral WebP decoded pixels match exported PNG reference exactly.
+Legacy movie carousel body from sessionMetal onward unchanged. Legacy series overlay body from loadingAlpha onward unchanged; Kids-only branches precede both.
+Only Kids bypasses decorative carousel scans and minimum movie wait. Real preparation, normal timings, import/cache/players preserved.
+Selection uses one cropped draw under rounded clip, with no nine-part seams; shapes/paths/gradients are cached between frames.
+Only three star opacities animate in the neutral loading screen.
+Delivery matches compiled workspace. Device validation still needed for appearance, stars, Back/retry and fluency. Series-menu flicker remains pending user video.

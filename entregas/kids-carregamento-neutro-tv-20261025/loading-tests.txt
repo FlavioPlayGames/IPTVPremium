@@ -1,0 +1,3 @@
+PASS ready-only, failure/retry, once-only completion and late-completion cancellation
+PASS immediate ready without forced wait; pending data, failure and coroutine cancellation
+PASS one interior texture region without patch boundaries, fixed corner radius

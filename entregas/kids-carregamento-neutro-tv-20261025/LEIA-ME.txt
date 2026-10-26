@@ -1,0 +1,14 @@
+﻿Kids: carregamento neutro e selecao sem emendas. Pacote cumulativo.
+Aceita as versoes recentes, incluindo catalogo-capas-favoritos-tv (27687d6) e kids-formato-controles-tv (1ff8e23).
+
+Filmes/Series Kids usam a mesma cena: fundo local creme/bege/dourado, marca estatica e tres estrelas vetoriais que variam somente a opacidade. Uma animacao compartilhada, desenhos/gradiente das estrelas mantidos no cache de desenho. Sem carrossel, particulas, camera ou percentual ficticio.
+Filmes Kids: dados/imagens principais continuam preparados antes da entrada, mas nao aguarda minimo de 3s nem animacao final do carrossel. Consultas decorativas do carrossel sao ignoradas. Voltar cancela a conclusao tardia; erro mantem Tentar novamente e Voltar.
+Series Kids: aguarda dados essenciais e sala preparados, preservando falhas/cancelamento e o limite existente. Abre sem a transicao longa/camera da sala. A arte restante pode completar na pagina.
+Fora do Kids, os corpos do carrossel de filmes e do overlay de series ficam preservados, assim como a espera minima normal.
+Selecao: uma unica regiao interna da textura com recorte arredondado substitui o desenho em nove partes; nao ha emendas interiores. Mantem formato e cores azul/rosa.
+Importacao, favoritos, dados de historico, cache de capas e players preservados. Inclui ajustes anteriores.
+
+Aplicar.ps1 -Projeto <pasta> -Testar valida fontes/arte, cria backup e compila desempenho.
+Instalar-TV.ps1 instala sem desinstalar nem apagar dados.
+Desfazer.ps1 restaura o codigo anterior da etapa. Capturar.ps1 gera log opcional da validacao.
+Confira abertura, erro/Voltar, selecao e fluidez na TV. Falha intermitente do menu de Series ainda depende do video.
