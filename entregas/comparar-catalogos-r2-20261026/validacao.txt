@@ -1,0 +1,3 @@
+PASS ok read-only comparison, duplicates/mismatches/episode grouping, safe output, honest coverage
+PASS malformed read-only comparison, duplicates/mismatches/episode grouping, safe output, honest coverage
+PASS forbidden read-only comparison, duplicates/mismatches/episode grouping, safe output, honest coverage

@@ -1,0 +1,12 @@
+COMPARACAO API/M3U R2 - LEITURA NO PC, NAO ALTERA O APP
+
+O teste R1 encontrou 178 titulos classificados como filmes exclusivos da M3U e milhares de diferencas de nomes de series. Essa evidencia nao autoriza trocar o transporte nem prova que todos esses titulos estejam ausentes na API.
+Ha uma limitacao concreta na expressao SxxExxx do comparador R1 e do classificador atual: episodios E1000 ou superiores nao sao reconhecidos por essa expressao. A R2 deste DIAGNOSTICO aceita S com ate tres digitos e E com ate seis digitos; contabiliza separadamente entradas com quatro ou mais digitos de episodio. Nao aplica correcao ao app nesta etapa e nao presume que a limitacao explique todos os 178 titulos.
+Acrescenta ate 12 titulos normalizados exclusivos de cada lado por tipo para identificar diferencas de qualidade, ano, apelidos e classificacao. O relatorio passa a conter esses titulos, mas continua sem links, credenciais ou IDs individuais. URLs nos titulos e ocorrencias literais das credenciais sao ocultadas. Nao execute junto com transcricoes externas que capturem entrada sensivel.
+A entrada do link permanece oculta. Todos os dados completos sao processados na RAM do PC e descartados. M3U lida em fluxo; a API em respostas com limite de 64 milhoes de caracteres por endpoint. Nenhum episodio e solicitado pela API, nenhum video e baixado; nao instala APK, nao altera cadastro nem atualiza a TV.
+
+Comparacao por nome nao comprova equivalencia de URLs/episodios nem distingue necessariamente duas obras com mesmo titulo. Campos commonNumericIdentifiers indicam sobreposicao numerica apenas; namespaces podem diferir. coverageVerified permanece false. Amostras sao auxiliares; grupos ambíguos podem demandar analise. M3U nao tem marcador final universal; EOF nao prova integridade no provedor. A fonte pode mudar entre consultas.
+
+Executar: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Comparar-Catalogos.ps1
+Cole o link get.php no prompt oculto. Pode permanecer na tela do PC. Envie o comparacao-catalogos-<data>.json de Downloads, mesmo se a leitura falhar (resultado parcial registra somente classe/status).
+Testes: servidor local/PowerShell, E1000 reconhecido como episodio, duplicatas, exclusivos, amostras, agrupamento, canais XUI, identificadores, JSON incompleto, HTTP 403 e ausencia de credenciais/host na saida. Validacao com provedor real ainda pendente.
