@@ -1,0 +1,52 @@
+Base: java.zip enviado pelo usuario; 238 arquivos Kotlin existentes comparados. Apenas dois modificados, mais dois auxiliares M3U novos.
+Xtream get/withReader/configuracao HTTP, banco/esquema/DAO, UI, players: preservados.
+compileDesempenhoKotlin: BUILD SUCCESSFUL. APK e execucao na TV dependem do teste local.
+
+Compiling data.cache.importer.ImportTestKt
+  fixture transactions 11 -> 3; series writes 36 -> 30 (counts, not TV timings)
+PASS mixed M3U preserves every final field, stable IDs, categories, episode grouping and order
+PASS same series across transaction boundaries avoids identical upserts
+PASS changing and empty posters keep last-occurrence metadata across batches
+PASS interleaved repeated series and groups preserve first provider order and final metadata
+PASS title-based classification, missing attributes, Unicode, comments, BOM and duplicate URLs unchanged
+PASS character bound still flushes large metadata before record limit
+PASS invalid list leaves active generation intact
+PASS transport failure discards committed partial generation
+PASS write failure is terminal and does not publish partial data
+PASS cancellation during body consumption cleans staging and preserves active
+PASS READY is withheld until queued writes commit
+PASS bounded writer failure cancels producer rather than consuming complete playlist
+  synthetic sequentialMs=815 pipelineMs=451; same 10 writes and same records, simulated 40ms read/write blocks
+PASS read and write stages overlap with a bounded queue (simulated latency, not TV timing)
+13 M3U importer parity/failure/cancellation scenarios; DAO persistence simulated
+ 
+Compiling data.remote.HttpTestKt
+PASS M3U HTTP UTF-8/BOM lines unchanged, gzip=false
+PASS M3U HTTP UTF-8/BOM lines unchanged, gzip=true
+PASS M3U denial classification unchanged
+PASS Xtream withReader/get HTTP behavior retained
+PASS cancelling a stalled M3U body releases the import coroutine without waiting for the 30-second timeout
+PASS first-request/header diagnostics without logging credentials or full URL
+ 
+Compiling data.remote.LineStreamTestKt
+PASS bounded line pipeline preserves order, BOM, UTF-8, empty lines and first-line callback
+PASS reader backpressure at <=384 short lines and cancellation releases queued work
+PASS producer read error propagates and cancels parsing
+ 
+
+Revalidacao HTTP apos tornar o fechamento de cada conexao unico:
+Compiling data.remote.HttpTestKt
+PASS M3U HTTP UTF-8/BOM lines unchanged, gzip=false
+PASS M3U HTTP UTF-8/BOM lines unchanged, gzip=true
+PASS M3U denial classification unchanged
+PASS Xtream withReader/get HTTP behavior retained
+PASS cancelling a stalled M3U body releases the import coroutine without waiting for the 30-second timeout
+PASS first-request/header diagnostics without logging credentials or full URL
+ 
+
+PASS uploaded stable baseline: normal
+PASS uploaded stable baseline: changed
+PASS uploaded stable baseline: corrupt
+PASS all PowerShell scripts parsed, including timed capture
+
+Persistencia dos testes simulada por DAO; servidor HTTP local real. Tempos sinteticos demonstram sobreposicao, nao sao previsao de tempo na TV.

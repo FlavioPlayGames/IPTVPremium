@@ -1,0 +1,18 @@
+﻿M3U: pipeline limitado de leitura, processamento e gravacao. Base: java.zip enviado em 26/10/2026, versao estavel.
+
+Somente quatro fontes desta etapa. Dois existentes: M3uCacheImporter e somente o metodo readLines de DefaultPlaylistHttpClient; dois auxiliares novos exclusivos de M3U. Get/withReader e configuracao HTTP do Xtream conferidos como identicos. Sem migracao, indices, alteracoes de navegacao, players, visual ou cache de capas.
+
+Antes: ler/processar entradas, parar para gravar e depois retomar leitura. Agora: leitura antecipada em blocos de ate 128 linhas/64 Ki caracteres (uma unica linha maior pode exceder esse alvo), processamento e escritor sequencial em paralelo. Uma fila de leitura e uma fila de escrita, ambas de capacidade 1; nao materializa a lista inteira. O banco continua pelo Room, na mesma geracao e mesmas transacoes atomicas.
+Lote M3U ate 2000 entradas totais, limitado tambem por 512 Ki caracteres de entrada. Os perfis de Xtream ficam iguais. O log M3uImportPerf config=M3U_PIPELINE_R1 mostra o limite M3U efetivamente usado.
+Reaproveita somente a ultima identidade/registro de serie. Nao repete UUID e upsert se os metadados da serie anterior forem identicos; poster alterado, vazio, intercalacao e ultima ocorrencia preservados. IDs, categorias, agrupamento e ordem mantidos.
+READY somente depois que o escritor confirma todos os lotes. Falha/cancelamento descarta a geracao incompleta, preservando ACTIVE anterior. Nao transforma M3U em Xtream.
+
+Cancelamento: leitura/conexao bloqueante isolada em executor de dois trabalhadores e fila limitada. A coroutine encerra sem aguardar um disconnect bloqueante. Resultados tardios nunca chegam ao parser. Fechamento do socket e tentativa de interrupcao sao melhores esforcos; plataformas que nao interrompem rede ainda podem ocupar o trabalhador ate o timeout original. Nenhum worker de rede grava no banco. Sem novas dependencias.
+
+Logs: M3uImportPerf (inicio, geracao criada, gravacao por lote, totais, interrupcao); PlaylistConnection (inicio HTTP, cabecalhos, primeira linha, tempos de leitura/fila, gzip e bytes). Leitura, processamento e gravacao se sobrepoem; NAO somar os tempos para calcular o total. Nao registra URLs ou usuario/senha.
+
+Aplicar.ps1 -Projeto <pasta> -Testar: confere fontes, cria backup e compila desempenho.
+Instalar-TV.ps1: instala sem desinstalar/apagar dados. Desfazer.ps1 reverte apenas esta etapa.
+Capturar.ps1: inicia antes de importar M3U e encerra automaticamente em 180 segundos. Informe -DuracaoSegundos 300 para cinco minutos. O log fica em Downloads com data/hora. Pode enviar mesmo que a importacao nao tenha concluido. Nao precisa apagar dados ou a lista para testar.
+
+Os testes de persistencia usam DAO simulado: provam equivalencia e isolamento de falha, nao tempo real do Room. Servidor HTTP local verifica UTF-8/gzip, erros de acesso, fila e cancelamento. Tempo na TV/provedor ainda precisa ser medido; esta entrega nao promete um prazo fixo de importacao.
