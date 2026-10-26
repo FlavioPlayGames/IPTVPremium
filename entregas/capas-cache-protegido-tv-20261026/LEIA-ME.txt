@@ -1,0 +1,12 @@
+﻿CAPAS: CACHE DE TRABALHO PROTEGIDO
+
+Corrige a politica que zerava a cota descartavel quando o banco ultrapassava 400 MB, fazendo downloads de imagens com HTTP 200 falharem por cache_budget.
+Mantem cota de trabalho minima de 24 MB para o cache descartavel compartilhado. Com espaco normal a cota continua variando ate 100 MB. Os limites por tipo, LRU, protecao de leitores/gravacoes, tamanho de imagem, cancelamento e politica de RAM permanecem.
+Quando a cota esta no minimo, nao baixa novas capas de antecipacao. Capas ja no disco continuam aproveitadas; requisicoes visiveis continuam usando a rede. Ao recuperar espaco, a antecipacao volta nas proximas solicitacoes. O trabalhador de manutencao existente recalcula essa cota ao executar; nao faz varreduras por capa.
+Acrescenta log StorageCleanupPerf phase=cache_policy, allowanceBytes, artworkPrefetch, workingCacheBytes e targetBytes.
+
+LIMITACAO: 400 MB continua a meta, mas nao e um teto garantido. Se os catalogos ativos ultrapassarem esse valor, a reserva de 24 MB permite exibir imagens sem apagar conteudo ativo. Esta entrega NAO compacta/redesenha o banco nem altera a importacao. A limpeza STALE existente permanece em lotes e pode ser pausada pela navegacao; nao foi acelerada nesta entrega. O excesso do banco precisa ser tratado separadamente.
+Nao remove listas, favoritos, historico, nem modifica players ou interface visual.
+
+Aplicar.ps1 -Projeto <pasta> -Testar valida hashes, salva backup e compila desempenho. Instalar-TV.ps1 instala APK compativel sem apagar dados. Desfazer.ps1 reverte os arquivos deste pacote.
+Capturar.ps1 -DuracaoSegundos 900: abra o app, aguarde 60 segundos na Home para manutencao, navegue por filmes/series e detalhes; nao atualize a lista nem limpe cache. Mantenha app visivel. A manutencao pode precisar de mais tempo se houver geracao antiga grande. Teste real na TV pendente.

@@ -1,0 +1,19 @@
+Kotlin desempenho: compilacao verificada no ambiente de analise. APK deve ser compilado no projeto completo pelo Aplicar.ps1 -Testar.
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.jetbrains.kotlin.org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.jetbrains.kotlin.com.intellij.util.containers.Unsafe (file:/workspace/storage-toolchain/gradle-9.6.0/lib/kotlin-compiler-embeddable-2.3.21.jar)
+WARNING: Please consider reporting this to the maintainers of class org.jetbrains.kotlin.com.intellij.util.containers.Unsafe
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+PASS quota: over-target / estimate / normal / remaining allowance
+PASS pressure: visible downloads succeed, LRU stays bounded, active reader preserved
+PASS oversized reservation rejected; maintenance protects active transfer; release cleans temporary
+PASS prefetch restored after pressure clears
+
+PASS baseline stable normal
+PASS baseline stable changed
+PASS baseline stable corrupt
+PASS all PowerShell scripts parsed, including timed capture
