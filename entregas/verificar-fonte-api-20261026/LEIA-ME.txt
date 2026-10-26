@@ -1,0 +1,11 @@
+VERIFICAR CAPACIDADE XTREAM DE UM LINK GET.PHP
+
+Primeira etapa antes de alterar a importacao M3U. Executa no PC Windows com PowerShell 5.1+, fora do aplicativo. Nao instala APK, nao atualiza catalogos e nao muda preferencias.
+Leia o script antes de executar se desejar. Ele pede o link por Read-Host -AsSecureString e deriva player_api.php mantendo o prefixo de caminho. Aceita somente http/https get.php com username e password. A URL e credenciais ficam na memoria do processo; nao sao gravadas no relatorio nem no console pelo script. Nao passe o link na linha de comando nem o cole no chat. Nao execute com transcricao de diagnostico externa habilitada.
+Valida resposta de autenticacao e status Active. Se confirmado, consulta seis endpoints: categorias e catalogos de canais, filmes e series. Nao solicita get_series_info, videos, EPG, imagens ou a M3U inteira. Cada resposta e analisada na RAM do PC e descartada; limite de 64 milhoes de caracteres decodificados. Pode usar memoria significativa no PC, nao na TV. Timeout padrao 30 segundos por requisicao, configuravel com -TimeoutSegundos (5..90); connect/DNS e parsing podem variar conforme sistema.
+Relatorio JSON contem apenas autenticacao/ativo, acao, sucesso, HTTP, quantidade, itens sem ID, caracteres, duracao e tipo da excecao. Nenhuma mensagem completa de erro e gravada, pois pode conter URL sensivel. Resposta truncada sem delimitador final e registrada como falha; esta etapa nao tenta recuperar arrays incompletos. JSON vazio/categorias vazias nao provam ausencia definitiva de conteudo.
+coverageVerified permanece false: quantidades nao comprovam igualdade item a item da M3U nem autorizam trocar de transporte. Conta/API acessivel e apenas a primeira evidencia. Nao garante que API preserve filtros/grupos ou URLs especiais da M3U.
+
+Executar: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Verificar-Fonte.ps1 -TimeoutSegundos 45
+Cole o link quando pedido (entrada oculta). Envie o arquivo capacidade-fonte-<data>.json de Downloads. Pode permanecer no computador; este teste nao depende de a TV exibir o aplicativo.
+Validacao com servidor HTTP local e PowerShell: sucesso, JSON truncado, auth negada e HTTP 403; relatorios sem host/usuario/senha e sem falsa equivalencia. Provedor real retornou 403 no ambiente remoto; execucao na rede do usuario ainda necessaria.

@@ -1,0 +1,4 @@
+PASS ok probe results, no credentials/host in report or console, no app changes, no false coverage claim
+PASS malformed probe results, no credentials/host in report or console, no app changes, no false coverage claim
+PASS unauthenticated probe results, no credentials/host in report or console, no app changes, no false coverage claim
+PASS forbidden probe results, no credentials/host in report or console, no app changes, no false coverage claim
