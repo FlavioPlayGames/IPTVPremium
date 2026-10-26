@@ -1,0 +1,12 @@
+﻿CAPAS: CACHE ROTATIVO, ANTECIPACAO MANTIDA
+
+Cumulativo sobre 6641ed7. Retira a suspensao de antecipacao por pressao do banco. As tres fileiras antecipadas permanecem com a politica existente de navegacao rapida e prioridade do player/importacao. Sem aumentar paralelismo ou RAM.
+Ao reservar uma gravacao que ultrapassaria a cota global ou por tipo, remove arquivos descartaveis antigos ate metade da cota correspondente ANTES da nova reserva, ou mais se necessario para caber uma imagem maior que a metade. A cota inclui reservas em andamento. Leitores, arquivos sendo gravados e marcadores internos permanecem protegidos. Arquivos preferidos sao removidos depois dos demais. Se os protegidos nao permitirem liberar espaco, nao excede a cota e pode recusar uma reserva temporariamente.
+Rotacao percorre o indice em memoria; nao varre todo o disco por download. Calcula espaco restante uma vez, evitando recalcular a soma de todos os arquivos para cada exclusao. Nenhum trabalho novo foi acrescentado na thread de UI.
+Mantem cota descartavel minima de trabalho 24 MB, variando ate 100 MB conforme espaco; imagens limitadas tambem a 75 MB. Com minimo de 24 MB, a rotacao visa aproximadamente 12 MB antes da nova reserva (respeitando arquivos protegidos). Isso nao e limpeza da RAM nem do banco.
+
+400 MB continua a meta, nao teto garantido: banco ativo maior que a meta exige uma etapa propria. Esta entrega NAO apaga catalogos ativos, listas, favoritos ou historico; NAO modifica importacao, esquema do banco ou players. Limpeza STALE existente preservada.
+Aplicar.ps1 -Projeto <pasta> -Testar valida hashes, faz backup e compila desempenho. Compativel com a base enviada e pacote anterior. Instalar-TV.ps1 instala sem limpar dados. Desfazer.ps1 restaura apenas a etapa atual.
+Capturar.ps1 -DuracaoSegundos 900. Abra o app, aguarde um minuto na Home, navegue por varias fileiras de filmes e series. Nao atualize nem limpe cache. Mantenha app visivel. Teste real na TV pendente.
+
+Ao retornar a uma regiao, capas removidas do disco serao baixadas novamente se nao estiverem mais em RAM. Nao mantemos um registro de sucesso que dispense o arquivo: a existencia do arquivo e verificada pelo carregador.

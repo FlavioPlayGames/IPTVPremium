@@ -1,0 +1,42 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/AppStoragePolicy.kt",
+    "sha": "513cdb44875f16158a869e3f11b228e1028998582d91feb659472f0760fcb3d3",
+    "before": [
+      "f11e03f522e4b0c6b00b6c953e6d335d296f74d18b42668da2ec006a15645113",
+      "513cdb44875f16158a869e3f11b228e1028998582d91feb659472f0760fcb3d3"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheStorageBudget.kt",
+    "sha": "c2dc582adcc1a7b76d21eecee1006ec5301c61dd4863e355b34233be37f85e2c",
+    "before": [
+      "0acaaefe09d857cc7a05774ce40f27a39d5760ac86686b99d80455a2e9964d9f",
+      "3a53407c426bd1950458eb4c52b4bad6a0aa886d45965648ec4109f11120ab41"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/StorageMaintenance.kt",
+    "sha": "c146c8317b6308a7b9f44b45ab28bf54201294898b78abb93d810d73a85def0b",
+    "before": [
+      "63bcf29d5a7e2eb0027f1084666835f7117335f16ceca938ef605c67312ea15d",
+      "c146c8317b6308a7b9f44b45ab28bf54201294898b78abb93d810d73a85def0b"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "ba04027ee8162c0c5d4e7e021fed922de5255cc15e989f4774ca1021c399f0f8",
+    "before": [
+      "ba04027ee8162c0c5d4e7e021fed922de5255cc15e989f4774ca1021c399f0f8",
+      "fffb42df757e779c588e13c2cc5b0983fac843740c0acdcabcb5915f15fc7447"
+    ],
+    "allowMissing": false,
+    "binary": false
+  }
+]
