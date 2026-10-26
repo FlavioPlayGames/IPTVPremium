@@ -1,0 +1,4 @@
+﻿SELECAO METALIZADA DOS NOVOS CATALOGOS
+Requer catalogos-novos-tv 4b74005 aplicado. Altera somente UnifiedMediaCatalog.kt: fundo/contorno do foco em Categorias, Organizar e Pesquisar usam as cores metalizadas existentes do tema; contorno da capa selecionada tambem usa a borda metalizada. Mesmo tamanho, espessura, zoom e motor de rolagem. Sem sombra/blur ou animacao nova. Kids, paginas internas, importacao e armazenamento permanecem intactos.
+Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Backup e Desfazer.ps1 incluidos. Para reverter APK, restaurar fontes, recompilar e reinstalar.
+A falha ao trocar de categoria reportada na base 4b74005 ainda depende do log do crash e NAO esta corrigida neste pacote visual. Este pacote nao deve ser descrito como correcao do fechamento.

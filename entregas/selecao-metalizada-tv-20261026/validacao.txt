@@ -1,0 +1,1 @@
+Kotlin/KSP compileDesempenhoKotlin: BUILD SUCCESSFUL. Aplicacao/idempotencia/reversao e rejeicao de base modificada/pacote corrompido PASS; parser PowerShell PASS. Somente pinceis do fundo/contorno selecionado foram alterados. Sem alteracao de geometria ou eventos. Validacao visual e desempenho na TV pendentes; falha de troca de categoria NAO corrigida neste pacote.

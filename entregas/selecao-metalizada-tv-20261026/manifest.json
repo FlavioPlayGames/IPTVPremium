@@ -1,0 +1,11 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/UnifiedMediaCatalog.kt",
+    "sha": "1727f0ab61c4998fd33bf01c4919d234ffbdcf3d3a0d6ffbc42548b44c50bb4c",
+    "before": [
+      "1dcf3deb37e01681304bcdbd3de9b136ec4a7d8248460ce1488c3bd1c70a1438"
+    ],
+    "allowMissing": false,
+    "binary": false
+  }
+]
