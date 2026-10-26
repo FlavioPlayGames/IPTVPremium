@@ -1,0 +1,18 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/StorageMaintenance.kt",
+    "sha": "74de6c2a7d206be2de2ea20aceaea69a31e8618c907cead4f52b35a60e4f3b6a",
+    "before": [
+      "c146c8317b6308a7b9f44b45ab28bf54201294898b78abb93d810d73a85def0b"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CatalogStorageDiagnostics.kt",
+    "sha": "e940e300f3b6d0e02515159e09dfab7f4b762651d1bf576d7cb40371e0361732",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  }
+]

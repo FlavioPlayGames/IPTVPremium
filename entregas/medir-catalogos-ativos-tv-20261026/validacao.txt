@@ -1,0 +1,7 @@
+Compilacao Kotlin/KSP desempenho: BUILD SUCCESSFUL (34s). APK deve ser compilado no projeto completo com Aplicar.ps1 -Testar. Medicao real na TV pendente.
+PASS per-list generation counts isolated; table/index page bytes returned separately; diagnostics perform no writes (SQLite local, dbstat supported).
+
+PASS baseline stable normal
+PASS baseline stable changed
+PASS baseline stable corrupt
+PASS all PowerShell scripts parsed, including timed capture
