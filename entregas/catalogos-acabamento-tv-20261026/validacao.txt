@@ -1,0 +1,5 @@
+Kotlin/KSP compileDesempenhoKotlin: BUILD SUCCESSFUL in 44s.
+Instalador em 3 bases (catalogos novos planos, selecao metalizada, correcao de categoria): aplicacao/idempotencia/reversao exata/remocao de arquivo novo PASS; rejeicao atomica de arquivo local modificado e pacote corrompido PASS. Parser de todos os PowerShell PASS.
+Alem do pacote 091f2df, somente aparencia/icone/alinhamento dos botoes de UnifiedMediaCatalog foram alterados. Helper de snapshot e protecoes Kids identicos ao pacote corrigido. Teste de regressao anterior usando ItemSnapshotList real e 5000 transicoes permanece aplicavel, pois o codigo de acesso nao foi alterado. Teste incluido.
+Sem alteracao do tamanho de capas, duas fileiras/8-10, geometria ou CatalogGridNavigator. Apenas Organizar ganhou largura no topo, com busca ajustando o espaco restante. Paineis/botoes com preenchimentos opacos; metalizado de foco usa alpha 1. Sem novas animacoes, blur ou sombras; icones desenhados em Canvas, sem downloads/decodificacao de bitmaps.
+Pendente TV real: validar visual, ausencia do fechamento ao trocar categorias e preservacao da fluidez. Nao houve execucao de UI Android neste ambiente.
