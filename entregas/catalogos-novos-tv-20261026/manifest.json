@@ -1,0 +1,49 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "269850617313914e41b342e889cfc3cade739473b1cfb310924195bf2f38fe74",
+    "before": [
+      "d4ea3f6a6622d8f22002ee4312d674fef3cb0b2a0f63ef43914089fd23e61bd2",
+      "1d89986b2f623252241c363b6ca5b077a1428507f3f50e08888d56585f81967f"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+    "sha": "0d58afc52d68c61a48eb2ee5b1fd4d60ab87694a7880af02dfd85e303618b7bd",
+    "before": [
+      "96643befbd152d42a107f17a128db7b747b784b69b620f5888474185abef3b12"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviePosterLoader.kt",
+    "sha": "04dc0725cc6787fa5e968813bbc5282f9baccad0fa2facf5085a422f53be324a",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/KidsMoviesCatalog.kt",
+    "sha": "84ce97608075ce2c4c6422ac49e4c76f2b61fb52ed2a10e0d06d317a1cadfdfc",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/KidsSeriesCatalog.kt",
+    "sha": "53eb60ffb6d8e9d497cb75ac3eaf6ef3a97b63b253e76d616c319651264379d2",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/UnifiedMediaCatalog.kt",
+    "sha": "1dcf3deb37e01681304bcdbd3de9b136ec4a7d8248460ce1488c3bd1c70a1438",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  }
+]
