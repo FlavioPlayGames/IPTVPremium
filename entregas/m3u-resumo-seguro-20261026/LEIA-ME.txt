@@ -1,0 +1,6 @@
+Coleta de metadados M3U no computador, sem alterar o aplicativo.
+Cole a URL somente na entrada oculta de Analisar-M3U.ps1, nao no comando do terminal.
+O script le a resposta em streaming, sem salvar a lista original. Gera CSV com categoria, quantidade, marcador fixo do caminho, extensao permitida, chaves de atributos e ate dois titulos de exemplo por grupo.
+Nao inclui URLs de reproducao nem valores de tvg-logo/tvg-id. Segredos presentes na URL de cadastro sao removidos de categorias e exemplos; URLs nesses campos tambem sao removidas. Informe somente URLs HTTP/HTTPS da sua lista autorizada.
+Envie apenas resumo-m3u-*.csv, gerado em Downloads. O CSV serve para identificar sinais reais de filme/canal/serie; .ts, m3u_plus e output=mpegts nao bastam para essa identificacao.
+Validados agrupamento, BOM/UTF-8, EXTGRP, caminho separado da query, contagens, CSV, remocao de URLs/segredos e sintaxe PowerShell. Rede do provedor sera acessada pelo seu computador; neste ambiente remoto ela respondeu HTTP 403.
