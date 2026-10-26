@@ -1,0 +1,4 @@
+﻿GRADE LIVRE EM SERIES
+Requer a etapa 697b521 (grade livre Filmes) aplicada. Remove moldura nos dois caminhos do catalogo de Series (paginado e local). Replica margens e espacamentos de Filmes para igualar dimensoes das capas com mesma resolucao, fonte e numero de colunas. Kids permanece inalterado. Mantem 2:3 e duas fileiras, titulos, notas, favoritos e foco. Nao altera importacao, armazenamento nem players.
+Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1; Capturar.ps1. Captura: 45s aquecimento e 180s em Series. Nao entrar Kids/Filmes/player durante o trecho medido. Envie grade-livre-series-GradeLivre-<data>.zip. Desfazer.ps1 restaura fontes; recompilar/reinstalar para reverter APK.
+Compilacao Kotlin/KSP e protecao de instalador verificadas; desempenho e visual reais dependem da TV. A captura anterior mistura Kids e catalogos normais, nao fornece FPS por tela.
