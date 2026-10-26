@@ -1,0 +1,13 @@
+﻿Kids: controles, acesso e retorno de canais. Pacote cumulativo sobre 20ab7b6.
+
+Home Kids: apenas engrenagem dourada; rotulo mantido para acessibilidade.
+PIN: o sexto numero conclui o teclado e inicia verificacao automaticamente. Botoes Entrar/Acessar controles/Desbloquear removidos. PIN incorreto limpa campo e mostra mensagem. Mantidos hash, verificacao fora da UI e limite original de cinco erros/30 segundos. Criacao e troca de PIN continuam exigindo repeticao e Salvar PIN.
+Autorizar a engrenagem libera tambem Controle parental na mesma sessao. Sair do aplicativo invalida a autorizacao. A engrenagem exige verificacao em cada nova entrada, como anteriormente.
+Controle parental: bloco Kids com Apenas Kids, Iniciar diretamente, bloqueio completo de Filmes/Series e categorias proprias de canais/filmes/series por lista. Bloquear ambos oculta as duas opcoes da Home Kids, deixando apenas Canais. Bloqueios completos continuam efetivos nas rotas de detalhes/player. Regras normais e Kids usam chaves e concessoes diferentes, sem migrar bloqueios adultos ao Kids.
+Categorias Kids bloqueadas deixam de oferecer seus conteudos no ambiente infantil, preservando o filtro infantil/adulto anterior.
+Canais Kids: titulo Categorias ou seta esquerda + Canais; cabecalho com espaco para o titulo abaixo do logo. Voltar da lista de canais abre Categorias; de Categorias retorna Home Kids. Tela cheia fecha antes de sair; teclado de busca tambem fecha antes. Corrigido destino de saida quando a Home principal nao existe no modo inicio direto.
+Importacao e players nao foram alterados.
+
+Aplicar.ps1 -Projeto <pasta> -Testar compila desempenho e cria backup.
+Instalar-TV.ps1 instala sem apagar dados. Desfazer.ps1 restaura codigo, nao apaga PIN/preferencias.
+Validar na TV: toque/controle numerico, PIN errado/correto, bloqueio de filmes/series e de uma categoria apenas Kids, retorno de canais com Back/ESC e azul/rosa.

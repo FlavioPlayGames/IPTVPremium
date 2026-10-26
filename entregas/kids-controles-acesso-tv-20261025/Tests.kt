@@ -1,0 +1,32 @@
+package br.com.flaviotorres.iptvpremium.ui.settings
+fun main() {
+ val rules=ParentalRules(general=false,all=setOf("p/MOVIES","kids/p/SERIES"),categories=mapOf("p/SERIES" to setOf("normal"),"kids/p/MOVIES" to setOf("kids"),"kids/p/LIVE_TV" to setOf("live")))
+ val normal=ParentalAccessState(true,rules,emptySet())
+ val kids=normal.copy(kidsCatalog=true)
+ check(normal.blocked("p","MOVIES","free"))
+ check(!kids.blocked("p","MOVIES","free"))
+ check(kids.blocked("p","MOVIES","kids"))
+ check(!normal.blocked("p","SERIES","kids"))
+ check(kids.blocked("p","SERIES","free"))
+ check(!normal.blocked("p","LIVE_TV","live"))
+ check(kids.blocked("p","LIVE_TV","live"))
+ check(!kids.copy(grants=setOf("p/MOVIES")).blocked("p","MOVIES","free"))
+ check(kids.copy(grants=setOf("p/MOVIES")).blocked("p","MOVIES","kids"))
+ check(!kids.copy(grants=setOf("kids/p/MOVIES")).blocked("p","MOVIES","kids"))
+ val channelsOnly=kids.copy(rules=rules.copy(kidsBlockedSections=setOf("MOVIES","SERIES")),grants=setOf("kids/p/MOVIES"))
+ check(channelsOnly.blocked("p","MOVIES","free"))
+ check(channelsOnly.blocked("p","SERIES","free"))
+ check(!channelsOnly.blocked("p","LIVE_TV","free"))
+ check(!normal.copy(rules=ParentalRules(general=false,kidsBlockedSections=setOf("MOVIES"))).blocked("p","MOVIES","free"))
+ check(!channelsOnly.copy(enabled=false).blocked("p","MOVIES","free"))
+ check(kids.blocked("p","LIVE_TV","free",name="XXX Adult"))
+ var pin=""
+ repeat(5) {pin=PinDigits.append(pin,it);check(!PinDigits.ready(pin))}
+ pin=PinDigits.append(pin,5);check(PinDigits.ready(pin))
+ check(PinDigits.append(pin,9)==pin)
+ check(!PinDigits.ready(PinDigits.erase(pin)))
+ check(PinDigits.normalize("a1b2c3d4e5f6g7")=="123456")
+ check(!PinDigits.ready("12345x"))
+ println("PASS PIN readiness only at six digits, input limit, erase and normalization")
+ println("PASS independent Kids/normal categories, live categories, scoped grants, channels-only sections, disabled protection and adult filter")
+}

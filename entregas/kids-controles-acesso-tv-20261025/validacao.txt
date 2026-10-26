@@ -1,0 +1,13 @@
+compileDesempenhoKotlin: BUILD SUCCESSFUL
+APK e teste de foco/navegacao na TV pendentes de validacao local.
+Regras e PinDigits extraidos do codigo de producao para teste JVM; classificador de nome de categoria Kids substituido por stub, nao testado aqui.
+
+PASS PIN readiness only at six digits, input limit, erase and normalization
+PASS independent Kids/normal categories, live categories, scoped grants, channels-only sections, disabled protection and adult filter
+
+PASS fee808d normal
+PASS fee808d changed
+PASS fee808d corrupt
+PASS 20ab7b6 normal
+PASS 20ab7b6 changed
+PASS 20ab7b6 corrupt
