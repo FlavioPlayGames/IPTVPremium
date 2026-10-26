@@ -1,0 +1,4 @@
+Kotlin/KSP: BUILD SUCCESSFUL (compileDesempenhoKotlin).
+Geometria: 18 cenarios aprovados; aumento calculado de largura entre 1,43% e 3,30%.
+PowerShell: sintaxe aprovada. Aplicacao, idempotencia e reversao aprovadas em bases original e opaca. Arquivo local modificado e pacote corrompido rejeitados antes de alteracoes.
+TV: validacao visual e de desempenho pendente.
