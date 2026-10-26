@@ -1,0 +1,3 @@
+Scripts PowerShell analisados pelo parser. Fluxos testados com ADB/coletor simulados: Perfetto disponivel, ausente e download negado; ZIP, metadados e dados de frames preservados. Sem limpar dados/cache ou desinstalar. Aquecimento zerado apenas na copia de teste.
+A TV real e a configuracao Perfetto nao foram executadas neste ambiente: compatibilidade/permissoes dependem do firmware. Nao ha alteracao de fontes/APK.
+Hipotese da tela de preparacao: carrossel em rota movie_preparation removida ao navegar para detalhes; coroutines/animações pertencem a composicao da rota. Usuario confirmou engasgada na grade apos reabrir app, antes de abrir qualquer filme; isso enfraquece carrossel como causa direta. Nao elimina outros elementos de abertura do app.
