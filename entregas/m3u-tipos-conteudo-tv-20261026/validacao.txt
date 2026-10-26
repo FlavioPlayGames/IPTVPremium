@@ -1,0 +1,38 @@
+compileDesempenhoKotlin: BUILD SUCCESSFUL
+Sem execucao ou APK gerado na TV nesta maquina. Aplicar.ps1 -Testar gera o APK local.
+Transporte e filas M3U preservados byte a byte em relacao a c2ce13f. Apenas classificacao/importador e classe auxiliar mudam nesta etapa.
+
+PASS 26 classification cases: qualified XUI/EPG metadata, nameless paths, TS/HLS, explicit path priority, live 24H, movies with season words, generic M3U fallback and query isolation
+
+PASS CSV sample replay: groups=153 samples=304 referenceRawEntries={MOVIE=44725, SERIES=558795, LIVE_TV=1729}; totals projected from grouped samples, not per-item verification
+
+Compiling data.cache.importer.ImportTestKt
+  fixture transactions 11 -> 3; series writes 36 -> 30 (counts, not TV timings)
+PASS mixed M3U preserves every final field, stable IDs, categories, episode grouping and order
+PASS same series across transaction boundaries avoids identical upserts
+PASS changing and empty posters keep last-occurrence metadata across batches
+PASS interleaved repeated series and groups preserve first provider order and final metadata
+PASS title-based classification, missing attributes, Unicode, comments, BOM and duplicate URLs unchanged
+PASS character bound still flushes large metadata before record limit
+PASS invalid list leaves active generation intact
+PASS transport failure discards committed partial generation
+PASS write failure is terminal and does not publish partial data
+PASS cancellation during body consumption cleans staging and preserves active
+PASS READY is withheld until queued writes commit
+PASS bounded writer failure cancels producer rather than consuming complete playlist
+  synthetic sequentialMs=816 pipelineMs=459; same 10 writes and same records, simulated 40ms read/write blocks
+PASS read and write stages overlap with a bounded queue (simulated latency, not TV timing)
+PASS XUI entries without extensions distinguish films, EPG channels and grouped episodes
+14 M3U importer parity/failure/cancellation scenarios; DAO persistence simulated
+ 
+
+PASS baseline stable normal
+PASS baseline stable changed
+PASS baseline stable corrupt
+PASS baseline pipeline normal
+PASS baseline pipeline changed
+PASS baseline pipeline corrupt
+PASS all PowerShell scripts parsed, including timed capture
+
+Dados do CSV foram usados privadamente apenas para testar seus 304 exemplos/153 grupos. As somas por grupo nao provam a classificacao individual de cada item.
+Persistencia de testes simulada por DAO. Listas sem metadados suficientes permanecem ambiguas, sem garantia universal de classificacao.

@@ -1,0 +1,19 @@
+﻿M3U: classificacao por sinais de conteudo e metadados XUI. Cumulativo sobre c2ce13f.
+
+Instalar nao reclassifica o catalogo ja salvo: depois de instalar, atualize a M3U pelo aplicativo para importar uma nova geracao. Nao precisa desinstalar, apagar favoritos ou limpar dados.
+
+A regra anterior dependia de /movie/, /series/ ou de nomes como Filmes/VOD/Series; por padrao classificava os demais como canais. O resumo recebido tem caminhos opacos sem extensao e grupos como Acao/UHD que nao atendiam a essas regras.
+Novo classificador independente do servidor/URL: caminhos explicitos mantem prioridade; rotulos claros de categoria e marcadores de episodio sao considerados; metadados xui-id/tvg-id distinguem as entradas no layout XUI correspondente. Presenca de tvg-id, mesmo vazio, pode representar canal EPG nesse layout; ausencia so e usada como pista de VOD quando a entrada tem xui-id. Uma entrada generica sem EPG nao vira filme automaticamente. Grupos mistos como Filmes e Series nao sao tratados como categoria exclusivamente de VOD. Grupos ao vivo/24H permanecem protegidos contra a inferencia por titulo. Extensoes TS/HLS isoladas nao definem o tipo.
+Sinais explicitos de VOD e episodios continuam validos em variantes que incluem tvg-id vazio tambem em VOD. Listas sem sinais suficientes permanecem ambiguas: esta entrega nao promete identificacao universal de todas as M3U.
+
+Referencia do CSV: 153 grupos e 304 exemplos. A classificacao dos exemplos e a soma dos grupos apontam 1729 entradas ao vivo, 44725 filmes e 558795 episodios. Sao contagens brutas de referencia, nao auditoria individual de todos os 605249 registros nem numero de series distintas; duplicidades e atualizacoes da lista podem alterar a contagem final.
+
+ID e dados dos itens que ja estavam corretamente tipados permanecem iguais. Itens antes classificados no tipo errado recebem o ID do tipo correto na nova geracao. Mantem os lotes limitados, sobreposicao de leitura/escrita e tratamento de falhas/cancelamento anteriores. Sem alteracoes em Xtream, UI, players, banco/esquema ou dependencias.
+Esta etapa corrige classificacao; nao reduz o numero de episodios escritos no banco. O volume de episodios continua relevante para desempenho e armazenamento.
+
+Logs M3uImportPerf revisao/config=M3U_METADATA_R2; cada lote informa canais/filmes/episodios separadamente. O resumo final contem contagens da importacao. Capturar.ps1 -DuracaoSegundos 900 permite quinze minutos. Inicie a captura e mantenha a TV exibindo o aplicativo durante a importacao; trocar para HDMI pode suspender o app.
+Aplicar.ps1 -Projeto <pasta> -Testar compila desempenho e cria backup.
+Instalar-TV.ps1 instala sem apagar dados. Desfazer.ps1 reverte somente esta etapa.
+
+Testes: regras genericas/XUI e variantes, caminhos explicitos, query separada do caminho, canais 24H, filmes/episodios sem extensao, comparacao com o importador anterior nos cenarios preservados, falhas/cancelamento e espera pela ultima gravacao. DAO dos testes simulado. Teste real na TV ainda necessario.
+O link, as credenciais e o CSV do usuario nao fazem parte da entrega publica.
