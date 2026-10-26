@@ -1,0 +1,15 @@
+﻿Kids: início direto e configurações protegidas. Pacote cumulativo.
+
+Como ativar: Configurações > Controle parental > Iniciar diretamente no Kids.
+Disponível após ativar o controle e confirmar o PIN. Regra salva junto das preferências parentais, fora do cache de listas; em instalações anteriores começa desativada.
+Com a regra ativa e PIN configurado, o app abre diretamente na Home Kids. A barreira geral não pede PIN para a criança entrar nessa Home; rotas adultas restauradas sem autorização são redirecionadas ao Kids.
+A Home Kids tem uma engrenagem dourada com acabamento azul/rosa e rótulo Configurações. Cima nos bichinhos leva a ela; Baixo retorna aos bichinhos. Ao retornar das configurações, recupera o foco na engrenagem.
+O atalho Kids exige o PIN parental existente em cada nova entrada. Sem PIN cadastrado, leva primeiro à criação da proteção. Não há senha nova separada, nem concessão de acesso com PIN ausente.
+Verificação usa o ParentalPinStore existente, fora da thread principal e com o limite de tentativas original. Sair do aplicativo invalida a autorização; cancelar uma tentativa impede que uma validação tardia libere acesso. PIN nunca é salvo no estado de navegação nem registrado em logs.
+Quando Kids é a raiz e não há autorização adulta, Voltar encerra o app. Depois de autorizar o responsável, Voltar da Home Kids pode abrir a Home principal. Com a regra desligada, a abertura normal volta no próximo início; proteção desativada nunca força início Kids.
+Os controles Kids-only já existentes continuam independentes da preferência de início. Configurações e subpáginas restauradas permanecem protegidas no modo infantil.
+Inclui carregamento neutro, favoritos Kids e ajustes visuais anteriores. Importação, players e cache de capas não alterados nesta etapa.
+
+Aplicar.ps1 -Projeto <pasta> -Testar confere fontes, cria backup e compila desempenho.
+Instalar-TV.ps1 instala sem apagar dados. Desfazer.ps1 restaura o código anterior da etapa; não apaga PIN ou preferências gravadas no aparelho.
+Confira abertura fria, opção desativada, PIN errado/correto, Cancelar/Voltar e retorno após segundo plano na TV.

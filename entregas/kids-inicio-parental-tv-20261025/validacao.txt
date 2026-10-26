@@ -1,0 +1,12 @@
+compileDesempenhoKotlin: BUILD SUCCESSFUL
+APK e execucao na TV: pendentes de validacao local.
+
+PASS startup opt-in/parental requirement, restored-route isolation, settings-vs-child routes and existing normal mode
+PASS incorrect/missing PIN denial, epoch check, cancelled verification and fresh entry authorization
+
+PASS 1ff8e23 normal
+PASS 1ff8e23 changed
+PASS 1ff8e23 corrupt
+PASS fee808d normal
+PASS fee808d changed
+PASS fee808d corrupt
