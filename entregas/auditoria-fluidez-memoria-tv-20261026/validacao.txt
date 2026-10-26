@@ -1,0 +1,2 @@
+PASS PowerShell parsed
+PASS end-to-end fake ADB: sampling, both PSS formats, timestamped peaks, raw logs, renderer/CPU snapshots, CSV/JSON and ZIP
