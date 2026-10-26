@@ -1,0 +1,11 @@
+﻿LIMPEZA DE CATALOGOS ANTIGOS EM LOTES, SEM ORDENACAO REPETIDA
+
+A consulta de cada lote de exclusao ordenava por rowid todo o intervalo da geracao mesmo com LIMIT 500. EXPLAIN QUERY PLAN com esquema de indices equivalente apontou USE TEMP B-TREE FOR ORDER BY. Ao retirar ORDER BY, usa o intervalo de indice sem essa ordenacao. Nao importa qual dos registros antigos sai primeiro. A selecao da geracao elegivel nao foi alterada.
+Somente as cinco consultas DELETE em lotes foram ajustadas. Permanecem filtros playlistId/generationId, lote 500, pausa 10 ms, cancelamento ao navegar/abrir player/importar e protecao de catalogos ativos pelo gerenciador. Nenhum indice/schema/consulta de leitura/insercao/importacao foi alterado.
+Acrescentados logs StorageDeletePerf phase=progress a cada 5000 registros e phase=end com tabela, contagens, duracao e outcome complete/interrupted. Contagens de uma passagem cancelada representam lotes confirmados pelo retorno do DAO; uma operacao ja executada pode terminar no SQLite antes de o cancelamento chegar ao Kotlin.
+Nao apaga listas, favoritos, historico, ou catalogo ativo. Nao muda a rotacao de capas da entrega anterior. Nenhum VACUUM global, varredura extra durante navegacao ou migracao destrutiva.
+O teste SQLite local (100 mil registros, 40 lotes) mostrou 689 ms com ordenacao e 169 ms sem. E um teste local, NAO previsao de tempo/ganho na TV. Testes adicionais usam SQL exato do DAO e DDL gerado pelo Room para as cinco tabelas.
+
+400 MB continua a meta, nao garantia: o tamanho dos catalogos ativos sera medido apos terminar a limpeza. Esta entrega reduz trabalho de remocao de geracoes elegiveis, nao o tamanho dos registros ativos.
+Aplicar.ps1 -Projeto <pasta> -Testar compila desempenho e faz backup. Instalar-TV.ps1 instala sem apagar dados. Desfazer.ps1 reverte esta etapa.
+Capturar.ps1 -DuracaoSegundos 900: abra o aplicativo, mantenha na Home por 10 minutos SEM navegar. Depois navegue normalmente. Nao atualize nem limpe cache. Nao mude a TV para HDMI/computador durante a espera. Envie o arquivo de Downloads.

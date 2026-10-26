@@ -1,0 +1,20 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/dao/PlaylistCacheDao.kt",
+    "sha": "f92aeb6dc254d36a6971402053b43766cbc54dd23f46435735db147bb7524974",
+    "before": [
+      "8126dd5f313444fe8eddfea8739cd0e66298ccc88864c166f2fba13c1ee619e8"
+    ],
+    "binary": false,
+    "allowMissing": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PlaylistCacheGenerationManager.kt",
+    "sha": "ed73bc874be22a829760195756612e92eb32bf404ae85ae120c8875cbf54a82e",
+    "before": [
+      "fc91889df5959ad9c5c92f0e80195eaf3debed2b6dfc13f605b9317689af2eb0"
+    ],
+    "binary": false,
+    "allowMissing": false
+  }
+]
