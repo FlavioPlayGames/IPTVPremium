@@ -1,0 +1,12 @@
+compileDesempenhoKotlin: BUILD SUCCESSFUL
+
+PASS 182d696 normal
+PASS 182d696 changed
+PASS 182d696 corrupt
+PASS 25fdee9 normal
+PASS 25fdee9 changed
+PASS 25fdee9 corrupt
+
+Revisao: Assistir do ator navega para Playback MOVIE; a rota preserva ParentalItemAllowed antes de compor o player. Series nao ganhou botao Assistir.
+Log recebido: fundos com sucesso em NETWORK, DISK e RAM; isso nao comprova exibicao. Recuperacao limitada e log do primeiro desenho incluidos para validar.
+Teste visual/foco/reproducao na TV pendente; APK sera gerado localmente por Aplicar.ps1 -Testar.

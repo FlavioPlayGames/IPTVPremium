@@ -1,0 +1,11 @@
+﻿Atores: Assistir direto, favorito compartilhado e recuperacao de fundos. Cumulativo sobre 25fdee9.
+
+Previa de filme na pagina do ator: Assistir e coracao usam os mesmos componentes dos detalhes. Assistir resolve o ID do provedor e abre o player MOVIE sem navegar novamente aos detalhes, preservando o controle parental da rota, historico e retomada existentes. Sem correspondencia na lista, mostra aviso e nao reproduz outro titulo.
+Previa de serie continua sem Assistir: apenas favorito. Coracao usa o mesmo componente vetorial dos detalhes, preenchimento de favorito, branco e expansao no foco; sem borda quadrada. Favoritos continuam associados ao ID real do catalogo.
+Fundos dos detalhes: nao remover definitivamente a fonte apos falha transitoria. Se o cache nao contiver a imagem, tenta fonte enriquecida e URL alternativa do provedor quando distinta; uma unica repeticao apos falha, cancelavel ao sair. Nao altera limites do cache e nao faz novos downloads quando o fundo ja esta em RAM.
+MovieBackdropRender registra resolucao e primeiro desenho (dimensoes somente; sem URLs/credenciais). No log recebido varios fundos tiveram download e leitura RAM bem-sucedidos; a causa visual nao foi provada. A recuperacao e o desenho precisam de validacao na mesma TV. Este pacote nao afirma que falhas de rede ou fundos ausentes do provedor foram eliminados.
+Nenhuma alteracao na importacao ou nos mecanismos dos players. Mantem correcoes Kids anteriores.
+
+Aplicar.ps1 -Projeto <pasta> -Testar compila desempenho e cria backup.
+Instalar-TV.ps1 instala sem desinstalar/apagar dados. Desfazer.ps1 reverte codigo desta etapa.
+Capturar.ps1 gera validacao-atores-player-fundos-tv.txt. Teste os filmes com fundo ausente, previa do ator em filmes e series, favorito ativado/desativado, Assistir e Voltar, e uma categoria protegida pelo PIN.
