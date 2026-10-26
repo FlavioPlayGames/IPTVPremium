@@ -1,0 +1,14 @@
+compileDesempenhoKotlin: BUILD SUCCESSFUL
+Recursos e KSP: OK.
+
+PASS 20ab7b6 normal
+PASS 20ab7b6 changed
+PASS 20ab7b6 corrupt
+PASS 182d696 normal
+PASS 182d696 changed
+PASS 182d696 corrupt
+
+Inspecao do video: sobreposicao breve visivel no menu lateral de series durante retorno/navegacao no trecho final. Log sem FATAL EXCEPTION.
+A hipotese de invalidacao/restauracao do painel motivou isolamento do desenho; eliminacao da piscada ainda depende do teste na mesma TV.
+Foco inicial por focusProperties.onEnter compilado; comportamento do D-pad e tela inicial a confirmar na TV.
+APK nao gerado nesta maquina; Aplicar.ps1 -Testar gera assembleDesempenho no projeto local.

@@ -1,0 +1,10 @@
+﻿Kids: titulos, foco inicial dos detalhes e cartao parental. Pacote cumulativo sobre 182d696.
+
+Kids parental agora e um cartao com icone e seta igual aos de Filmes e Series. Todas as opcoes infantis abrem na pagina propria. Voltar de categorias Kids retorna ao bloco Kids, e dele ao painel parental; foco retorna ao cartao Kids. PIN e regras existentes preservados.
+Canais Kids: CATEGORIAS e CANAIS em caixa alta, negrito e centralizados. Seta esquerda vetorial mais grossa e maior, com centro vertical alinhado ao titulo CANAIS; espaco simetrico preserva o centro da palavra. Cabecalho ampliado para o titulo nao cortar.
+Detalhes de filmes e series: grupo de foco direciona a primeira entrada diretamente ao Assistir, antes de um foco provisorio em Ler sinopse; pedido apos RESUMED continua como reforco. Temporada e ultimo episodio continuam com restauracao de visibilidade anterior. Ler sinopse, favorito e estrelas continuam navegaveis depois da entrada.
+Series: painel de categorias com camada de desenho isolada apenas na lista lateral e recorte explicito, evitando sobreposicao de desenhos durante retorno/rolagem. Foco transitorio nao e pintado durante restauracao da categoria ou quando a grade tem foco; categoria selecionada permanece visivel. Correcao para a piscada observada no video exige confirmacao visual na TV, pois a captura nao prova sozinha a origem no renderizador.
+Nao alterados importacao, rede, players, cache ou regras parentais de conteudo nesta etapa.
+
+Aplicar.ps1 -Projeto <pasta> -Testar compila desempenho e cria backup. Instalar-TV.ps1 instala sem desinstalar/apagar dados. Desfazer.ps1 reverte codigo desta etapa.
+Validar na TV: cartao Kids (toque e D-pad), retorno Kids->categorias->Kids->painel, PIN, titulos azul/rosa, entrada imediata em Assistir, retorno repetido dos detalhes de series e navegacao rapida no menu lateral.
