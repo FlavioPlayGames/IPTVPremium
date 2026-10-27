@@ -1,0 +1,6 @@
+﻿OPCAO 1 - GRAFITE NEUTRO
+Selecao grafite acetinada opaca, identica nos modos claro/escuro; texto e icones brancos no foco/categoria ativa. Contorno acompanha a cor do tema. Fundo cinza aprovado preservado. Sem blur nem animacao nova.
+Barra em Filmes/Series/Canais: Organizar no inicio, pesquisa ampliada, relogio no fim. Retirado nome da categoria da barra superior. Esquerda no grupo Organizar/Pesquisar retorna a categoria atual; teclado aberto preserva edicao.
+Canais: lateral regular passa de 320/390dp a 22,5% da largura da tela, mesma proporcao de Filmes/Series. A previa ganha espaco proporcionalmente; player e EPG preservados. Kids mantem largura e barra existentes.
+Aplicar sobre entrega 3d23a00 ou cba99cd: Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Backup automatico. Sem limpar dados ou desinstalar. Desfazer.ps1 restaura fontes; recompilar/reinstalar para voltar APK.
+Conferir na TV modos claro/escuro, cinco temas, foco visivel em Organizar->Esquerda->Categoria e Pesquisar->Esquerda->Categoria, pesquisa/ordenacao e largura de Canais.
