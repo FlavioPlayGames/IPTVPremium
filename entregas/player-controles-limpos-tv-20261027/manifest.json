@@ -1,0 +1,20 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ScreenAdjustmentPolicy.kt",
+    "sha": "7507abc5d94cf77b9a5569e9846f7b7be06a7504d1fabf8891a3f9a46c093b89",
+    "before": [
+      "223e11af7bd25cd71bb6237468936a816130b2de476f5168db1c0e4c50094373"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ScreenFormatPanel.kt",
+    "sha": "d00f53484de997c8f90514df719739fb964e6df4c8d7eda34e784be67c5392fd",
+    "before": [
+      "dd30419c81f96c7bac1aa7ad50d95bb6000954049347d49e1e2f07bb55c74dda"
+    ],
+    "allowMissing": false,
+    "binary": false
+  }
+]

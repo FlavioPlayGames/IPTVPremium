@@ -1,0 +1,8 @@
+﻿PLAYER - CONTROLES SEM QUADRADO E REINICIO DO AJUSTE
+Base: ea5e19f (configuracoes-paineis-tv).
+Remove o quadrado da seta ativa. Triangulos preenchidos menores, com cantos suaves; a direcao acionada se diferencia apenas por brilho e discreto aumento. Mesmo painel pequeno embaixo/centralizado e mesma paleta neutra do player.
+Menu lateral com quatro vetores distintos: Normal (tela com traco), Zoom (lupa), Tela cheia (quatro cantos), Ajuste manual (tela com seta de redimensionamento). Nao repete o simbolo de tela em todas as linhas.
+Selecionar Zoom OU Ajuste manual sempre zera a edicao anterior: zoom/largura/altura em 100%, offsets centralizados, proporcao original como ponto de partida, inclusive ao reabrir e selecionar novamente ou mudar de um editor para outro. Os proximos comandos ajustam normalmente. Essa regra e compartilhada por filmes, series e canais.
+Mantidos DPAD, passo de 2%, repeticao, OK, Voltar e 5 segundos de inatividade. Sem alteracao nas paginas de configuracoes, PIN, listas, importacao ou adaptadores dos players.
+Aplicar.ps1 -Projeto <pasta> -Testar; depois Instalar-TV.ps1. Backup automatico, dados e listas preservados. Desfazer.ps1 restaura os dois arquivos; recompilar/reinstalar para reverter o APK.
+Conferir na TV: imagens novas das setas e simbolos, entrar/ajustar/sair/entrar/selecionar de novo em Zoom e Manual, trocar entre editores, prazo de 5s e controle segurado.

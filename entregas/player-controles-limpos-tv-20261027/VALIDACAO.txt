@@ -1,0 +1,7 @@
+2026-10-27
+PASS :app:compileDesempenhoKotlin; compilacao 33s.
+PASS teste Kotlin sobre classes reais compiladas: 100 reentradas zerando zoom/largura/altura/offsetX/offsetY; modo manual com geometria original, proximo comando muda de 100% para 102%; prazo de inatividade continua 5000ms.
+PASS auditoria da integracao: os dois seletores chamam freshLayout; ausencia de borda/caixa em TriangleButton; quatro vetores distintos; menu lateral e controle inferior mantidos; apenas Voltar e inatividade fecham o painel.
+PASS instalador: aplicar, reaplicar idempotente, desfazer; rejeicao atomica de arquivo modificado e pacote corrompido. Scripts PowerShell analisados pelo parser.
+Somente dois arquivos Kotlin modificados. Nenhum novo bitmap/cache/recurso. Configuracoes, PIN, importacao e adaptadores de reproducao preservados.
+Sem TV/emulador conectado; visual e navegacao real exigem conferencia no aparelho.
