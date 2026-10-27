@@ -1,0 +1,10 @@
+2026-10-27
+PASS :app:compileDesempenhoKotlin, incluindo KSP/Room/recursos Android. Compilacao final: 38s.
+PASS scripts PowerShell: aplicar sobre base 6c4154b, reaplicar sem novo backup, desfazer restaurando arquivos e removendo SettingsPanels.kt.
+PASS rejeicao atomica de arquivo modificado localmente e pacote corrompido. Todos os scripts analisados pelo parser PowerShell.
+PASS revisao da grade principal: mesmos nove itens, grade, navegacao/foco e callbacks; nenhuma barra lateral de configuracoes acrescentada. Apenas o conteudo interno foi redesenhado.
+PASS integracao do player: menu em CenterEnd, controles menores em BottomCenter com margem de 16dp; mesma paleta neutra do menu atual; triangulos preenchidos; contorno fino apenas na seta ativa. Politica de 2%/limites/repeticao sem alteracao; so Voltar e timer chamam fechar.
+PASS revisao de foco: campo principal opta por foco inicial; Repita o PIN excluido da disputa. Numeros/validacao/armazenamento/criptografia do PIN preservados.
+PASS geracao e expiracao de QR Code preservadas; mesmo acesso temporario e sincronizacao. Estado de assinatura exibido vem da central, sem estado ficticio.
+PASS 89 arquivos de dados e adaptadores/modelos de reproducao preservados. Nenhum recurso de imagem ou novo cache acrescentado.
+LIMITES: sem TV/emulador conectado; aparencia, escala, geometria do video e navegacao real/temporizacao do controle devem ser validadas no aparelho.
