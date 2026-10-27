@@ -1,0 +1,65 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt",
+    "sha": "674a3c7d7e8f680d3027b250de0e8420464607cc18b7c7fd3ef9bc57e9485914",
+    "before": [
+      "5b819f8ede91975bddf6a6860a58921f9a5f515396bae97b7b7a17db2b039291"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt",
+    "sha": "030e6d9ed5e094c373e6bd50e4685b29d7122eac8d00f5aebcf3afa6bc32ad3d",
+    "before": [
+      "11ca0acaed2f34974c2e8950153971b1e8dbda841b0ae50fd49c396f8c3c29f4"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_gold.webp",
+    "sha": "0c0c6670a104d6751be800eb965c955ba3e3fbe4755d9b26dfd3cb59f9ed1398",
+    "before": [
+      "de9e2959521b7e5494113b3d268b7953b1013ed44a52b402367b6da077f7fe05"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_blue.webp",
+    "sha": "f2294ec9d20e725d5e5ca8359e9144cfe8652d7762f6288c09a9e67e263394a2",
+    "before": [
+      "b2149f70419f41c036dd04b4a59e1bf2e111b7d4cc382456583153cda40d15b5"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_pink.webp",
+    "sha": "b17d7aac73e756a66e25741af5d8d58c6e895b52482a8773a8d87a4ba4db6b42",
+    "before": [
+      "c4e96ba1e380c2c996ee46d02973dc98fc1ae44be01597043d3e7ede3e467c37"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_purple.webp",
+    "sha": "5ffcb76ec860ced3de0d54dff5a65483ab5adcd836367bc4911279cf8f61627a",
+    "before": [
+      "9e87960d6d7bbea6421f4d451d58af1bbde125e8346bba53e1490918d86a0cf6"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_red.webp",
+    "sha": "40137ce9c22f64c24514c1b51eed5b991ac7c5cd92bcd7cc47d35473ddfd44b7",
+    "before": [
+      "ad9f1d094e8684d03a048b0915970ec88af9bcc75fee61fdc959ae3e25ef93bb"
+    ],
+    "allowMissing": false,
+    "binary": true
+  }
+]

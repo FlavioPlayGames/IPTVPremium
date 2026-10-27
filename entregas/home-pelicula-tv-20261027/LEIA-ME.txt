@@ -1,0 +1,6 @@
+﻿HOME - PELICULA E ROLO APROVADOS
+Cinco temas com rolo circular, cubo central, aberturas regulares e pelicula dividida em quadros, alem das perfuracoes. Mantem a identidade dos icones e materiais lisos aprovados. Regioes e resolucoes nativas mapeadas por arquivo. Substitui as mesmas cinco folhas existentes em WebP sem perda.
+Azul/vermelho: saturacao da exibicao reduzida em 10% RELATIVOS ao tratamento atual (.75 x .90 = .675). Dourado/rosa/roxo mantem .75. Filtros pre-criados, compartilhados por icones e reflexos; nao modifica saturacao do fundo ou dos demais componentes. A reducao aplica-se no app; os PNGs-fonte mantem a cor de geracao.
+Mantem camadas/zoom da Home, bordas metalicas, contorno das capas em 3dp, tamanho dos controles, sequencia Pesquisar->Organizar->Categorias, correcao de foco de Canais, banco, importacao e players. Nenhuma alteracao nessas telas.
+Aplicar sobre c53e371: Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Backup automatico. Desfazer.ps1 restaura fontes e recursos; recompilar/reinstalar para reverter APK. Sem desinstalar ou limpar dados/cache.
+Conferir cinco temas, azul/vermelho menos saturados, filme/rolo, contornos das artes, escala e fluidez da Home na TV.
