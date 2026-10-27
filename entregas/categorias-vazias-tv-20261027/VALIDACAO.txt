@@ -1,0 +1,7 @@
+2026-10-27
+PASS :app:compileDesempenhoKotlin final 21s.
+PASS teste comparativo Kotlin com a implementacao anterior e a nova: movimento novo em t equivale ao anterior em t/2; mesmas trajetorias em 60Hz; toques e tecla segurada, sentidos positivo/negativo, percursos curtos/longos; velocidade finita e convergencia ao destino.
+PASS revisao das listas: somente categorias do catalogo com contagem positiva sao mostradas em Filmes/Series e Kids; atualizacao por remember com categorias/contagens existentes, sem novas consultas por categoria. Atalhos fixos preservados.
+PASS instalador com quatro arquivos: aplicar, reaplicar idempotente, desfazer, rejeicao atomica de arquivo local alterado ou pacote corrompido; parser PowerShell.
+Sem recursos novos, alteracao em banco ou importadores. Foco/destinos, controles de player, temas e PIN preservados.
+Conferencia de navegacao e velocidade real na TV pendente. A reducao e do movimento continuo da grade comandado pelo controle, sem reduzir a cadencia de quadros ou atrasar cada tecla.

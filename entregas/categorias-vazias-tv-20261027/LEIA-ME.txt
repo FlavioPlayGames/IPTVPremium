@@ -1,0 +1,7 @@
+﻿CATEGORIAS VAZIAS E TESTE DE ROLAGEM 50%
+Oculta as categorias do provedor cuja contagem e zero (ou nao tem itens na contagem) em Filmes e Series, nos catalogos normais e Kids. Usa as contagens existentes do catalogo: nao realiza buscas por categoria, nao filtra pelo texto da pesquisa e nao modifica a ordem das categorias restantes.
+A lista visivel e recalculada quando categorias/contagens mudam, de modo que volta a mostrar a categoria quando ela recebe conteudo. Atalhos Todos, Continuar assistindo e Favoritos continuam acessiveis. Nao exclui categorias ou conteudos do banco e nao altera os bloqueios parentais.
+Teste de rolagem: velocidade fisica da mola reduzida em 50% no componente compartilhado por Filmes, Series e Kids, tanto ao tocar quanto ao segurar as setas. Mesma cadencia de frames, destinos, foco, alinhamento e liberacao da tecla; sem atraso artificial de entrada.
+Somente apresentacao; grid, tamanho das capas e carregamento permanecem. Nenhuma alteracao em Canais, importacao, PIN, temas ou player.
+Base dos arquivos verificada por hash; compativel com as correcoes recentes 0a1c62b/46f4f99/ea5e19f.
+Aplicar.ps1 -Projeto <pasta> -Testar; depois Instalar-TV.ps1. Backup automatico; Desfazer.ps1 restaura os tres arquivos. Recompilar/reinstalar para reverter APK. Sem desinstalar ou limpar dados.
