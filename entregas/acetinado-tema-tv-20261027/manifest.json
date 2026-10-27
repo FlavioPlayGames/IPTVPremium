@@ -1,0 +1,11 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogControlLook.kt",
+    "sha": "251e7376d2175232be3b221e47d171d75fc931b97ceee5865d87e76e7b875464",
+    "before": [
+      "4db888d830bfaaa40be021ff00f698f048be29351d50c2bf793a30dbcaa222a3"
+    ],
+    "allowMissing": false,
+    "binary": false
+  }
+]

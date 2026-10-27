@@ -1,0 +1,2 @@
+Kotlin/KSP desempenho: BUILD SUCCESSFUL em 23s.
+Aplicacao, idempotencia, rollback, rejeicao atomica de modificacoes/corrupcao e sintaxe PowerShell validados. Visual na TV pendente.

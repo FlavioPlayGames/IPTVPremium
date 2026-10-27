@@ -1,0 +1,4 @@
+﻿ACETINADO NA COR DO TEMA
+Uma unica alteracao: o preenchimento grafite acetinado aprovado ganha 32% de mistura da cor do tema em todos os pontos do degrade. Mantem o reflexo, formato, opacidade e texto branco. Mesma rampa nos modos claro/escuro; fundo cinza e controles inativos preservados. Compartilhado por Filmes/Series/Canais. Kids nao usa este helper.
+Nao altera layout, navegacao, tamanhos, importacao ou banco. Aplicar sobre 109736b: Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Backup automatico e Desfazer.ps1 para fontes. Sem limpar dados/cache. Recompilar/reinstalar para reverter APK.
+Conferir cinco temas e modos claro/escuro na TV.
