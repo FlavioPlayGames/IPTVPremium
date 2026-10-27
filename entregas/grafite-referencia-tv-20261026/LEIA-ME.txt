@@ -1,0 +1,7 @@
+﻿GRAFITE - COMPOSICAO DA REFERENCIA APROVADA
+Base cinza escura aprovada #303235 preservada. Claro em cinza suave, superficies distintas e divisao da lateral. Sem transparencia.
+Filmes/Series: quatro icones vetoriais em traco fino (Todos quadradinhos, Continuar play sem circulo, Favoritos coracao vazado, Lancamentos claquete inclinada). Demais categorias sem simbolo, alinhamento reservado. Categorias de Lancamentos identificadas pelo nome; nao cria categorias novas. Nenhuma categoria e escondida.
+Organizar e Pesquisar em capsulas com contorno fino; Organizar com separador/seta. Barra dos catalogos alinhada a direita como referencia. Relogio compacto, neutro e atualizado por minuto. Nota com estrela e coracao alinhado a direita. Mantem logotipo original, capas reais verticais e dimensoes atuais; nao substitui por ilustracoes. Canais compartilha simbolos, contornos e relogio, mantendo player/EPG e sua disposicao funcional.
+Kids, Home, importacao, banco, fichas, carregamento, consultas e motor de rolagem preservados.
+Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Aceita as entregas 15adda2 e 2cf852b. Backup automatico, sem limpar dados/cache. Desfazer.ps1 restaura fontes; recompilar/reinstalar para reverter APK.
+Conferir na TV cinco cores, modo claro/escuro, selecao, navegação, categorias, busca/ordenacao, favoritos e Canais. Fidelidade visual e fluidez final dependem da verificacao na TV.

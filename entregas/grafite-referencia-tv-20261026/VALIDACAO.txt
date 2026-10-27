@@ -1,0 +1,3 @@
+Kotlin/KSP compileDesempenhoKotlin: BUILD SUCCESSFUL.
+Instalador: aplicacao, idempotencia, rollback exato, rejeicao atomica de alteracoes/corrupcao e sintaxe PowerShell validados.
+Manifesto e fontes conferidos. Verificacao visual e fluidez na TV pendentes.
