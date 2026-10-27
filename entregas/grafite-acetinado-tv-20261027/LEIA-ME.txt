@@ -1,0 +1,9 @@
+﻿GRAFITE ACETINADO
+Fundo unico: mesma cor cinza aprovada em toda a base dos catalogos. Remove o retangulo de fundo lateral separado, mantendo somente o divisor vertical. Paineis comuns de Canais usam a mesma base. Controles preservam contraste proprio.
+Retira separador/seta de Organizar (elemento indicado na foto, ao lado de Pesquisar). Busca continua com lupa.
+Selecao: degrade vertical acetinado opaco, reflexo claro no topo, miolo metalizado na cor do tema e base escura; contorno arredondado fino. Efeito estatico, sem blur ou animacao adicional. Aplica no foco e na categoria ativa. Cinco temas e modo claro/escuro.
+Mantem tamanho de capas, marca, notas sem estrelas, coracao proximo, categoria no topo e retorno Pesquisa->Esquerda->Categoria. Home, Kids, importacao, banco, players e consultas preservados.
+Aplicar sobre entrega cba99cd: Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Backup automatico. Sem desinstalar nem limpar dados. Desfazer.ps1 restaura fontes; recompilar/reinstalar para retornar APK.
+Conferir visual, contraste e fluidez na TV.
+
+Canais: remove tambem contorno externo da lateral, do painel EPG e dos Dias; mantem contornos dos controles e do video. Divisor vertical unico ate o topo. Titulo lateral centralizado e categoria na barra superior. Player, EPG, zapping, foco e Kids preservados.
