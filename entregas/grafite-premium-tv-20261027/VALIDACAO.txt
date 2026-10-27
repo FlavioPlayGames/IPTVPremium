@@ -1,0 +1,2 @@
+Kotlin/KSP compileDesempenhoKotlin: BUILD SUCCESSFUL (50s).
+Instalador: aplicacao, idempotencia, rollback exato e rejeicao atomica de alteracao/corrupcao passaram. Sintaxe dos scripts PowerShell validada. TV: visual e fluidez pendentes.

@@ -1,0 +1,5 @@
+﻿GRAFITE PREMIUM - BASE CINZA DA HOME
+Aplicar sobre catalogos-canais-home-tv (15adda2).
+Base escura #303235 igual a Home; paineis grafite #282B2E, preenchimentos totalmente opacos. Sem papel de parede nos catalogos regulares. Foco metalizado nas cinco cores existentes. Capas verticais e tamanho atual preservados. Layout funcional existente: busca, organizar, favoritos, contagens, relogio e logo original. A imagem aprovada e referencia visual; posters ilustrativos nao substituem os da lista. Kids, Home, importacao, banco, players, fichas e carregamento nao alterados. O modo claro continua claro.
+Aplicar.ps1 -Projeto <pasta> -Testar; depois Instalar-TV.ps1. Sem limpar dados/cache ou desinstalar. Backup automatico. Desfazer.ps1 restaura fontes; recompilar/reinstalar para retornar APK.
+Conferir visual nas cinco cores, navegacao e troca de categorias em Filmes/Series/Canais. Validacao visual e fluidez final dependem da TV.
