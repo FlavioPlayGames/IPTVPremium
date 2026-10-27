@@ -1,0 +1,5 @@
+﻿HOME SEM MOLDURAS - GRAFITE E CINZA-PEROLA
+Sete icones com transparencia real, renderizados em camadas independentes do fundo: Canais, Filmes, Series, Kids, Listas, Atualizar e Configuracoes. Uma unica folha compartilhada no cache evita sete decodificacoes; cada recorte recebe seu proprio tamanho e zoom centralizado de 180ms. Fundo nao participa do zoom. Logo e cenario permanecem estaticos. Legendas separadas.
+Modos claro e escuro com cenarios novos; cor metalica acompanha cada tema via matriz reaproveitada. Sem blur. Alvos e regras de navegacao preservados. Dados e listas preservados.
+Aplicar.ps1 -Projeto <pasta> -Testar; depois Instalar-TV.ps1. Backup e Desfazer.ps1 incluidos. Para reverter o APK, recompilar e reinstalar apos Desfazer. Nao desinstala nem limpa dados.
+Compilacao e validacao dos scripts registradas em VALIDACAO.txt. Aparencia e fluidez finais precisam ser conferidas na TV.

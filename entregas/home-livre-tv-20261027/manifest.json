@@ -1,0 +1,60 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt",
+    "sha": "f95fdfbf848250b1dd5b4c78ff6f30f1974b2b784d3cff85f6b5f99b8cc10df8",
+    "before": [
+      "a254275c2ebdc4e4bee3a6edf34a1d96e0b8d87d14aa263b93a85addbc876154",
+      "eb27bcc8501379f67c051ea386787aecbf495ef32bd8f25265e834a91fe14e65"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt",
+    "sha": "8823055348f86648cb16ae213366a7d19e0055bc0f63659dbf1b865399de430f",
+    "before": [
+      "2b0d142153cd0b42523d16d35cd0a38da4ba162f86cd7b6678df77a189a77c80"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomeGeometry.kt",
+    "sha": "0d0fef46c32b1a3d14c70db2411d9fad9d54bf6dae50693a07469e9f77463fa3",
+    "before": [
+      "f0f921bd2923eb05d475181cc7ac7988ebff7464a52d6438ca5874828a2bc618"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/ThemeArtwork.kt",
+    "sha": "05b57bc4bd73e39787ea3d8217767c37a4b1b2c19f30cf765eb9b1238e2d6e4b",
+    "before": [
+      "5813d6e22d9c12d3ba031ec540ec8b51d264c282d3dd837555c0e1a6db31b5dc"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_free_icons.webp",
+    "sha": "3bc89b25df8bd3aa22633b21bd2707ab45765c5edf126465a3371344d84d0274",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_free_graphite.webp",
+    "sha": "65d41181b5542a49cae020855234892a94a48bb0292e4d86e5a57c28f81fb754",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_free_pearl.webp",
+    "sha": "6a9d6c013f5da767690e9aa9eba03f4bb44a0680ae678453ad96e297c4c682d1",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  }
+]

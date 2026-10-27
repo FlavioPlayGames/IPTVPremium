@@ -1,0 +1,9 @@
+2026-10-27
+PASS :app:compileDesempenhoKotlin (Room/KSP e recursos Android).
+PASS instalador: bases 44e87b1 e variante branca; aplicar, reaplicar sem novo backup, desfazer com remocao de novos arquivos.
+PASS rejeicao atomica de fonte modificada e pacote corrompido, nas duas bases.
+PASS alfa real e pixels visiveis identicos na conversao WebP sem perda.
+PASS sete camadas independentes; nenhum recorte do cenario usado para desenhar controles.
+PASS zoom centralizado 180ms, destinos de navegacao e areas de clique mantidos.
+Tres recursos novos: 2.514.720 bytes. Cenario ativo + folha compartilhada: 12.580.064 bytes de pixels, dentro do cache existente de 18 MiB.
+Validacao visual e fluidez na TV pendentes. Sem alteracoes em importacao, listas, player ou dados.
