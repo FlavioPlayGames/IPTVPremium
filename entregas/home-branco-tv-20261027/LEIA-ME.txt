@@ -1,0 +1,5 @@
+﻿HOME - VERSAO BRANCA DOS ICONES
+Cinco variantes claras: dourado/azul/rosa/roxo/vermelho com superficies internas branco-peroladas no lugar do grafite. Olhos/nariz/tracos e detalhes funcionais da pelicula continuam escuros para leitura. Mantem a cor metalica de cada tema.
+Modo claro escolhe as artes brancas, modo escuro mantem exatamente os arquivos atuais. Cinco recursos novos, sem duplicar os cinco escuros. Resolucao e recortes individuais por arquivo; WebP sem perda verificado contra PNG gerado. Cache, camadas de zoom, filtros de saturacao (incluindo reducao adicional em azul/vermelho) e navegacao preservados.
+Aplicar sobre 44e87b1: Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Backup automatico. Desfazer.ps1 restaura fonte e remove imagens criadas; recompilar/reinstalar para reverter APK. Sem desinstalar ou limpar dados/cache.
+Conferir modos claro/escuro em todos os temas, leitura sobre fundo claro, recortes e escala na Home. Validacao visual na TV pendente.

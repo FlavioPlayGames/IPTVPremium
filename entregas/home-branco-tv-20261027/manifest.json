@@ -1,0 +1,46 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt",
+    "sha": "eb27bcc8501379f67c051ea386787aecbf495ef32bd8f25265e834a91fe14e65",
+    "before": [
+      "a254275c2ebdc4e4bee3a6edf34a1d96e0b8d87d14aa263b93a85addbc876154"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_gold_white.webp",
+    "sha": "47689d233ba173286b4892544f8cf1bbf256232f3226e5195ad9f534613c383a",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_blue_white.webp",
+    "sha": "e7971bcef9e39148dccae9b387f3babc58dc4c7b88d4fdf73c3cb3f3842e91c3",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_pink_white.webp",
+    "sha": "7c7d33ef70ef494ccb7b6d40458e9aae68bc1fd6c36b1dd4aff0c8c71f18f1bb",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_purple_white.webp",
+    "sha": "556f693fb00768a9bd987fd9c552a71148f6ac81ff0ed84c6a2b6e493dbd99bc",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_red_white.webp",
+    "sha": "f7041fe9fbc9dfc2f99bc5974bf901ae52bff10c3b794b7e524e8ce63bc07b9b",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  }
+]
