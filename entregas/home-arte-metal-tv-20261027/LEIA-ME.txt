@@ -1,0 +1,7 @@
+﻿HOME - ARTES CORRIGIDAS E BORDAS METALICAS
+Cinco novas folhas de icones: dourado, azul, rosa, roxo e vermelho; 2172x724 nativos com alpha. Pipoca com forma de graos estourados na cor do tema, rolo corrigido. WebP sem perda, conversao verificada pixel a pixel com PNG gerado. Cinco folhas somam 4.931.226 bytes. Mesma arte nos modos claro/escuro, paineis internos grafite como referencia. Regioes de cada icone mapeadas no codigo; ignora alpha residual quase invisivel ao calcular os recortes, sem alterar pixels da imagem.
+Usa o cache e as camadas independentes de escala existentes. Uma folha ativa decodificada de ~6 MiB compartilhada pelos cinco icones; nao cria recoloracao por frame. Mantem fundos, legendas e navegacao da Home. Os arquivos antigos nao sao apagados do projeto.
+Categorias: mantem preenchimento aprovado, restaura contorno metalico do tema. Selecao das capas Filmes/Series passa de 2dp para 3dp.
+Navegacao corrigida: Pesquisar -> Esquerda -> Organizar -> Esquerda -> categoria atual, em Filmes/Series/Canais. Com teclado aberto preserva edicao. Protecao de foco na troca de paineis em Canais mantida.
+Aplicar sobre b04bfe7: Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Backup automatico. Desfazer.ps1 restaura fontes e remove recursos criados; recompilar/reinstalar para reverter APK. Sem desinstalar ou limpar dados/cache.
+Conferir cinco temas, modos claro/escuro, recortes/zoom da Home, borda das categorias/capas e sequencia de duas setas esquerda na barra. Validacao visual/fluidez na TV pendente.

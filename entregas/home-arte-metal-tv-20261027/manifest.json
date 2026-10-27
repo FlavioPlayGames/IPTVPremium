@@ -1,0 +1,73 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogControlLook.kt",
+    "sha": "7e76989e9482c315eb310e2c2b983c8d670538f5a78e1c8508ec0061ecbdcb7a",
+    "before": [
+      "135457224377f00228a576e27d0451622ec55217cc209d824be4564aefc1110a"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/UnifiedMediaCatalog.kt",
+    "sha": "49bb1017769835a93756c1e3299851b976307337623214beded59d7c7d80d4d4",
+    "before": [
+      "05931d7fbe74cf628171985b62bd7ccdbfa87c0e65b24692b639b93018b7838a"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt",
+    "sha": "35374522256327fca26d580792e780ce741ae3c42a0b3d179ec7857501c34d0a",
+    "before": [
+      "cb8aaa36242f9982c6d48eb8e9ad81441c255af912cd112bbc8f202156406685"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt",
+    "sha": "945b40343c1ae0e2c0a841a12925c8f3a75afc1591c6cc54337e09b8fe0046b6",
+    "before": [
+      "0621c12ec264f215087e9aa41ec95358a35cdfa3ea1969f56d00dd0add3095c1"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_gold.webp",
+    "sha": "74248f09bbc68e6250887786deeee93d4e10afb00313377eee6622efa91e1dac",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_blue.webp",
+    "sha": "681f7da6a2113a35419325cbdfa83a7bd9063652d96908ac90731843e136022a",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_pink.webp",
+    "sha": "f7b384e4ee8af48b3351132ff3ce26f1dc772678abf57b702842cd5ebde82550",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_purple.webp",
+    "sha": "0ef30f580b9381e288d20918af1fba9d4577c9028d8bfa4558e0d3f292db4b62",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_red.webp",
+    "sha": "b557dbaf99fbd413a6c0e71978fd4dc0806984dad2752a688a03fa2b1f74d9e9",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  }
+]
