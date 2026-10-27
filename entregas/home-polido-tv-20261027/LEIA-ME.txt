@@ -1,0 +1,7 @@
+﻿HOME - ACABAMENTO POLIDO APROVADO
+Substitui as cinco folhas anteriores por artes com superficies lisas, reflexos suaves, paineis grafite e a mesma identidade visual. Dourado/azul/rosa/roxo/vermelho, cada um no seu tema, incluindo pipoca. Usadas nos modos claro/escuro com o mecanismo atual da Home, sem mudanca no zoom ou navegacao.
+WebP sem perda; pixels e alpha conferidos contra os PNGs gerados. Resolucao nativa de aproximadamente 2172x724, sem ampliacao artificial. Medidas de cada arquivo mapeadas separadamente. Recortes definidos entre icones para reduzir fragmentos vizinhos; limites verificados contra alpha. Cinco folhas substituem os mesmos cinco recursos ja existentes, sem acrescentar outra colecao ao APK. Cache atual preservado.
+Bordas de categorias, controles dos catalogos/Canais e capas usam uma rampa de metal polido correspondente a cada tema. Dourado mais quente; azul/rosa/roxo/vermelho em suas proprias cores. Preenchimento aprovado preservado. Contorno das capas mantem 3dp. Paginas de detalhes nao alteradas.
+Mantem sequencia Pesquisar->Esquerda->Organizar->Esquerda->Categoria e correcao de foco dos paineis de Canais. Nenhuma mudanca de player, importacao, banco ou dados.
+Aplicar sobre 5fd6aca: Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Backup automatico e Desfazer.ps1 para fontes/recursos; recompilar/reinstalar para reverter APK. Sem desinstalar ou limpar dados/cache.
+Conferir cinco temas, modos claro/escuro, acabamento/recortes/zoom da Home, bordas e navegacao na TV.

@@ -1,0 +1,74 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogControlLook.kt",
+    "sha": "34eae69b3e2031b7b5279be66b29ae6316156725aee3154ba626a2546bad2f3c",
+    "before": [
+      "7e76989e9482c315eb310e2c2b983c8d670538f5a78e1c8508ec0061ecbdcb7a"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/UnifiedMediaCatalog.kt",
+    "sha": "a1c12fd6dec8d90576c2cec03d202f8618cde023279bd650722e1845839a5a88",
+    "before": [
+      "49bb1017769835a93756c1e3299851b976307337623214beded59d7c7d80d4d4"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt",
+    "sha": "11ca0acaed2f34974c2e8950153971b1e8dbda841b0ae50fd49c396f8c3c29f4",
+    "before": [
+      "945b40343c1ae0e2c0a841a12925c8f3a75afc1591c6cc54337e09b8fe0046b6"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_gold.webp",
+    "sha": "de9e2959521b7e5494113b3d268b7953b1013ed44a52b402367b6da077f7fe05",
+    "before": [
+      "74248f09bbc68e6250887786deeee93d4e10afb00313377eee6622efa91e1dac"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_blue.webp",
+    "sha": "b2149f70419f41c036dd04b4a59e1bf2e111b7d4cc382456583153cda40d15b5",
+    "before": [
+      "681f7da6a2113a35419325cbdfa83a7bd9063652d96908ac90731843e136022a"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_pink.webp",
+    "sha": "c4e96ba1e380c2c996ee46d02973dc98fc1ae44be01597043d3e7ede3e467c37",
+    "before": [
+      "f7b384e4ee8af48b3351132ff3ce26f1dc772678abf57b702842cd5ebde82550"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_purple.webp",
+    "sha": "9e87960d6d7bbea6421f4d451d58af1bbde125e8346bba53e1490918d86a0cf6",
+    "before": [
+      "0ef30f580b9381e288d20918af1fba9d4577c9028d8bfa4558e0d3f292db4b62"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_red.webp",
+    "sha": "ad9f1d094e8684d03a048b0915970ec88af9bcc75fee61fdc959ae3e25ef93bb",
+    "before": [
+      "b557dbaf99fbd413a6c0e71978fd4dc0806984dad2752a688a03fa2b1f74d9e9"
+    ],
+    "allowMissing": false,
+    "binary": true
+  }
+]

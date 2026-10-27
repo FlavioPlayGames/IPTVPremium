@@ -1,0 +1,4 @@
+Kotlin/KSP desempenho com recursos novos: BUILD SUCCESSFUL em 29s.
+Conversao PNG->WebP sem perda conferida pixel a pixel. Limites dos recortes e resolucoes nativas conferidos.
+Aplicacao, idempotencia, rollback exato e rejeicao atomica de alteracao/corrupcao passaram; sintaxe PowerShell validada.
+Visual e fluidez na TV pendentes.
