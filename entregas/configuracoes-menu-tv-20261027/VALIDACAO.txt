@@ -1,0 +1,9 @@
+2026-10-27
+PASS :app:compileDesempenhoKotlin (KSP/Room e recursos Android); compilacao final 36s.
+PASS politica Kotlin de producao: passos de 2%, limites 25%-400%, 20.298 comandos repetidos e reversao sem deriva acumulada. Prazo de inatividade configurado em 5.000ms.
+PASS instalador PowerShell: base Home 9e4bea2; aplicar todos os arquivos, reaplicar sem novo backup, restaurar arquivos originais e remover os novos arquivos ao desfazer.
+PASS rejeicao atomica de fonte local modificada e pacote corrompido; scripts analisados pelo parser PowerShell.
+PASS auditoria de escopo: 91 arquivos de dados/importacao/adaptadores/modelos de reproducao identicos byte a byte. Campos/callbacks de cadastro e preferencias permanecem.
+PASS revisao de integracao: mesmo painel de formato em filmes/series/canais; somente Voltar e inatividade chamam fechar; bloqueado clique do video ao ajustar; foco do menu contido; zoom/manual com repeticao DPAD; renderizador real da Home na previa, todas as opcoes de Aparencia mantidas.
+Wallpaper: duas artes geradas a partir da Home real sem logo/objetos, decodificacao reduzida perto de 384x216 e blur pequeno retido em cache, sem blur por frame.
+LIMITES: sem TV/emulador conectado; aparencia, navegacao real do controle, resposta das superficies de video e prazo durante uso exigem validacao na TV.
