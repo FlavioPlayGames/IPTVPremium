@@ -1,0 +1,65 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt",
+    "sha": "2b0d142153cd0b42523d16d35cd0a38da4ba162f86cd7b6678df77a189a77c80",
+    "before": [
+      "674a3c7d7e8f680d3027b250de0e8420464607cc18b7c7fd3ef9bc57e9485914"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleHomePngAssets.kt",
+    "sha": "a254275c2ebdc4e4bee3a6edf34a1d96e0b8d87d14aa263b93a85addbc876154",
+    "before": [
+      "030e6d9ed5e094c373e6bd50e4685b29d7122eac8d00f5aebcf3afa6bc32ad3d"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_gold.webp",
+    "sha": "b5abc2502a1bb837a1b8ae096f2242e45cc47a8208db7b40939d98c53ded2248",
+    "before": [
+      "0c0c6670a104d6751be800eb965c955ba3e3fbe4755d9b26dfd3cb59f9ed1398"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_blue.webp",
+    "sha": "e922158ac28ab6322bc1c266b060ba6fd079444ed566e852fc3a1ad1e5b900b5",
+    "before": [
+      "f2294ec9d20e725d5e5ca8359e9144cfe8652d7762f6288c09a9e67e263394a2"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_pink.webp",
+    "sha": "c23d63ebcdd8e5f96f7695adc5d64ae86f8d882bd992583631ed1aa43c6755e6",
+    "before": [
+      "b17d7aac73e756a66e25741af5d8d58c6e895b52482a8773a8d87a4ba4db6b42"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_purple.webp",
+    "sha": "8521b2eff0df11c44dbf580bcf5cfe62ad93c1397855359c09b3cb7aca268cb3",
+    "before": [
+      "5ffcb76ec860ced3de0d54dff5a65483ab5adcd836367bc4911279cf8f61627a"
+    ],
+    "allowMissing": false,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/home_corrected_red.webp",
+    "sha": "7f5bec228e8af46a566a01860352c3138d656a1dd5393ae52678dcfced42f00d",
+    "before": [
+      "40137ce9c22f64c24514c1b51eed5b991ac7c5cd92bcd7cc47d35473ddfd44b7"
+    ],
+    "allowMissing": false,
+    "binary": true
+  }
+]

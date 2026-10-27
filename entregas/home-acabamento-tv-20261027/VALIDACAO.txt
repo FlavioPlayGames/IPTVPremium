@@ -1,0 +1,5 @@
+Kotlin/KSP desempenho: BUILD SUCCESSFUL em 1m5s.
+PNG->WebP sem perda verificado pixel a pixel. Dimensoes e limites dos recortes conferidos.
+Aplicacao, idempotencia, rollback exato e rejeicao atomica de alteracao/corrupcao passaram; sintaxe PowerShell validada.
+Azul/vermelho com fator de saturacao anterior multiplicado por .85; aplicado tambem aos reflexos.
+Visual/fluidez no aparelho pendentes.

@@ -1,0 +1,6 @@
+﻿HOME - ACABAMENTO DA PREVIA APROVADA
+Cinco temas com materiais lisos e reflexos suaves, rolo circular e quadros/perfuracoes na pelicula, conforme ultima previa aprovada. Mesmos cinco recursos substituidos; sem duplicar a colecao no APK. WebP sem perda, verificado pixel a pixel contra as artes geradas. Resolucao nativa e recortes individuais mapeados por arquivo.
+Azul/vermelho: mais 15% de reducao de saturacao em relacao a versao atual (fator anterior .75*.90, agora .75*.90*.85 = .57375). Dourado/rosa/roxo preservam .75. Mesmo filtro nos icones e reflexos; nao muda fundo ou demais telas. Filtros pre-criados. PNGs-fonte mantem a cor de geracao; ajuste adicional aplicado na exibicao.
+Mantem tamanho dos alvos, zoom e navegacao, cache, bordas e capas, dados, importacao e players. A mudanca esta apenas nas artes da Home e em sua saturacao.
+Aplicar sobre 7f7684e: Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Backup automatico; Desfazer.ps1 restaura fontes/recursos, recompilar/reinstalar para reverter APK. Sem desinstalar ou limpar dados/cache.
+Conferir no aparelho os cinco temas, materiais, recortes, escala/zoom e azul/vermelho mais suaves em modos claro/escuro.
