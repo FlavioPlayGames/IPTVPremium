@@ -1,0 +1,38 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogStyle.kt",
+    "sha": "b6848a1dba484692ec65770e8113d2bbf18f80ba525cf7433352c012d0815be5",
+    "before": [
+      "3897a53b2bd42c3650aecee5a685fe3c646adaba46399f0c5831720cfa01a3ca"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsHubPages.kt",
+    "sha": "a4c54e82fb6e373268fd4d5ab4000e473162bf613415e1e85011a673504381ba",
+    "before": [
+      "2f1e12f4a6a1b12e4195e8ae33853d4cf574edbe697135186fb1ff14c5442f1f"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ParentalControlsUi.kt",
+    "sha": "6c939c4326f156e65fa11a7bb691d934ec1d0e150c801da6f9361c670faf1d7d",
+    "before": [
+      "7ff3801438a6e5cdf15949e68414d6b338b807d33c98829c3e94cc293096abc1"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/PinNumericKeyboard.kt",
+    "sha": "e0f070653c4be71cc37db0a2656c759c47aef0f21d325a5d6ef753032cda1f0d",
+    "before": [
+      "8734c6de27110b331e505054d54e1921dd02e67da898e57c049de51fcd2b82f9"
+    ],
+    "allowMissing": false,
+    "binary": false
+  }
+]

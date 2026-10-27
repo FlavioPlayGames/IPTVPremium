@@ -1,0 +1,7 @@
+﻿CONTRASTE NO CLARO E PIN SEM BORDA EXTERNA
+Base configuracoes-paineis ea5e19f, compativel com player-controles-limpos 46f4f99; nao substitui nem desfaz os controles do player.
+Tema Amarelo no modo claro: usa amarelo-mostarda escuro #795800 nos icones e contornos que usam o accent da interface. Melhora contraste sobre os paineis claros. Modo escuro, demais cores, imagens da Home e paleta Kids preservados. Letras continuam neutras.
+Reproducao: retirados os dois blocos inferiores Controles e HDR/Dolby Vision. Somente informacoes visuais removidas; o fechamento dos controles em 5s e o comportamento HDR/DV nao foram alterados.
+Controle parental: formulario sem contorno externo; campo PIN com clique sem indicacao retangular automatica, recortado na forma arredondada existente. Mantem um unico contorno de foco do campo para navegacao e todos os pontos do PIN. Foco inicial, teclado e validacao preservados.
+Aplicar.ps1 -Projeto <pasta> -Testar; depois Instalar-TV.ps1. Backup automatico, sem desinstalar ou limpar dados. Desfazer.ps1 restaura os quatro arquivos; recompilar/reinstalar para reverter o APK.
+Conferir na TV os icones/bordas no Amarelo claro, acesso ao PIN e tela de Reproducao sem os dois quadros.

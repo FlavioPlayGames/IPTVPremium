@@ -1,0 +1,7 @@
+2026-10-27
+PASS :app:compileDesempenhoKotlin (38s).
+PASS calculo de contraste sRGB do accent Amarelo claro #795800: 3.50:1 sobre controle #B9BEC4; 3.13:1 sobre o preenchimento selecionado calculado de SettingsLook; 3.82:1 sobre painel #C3C6CA. Comparacao anterior com #F4C64F: cerca de 1:1.
+PASS revisao de escopo: condicao restrita a regular/claro/GOLD; demais cores, Kids e modo escuro mantidos.
+PASS revisao das telas: removidos somente os blocos informativos inferiores de Reproducao; formulario PIN sem border externo; clique com indication=null e clip arredondado; foco inicial/validacao mantidos.
+PASS instalador aplicar/reaplicar/desfazer e rejeicao atomica de arquivo local alterado ou pacote corrompido. Scripts PowerShell analisados pelo parser.
+Quatro arquivos Kotlin, sem novos recursos. Conferencia visual/navegacao na TV pendente.
