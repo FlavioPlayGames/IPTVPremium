@@ -1,0 +1,7 @@
+﻿AJUSTES DO GRAFITE APROVADOS
+Divisao lateral dos catalogos: linha unica vertical ate o topo; sem contorno externo esquerdo. CATEGORIAS centralizado. Marca simples com coroa vetorial lateral e IPTV/PREMIUM como referencia; sem bitmap ou animacao. Tambem aplicada na marca de Canais. Claquete nas categorias de filmes/series alem dos tres atalhos Todos/Continuar/Favoritos.
+Retiradas estrelas das notas. Coracao novamente ao lado da nota. Espaco livre da barra superior exibe categoria selecionada, sem animacao. Cores aprovadas, dimensoes de capas, navegacao, consultas, dados, importacao, players, fichas, Home e Kids preservados.
+Aplicar.ps1 -Projeto <pasta> -Testar e Instalar-TV.ps1. Backup automatico. Sem desinstalar nem limpar dados. Desfazer.ps1 restaura fontes; recompilar/reinstalar para reverter APK. Aceita entrega anterior 2e3f1f8.
+Validacao visual na TV pendente.
+
+Pesquisa selecionada, sem teclado: seta Esquerda retorna a categoria em Filmes/Series e Canais. Com teclado ativo, preserva edicao do cursor. Kids preservado. Testar tambem com pesquisa preenchida e categoria diferente de Todos.

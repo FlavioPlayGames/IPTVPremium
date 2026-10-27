@@ -1,0 +1,3 @@
+Compilacao Kotlin/KSP desempenho: BUILD SUCCESSFUL em 44s.
+Aplicacao, idempotencia, rollback e rejeicao de alteracao/corrupcao do instalador validados; scripts PowerShell e manifesto conferidos.
+Divisor, titulo, marca e foco precisam de validacao na TV.
