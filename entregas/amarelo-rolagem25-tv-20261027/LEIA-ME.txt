@@ -1,0 +1,7 @@
+﻿AMARELO VIVO E ROLAGEM 25%
+Troca o amarelo-mostarda rejeitado pelo amarelo vivo #FBBC04 (referencia Google) na interface do tema Amarelo/modo claro. Mantem os textos neutros. Modo escuro, outras cores e imagens da Home preservados.
+Rolagem: perfil compartilhado por Filmes, Series e Kids passa de 50% para 75% da velocidade ORIGINAL (25% de reducao sobre a original). Isso equivale a ser 50% mais rapido que o teste anterior de metade da velocidade. Mesmas trajetorias, frames, comandos, destinos e soltura da tecla.
+Preserva ocultacao das categorias zeradas, telas de configuracoes, PIN e ajustes do player. Dois arquivos Kotlin, sem imagens novas.
+Base bebd9c9, com o ajuste de contraste de 0a1c62b. Hashes verificados antes de qualquer alteracao.
+Aplicar.ps1 -Projeto <pasta> -Testar; depois Instalar-TV.ps1. Backup automatico, sem desinstalar ou limpar dados. Desfazer.ps1 restaura os dois arquivos; recompilar/reinstalar para reverter APK.
+Conferir na TV o amarelo claro e a velocidade do teste de 25%.

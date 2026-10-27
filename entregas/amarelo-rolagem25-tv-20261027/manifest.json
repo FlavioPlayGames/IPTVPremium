@@ -1,0 +1,20 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogStyle.kt",
+    "sha": "5ba6e6e9bf0ca9a6db92414c4685c7da061db1c4bdd3d3f433882ef39bf55907",
+    "before": [
+      "b6848a1dba484692ec65770e8113d2bbf18f80ba525cf7433352c012d0815be5"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogScrollMotion.kt",
+    "sha": "b6ca9e48408938e5a7e385aea06a99c8b1b20f9a0eea245bb499f725c7e04b22",
+    "before": [
+      "5b0a229ab1bbe4c97d23bd03338632c08876e21b663ee79eab544e2b819fd0c8"
+    ],
+    "allowMissing": false,
+    "binary": false
+  }
+]

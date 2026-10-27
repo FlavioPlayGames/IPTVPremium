@@ -1,0 +1,6 @@
+2026-10-27
+PASS :app:compileDesempenhoKotlin (28s).
+PASS comparacao Kotlin com a velocidade original: nova trajetoria em t coincide com a original em 0.75t, velocidade em 75% da original; quadros 60Hz, toques e tecla segurada, ambos sentidos e distancias curtas/longas; convergencia e valores finitos.
+PASS instalador: aplicar/reaplicar/desfazer; rejeicao atomica de fonte alterada e pacote corrompido; parser PowerShell.
+Amarelo claro #FBBC04 (vivo, referencia Google); removido #795800. Condicao permanece restrita a tema Amarelo em modo claro.
+Dois arquivos Kotlin, sem alteracao em categorias/contagens, dados, PIN, player ou recursos de imagem. Validacao visual e velocidade no aparelho pendentes.
