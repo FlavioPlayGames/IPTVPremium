@@ -1,0 +1,5 @@
+﻿CANAIS - FOCO NA TROCA DE PAINEL
+Ao trocar categorias/canais, o handoff passa a iniciar na composicao, antes da linha antiga ser removida. A barra superior fica indisponivel para foco automatico durante esse intervalo. A referencia de retorno e reiniciada por painel/categoria para nao reutilizar linha removida. Ancora lateral permanece habilitada enquanto detem o foco, inclusive em categoria vazia; deixa de ser alvo extra quando uma linha recebe o foco.
+Sem mudancas de layout, aparencia, importacao, banco, player ou handlers existentes de teclas. Ajuste em LiveTvScreen.kt.
+Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Backup automatico e Desfazer.ps1 para fontes. Sem desinstalar ou limpar dados/cache. Recompilar/reinstalar para reverter APK.
+Testar: entrar/sair de categorias varias vezes usando OK, Esquerda, Direita e Voltar. Conferir foco na categoria selecionada e no canal, categoria vazia, Organizar/Pesquisar e retorno da barra, troca de canais e tela cheia. Confirmacao funcional na TV pendente.

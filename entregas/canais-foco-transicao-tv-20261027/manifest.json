@@ -1,0 +1,11 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt",
+    "sha": "b813cef7950d650718331a96a3ab0cecf8bc4b77f71d12a71e56fe6102b26ee7",
+    "before": [
+      "a5c56444d8aafcbb4928b53bcca7254336c71e893c380052be44270abdedbb83"
+    ],
+    "allowMissing": false,
+    "binary": false
+  }
+]

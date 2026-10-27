@@ -1,0 +1,3 @@
+Kotlin/KSP desempenho: BUILD SUCCESSFUL em 37s.
+Instalador: aplicacao, idempotencia, rollback, rejeicao atomica e sintaxe PowerShell passaram. Handlers de teclas existentes preservados por comparacao de fontes.
+Confirmacao do foco em execucao na TV pendente.
