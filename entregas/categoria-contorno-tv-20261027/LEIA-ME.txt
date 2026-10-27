@@ -1,0 +1,5 @@
+﻿TESTE - CATEGORIAS COM CONTORNO LUMINOSO
+Somente categorias regulares em Filmes/Series/Canais: preenchimento opaco escurecido na cor do tema, texto branco e contorno com reflexo claro. Foco com 2dp; categoria ativa sem foco com 1dp, distinguindo posicao do controle da categoria atual. Sem blur, halo externo ou animacao nova.
+Demais botoes, canais, grade, Home, Kids, players, importacao e dados preservados. Inclui no arquivo de Canais a correcao de transicao 9c288b6 ja aplicada; nao a desfaz.
+Aplicar sobre ultima entrega: Aplicar.ps1 -Projeto <pasta> -Testar; Instalar-TV.ps1. Backup automatico; Desfazer.ps1 restaura fontes. Recompilar/reinstalar para reverter APK. Sem desinstalar ou limpar dados/cache.
+Conferir cores, modos claro/escuro e distincao foco/ativa. Teste visual na TV pendente.
