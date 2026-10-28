@@ -1,0 +1,7 @@
+﻿TESTE DE ROLAGEM POR FILEIRA - REFERENCIA DO VIDEO
+Base e9431fe, com perfil anterior 25% mais lento que a velocidade original.
+Novo movimento experimental: interpolacao cubica suave, aproximadamente 400ms para uma fileira inteira, inicio progressivo e parada alinhada. Destinos atualizados durante a tecla segurada preservam a velocidade atual; nao reiniciam do repouso a cada repeticao. Soltar a seta usa o mesmo alinhamento da navegacao existente. Trechos parciais duram proporcionalmente menos, com minimo de 100ms. Sem turbo extra ao segurar a seta.
+Aplica ao motor compartilhado por Filmes, Series e Kids. Mesma navegacao, foco, carregamento, linhas, capas e cadencia de frames. Usa distancias relativas para evitar deriva numerica longe do inicio do catalogo. Nao modifica categorias, dados, tema ou player.
+Aplicar.ps1 -Projeto <pasta> -Testar; depois Instalar-TV.ps1. Backup automatico apenas de CatalogScrollMotion.kt.
+PARA REVERTER: Reverter-Rolagem.ps1 -Projeto <pasta>. Restaura do backup somente o movimento anterior de 25%, recompila desempenho e reinstala com -r. Preserva categorias zeradas ocultas, amarelo vivo e demais correcoes. Sem desinstalar nem limpar dados. Requer TV conectada para reinstalar. Se apenas quiser restaurar fontes sem compilar/instalar, use Desfazer.ps1.
+O alvo de 400ms e uma proposta de teste, nao uma medicao exata da gravacao. Conferir a resposta e a fluidez na TV antes de decidir manter.

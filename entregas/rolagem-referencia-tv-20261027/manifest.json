@@ -1,0 +1,11 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogScrollMotion.kt",
+    "sha": "ead4e87c41b5c5fabc61eb835cf2a42fbea75d0b372d3b598400bfd4990503d4",
+    "before": [
+      "b6ca9e48408938e5a7e385aea06a99c8b1b20f9a0eea245bb499f725c7e04b22"
+    ],
+    "allowMissing": false,
+    "binary": false
+  }
+]

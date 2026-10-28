@@ -1,0 +1,7 @@
+2026-10-27
+PASS :app:compileDesempenhoKotlin final 27s.
+PASS teste Kotlin do arquivo de producao: uma fileira completa em aproximadamente 400ms nas cadencias simuladas de 30/60/120Hz; duas direcoes, fileiras de 200/400/600px e offsets absolutos elevados; atualizacao de destino com velocidade preservada, reversao sem overshoot e ajuste parcial rapido ao soltar.
+PASS instalador aplicar/reaplicar/desfazer, rejeicao atomica de fonte modificada ou pacote corrompido; parser de todos os scripts PowerShell.
+PASS Reverter-Rolagem.ps1 com substitutos de compilacao/ADB: ordem restaurar-compilar-instalar e interrupcao antes da instalacao se restaurar/compilar falhar. O teste nao acessou TV.
+Um arquivo Kotlin alterado. Rollback restaura somente o motor de movimento anterior; as demais correcoes permanecem.
+LIMITES: o alvo de 400ms e uma proposta baseada na observacao do video, nao uma medicao exata. A fluidez na TV e a resposta real a teclas seguradas precisam ser testadas no aparelho; testes matematicos nao medem FPS do aplicativo na TV.
