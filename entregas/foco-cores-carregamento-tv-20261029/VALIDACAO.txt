@@ -1,0 +1,5 @@
+29/10/2026
+PASS :app:compileDesempenhoKotlin, 1min6s, contra motor de rolagem e painel de ajuste do java.zip enviado.
+PASS teste Kotlin do PlaybackLoadTrace de producao: tempo de preparo, duracao de buffering, supressao de eventos repetidos, primeiro frame uma vez por sessao e independencia entre sessoes.
+PASS scripts PowerShell: aplicar sete fontes, reaplicar sem backups extras, desfazer/restaurar fontes exatos e remover novo arquivo; rejeitar alteracao local ou pacote adulterado antes de alterar arquivos; parser dos quatro scripts.
+LIMITES: nao ha TV conectada. Navegacao visual, cores e tempo de abertura precisam ser avaliados no aparelho. Nenhum teste local mede a rede/servidor da playlist ou comprova a solucao de buffering. A busca de legendas so deixa de competir com a abertura se SubDL estiver configurado. Buffers e decoders nao foram alterados.
