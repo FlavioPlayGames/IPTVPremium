@@ -1,0 +1,2 @@
+PASS dual-column directions: category boundary, enter channels without playback, return category, enter video only when available
+PASS production return policy: fullscreen, toolbar/keyboard/video/EPG controls, overlays, list/categories BACK, return to playing category/row even after browsing, saved off-page entry, normal/Kids scope

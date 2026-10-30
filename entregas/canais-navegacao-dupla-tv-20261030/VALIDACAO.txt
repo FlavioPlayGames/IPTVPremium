@@ -1,0 +1,6 @@
+PASS compilacao :app:compileDesempenhoKotlin final (KSP/Room).
+PASS politica de direcao de duas colunas em producao: limite esquerdo das categorias, direita entra nos canais mesmo sem video, esquerda nos canais volta a categorias, direita nos canais entra no video somente se disponivel.
+PASS politica de retorno existente: tela cheia, submenus, barra/teclado/video/EPG, Voltar canais/categorias, canal em reproducao apos visitar outra categoria, canal fora da primeira pagina, isolamento normal/Kids.
+PASS PowerShell aplicar/reaplicar/desfazer e restaurar exatamente; recusa de fontes modificados/pacote adulterado; parser dos tres scripts. Base 3cb7c03 e ultima base de dois modos 0d1f6d2.
+Revisao de escopo: indicador de reproducao/borda forte do foco somente na dupla coluna; compacto/Kids e player preservados. Selecionar categoria nao confirma canal. Reconfirmar mesma categoria solicita nova entrada no canal. Eventos de movimento usam coluna efetiva.
+LIMITE: testes de politica e compilacao nao verificam renderizacao/foco real do Compose com controle remoto. Confirmar na TV os movimentos propostos e o indicador de reproducao.

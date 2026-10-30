@@ -1,0 +1,5 @@
+PASS installer normal
+PASS installer changed
+PASS installer corrupt
+PASS all PowerShell scripts parse
+PASS apply/revert latest dual-mode baseline 0d1f6d2, exact restoration

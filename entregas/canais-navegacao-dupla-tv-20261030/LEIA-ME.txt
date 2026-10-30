@@ -1,0 +1,9 @@
+﻿NAVEGACAO DO MODO DUAS COLUNAS
+Mantem as duas opcoes, preferencia salva e identidade visual. Compacto e Kids mantem a navegacao anterior.
+Categorias: cima/baixo percorrem sem trocar a lista; OK confirma categoria e foca canal em reproducao se estiver nela, senao o primeiro. Direita entra na lista da categoria ja confirmada. Esquerda na borda das categorias fica na coluna. Confirmar a mesma categoria tambem solicita novamente o foco da lista.
+Canais: cima/baixo percorrem sem trocar reproducao; OK reproduz, OK no canal em reproducao abre tela cheia (se nao houver erro de conexao). Esquerda volta a categoria selecionada; direita vai ao video quando disponivel. Movimentos usam a coluna real que recebeu o evento, sem depender de um estado antigo.
+Video: cima vai a Organizar; esquerda volta ao canal em reproducao. Barra Organizar/Pesquisar/Navegacao: baixo vai ao video; Voltar retorna ao canal em reproducao. Tela cheia: Voltar retorna ao canal, mantendo prioridade para fechar submenus abertos. Lista: Voltar categorias; categorias: Voltar sai de Canais.
+Indicador de reproducao: simbolo de play no lugar do numero do canal que esta passando. Borda do foco mais forte. Canal em reproducao sem foco usa texto neutro e nao imita a borda do foco. Longo OK para favoritos preservado.
+Pacote cumulativo com duas colunas/XMLTV/correcoes anteriores. Aceita bases 0d1f6d2 (dois modos), 471f38a (XMLTV) ou 3cb7c03 (canais/historico). Oito arquivos cumulativos; somente LiveTvScreen e LiveChannelNavigationPolicy mudam nesta entrega. Sem migracao de banco, sem limpar dados, sem mudar motor de rolagem ou configuracao do player.
+Aplicar.ps1 -Projeto <pasta> -Testar; depois Instalar-TV.ps1 -Projeto <pasta>. Backup .canais-navegacao-dupla-backups. Reverter: Desfazer.ps1 -Projeto <pasta> -Testar e Instalar-TV.ps1 novamente.
+Testes de politica e instaladores + compilacao Kotlin. Sem teste de controle remoto/renderizacao em TV real.
