@@ -1,0 +1,3 @@
+PASS real M3U importer discovers header, preserves channel import and records EPG only after READY
+PASS failed/cancelled import does not replace EPG discovery or active catalogue
+PASS optional XMLTV metadata failure does not discard successful M3U import

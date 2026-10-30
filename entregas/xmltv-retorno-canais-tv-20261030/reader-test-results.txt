@@ -1,0 +1,13 @@
+PASS M3U url-tvg/x-tvg-url/tvg-url, HTML ampersand, relative URL and bounded HTTP sources
+PASS Xtream endpoint uses same server namespace and encoded credentials; source signatures change
+PASS Portuguese description/title preferred over English with exact EPG ID
+PASS English fallback and unknown-language text preserved without translation
+PASS XML language alias, inline text and entities
+PASS No fuzzy channel match; exact unique display-name fallback; ambiguity rejected
+PASS Timezone offsets, UTC default and invalid dates
+PASS Plain XML, gzip and nested HTTP/file gzip decode in streaming mode
+PASS DOCTYPE/external entities, malformed/non-XML, depth and cancellation rejected
+PASS Description length and per-channel programme memory bounded; current programme survives large feed
+PASS Merge uses XMLTV intervals, pt description, API English fallback for absent XML and bounded nearest-time output
+PASS Large unrelated XMLTV catalogue stays channel-specific
+XMLTV policy/reader checks=12

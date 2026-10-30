@@ -1,0 +1,5 @@
+PASS real guide/cache/download with localhost HTTP gzip: Portuguese applied, exact channel mapping, no cross-channel data, one shared feed download, no repeated M3U header request
+PASS deleting source preserves feed shared by another source; deleting final owner removes disposable feed
+PASS HTTP 404 source keeps API English and bounded retry backoff
+PASS selected-media priority defers XMLTV HTTP until playback opening is idle
+PASS existing/API-imported M3U discovers only its header automatically and uses announced XMLTV
