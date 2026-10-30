@@ -1,0 +1,7 @@
+30/10/2026
+PASS :app:compileDesempenhoKotlin em 57s.
+PASS helper de retorno real compilado com substitutos de API Compose e coroutines reais: nenhuma rolagem para categoria inteiramente visivel, preservacao dos offsets, uma rolagem se cortada/ausente; foco, repeticoes e fallback preservados.
+PASS geometria de producao: limites superiores/inferiores, padding de LazyList, valores invalidos e overflow; politica de Voltar anterior mantida.
+PASS saturacao HSV aumentada em azul/rosa/roxo/vermelho; amarelo #FBBC04 aprovado usado nos dois fundos.
+PASS instaladores PowerShell: aplicar/reaplicar/desfazer, backup exato, remocao do novo arquivo, rejeicao atomica de fonte modificada e pacote corrompido, sintaxe de todos os scripts.
+LIMITES: substitutos de API nao reproduzem renderizacao, animacao ou eventos reais de Android TV. Confirmar visualmente o retorno no aparelho. Nenhum arquivo de player, motor de rolagem, video, capa ou arte da Home faz parte deste pacote.

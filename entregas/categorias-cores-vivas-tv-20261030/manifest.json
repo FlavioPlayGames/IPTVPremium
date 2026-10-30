@@ -1,0 +1,36 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogCategoryReturn.kt",
+    "sha": "8f94d8f2659a0cd8906161ca7707b087c681d64ae9983a76cfd553a3480004bd",
+    "before": [
+      "b5cdd659a4cd645a7400fbcb70239eeb6ef47a4525ad310f3d0163e3d9cbafac"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogCategoryFocusGeometry.kt",
+    "sha": "57f1c3d26ed5624274a265b4a15312d438b5cc2d6241b09a9c6fef85b9a95465",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogStyle.kt",
+    "sha": "dec9e1c546fb4896cc62fd65c46b2eec8a987f05bfd8ee0ddc9f8f97161d35dd",
+    "before": [
+      "d7e80ea346e51e6ca19060a44f85ef2d5b51b8e7d4e12791138836e37111982d"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/PremiumThemes.kt",
+    "sha": "a46c0a745daf3a2d67b8c4ad37a556977099cbcf8c65cba03adbcb971f8f8ef9",
+    "before": [
+      "12715c983f6b85681f9303af387b6f45da6a69789e1a6343a227af6872ad6f90"
+    ],
+    "allowMissing": false,
+    "binary": false
+  }
+]
