@@ -1,0 +1,5 @@
+PASS :app:compileDesempenhoKotlin final, BUILD SUCCESSFUL em 42s (KSP/Room incluidos).
+PASS instaladores PowerShell: aplicar, reaplicar sem backup extra, desfazer com restauracao exata; rejeitar arquivo local alterado/pacote adulterado sem modificar outros arquivos; parser dos tres scripts.
+PASS aplicar/desfazer sobre a ultima base XMLTV 471f38a, restaurando oito arquivos exatamente. Base anterior 3cb7c03 tambem validada.
+Revisao: compacto conserva dimensoes anteriores; duas colunas usa os mesmos componentes de lista/tema, reduz previa por largura disponivel; controle de foco compartilhado participa somente na coluna ativa; dialogo foca opcao atual; preferencia local com padrao duas colunas. Superficie/player e historico nao sao reiniciados pela troca de modo.
+Limite: sem teste de renderizacao/foco com controle remoto na TV. Validar Compacto/Duas colunas, fechar/reabrir aplicativo, categoria->canal->video->Voltar e menus na TV real.
