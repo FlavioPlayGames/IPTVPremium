@@ -1,0 +1,5 @@
+PASS independent RGBA asset channels (1254, 1254) with transparent outside and opaque artwork
+PASS independent RGBA asset movies (1254, 1254) with transparent outside and opaque artwork
+PASS independent RGBA asset series (1254, 1254) with transparent outside and opaque artwork
+PASS independent RGBA asset brand (1254, 1254) with transparent outside and opaque artwork
+PASS decoded four 2x-sampled assets + existing focus atlas: 12.00 MiB, within existing 16 MiB pool

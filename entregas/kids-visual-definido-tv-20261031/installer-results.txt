@@ -1,0 +1,5 @@
+PASS installer normal
+PASS installer changed
+PASS installer corrupt
+PASS all PowerShell scripts parse
+PASS apply/revert latest baseline 7ae4a5e: exact source restore, four new PNGs removed

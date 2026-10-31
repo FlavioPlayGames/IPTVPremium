@@ -1,0 +1,6 @@
+Recursos independentes (PNG RGBA, 1254x1254):
+app/src/main/res/drawable-nodpi/kids_cloud_brand.png - logo aprovado 1
+app/src/main/res/drawable-nodpi/kids_cloud_channels.png - coala
+app/src/main/res/drawable-nodpi/kids_cloud_movies.png - tigre
+app/src/main/res/drawable-nodpi/kids_cloud_series.png - patinhos
+As artes sao identicas nas versoes azul e rosa. Fundo, textos, favoritos e foco nao fazem parte delas.
