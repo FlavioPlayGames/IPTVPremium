@@ -1,0 +1,146 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsScreen.kt",
+    "sha": "c720450db43aff3ef4ca782fd42b7c04441435ae7e743a30e5ad3ca70ac7f7fc",
+    "before": [
+      "95b076f36bb627e571fb42ebeb44d43d67e568d95d58cf60b3650e1b934bd236"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsCinema.kt",
+    "sha": "6b71f90c119ae4838135ca119652ff3f56255b9410866805068b3dda08abbd15",
+    "before": [
+      "812666c877bbfb0d0a9d7d0f2de4150d2fc8b4dcc4cb5d29f5d3799b77f42e89",
+      "3d1b861f8b6bc80fc2c6ded3362ecaf626880603cf57154ba8a0a03cffe52992"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "78ad628cf8267f8f1d9b58f0222e2cedcfdee71708fc0d7d6eb6f1004a0c6d71",
+    "before": [
+      "cba5d6ca107a1f31e764e7143615a952acaef5ef101df1211737d30a5d028a48"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+    "sha": "84054f43e18fc214ae2e952c7363eb50963d447865cf1edaf0fc2e06b2eda218",
+    "before": [
+      "08804543c61430f804680c2538384ef2c434a0a4d1c2cb2f67c6f35dfe8c2c86"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/KidsMoviesCatalog.kt",
+    "sha": "5d07cf01672e5c4948008fe1c2f8e2a4ee61db7f7fbc67c2f37ed7917c625eea",
+    "before": [
+      "1dec61b50e2559f0670ee0ebf679bee4381a9e58992ed645ac8dc45af03e464a",
+      "da4254e8dc85532fa80666660f84d9f62a4ee876a6d2979d3458b29906aad363"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/KidsSeriesCatalog.kt",
+    "sha": "41574b6a1643b88e508394e025afc4ea5a4b8948f96202029b599c1e397d54e3",
+    "before": [
+      "7fde4cb6ac1976f4e69eb09670054589825eed9930fc936359a5deecceb8786b",
+      "f6d9007312077f8e0e2776bd0e99ae3561589dbb2de1e26bdbe0de6be9628799"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt",
+    "sha": "b1ad56e6349dfe4be49a70b84e33f905134de61dae2575ca2449dbf84c706f51",
+    "before": [
+      "7c3b563c2171e6a6d25307845c2a405baf2c0b6732ebc4c5ea8698d1f0aa6ae6"
+    ],
+    "allowMissing": false,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsChannelsScreen.kt",
+    "sha": "aa15fa1bf4827a11deee15f514aa6f8494d6dfa3deee90cf5773282e0f69fc11",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsMediaCatalog.kt",
+    "sha": "55d6009ebbd7c908636e99dc98d7a2fc04f9957804023d75e1fd34d949a1c8a3",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsNewLook.kt",
+    "sha": "7fc9c89cddeb7e7159606a8bc3613f826f59ab2f74fd563a1489e02f5c23d637",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsNavigationPolicy.kt",
+    "sha": "f1e07ba601371e3b7fa310d0b8745daa5ca7e5041aabf5cf26c7ae8ce410cd59",
+    "before": [],
+    "allowMissing": true,
+    "binary": false
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/kids_cloud_brand.png",
+    "sha": "78e7c9b954fb0f7e71d4ef0ba72d5eb7c5231b2bc21b0a64f9d6a31450a1447b",
+    "before": [
+      "78e7c9b954fb0f7e71d4ef0ba72d5eb7c5231b2bc21b0a64f9d6a31450a1447b"
+    ],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/kids_cloud_channels.png",
+    "sha": "d6ffc9d77fdcd70c608cb98ef55bf3260e96deba8b077c5e3dce028cc4e5db11",
+    "before": [
+      "d6ffc9d77fdcd70c608cb98ef55bf3260e96deba8b077c5e3dce028cc4e5db11"
+    ],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/kids_cloud_movies.png",
+    "sha": "43f69a168cc0cbe6361936f33dc73d50f75bc8c9f613b9456eaefe4d7938f55b",
+    "before": [
+      "43f69a168cc0cbe6361936f33dc73d50f75bc8c9f613b9456eaefe4d7938f55b"
+    ],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/kids_cloud_series.png",
+    "sha": "92abc09fa6964485a5c34c21b9237df45a59cf80c6c3d3330e8758a76f644773",
+    "before": [
+      "92abc09fa6964485a5c34c21b9237df45a59cf80c6c3d3330e8758a76f644773"
+    ],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/kids_sky_blue.png",
+    "sha": "d3ed0155b671dd8e05c0349b0df86261e7fc4bb39ae3c7d2ec0867446ec996fa",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  },
+  {
+    "path": "app/src/main/res/drawable-nodpi/kids_sky_pink.png",
+    "sha": "0f07fc43738e16a99123f2cf82b1b48b1cb2d01c754e423c8b42c5345c568ace",
+    "before": [],
+    "allowMissing": true,
+    "binary": true
+  }
+]

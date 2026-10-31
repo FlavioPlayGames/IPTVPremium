@@ -1,0 +1,4 @@
+PASS kids_sky_blue: widescreen, detailed corner contrast, center clear; no UI/mascots in wallpaper (visual inspection)
+PASS kids_sky_pink: widescreen, detailed corner contrast, center clear; no UI/mascots in wallpaper (visual inspection)
+PASS six separate resources: decoded peak for native mascots, half-size logo and both wallpapers 31.50 MiB / 32 MiB
+PASS normal LiveTvScreen body unchanged after removing Kids-only dispatcher

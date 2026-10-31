@@ -1,0 +1,8 @@
+Todos os recursos em app/src/main/res/drawable-nodpi/:
+kids_cloud_brand.png - logo Suave independente com transparencia
+kids_cloud_channels.png - coala independente com transparencia
+kids_cloud_movies.png - tigre independente com transparencia
+kids_cloud_series.png - patinhos independentes com transparencia
+kids_sky_blue.png - somente fundo azul Ceu Encantado
+kids_sky_pink.png - somente fundo rosa Ceu Encantado
+Nomes, botoes, favoritos e selecao sao UI, sem serem impressos nas artes.

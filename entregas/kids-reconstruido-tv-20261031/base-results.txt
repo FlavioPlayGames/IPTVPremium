@@ -1,0 +1,2 @@
+PASS apply/revert base dc26f5f sources and existing four PNGs preserved; only six new files removed
+PASS apply/revert base c0fc449 sources and existing four PNGs preserved; only six new files removed

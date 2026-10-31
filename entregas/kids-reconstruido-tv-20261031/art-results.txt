@@ -1,0 +1,3 @@
+PASS two Home consumers, idempotent release, native mascot/half-size logo, keep logo after last Home exits
+PASS decode finishing after Home exits cannot repopulate mascot cache
+PASS all three native mascots removed from cache on exit; small shared logo preserved
