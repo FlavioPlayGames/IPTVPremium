@@ -1,0 +1,5 @@
+PASS installer normal
+PASS installer changed
+PASS installer corrupt
+PASS all PowerShell scripts parse
+PASS apply/revert latest baseline e1f2e47, exact restoration of eleven files

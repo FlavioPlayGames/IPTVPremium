@@ -1,0 +1,11 @@
+PASS media priority leases: concurrent owners, idempotent release, route isolation, awaitIdle
+PASS date boundaries: first/last consume outward direction, intermediate days retain movement
+PASS accent-safe SQL narrowing, including names with no ASCII token
+PASS identity: quality variants match; numbers, +, region, language, seasons and bad shared EPG stay distinct
+PASS lazy ordered fallback; duplicate URL skipped; healthy transport prevents later-list access
+PASS failure after playback advances to last-resort other list
+PASS successful original avoids resolver; cancellation stops playback and removes listeners
+PASS exhaustion reports unavailable and never records failed channels as watched
+PASS live startup defers background only, releases after two seconds of playback
+PASS 7-second startup deadline is not extended by repeated buffering events
+PASS 7-second stall during playback advances to alternative
