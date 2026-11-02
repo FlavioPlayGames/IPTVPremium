@@ -1,0 +1,1134 @@
+[
+  {
+    "path": "MainActivity.kt",
+    "sha256": "c9acfac859e1229e802a5f7d332a055f84bd15ea0fc322c64519edae832f7034"
+  },
+  {
+    "path": "core/device/DeviceIdentity.kt",
+    "sha256": "f5524dc67125ac0bd7bf4952184b9269e6bd6961f2edd1d365ab1be51dfa2e6c"
+  },
+  {
+    "path": "core/device/DeviceIdentityCard.kt",
+    "sha256": "c12cdfc47715f1a132997fa58f601449d229cfb10717df74b0233ef1810ec9e9"
+  },
+  {
+    "path": "core/device/DeviceIdentityStore.kt",
+    "sha256": "2764c326cbc2a2fb413269ff70b910011745b3ecc121e4cf3866e61ed908fbec"
+  },
+  {
+    "path": "core/device/DevicePortalQr.kt",
+    "sha256": "fae1fe6cb202f9b2eb0f0d92743188b833ecaf5def1cd9aff05ad6ab6eb62aef"
+  },
+  {
+    "path": "core/device/DevicePortalSync.kt",
+    "sha256": "3fe4d85dfd6e02159dbbbb4907ce81ba8826041755b71e3a85334d5ef074ebe8"
+  },
+  {
+    "path": "core/device/PackageSigningCompat.kt",
+    "sha256": "37cded0a398b57b8df27e1dc1d518f442ad16ba77eefecb638f9022421bcf4c3"
+  },
+  {
+    "path": "core/device/PortalAccessOverlay.kt",
+    "sha256": "a6b3e399f10902f4221db2ec3f0611b6dd3a67308bdb8176e45c724a712c1395"
+  },
+  {
+    "path": "core/device/PortalContentSyncPolicy.kt",
+    "sha256": "4183f11a855b18a6cae9a0fd87952b203f087aa3f441b4f33b3645c3328364f8"
+  },
+  {
+    "path": "core/device/PortalMessagingService.kt",
+    "sha256": "dfd986a76a78ae5394b341cd8f4eafe262a99e5209e57c3f846e40068793ed39"
+  },
+  {
+    "path": "core/device/PortalPlaylistCodec.kt",
+    "sha256": "9199924da38d24159572f1ff126e3a0f8babaebbe32614d8a28a9ad34d772bd4"
+  },
+  {
+    "path": "core/device/PortalRenewal.kt",
+    "sha256": "9ff7d3b9d057e4f579fc4ce1fb63a903808d52a4037f644e6d19c8439d0ccf41"
+  },
+  {
+    "path": "core/device/PortalRenewalOverlay.kt",
+    "sha256": "78de2fb5b0d224b71ea3e956e203b4a3a9aa56d1cec0f61dd8caf9ecb10db9ff"
+  },
+  {
+    "path": "core/device/PortalTrialOverlay.kt",
+    "sha256": "38f7710e9cb6ba59762d570a6b5d3e3b3fcb7579f1369dbed2f76d007a220d39"
+  },
+  {
+    "path": "core/device/PortalTrialState.kt",
+    "sha256": "415e92fd19fd5b538176444ad513c1f36974877e9b46a1f4c13622318976032d"
+  },
+  {
+    "path": "core/device/PushHintCoordinator.kt",
+    "sha256": "b296e8190d570f46f4e44d65e08085822b5b3c5f609b527a5db547a7da8fe9fb"
+  },
+  {
+    "path": "core/device/TrialNoticePolicy.kt",
+    "sha256": "6a37e063601c8d6d12ee3f240dee67cc301684a59d90515d3547a510961917d9"
+  },
+  {
+    "path": "core/diagnostics/UiStallMonitor.kt",
+    "sha256": "23137aefc9eb50bc59f4de0b72aa7046a114be9d0ae7a394d97812bbe080373b"
+  },
+  {
+    "path": "core/media/TrailerLauncher.kt",
+    "sha256": "171f13370f1387f88460f1f0f4a3d61c270fea809aa4809ef19e5f07adbfecac"
+  },
+  {
+    "path": "core/media/TrailerPlayerActivity.kt",
+    "sha256": "e4719c371eec2549fed611b175bea844122c25d2fe638a936483c2dc3ca062aa"
+  },
+  {
+    "path": "core/media/TrailerResolver.kt",
+    "sha256": "182731c0a4bf8483e307ca449f30cff8a6b98284790ec9ab1f47e3694aa49fce"
+  },
+  {
+    "path": "core/navigation/AppDestination.kt",
+    "sha256": "c13a8164fc7d82512b710f27903261043fe4bd2594157945366c427b7127d49e"
+  },
+  {
+    "path": "core/navigation/AppNavigation.kt",
+    "sha256": "7641b7cfbbfda28bf9c5eb8adf2f3647448ea3b7c2b92c75b68dec3b5a6b738f"
+  },
+  {
+    "path": "core/navigation/ParentalControlsUi.kt",
+    "sha256": "7171e406d8e16b771e28a67fd6b276823f4b59b1a07f695ef5040a6cd4b70748"
+  },
+  {
+    "path": "core/navigation/ParentalPolicy.kt",
+    "sha256": "3315a20e57be12c7f11eff0ed98a509a94aa71b8b4b8df6dfc3cc2321909a415"
+  },
+  {
+    "path": "core/navigation/ParentalSettings.kt",
+    "sha256": "cbcb77573a222346f2929cc4057be71215ebb0857122ebfc6c119a07edc91fee"
+  },
+  {
+    "path": "core/navigation/PinNumericKeyboard.kt",
+    "sha256": "e0f070653c4be71cc37db0a2656c759c47aef0f21d325a5d6ef753032cda1f0d"
+  },
+  {
+    "path": "core/navigation/SettingsHubPages.kt",
+    "sha256": "a4c54e82fb6e373268fd4d5ab4000e473162bf613415e1e85011a673504381ba"
+  },
+  {
+    "path": "core/navigation/SettingsHubScreen.kt",
+    "sha256": "18d758df6cf322e9e3c6f2ece6a3018ad3baaf96d3d14a108a8e74c5465f0af9"
+  },
+  {
+    "path": "core/navigation/SettingsPreferences.kt",
+    "sha256": "bf36f39865fce83b9056ac4edd280058f18d653f33ea3224204cc3082762863e"
+  },
+  {
+    "path": "core/navigation/SubtitleSettingsScreen.kt",
+    "sha256": "30365c066027b69a4a6674ea65e9781b68b529de437c2915b2b13264c36c68fe"
+  },
+  {
+    "path": "core/navigation/player/AutomaticHdrPolicy.kt",
+    "sha256": "1e3bd8ba855d0df74a246edbb5181943443efce5f3843d995aab6eed55c74781"
+  },
+  {
+    "path": "core/navigation/player/AutomaticStretchPolicy.kt",
+    "sha256": "a1ff7be526ab8369eedd87abad8c44b444bddb531ab66202364ddcabd8454d92"
+  },
+  {
+    "path": "core/navigation/player/ExternalSubtitleRepositor.kt",
+    "sha256": "c8ec7619d59cdd03b2f84e5b6c6b73c07348bc845c6b2729d15c9f2449895255"
+  },
+  {
+    "path": "core/navigation/player/LibVlcPlaybackAdapter.kt",
+    "sha256": "0f690976a01de2d5a1b98bf909828f938a5b15469f86f8f4d5cc640d5dbb23e7"
+  },
+  {
+    "path": "core/navigation/player/Media3PlaybackAdapter.kt",
+    "sha256": "5eb92fedc291394da5e4d15d0ae644f46304115fe4d23bbfb5e3bfd3ce63869d"
+  },
+  {
+    "path": "core/navigation/player/NativePlayerReleaseQueue.kt",
+    "sha256": "bc09c92671ec0579e106f12893716ea450ea4bbd0645591d215c8a844e080589"
+  },
+  {
+    "path": "core/navigation/player/NeutralPlayerControls.kt",
+    "sha256": "d35870d28a63e463ace0d47f8d5b953bf0f6729f61b8cf5830342da0969d5ccd"
+  },
+  {
+    "path": "core/navigation/player/PlaybackCatalogBrowser.kt",
+    "sha256": "ba5dfc8ea1b3a23b57a0b3e999bd554d1c9ba26ddd21df01c1cc7eba2e7cc9fc"
+  },
+  {
+    "path": "core/navigation/player/PlaybackCatalogPolicy.kt",
+    "sha256": "3fe5f94e2898f29d719aa96b550e9db34bf859ca900504a3a364eaef80fe8c51"
+  },
+  {
+    "path": "core/navigation/player/PlaybackController.kt",
+    "sha256": "5952b40be15e206abc7956794e72d098b075ed6e6a1a88d7a5130a39410d8ad7"
+  },
+  {
+    "path": "core/navigation/player/PlaybackDisplayHdr.kt",
+    "sha256": "41195b4c87abe9a06a18427f4b4953cf8bb768256e89637d2b903cffc9dbc0fd"
+  },
+  {
+    "path": "core/navigation/player/PlaybackEngineContract.kt",
+    "sha256": "dced9451cd2eb14b329b2091cb59925dff58c6b9e8e61af1a0b376ce7b855b2b"
+  },
+  {
+    "path": "core/navigation/player/PlaybackLoadTrace.kt",
+    "sha256": "69b8a7ebe13aaedc9c48871e902742ebfa8f2fceb1b06aebeb29ed4670419cf0"
+  },
+  {
+    "path": "core/navigation/player/PlaybackModels.kt",
+    "sha256": "8778a07b32a6a9a58eea5c9048d54b35cbef173b49631c9d9e85b8bd762712d1"
+  },
+  {
+    "path": "core/navigation/player/PlaybackResumeCinema.kt",
+    "sha256": "7e584a4cf7bbf14c87dd740730c3de7451182118ca028ee2136b26d990675330"
+  },
+  {
+    "path": "core/navigation/player/PlaybackScreen.kt",
+    "sha256": "dde12dd27bd3b00822fbf15b76a7dfc9a84e3a8110658f36fbe3d5b3059fa0c8"
+  },
+  {
+    "path": "core/navigation/player/PlayerCatalogPress.kt",
+    "sha256": "17471379f7cee6c1301f3fbb865c5164a91e201af49f9f4e3dd9c60de2914988"
+  },
+  {
+    "path": "core/navigation/player/PlayerEpisodeFavorites.kt",
+    "sha256": "9fa03abc668d27f803e15965f7979399d769ad59369d3b31d7c9fc5d31917c8e"
+  },
+  {
+    "path": "core/navigation/player/PlayerSeasonPosterPolicy.kt",
+    "sha256": "177eb677801a3ba6e51df1f3e2efcd60ce4333a81fde322948f921fd9ecf4fe0"
+  },
+  {
+    "path": "core/navigation/player/PlayerSeriesArtwork.kt",
+    "sha256": "771cc2545b801cffcd5414d28656c1b685927a3689f1569688ccbb7f748775db"
+  },
+  {
+    "path": "core/navigation/player/PlayerTheme.kt",
+    "sha256": "88447dbc012a736a3c2e6ceec76a3ebc3feedf3138d7374fb0e1d8e03579138e"
+  },
+  {
+    "path": "core/navigation/player/ScreenAdjustmentPolicy.kt",
+    "sha256": "223e11af7bd25cd71bb6237468936a816130b2de476f5168db1c0e4c50094373"
+  },
+  {
+    "path": "core/navigation/player/ScreenFormatPanel.kt",
+    "sha256": "ebd5b6a719a0900ceb68cfd9deeaeadf4e7c266b1b62f9639c20e30ecebd6628"
+  },
+  {
+    "path": "core/navigation/player/SeriesAutoNext.kt",
+    "sha256": "01248aadf3f3ff8796eb00598ffb464649f258b054de713862afccf5912332ba"
+  },
+  {
+    "path": "core/navigation/player/SubdlCredentialStore.kt",
+    "sha256": "11eef023ccf0968fcc57229eebf4d51fc496feebcb811c45e7245183b5b77fdf"
+  },
+  {
+    "path": "core/navigation/player/SubtitleAppearance.kt",
+    "sha256": "7a823840368efe44ca1fc358a15ff0b1b8250a2be6107d35c6491619b495b00d"
+  },
+  {
+    "path": "core/navigation/player/SubtitleAppearanceRendering.kt",
+    "sha256": "44aa26a1f862acf1d9b794c83ebedaecd4a04191bdfffc0f4b537920a7bc0a9b"
+  },
+  {
+    "path": "core/navigation/player/SubtitleProviderUpdates.kt",
+    "sha256": "6325f142db97693d4e517a1cc42ecf8c08365ae89e63fdbc8fde7fbf23322be0"
+  },
+  {
+    "path": "core/navigation/player/VlcFontConfiguration.kt",
+    "sha256": "d2b8af8c9f0d90a4827202747cc9600eb093cac2e650c84d67e223c1177d7801"
+  },
+  {
+    "path": "core/navigation/player/VlcSurfaceStartGate.kt",
+    "sha256": "02cb563b48e0d54fe531ed51f583c95c7647ee336e629dcd7288fd37564a523e"
+  },
+  {
+    "path": "core/network/MovieOpeningAttempt.kt",
+    "sha256": "5e03a1ea12053735163d19c5713d0d1bcbfecbf8df95382bb59872ed9597cda0"
+  },
+  {
+    "path": "core/startup/StartupTiming.kt",
+    "sha256": "8c06d6d6a4c77c5344b9ebdfd6cc942b83dd09d27d31ed37eb84ad873827c68e"
+  },
+  {
+    "path": "core/startup/StartupWindowLayout.kt",
+    "sha256": "5ddd24f37eb728d1af20e100ff9cd00aa914e1a347c13bb8fa013c89b579933a"
+  },
+  {
+    "path": "core/startup/StartupWindowPresentation.kt",
+    "sha256": "f98002469b7c8be31a763ab75559c0d2342969752cf119f24847ad31cd45ff93"
+  },
+  {
+    "path": "core/storage/ActivePlaylistRefresh.kt",
+    "sha256": "0a67e5ba1dd87131d03e7095e4f716d3bf3a407a0e217fe7ce483aa641b9040b"
+  },
+  {
+    "path": "core/storage/AppCacheStorage.kt",
+    "sha256": "77f6775b476888b77616d04c24f7bad252df1d868109286e0c0848a3f7d4d405"
+  },
+  {
+    "path": "core/storage/AppStoragePolicy.kt",
+    "sha256": "513cdb44875f16158a869e3f11b228e1028998582d91feb659472f0760fcb3d3"
+  },
+  {
+    "path": "core/storage/CacheRestartActivity.kt",
+    "sha256": "486d4b2a13674e2404457c6f8fb7dcdfe2d5fa6c8173f40c2bce52ecebb11754"
+  },
+  {
+    "path": "core/storage/CacheStorageBudget.kt",
+    "sha256": "aadf8499e33531ed814998caa4077417449546622edea053ca3c1996c4797ef0"
+  },
+  {
+    "path": "core/storage/CatalogStorageDiagnostics.kt",
+    "sha256": "e940e300f3b6d0e02515159e09dfab7f4b762651d1bf576d7cb40371e0361732"
+  },
+  {
+    "path": "core/storage/ExperienceCacheCleanup.kt",
+    "sha256": "41520a16b6accc1953b54752d1d3d5345a21add5dd0700509d1f67735c7e4032"
+  },
+  {
+    "path": "core/storage/ForegroundStorageGate.kt",
+    "sha256": "c8814d407bdc260c527ea77ce66d021b6db533d4e02e316e004d46733722c673"
+  },
+  {
+    "path": "core/storage/ImageDiskBudget.kt",
+    "sha256": "7b73752e173f6b585da95da81fe6479995947a11de0b0785fea9b17e3854f9b7"
+  },
+  {
+    "path": "core/storage/ImageDiskCache.kt",
+    "sha256": "3a68dead7527bd542f8c2db21095f564b0d5dc59d614dbd4be2ca20e5075c98f"
+  },
+  {
+    "path": "core/storage/RegisteredCatalogIds.kt",
+    "sha256": "35d3e6028c7f1a75305c784221f7442e89680c3787ea7e618e8ac2960e2e2c1e"
+  },
+  {
+    "path": "core/storage/StorageDiagnostics.kt",
+    "sha256": "857cad785df290d3fc5664ba26c325802e68cbee2f18c1266fe2ecbde7a0bf37"
+  },
+  {
+    "path": "core/storage/StorageMaintenance.kt",
+    "sha256": "7fe0da591e92265d9c7eb868ea1af20ff798eec66daab99793c0de12b7f3fdc3"
+  },
+  {
+    "path": "core/update/AppUpdateManager.kt",
+    "sha256": "a70bd1490665ec0d567251055bf53f967d3df4fd6cb91ea6c2d0641327fe66f4"
+  },
+  {
+    "path": "core/update/AppUpdatePolicy.kt",
+    "sha256": "35fa3db66b2c7fab41487e0afa99dc4d47d5c895eb914239f06fdcdceba3fd9a"
+  },
+  {
+    "path": "core/update/AppUpdateScreen.kt",
+    "sha256": "284f5233f54353e41eb5ece07e9b799c2bb62a8252e9c3e84308e22a0d09a834"
+  },
+  {
+    "path": "data/cache/CatalogCategoryCountCache.kt",
+    "sha256": "a1d9ed6d9b50cad92d74f6e3f418c766e5d6ee53a93f7866fbb106e919448183"
+  },
+  {
+    "path": "data/cache/CatalogDetailsWarmupCache.kt",
+    "sha256": "62ffcb7977b6e4012c4fe6fb5fdfceb7c9ec55b4cb782b5f7c934bacc9708420"
+  },
+  {
+    "path": "data/cache/CatalogGridPagingConfig.kt",
+    "sha256": "c0476e3e1dca075c5deb7e638594ff50bef6751bcf6366bb21ee718367f4f6fc"
+  },
+  {
+    "path": "data/cache/CatalogImportPriority.kt",
+    "sha256": "7c7eeb6b2e9a2afdcbdd822984aab28fa1239034f5c492f1f8a50764e626fbcb"
+  },
+  {
+    "path": "data/cache/CatalogInteractionPolicy.kt",
+    "sha256": "a732477ddc091f6a351d08171ad590cb14587a825639b44c9ea12eba6cd22402"
+  },
+  {
+    "path": "data/cache/CatalogSessionRevisions.kt",
+    "sha256": "5255cad9c4ce54d5ab67b992bdb243af1cda03350c7709fac896d58bd5a0923c"
+  },
+  {
+    "path": "data/cache/CatalogViewportRecovery.kt",
+    "sha256": "81a988ddd0e353e2febe4741921b85a9193d2ba455fa5c172d6619ffaeb100f9"
+  },
+  {
+    "path": "data/cache/CatalogViewportRequests.kt",
+    "sha256": "47a9118c12b8c8d9533dc814b9e0542e0cef599e1a3213cea43c53b5577609ce"
+  },
+  {
+    "path": "data/cache/ClearPagingBeforeLoad.kt",
+    "sha256": "2d2b1171cd44f8596720a7303c1d8530cd2c6b6a64f4b945832abe9627fc1aae"
+  },
+  {
+    "path": "data/cache/GenericPosterPolicy.kt",
+    "sha256": "65d4f0cb4de2d82152cb2ab7a8232901f815e6fff65ccbe1d5df17ca01c906b4"
+  },
+  {
+    "path": "data/cache/ImageRamPolicy.kt",
+    "sha256": "5d8227a2e9861c9a31ed9ac9c1156dffad981b8c69412dcf22ab8d2039566b15"
+  },
+  {
+    "path": "data/cache/ImportTuning.kt",
+    "sha256": "9dca2d9ae21b6485d588491bd82b9b71c2670e42ce75f332497c0b15cc94d981"
+  },
+  {
+    "path": "data/cache/ImportTuningPolicy.kt",
+    "sha256": "4207b8d7a073153cc55ad683c7655e461166373e34035a3ac60663aa8f9402f2"
+  },
+  {
+    "path": "data/cache/MediaOpeningPriority.kt",
+    "sha256": "49ef86178383d9c9933eb77732f5e571e9807a8ca1905fc2b46c8f9064719dd4"
+  },
+  {
+    "path": "data/cache/PlaylistCacheDatabase.kt",
+    "sha256": "f8b2eafa3f1ec7a15595db0f35ef0a0597a3325733bfb89d9ea0977ad4362208"
+  },
+  {
+    "path": "data/cache/PlaylistCacheGenerationManager.kt",
+    "sha256": "ed73bc874be22a829760195756612e92eb32bf404ae85ae120c8875cbf54a82e"
+  },
+  {
+    "path": "data/cache/PosterAheadQueue.kt",
+    "sha256": "e2eefb448cb1a690eb7d994d00bfdc78b6fc5434d91c4f84573d2522c03d66d6"
+  },
+  {
+    "path": "data/cache/PosterAheadWindow.kt",
+    "sha256": "52112bb8d0f2a04d11b7bd3fe05c172137f2890ca437cdcec68a4b3fa99f092d"
+  },
+  {
+    "path": "data/cache/PosterBatchPolicy.kt",
+    "sha256": "390d9614d71818eb2b26da3f4fe5061ea3927c71aa23d51046ccd81750166e44"
+  },
+  {
+    "path": "data/cache/PosterCategoryPolicy.kt",
+    "sha256": "8dfa21f3d752a8e07e6b1609a55eec1b7a9a1493bca27837bc1a93500a340d7f"
+  },
+  {
+    "path": "data/cache/PosterDownloadUrl.kt",
+    "sha256": "e46336f71728e6ce938ce092d82155a4e004f6c955af6e56f1f71da72bd8627f"
+  },
+  {
+    "path": "data/cache/PosterFileLru.kt",
+    "sha256": "9dcf5f7355d382a10ea5bf9d67129aeb71f8044f0a17435019df7d9ce1d22c3b"
+  },
+  {
+    "path": "data/cache/PosterNavigationPace.kt",
+    "sha256": "b5b5aa4bfe138da413bb84fad5e481617203c10508aea1ae8fb8b9176c711b2f"
+  },
+  {
+    "path": "data/cache/PosterNetworkBudget.kt",
+    "sha256": "5121285e6c9c04ef959eeeee1bbfc872aa7b80188ee36548e49c8e6da6d9f7b6"
+  },
+  {
+    "path": "data/cache/PosterRequestLocks.kt",
+    "sha256": "628f3fc322f8ae1a57fcc1e70568d21d2b2bebe10dba0cdfed6d859447082e2e"
+  },
+  {
+    "path": "data/cache/PosterReserve.kt",
+    "sha256": "ec25699fc4fd469ef9c1c9d7072dde9f411ba5dcce5452d1fd087ebadc0f96c9"
+  },
+  {
+    "path": "data/cache/PosterResolution.kt",
+    "sha256": "69bd7620e0a98bc1b42ec2ee1a7407a52550f61127cebf8945bf582dbb7921ae"
+  },
+  {
+    "path": "data/cache/PosterRowDownloader.kt",
+    "sha256": "a36c2811c74dcb8675c23d901108e3776a58f2bc8dc50280c1f89e5ac4a1139b"
+  },
+  {
+    "path": "data/cache/PosterTemporaryFiles.kt",
+    "sha256": "0e7e2f2b025940089dac6906bec7adb9886d8763d183f6e9333bd466c3a50bab"
+  },
+  {
+    "path": "data/cache/PosterVisibilityPriority.kt",
+    "sha256": "0a5abba10305ad20bb2c5cca46801c2f52bee95ce3acd64a99561ba1974c69cb"
+  },
+  {
+    "path": "data/cache/RecentPosterKeys.kt",
+    "sha256": "8e20eb2001b54495bd90f34ddedcfaf0a93dd7446ca99c113731b7885bf35ae1"
+  },
+  {
+    "path": "data/cache/SeriesFocusPreloader.kt",
+    "sha256": "11d8bbe789038f49e9c8172343417bc86fe4e41fca5f88639b5ea8ef8bdafde4"
+  },
+  {
+    "path": "data/cache/UserActivityPriority.kt",
+    "sha256": "b14cf5edd37bcecfeeb598a9483a8e2e073b0bffe20ee7643ca745a0ccbf6fef"
+  },
+  {
+    "path": "data/cache/dao/MovieSubtitleSql.kt",
+    "sha256": "3c0b45ee8af0d460bdb71175e2d265ae34ad88d521ecec5b48c5968ca9540bac"
+  },
+  {
+    "path": "data/cache/dao/PlaylistCacheDao.kt",
+    "sha256": "117d69d502944bae9ddae115d9f426ce986ceeec4a6633c1d700b2a90105bf67"
+  },
+  {
+    "path": "data/cache/entity/CachedCategoryEntity.kt",
+    "sha256": "98c4ff36562a884c3c45da85b819371788c599a90249b28e9b70e55626bd2043"
+  },
+  {
+    "path": "data/cache/entity/CachedChannelEntity.kt",
+    "sha256": "0ebc0b1599f7405ffd7b05b257659019da8f03e77c49ad32bea80d869c7e56aa"
+  },
+  {
+    "path": "data/cache/entity/CachedEpisodeEntity.kt",
+    "sha256": "2a874ed7486b1f71cecb8c27c375714e4e3311ca9257589865a2cdd0ba9de822"
+  },
+  {
+    "path": "data/cache/entity/CachedMovieEntity.kt",
+    "sha256": "06164dd6e9f3e9be1eea85164a4ce99340e5debcd90f7cf3602629298f392b33"
+  },
+  {
+    "path": "data/cache/entity/CachedSeriesEntity.kt",
+    "sha256": "61d62b689a537fbc129ee8f9bd8ed52b1bceec27a854a9a634fd306fbc003054"
+  },
+  {
+    "path": "data/cache/entity/PlaylistCacheGenerationEntity.kt",
+    "sha256": "fe5360d5296eb2be9ff6d4053586a0d106bab5215ec342ad75cd469eb4d768f5"
+  },
+  {
+    "path": "data/cache/importer/M3uCacheImporter.kt",
+    "sha256": "7571d67fdce895f141f6bc5f0bd2a85d6164f0ec4ab4e32403b4e752e50eb17c"
+  },
+  {
+    "path": "data/cache/importer/M3uEntryClassifier.kt",
+    "sha256": "9dfc78ac3db338f9afa7adb215d0c6324a94fe037b5acb3b9e375805a63a15a1"
+  },
+  {
+    "path": "data/epg/XmltvGuide.kt",
+    "sha256": "64e345fd08c172423e695cbb9b01a7f145b9b1012920156cf31288461c7e5ce6"
+  },
+  {
+    "path": "data/epg/XmltvPolicy.kt",
+    "sha256": "c695ab8028ec188a1b2b21f8a4870f1c749d3834d773cff36f0e31b9e6b1a102"
+  },
+  {
+    "path": "data/epg/XmltvReader.kt",
+    "sha256": "e8aefd144a24fff7a27559c6ddb6a385f5a7bad5fa0927e7c22afbcf3d315b6c"
+  },
+  {
+    "path": "data/history/ContentIdentity.kt",
+    "sha256": "c3c690e4be6f7e8c2f8707f2bd77cd0d2daa019659b0ec6cbcf58b063caa122b"
+  },
+  {
+    "path": "data/history/HistorySyncSession.kt",
+    "sha256": "266bf70ac2eee750340818fe1e326f7db989f28712285763e3e15ad785611e91"
+  },
+  {
+    "path": "data/history/ProviderMovieIdentity.kt",
+    "sha256": "65409c34a6952388105f909cc8d3218a2a2a5fb47e00b3b9d71f2a8182e67e0a"
+  },
+  {
+    "path": "data/history/SharedLibraryStore.kt",
+    "sha256": "7a407c9bc76eb3078dde721e6ac9df48614ea7d11d38e0241ff749313e4630a2"
+  },
+  {
+    "path": "data/history/WatchHistoryStore.kt",
+    "sha256": "72e621420566c5a55c2c142772e61c22cef4715459d70fd6b7133bec49663b93"
+  },
+  {
+    "path": "data/parser/DefaultM3uParser.kt",
+    "sha256": "5c256f56735bf9d655aa265a7200699874f98b4bf590a3076098cdccd100d732"
+  },
+  {
+    "path": "data/parser/DefaultXtreamParser.kt",
+    "sha256": "085ab3cd29701b12ec7781d593b6655a965ed375ec526eda277ddfd13743b011"
+  },
+  {
+    "path": "data/parser/M3uParser.kt",
+    "sha256": "5db656ceccb1bd91e89e1012a9f1b2b4a4b2152ce8bc1710e743cdf24e9804f6"
+  },
+  {
+    "path": "data/parser/XtreamArrayStream.kt",
+    "sha256": "c3daabe88c65f4a4e1555d86dc5209b837372d4cb2293f233b42b5a914c6b11f"
+  },
+  {
+    "path": "data/parser/XtreamDirectCatalogReader.kt",
+    "sha256": "f5d15d9732b315618cefc1ca21d24147be4f834f41782dd82c6328db07714e2d"
+  },
+  {
+    "path": "data/parser/XtreamParser.kt",
+    "sha256": "1a115b7de26ffbc20ab9ff6a5c4bbbc2393c3880eefbf6ee42887ca645ba494e"
+  },
+  {
+    "path": "data/ratings/PersonalRatingIdentity.kt",
+    "sha256": "be8cab5cd63296c40dfc972a15ec1993a3883217d2584aee14d0ac65554b3b7e"
+  },
+  {
+    "path": "data/ratings/PersonalRatingStore.kt",
+    "sha256": "3cc5776ef9745208db1fc98a21db66738490aa5f5a44b010605917fae405ff75"
+  },
+  {
+    "path": "data/remote/ArtworkHttpCache.kt",
+    "sha256": "9e8dd45eb3f72381dc160b76bc29a55f6bf5c956c95f206c1655d19a12737bb1"
+  },
+  {
+    "path": "data/remote/DefaultPlaylistHttpClient.kt",
+    "sha256": "f76fa21c2fb4730ce44aea80d29b3adb2cb9a36612a1494bd3f811b182d25c19"
+  },
+  {
+    "path": "data/remote/M3uBlockingIo.kt",
+    "sha256": "1490c78d6f225bc55600eb95afa8477455a52c55423a28404025d1cd7d24ae9e"
+  },
+  {
+    "path": "data/remote/M3uLineStream.kt",
+    "sha256": "692e0bd5d967ba037c25813c0323f43d273ac52ca7757416d27c1b608d261e15"
+  },
+  {
+    "path": "data/remote/PlaylistHttpClient.kt",
+    "sha256": "6f093e926836781fdb9d0b382740fc156ac433d63c974345d099f60ee7b179bf"
+  },
+  {
+    "path": "data/remote/PlaylistResponseBody.kt",
+    "sha256": "e420e20a7476076b58d9d647fbc7b277e8419b07350613eef6c4b581495d738d"
+  },
+  {
+    "path": "data/remote/TmdbClientProvider.kt",
+    "sha256": "a9d73bd24e27264e25ba1befa4992c43c931873950b22648cb47336dfc87e889"
+  },
+  {
+    "path": "data/remote/TmdbHttpClient.kt",
+    "sha256": "ef573feaee8a7e7b7acf5369b6bbabef7030bbb8be7dda820a82fbc5a60b3cd7"
+  },
+  {
+    "path": "data/repository/CatalogMetadataCache.kt",
+    "sha256": "df891881c3bbfa38f52a2cbf134d865c331220766cf6f5c4de5d498078d8c531"
+  },
+  {
+    "path": "data/repository/CatalogMetadataDiskCache.kt",
+    "sha256": "799fb9b23b1f54b9ece9873da6a94aee5563f0fa4dd4c16a133f694e612399e0"
+  },
+  {
+    "path": "data/repository/CatalogMetadataIdentity.kt",
+    "sha256": "65d744d3e96d2762baccff74443f7a076a14941aeecbe50c43b6ebcdd1d11c45"
+  },
+  {
+    "path": "data/repository/CatalogSeasonArtwork.kt",
+    "sha256": "28c6c235c7493dc4de0a4b9613d0831708e53599fcb114a7430b72e308cfcae1"
+  },
+  {
+    "path": "data/repository/DefaultPlaylistRepository.kt",
+    "sha256": "a3a5965494dd04da2c1b55787272a6ce65f388345b4e9cf4e367966240f8fce8"
+  },
+  {
+    "path": "data/repository/EpisodeThumbnailLoader.kt",
+    "sha256": "dd39e9a452d79a44b73371b4e86d65596a379007e71d150498c7f67e6d19a6e3"
+  },
+  {
+    "path": "data/repository/PlaylistCatalogRepository.kt",
+    "sha256": "2fe3d42f217a0274bcf9dbfad4142b7cd12e9dacfcfef2efe1ebd1af6742ee5c"
+  },
+  {
+    "path": "data/repository/SeriesArtworkFallback.kt",
+    "sha256": "49d0aec1191e4892f7be3adcd7678dc9bfae98727ec3ab711e0f2c4eadecab5d"
+  },
+  {
+    "path": "data/repository/SeriesArtworkFallbackPolicy.kt",
+    "sha256": "1a966d114f1514aa2f8466fbfc7a6ad203806885655d48fbe524a81f0777e58c"
+  },
+  {
+    "path": "data/repository/SeriesArtworkIdentityResolver.kt",
+    "sha256": "15e795c9180b37f97c51c5dfc0d8022beeb67b7541027067d6884fb0d6a8fddf"
+  },
+  {
+    "path": "data/repository/SeriesArtworkRequestMemo.kt",
+    "sha256": "46ac2da705d9b701293381c92ed1c2aafbda406cf48b6460dadf09c91812d134"
+  },
+  {
+    "path": "data/repository/SeriesContentPolicy.kt",
+    "sha256": "38268c2c009a47dbcfe8f7fe0008049eb5ff6966a197c8f6c042dc397bbb431f"
+  },
+  {
+    "path": "data/repository/SeriesEpisodeDiskCache.kt",
+    "sha256": "52b5144fff2b92d6c081423dd63ccfd6fcab101d5b4af83844c5ec99e33fe13d"
+  },
+  {
+    "path": "data/repository/SeriesEpisodeLoader.kt",
+    "sha256": "829c0a48687febb0b426caced138e6bb69495fc65702e9decc881d23964e1fe8"
+  },
+  {
+    "path": "data/repository/SeriesEpisodesCodec.kt",
+    "sha256": "6f4dcb1d56fe7a4ae72d910a16626ef7827004b75c654007029f34011d03fa81"
+  },
+  {
+    "path": "data/repository/SeriesEpisodesRepository.kt",
+    "sha256": "a58b71aea0c6083c130ab432c1cf09a8c54bbddde927a359c5bcf660f145ebe6"
+  },
+  {
+    "path": "data/repository/SeriesJsonRecovery.kt",
+    "sha256": "de439c27e74b8a15b757487cba257ee30e16553231d8ed6901f0f4fd8238ca4f"
+  },
+  {
+    "path": "data/repository/SeriesSeasonArtwork.kt",
+    "sha256": "a573cf7de80b0757d9852dc7abdb743e8fd8bd5b2cf4725097e23266fec27a6e"
+  },
+  {
+    "path": "data/repository/TitleAliasResolver.kt",
+    "sha256": "2f01aff57d1f13832feff1b6f319eeaafd4b1baf412dcb544cd6fba81d5d7244"
+  },
+  {
+    "path": "data/repository/XtreamAuthenticationRecovery.kt",
+    "sha256": "a69654996bb0a95779b8349e661517c9df4165c558a218f20e44f93120244751"
+  },
+  {
+    "path": "data/resolver/M3uXtreamResolver.kt",
+    "sha256": "ac1579d01ed559d55afabf7789442ba6b485f5bfdfe7816910b80d32cba83f96"
+  },
+  {
+    "path": "data/storage/CatalogReusePolicy.kt",
+    "sha256": "60ba9991b49da27b0b97048f60ee84aef80ba3530767173d461b8a3c117d6134"
+  },
+  {
+    "path": "data/storage/PlaylistStorage.kt",
+    "sha256": "c47a18aaa78cf488ef02edf394b53ee7f17d701950e947ccb2ee230a354f20fb"
+  },
+  {
+    "path": "data/sync/AndroidM3uTransportStore.kt",
+    "sha256": "4313c0b62574179e70b501a4c036682b6477aa919ae7d3fc617db013b6f5b477"
+  },
+  {
+    "path": "data/sync/ImportAlternatives.kt",
+    "sha256": "18f5aba29e423ab546c5b8d686439884eabe991e501bd35d3b2a33c2d0de5dfc"
+  },
+  {
+    "path": "data/sync/M3uAccountProbe.kt",
+    "sha256": "b6f019a51be696c3c47c11d249a325b3c4e0bd8e3e05c135e2f4076f5f428a82"
+  },
+  {
+    "path": "data/sync/M3uSourceSynchronizer.kt",
+    "sha256": "2a1709ddf05cb444b49bc1ae1990a92e060a5685c44426ee14b99e45ecac76eb"
+  },
+  {
+    "path": "data/sync/M3uTransportPolicy.kt",
+    "sha256": "84cdd814346a17db16888dbfb6ff7b4078ae96ee3a2861520ea95def37d91336"
+  },
+  {
+    "path": "data/sync/ProgressiveXtream.kt",
+    "sha256": "00541fced613ee1086dfd1044e5b47a6fd0f443aa4167a5beb0e0e11987c5a28"
+  },
+  {
+    "path": "data/sync/SharedSync.kt",
+    "sha256": "5592d90c04b12789c591198e0c94352f3cea9d30e1242c042ab7a95f7f0118d6"
+  },
+  {
+    "path": "data/sync/XtreamCatalogWriter.kt",
+    "sha256": "380cd9e148d339830b6001930da4fedd0adf3d3500d92a844b6470d592d2e273"
+  },
+  {
+    "path": "domain/model/Category.kt",
+    "sha256": "b3b26f40cca3489d6cff523064c80f6cae28f332633c7cc08aec11b63940792d"
+  },
+  {
+    "path": "domain/model/Channel.kt",
+    "sha256": "0dcb5aeb88123106295fc54a2e9bf5639a0848b7add2083eb5be2e226bb4453b"
+  },
+  {
+    "path": "domain/model/ChannelIdentity.kt",
+    "sha256": "b3dbe5849fd7009980f4d03b7a65085b80316addb3c70952ade76544605ccfcb"
+  },
+  {
+    "path": "domain/model/Episode.kt",
+    "sha256": "ccf6fe68b64e5cd7a82897b0763b730b88e338b5a37a589e722f9f4057a1b7f3"
+  },
+  {
+    "path": "domain/model/FavoriteScope.kt",
+    "sha256": "9bfb426d0c43bc13b5dae6261bbc6f7f91b70f070c0dd7da65d16c78ddf7f9ee"
+  },
+  {
+    "path": "domain/model/Movie.kt",
+    "sha256": "55815caa55aab4bce7b047dfdc3380cf99dcf09156b6c8c581ad5cf1bda4319a"
+  },
+  {
+    "path": "domain/model/MovieDetails.kt",
+    "sha256": "15a0f87154005da704a8ef26cc3e87e68af202fd36d8eba37b0f9b9733abb041"
+  },
+  {
+    "path": "domain/model/MovieInfoDuration.kt",
+    "sha256": "f015265067c49f444772b6a0e7233355643746764758c9793ad112f0bd09c8ec"
+  },
+  {
+    "path": "domain/model/PlaylistContent.kt",
+    "sha256": "bca10f59176d6d06bab736911215bbf1a8050d4033f9d00cdb460b986acd224c"
+  },
+  {
+    "path": "domain/model/PlaylistSource.kt",
+    "sha256": "79f64f1720e50709b0708889d540ba2d1e9530474e11ac54e677858906882e7d"
+  },
+  {
+    "path": "domain/model/Series.kt",
+    "sha256": "a381094c5e917ed3763d2f59ae7f8871b0f0b6395c046edcd0d20724debd3ae6"
+  },
+  {
+    "path": "domain/model/repository/PlaylistRepository.kt",
+    "sha256": "0e09203e7b8210f361110668835d28be4707293527594a6994fa88db20fd7d62"
+  },
+  {
+    "path": "ui/components/AppKeyboard.kt",
+    "sha256": "eb4a091e5e54d08765232ef9db60e12d8ca542b575c6c6d31b14b8fc916261d4"
+  },
+  {
+    "path": "ui/components/CatalogBackPolicy.kt",
+    "sha256": "aa38abb52c74f84da21299c9eef3e1309d6312c1ac1eb5426bed7884b2b57f63"
+  },
+  {
+    "path": "ui/components/CatalogCategoryFocusGeometry.kt",
+    "sha256": "57f1c3d26ed5624274a265b4a15312d438b5cc2d6241b09a9c6fef85b9a95465"
+  },
+  {
+    "path": "ui/components/CatalogCategoryReturn.kt",
+    "sha256": "8f94d8f2659a0cd8906161ca7707b087c681d64ae9983a76cfd553a3480004bd"
+  },
+  {
+    "path": "ui/components/CatalogControlLook.kt",
+    "sha256": "c7eac0abafaafff981270b2e61e4860d39a7f396cd0f18b4b9e426f6fa2a9ec1"
+  },
+  {
+    "path": "ui/components/CatalogEscapeBack.kt",
+    "sha256": "ba72babb5d762ba7587e489c11ef4c8f0e0f1c6403b29e79e200dbb1e73ed1d0"
+  },
+  {
+    "path": "ui/components/CatalogEscapeRouter.kt",
+    "sha256": "a78a25b79ec4a3e222e9e7542db480d33c0e534b96a47dd18adea08222fb0d42"
+  },
+  {
+    "path": "ui/components/CatalogFavoriteHeart.kt",
+    "sha256": "87d94969be69fb4b1bb838b34266a8c11a98d426005bbd09c7452bf148aef6eb"
+  },
+  {
+    "path": "ui/components/CatalogFocusRecovery.kt",
+    "sha256": "2d15eee01d25094914cd0b839f25642b1bf54c9d8b142c2a76e8bf2ca27acfef"
+  },
+  {
+    "path": "ui/components/CatalogGridGeometry.kt",
+    "sha256": "84c1f08f0e390bb516f4e86d0e860156589c2274ba781b88b33983a33e78adb7"
+  },
+  {
+    "path": "ui/components/CatalogGridNavigation.kt",
+    "sha256": "0324f144167ac4ad47053dd5af1bb2306d1bad050588ca2646ee60dfa6c41fd0"
+  },
+  {
+    "path": "ui/components/CatalogLayoutPreview.kt",
+    "sha256": "9927e0fc5de06b4488f75391da563868fafd6d6d6d7855f4e5778d10806a2368"
+  },
+  {
+    "path": "ui/components/CatalogPagingSnapshot.kt",
+    "sha256": "19b4a427ca77b886a3bdcdaefe71e517c99f9d57cd8d0eeba4b6de8d367e1844"
+  },
+  {
+    "path": "ui/components/CatalogScrollMotion.kt",
+    "sha256": "b6ca9e48408938e5a7e385aea06a99c8b1b20f9a0eea245bb499f725c7e04b22"
+  },
+  {
+    "path": "ui/components/CatalogStyle.kt",
+    "sha256": "dec9e1c546fb4896cc62fd65c46b2eec8a987f05bfd8ee0ddc9f8f97161d35dd"
+  },
+  {
+    "path": "ui/components/CatalogThemeBackdrop.kt",
+    "sha256": "038978edb6b4851f0ddfce637b25aa0a31fac0720a41f6be2d3c9e7dca7abd58"
+  },
+  {
+    "path": "ui/components/CatalogTwoRowFrame.kt",
+    "sha256": "3b103a85fad2c1795af0d64ba308fee40d4b3fcc8e03f82e345bf1da0a8a8a73"
+  },
+  {
+    "path": "ui/components/CatalogWordmark.kt",
+    "sha256": "a96aa1564fa1e7f6521f9da4878ecac6d59d9fac1f1ca7f574450d153735802b"
+  },
+  {
+    "path": "ui/components/CinemaDetailsFallback.kt",
+    "sha256": "01d31e353733206066d8acd75ff24e9ef56f0f3f8c722a0654356346ad16f419"
+  },
+  {
+    "path": "ui/components/GenericPosterArtwork.kt",
+    "sha256": "df93060d2664170f2736a31ee18de03f64d31999a745895162c5e67e2559d185"
+  },
+  {
+    "path": "ui/components/HomeMenuCard.kt",
+    "sha256": "f811140798ec3d9e13e3350a70592e2d619e3809e3461cd17bbd7905aa03dce0"
+  },
+  {
+    "path": "ui/components/MarbleScreenPalette.kt",
+    "sha256": "41eabaf06e0d249f48c718118c9f570a4f162ab42dcd10dcca477088038d2d1f"
+  },
+  {
+    "path": "ui/components/MarbleSettingsButton.kt",
+    "sha256": "ac575d98acccbe7fce5e5764a2740a06d77821c748f61e73ab190e21d3aabe4a"
+  },
+  {
+    "path": "ui/components/MediaActionButton.kt",
+    "sha256": "1b6b7feadb82d67ab722cf2fd460e265949b022d3663d25d12b1cf37d9cce073"
+  },
+  {
+    "path": "ui/components/PhysicalKeyboardInput.kt",
+    "sha256": "f94eed2dca3594730726c8f045a68a57b7fad3ad1728d7a6f35f2571a7aa609e"
+  },
+  {
+    "path": "ui/components/PlaybackMenuClock.kt",
+    "sha256": "d652b16e7ce56398ac89f2bbd46766106914e6884f0d8b0fcf34fce0ec1dca7e"
+  },
+  {
+    "path": "ui/components/PosterSelectionFrame.kt",
+    "sha256": "7e8336976e23b68fc1cb75ee8c11624a4bf35cc870cc0bb6edf5293b7aa3adf0"
+  },
+  {
+    "path": "ui/components/ReferenceDetailHeader.kt",
+    "sha256": "0c07f7811043278fecc525b3f672bbee296583d50dbcfa50a4d1ba999ad78c9d"
+  },
+  {
+    "path": "ui/components/ReinforcedCatalogFocus.kt",
+    "sha256": "834e12a7305d9d4abd7d22a20dd0e9d9b3a42bc08dc96848b5def6f16f5a4024"
+  },
+  {
+    "path": "ui/components/SettingsLook.kt",
+    "sha256": "413f52bdfb9f9bc2eeba96e342db498146e4d1db0c3c5b97304e53802ab00022"
+  },
+  {
+    "path": "ui/components/SettingsPanels.kt",
+    "sha256": "e7adac8b7acf6cda9dbae334a7790fec7de6fa1423db9596582099360f394046"
+  },
+  {
+    "path": "ui/components/UnifiedMediaCatalog.kt",
+    "sha256": "2c92da07b8de9204034259c4862ba55fa5dda8cc51eacab301029dc33b73ee8f"
+  },
+  {
+    "path": "ui/home/AppStartupLoadingScreen.kt",
+    "sha256": "ed09259e9ef63e6f0ca43ba3cf1fa78a51791bdc4697691564617ba3c1740fc4"
+  },
+  {
+    "path": "ui/home/HomeScreen.kt",
+    "sha256": "e126094957e7fa4280c8b93734c3c8cdc9dbb4369f0f7b5904830325cb49bfed"
+  },
+  {
+    "path": "ui/home/MarbleHomeGeometry.kt",
+    "sha256": "0d0fef46c32b1a3d14c70db2411d9fad9d54bf6dae50693a07469e9f77463fa3"
+  },
+  {
+    "path": "ui/home/MarbleHomePngAssets.kt",
+    "sha256": "f95fdfbf848250b1dd5b4c78ff6f30f1974b2b784d3cff85f6b5f99b8cc10df8"
+  },
+  {
+    "path": "ui/home/MarbleLayeredHomeArtwork.kt",
+    "sha256": "d737e575cf9df45c3319ce5ac96c0c576a9f475c20b1718350dd9184261d80fe"
+  },
+  {
+    "path": "ui/home/MarbledHomeScreen.kt",
+    "sha256": "b643d636cb8dd134c22018514db739a7a9cbfb09da36453d4d63a5421953b4f7"
+  },
+  {
+    "path": "ui/kids/ClayTextureSlices.kt",
+    "sha256": "f8161db78cb0cbe5d9c7b2def798c7055abd8fbf3dd0ed699314b56c59d0d2f0"
+  },
+  {
+    "path": "ui/kids/KidsAppearance.kt",
+    "sha256": "09a32ccec738344e11e4e0d99e933ef698b80876324391f67ea1a9aff0709660"
+  },
+  {
+    "path": "ui/kids/KidsChannelsScreen.kt",
+    "sha256": "a5df8ce38f1383297782aaa8ed5d9f55b889f074f6368736d0136d716e03616d"
+  },
+  {
+    "path": "ui/kids/KidsCinema.kt",
+    "sha256": "151e0cb12640857b94f9130c914a72f13762207da0e6447f8dbde370d5e8d59c"
+  },
+  {
+    "path": "ui/kids/KidsLoadingCompletion.kt",
+    "sha256": "3ec6d030e013fe8ff6b7e1a4eea2e7ed16dce47b2c8774a9ba3b61051aef85c1"
+  },
+  {
+    "path": "ui/kids/KidsMediaCatalog.kt",
+    "sha256": "55f7053d28185d0d66c4afee8e5799824033d9fcf228281a78b300ad86842c01"
+  },
+  {
+    "path": "ui/kids/KidsNavigationPolicy.kt",
+    "sha256": "49cc9de518957fe3886b232d948f77fb5284125a11176d0bc03ffcaf5c0e73f4"
+  },
+  {
+    "path": "ui/kids/KidsNeutralLoadingScreen.kt",
+    "sha256": "431becff2a2e9ca7dd473a4b813fe7554ab899c9742fbccecc73d9eec29122f7"
+  },
+  {
+    "path": "ui/kids/KidsNewLook.kt",
+    "sha256": "7fc9c89cddeb7e7159606a8bc3613f826f59ab2f74fd563a1489e02f5c23d637"
+  },
+  {
+    "path": "ui/kids/KidsPolicy.kt",
+    "sha256": "0cc344872bf76866832709dd42434a0de128936d0a05295a2456aa9dedddecb6"
+  },
+  {
+    "path": "ui/kids/KidsScreen.kt",
+    "sha256": "c720450db43aff3ef4ca782fd42b7c04441435ae7e743a30e5ad3ca70ac7f7fc"
+  },
+  {
+    "path": "ui/kids/KidsSettingsAccess.kt",
+    "sha256": "c2f0caff358031f0f7df406d79893fd87eecdad46c8f8fcf42b315ef582c505b"
+  },
+  {
+    "path": "ui/kids/KidsSettingsPermit.kt",
+    "sha256": "b10f5b2014e632755bdaac8259463660766e3955a2a797eafddbf26156a96852"
+  },
+  {
+    "path": "ui/kids/KidsStartupPolicy.kt",
+    "sha256": "835d900e0985e5dce95bf71d5ee219342b1fd02ebfc2c4aa0db167046d136192"
+  },
+  {
+    "path": "ui/live/LiveChannelConnection.kt",
+    "sha256": "40b1ebfa33a4fa06dca15d811b66ab5e27d6f69a8ce58f620f431a32908e1b04"
+  },
+  {
+    "path": "ui/live/LiveChannelNavigationPolicy.kt",
+    "sha256": "7079991c25dd211fd0c1c66030715440bdfaece271b1f2ffb307e269bc39ae92"
+  },
+  {
+    "path": "ui/live/LiveImageSettings.kt",
+    "sha256": "49859780c1598413c052e84241db7dc74d685bf4af64d1cf2f825d1dcf6ffe87"
+  },
+  {
+    "path": "ui/live/LiveMenuNavigation.kt",
+    "sha256": "8289cb129559162a85ef8b296296faabf16d90f6dd15bc7920f09f9448cb4960"
+  },
+  {
+    "path": "ui/live/LiveSlimMenu.kt",
+    "sha256": "1472ca5c6dd08adc2cabcee3596fb7efc2ddc85cde993f1656068d4458f36adf"
+  },
+  {
+    "path": "ui/live/LiveTvScreen.kt",
+    "sha256": "389dbc49b15020e3be9693a440aaec731f5c94b6bc3edf76dca7274a0373fe5b"
+  },
+  {
+    "path": "ui/live/LiveTvViewModel.kt",
+    "sha256": "b45b1556372405b071c7f427bf8fd41a3dbe1db67a4ab9b194be5b5a0e399806"
+  },
+  {
+    "path": "ui/live/StableLiveVideo.kt",
+    "sha256": "718efd833afaedadd38032e16f62b42238c2a86aaae1d8e526e859c8e62661e4"
+  },
+  {
+    "path": "ui/movies/ActorDetailsScreen.kt",
+    "sha256": "f8b21464078c8869b7526cb4cfce58ead86d114296f84f92e47d1553d9e6f5db"
+  },
+  {
+    "path": "ui/movies/CachedCarouselPolicy.kt",
+    "sha256": "28d5996394b00cc2effa89ed63382c1bfc3a504cf35879e2f2be06535d27ab50"
+  },
+  {
+    "path": "ui/movies/CatalogPosterFallback.kt",
+    "sha256": "bb4c9607e355219ae9b4fd5c16b31f413d292da8635693f197a21863e2e7feb9"
+  },
+  {
+    "path": "ui/movies/CategoryPosterPrefetch.kt",
+    "sha256": "f826f913baa9881e66d0941a9f6e53815904a1a4e2283a24981a0844eac8c6d7"
+  },
+  {
+    "path": "ui/movies/MissingCastPortrait.kt",
+    "sha256": "bcb606a9f639c060d63b1c1cbacd7820fb22e2272347705413d3a93141f71b69"
+  },
+  {
+    "path": "ui/movies/MovieDetailsScreen.kt",
+    "sha256": "0f5f0494920d5f67c902305b3ba20797a0a39302d3927863cf31404df2f50f8b"
+  },
+  {
+    "path": "ui/movies/MovieHoldPolicy.kt",
+    "sha256": "f514d2cd73d315ea7663b0f7a86c34b2627897f7fbbc0989e04c7bc2353c93e6"
+  },
+  {
+    "path": "ui/movies/MovieOpeningPolicy.kt",
+    "sha256": "29b38bf215e9ac9c0b0d6a242735661277a0579bb09403b43f998d02a7205847"
+  },
+  {
+    "path": "ui/movies/MoviePosterLoader.kt",
+    "sha256": "04dc0725cc6787fa5e968813bbc5282f9baccad0fa2facf5085a422f53be324a"
+  },
+  {
+    "path": "ui/movies/MoviesScreen.kt",
+    "sha256": "ac2a9ee86b55f5544849b4645dfab47a493d5be271a28ac01bc5e8160afd9d6f"
+  },
+  {
+    "path": "ui/movies/MoviesViewModel.kt",
+    "sha256": "2f64a8a5f5c1e43c287d2e15f8ec17639fbcf7eb1fc8daa39ede1a47f659a9bd"
+  },
+  {
+    "path": "ui/playlist/PlaylistFieldNavigation.kt",
+    "sha256": "108e9fe448977ebac7b799de84be61112e4f504202fcdd58f8b1952acce13be4"
+  },
+  {
+    "path": "ui/playlist/PlaylistGlass.kt",
+    "sha256": "d9a21e7a6ca8a76b23f39aca7f72dfa7d514af0bc91c0a3c8b6346eafb7f4039"
+  },
+  {
+    "path": "ui/playlist/PlaylistListScreen.kt",
+    "sha256": "089c958afeeb303a02985c1658ab8bb50984de9d509e79c3b27110719ae69671"
+  },
+  {
+    "path": "ui/playlist/PlaylistSetupScreen.kt",
+    "sha256": "2404150c84a73822642b878e39c46399dd3c9614ff6b0a09f8256b6232684340"
+  },
+  {
+    "path": "ui/series/SeriesDetailsScreen.kt",
+    "sha256": "6ad0840ee4db96ff925a6d44ae9d8bc7333ddc52163e736e9e4d1f0beb653558"
+  },
+  {
+    "path": "ui/series/SeriesLoadingOverlay.kt",
+    "sha256": "fb053ff0a3e4a42db6e0ff8d6f1ab21dc5373d3d4f4020b63ee267362e7b69c0"
+  },
+  {
+    "path": "ui/series/SeriesOpeningGeometry.kt",
+    "sha256": "bd7eb5b8db65512a13e14819d767451a7a842bc874f87dbaf7e7a3ee31cfc743"
+  },
+  {
+    "path": "ui/series/SeriesOpeningTiming.kt",
+    "sha256": "4af3969b90eb666aca9edf3e36700a26c86022d12a0a8d08446c3dad5cdb7547"
+  },
+  {
+    "path": "ui/series/SeriesScreen.kt",
+    "sha256": "e95946eb2453d75fa2c179abd4cfe1e89d292c8483b437f215d84af8dc264454"
+  },
+  {
+    "path": "ui/series/SeriesViewModel.kt",
+    "sha256": "4059ccc9040bd646dd77b89f3e7bb1caff9caa0e74a65dcf63ab7f07b76b33d5"
+  },
+  {
+    "path": "ui/theme/ActiveThemePins.kt",
+    "sha256": "cf9bcb5c871db2009e2d991a1b27a140fa884d07765f52262c8b0a32acaccee7"
+  },
+  {
+    "path": "ui/theme/ArtworkSampling.kt",
+    "sha256": "e4e2dfbc0885ea51eaebc035cf85c3d317a1ef42a28fda3b39a0a2f05c524c07"
+  },
+  {
+    "path": "ui/theme/BackdropBlur.kt",
+    "sha256": "07060ab5f910c3ed7114f618f22adaecb347b64cadd88ea095f944076ef47059"
+  },
+  {
+    "path": "ui/theme/Color.kt",
+    "sha256": "94872f58f787437f0027b9341794dcf93faf51e2fe41b12f412612ec11b275eb"
+  },
+  {
+    "path": "ui/theme/HomeMetalTintPolicy.kt",
+    "sha256": "aaae8cde1483466e520ab1714ef808a699b1ec1a7dc67f0bc871344684f391cc"
+  },
+  {
+    "path": "ui/theme/MarbleArtwork.kt",
+    "sha256": "73900a1fe5b63154de46087023cb08fb6b5137e49f5fe4fcd381eca01cea4648"
+  },
+  {
+    "path": "ui/theme/PremiumThemes.kt",
+    "sha256": "6c99c5d7479d46d244b6620feb7dc3d20bfddfa6077a0e0a06cf62ee43dde2fb"
+  },
+  {
+    "path": "ui/theme/SelectionTheme.kt",
+    "sha256": "f8b462b091a1b5371ea218716abfaa469658b778a593c2c19dfed3b0faf0125f"
+  },
+  {
+    "path": "ui/theme/Theme.kt",
+    "sha256": "b2c8459addded063b1b61031ddacc1c7db55363753317e026fd890f1b824786f"
+  },
+  {
+    "path": "ui/theme/ThemeArtwork.kt",
+    "sha256": "d15a1cf6684ac3c0582c768fab45e32a20c659fa694e35f683e96807b77248cc"
+  },
+  {
+    "path": "ui/theme/Type.kt",
+    "sha256": "5a26c338037929f494ee8ebca4c802f5b7a4ba1338232c7cc1b024459f0eff38"
+  }
+]
