@@ -1,0 +1,14 @@
+PLAYER — PAINEL TRANSLUCIDO E AJUSTE CENTRAL / VALIDACAO
+Base cumulativa: java.zip original 02/11/2026 SHA256 3f9da8530971da6f9518c882dbe5be5703e8e7b6be177a5f1a864048e6de2c84 e revisoes conhecidas 845fb56, 58725bf, a0a550b, 3d0b7a6, aa237e8, 135485c.
+51 fontes Kotlin instalados/atualizados; 282 Kotlin ativos. 140 remocoes antigas preservadas apenas no backup local (138 backups de fontes e duas telas Kids vazias).
+
+COMPILACAO: :app:compileDesempenhoKotlin e :app:lintDesempenho passaram no fonte final. Lint sem erros; avisos e sugestoes completos acompanham o pacote. Nenhuma verificacao global desativada.
+TESTES: 51 verificacoes da logica de producao: limite 1999/2000ms, DOWNs repetidos nao reiniciam a contagem, favorito uma unica vez durante a pressao, soltar apos favoritar nao reproduz, cancelamento/foco, persistencia e isolamento por perfil/playlist/tipo, leitura de JSON corrompido, fotos oficiais de temporadas, caminhos invalidos, falha de foto seguida da alternativa e propagacao de cancelamento sem imagem obsoleta.
+ADICIONAL: candidatos de capa especifica seguidos da capa da serie, ausencia/invalidade de URL e falha de download com fallback real para capa da serie passaram. Continuar/Do inicio sem sombra, caixa ou ripple; foco apenas na cor. Mini menu central do ajuste manual/zoom, sem painel lateral; favoritar em 2 segundos, selecao apenas pela cor em controles, catalogo e submenus; sem caixas individuais ou separadores duplicados.
+CONTRATOS: capas sem glifos, mesmo vetor de coracao da ficha preenchido em rosa forte fora da imagem, sem sublinhado nos controles, mesmos callbacks de episodios/CH, navegador sem controlador de video, ficha/player compartilham carregador de temporada, miniaturas horizontais com fundo como fallback.
+REGRESSAO: 43 verificacoes anteriores do player/legendas/sincronizacao, 23 de metadados/grade/Voltar e cinco grupos de politicas Kids passaram.
+INSTALADOR: bases original e ultima entrega, fontes ja limpos, reaplicacao idempotente, backup/restauracao byte a byte, recusa de fonte alterado/pacote corrompido e protecao na restauracao passaram. Sintaxe dos tres PowerShells verificada.
+
+LIMITES: testes de logica e contratos nao simulam o foco/controle do Android Compose. Sem TV/emulador ou medicao de FPS nesta validacao. Conferir escala, pressao longa real, fallback com o provedor e menus na TV. A imagem aprovada e uma proposta visual, nao uma captura desta compilacao.
+DADOS: sem nova dependencia ou migracao de banco. Favoritos da ficha preservados; novos favoritos de filmes/series do player separados, sem importacao automatica da ficha. Favoritos de episodios do player mantidos. Nao apaga dados do aparelho. Sincronizacao autenticada de legendas anterior preservada; site/central indisponivel neste ambiente.
+ENTREGA: fontes cumulativos e scripts com backup. Aplicar.ps1 -Testar gera o APK com as configuracoes do projeto do usuario. Nenhum APK contendo configuracoes locais acompanha o pacote.

@@ -1,0 +1,1962 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt",
+    "sha": "c9acfac859e1229e802a5f7d332a055f84bd15ea0fc322c64519edae832f7034",
+    "before": [
+      "0709f31b2948535c772f4c394c0503b4b72c5f208ab93cbdecf540193eb19483",
+      "16b07d84030212902eb848c8cf5de24901f32d9d36c027a8b645f9d4ff23a401",
+      "c9acfac859e1229e802a5f7d332a055f84bd15ea0fc322c64519edae832f7034"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt",
+    "sha": "3fe4d85dfd6e02159dbbbb4907ce81ba8826041755b71e3a85334d5ef074ebe8",
+    "before": [
+      "3fe4d85dfd6e02159dbbbb4907ce81ba8826041755b71e3a85334d5ef074ebe8",
+      "821cbdbce20f994d0cc59baa14e487a9ae7a93d2394e41db4f2c6c37cd1fc56f"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalContentSyncPolicy.kt",
+    "sha": "4183f11a855b18a6cae9a0fd87952b203f087aa3f441b4f33b3645c3328364f8",
+    "before": [
+      "4183f11a855b18a6cae9a0fd87952b203f087aa3f441b4f33b3645c3328364f8"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalMessagingService.kt",
+    "sha": "dfd986a76a78ae5394b341cd8f4eafe262a99e5209e57c3f846e40068793ed39",
+    "before": [
+      "bde2683b4e288d1f8e1bad1f5acb3ebe7e74309f72e4215d114a11a5ce8980d0",
+      "dfd986a76a78ae5394b341cd8f4eafe262a99e5209e57c3f846e40068793ed39"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt",
+    "sha": "e4719c371eec2549fed611b175bea844122c25d2fe638a936483c2dc3ca062aa",
+    "before": [
+      "34bf90a8d8db490984498f2c479847b99fa1267944a0073679354694d7b3b082",
+      "e4719c371eec2549fed611b175bea844122c25d2fe638a936483c2dc3ca062aa"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "sha": "7641b7cfbbfda28bf9c5eb8adf2f3647448ea3b7c2b92c75b68dec3b5a6b738f",
+    "before": [
+      "3e40382afa2442b2e976c99febd3ec2839df5289817b80fc530891b517b4619e",
+      "7641b7cfbbfda28bf9c5eb8adf2f3647448ea3b7c2b92c75b68dec3b5a6b738f",
+      "86ea7edb4d202e757ece602c12d2f0b89da92861ccd65380930a3d98f238ae08",
+      "ae9439f29ef6074ecc6587216eb7fbca8b02c2d0dd26587e3deebb3a5efa64b8",
+      "b51be5c7ed0564cc0806c825945d11230d7835bae437392044154caf80e417f8"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ParentalControlsUi.kt",
+    "sha": "7171e406d8e16b771e28a67fd6b276823f4b59b1a07f695ef5040a6cd4b70748",
+    "before": [
+      "6c939c4326f156e65fa11a7bb691d934ec1d0e150c801da6f9361c670faf1d7d",
+      "7171e406d8e16b771e28a67fd6b276823f4b59b1a07f695ef5040a6cd4b70748"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/NeutralPlayerControls.kt",
+    "sha": "0bc263f22519c2b0b698816388bc6b9ef1ef119c022dca9c2f5df0d3ada19516",
+    "before": [
+      "2cb0d0a4f39b2edfb387858c8bce6b6a4d5ebb108121bcea5767145dc662a5fb",
+      "89cd181f17af0797f268c10190d6de8c73aa7b4ce7ae8ad939c021079e21207e",
+      "b9e445931bd2147a257a27df87003e010502e75b914195d39920eedb2c58ceb1",
+      "dac32f3da26589876ad05a4b889d07da7960dc97509fef37901ffeea40acf6b3"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackCatalogBrowser.kt",
+    "sha": "44f159d6c6537da77266dd9484c625e21554f51ce806594438786fbae42e68aa",
+    "before": [
+      "173d2db1287a648971c81962cf717c40e624f285c48729a634927e97e2cf46fc",
+      "1a9ec41bc88739db95606356f5d5b4ea2050844807417ae420afddbc8b8da339",
+      "8cae4adf2923c52843369481728872470ef66de2af90fe9a81d1e0ba071e9512"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackCatalogPolicy.kt",
+    "sha": "3fe5f94e2898f29d719aa96b550e9db34bf859ca900504a3a364eaef80fe8c51",
+    "before": [
+      "3fe5f94e2898f29d719aa96b550e9db34bf859ca900504a3a364eaef80fe8c51"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackResumeCinema.kt",
+    "sha": "7e584a4cf7bbf14c87dd740730c3de7451182118ca028ee2136b26d990675330",
+    "before": [
+      "42ee8b1ff671a6c95dc7a1f2292f1fd42b0d050b848d7733b129834dd992a64c",
+      "f78cc89c07c7f95e77e7db7ae8ef8502094bb12acf67ff2b76c573aa520994bd"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt",
+    "sha": "0f04b1b96aa4ba3f212dde9beb8de49d2ed7bda0aca141e51a054bd85a3f3267",
+    "before": [
+      "0526dd1767f37dd95bea924073d8e85b7af1ffebe3f488213c053fb2a30c1a72",
+      "0f5bc610c415a456a597163d666478962662a5090c1cc1a205066425d45a43d7",
+      "50fe444546809e23cfe68317953138b35328c8a55a5adb59dd8d72ce6e9df22d",
+      "64d433a62cc3a1ea2f4fef515a82468bd612d38ed452cd3a3cb2a591000da93b",
+      "aff6c391e6c7c5334d90bb36a3d4a7ac6e9b964315d12592d6af5ec0adbdece1"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlayerCatalogPress.kt",
+    "sha": "17471379f7cee6c1301f3fbb865c5164a91e201af49f9f4e3dd9c60de2914988",
+    "before": [
+      "17471379f7cee6c1301f3fbb865c5164a91e201af49f9f4e3dd9c60de2914988"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlayerEpisodeFavorites.kt",
+    "sha": "9fa03abc668d27f803e15965f7979399d769ad59369d3b31d7c9fc5d31917c8e",
+    "before": [
+      "9fa03abc668d27f803e15965f7979399d769ad59369d3b31d7c9fc5d31917c8e",
+      "cb689d78f8ebbe81971438e35e9b7b983ff4fbf9599fef34d27c62cabefd2661"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlayerSeasonPosterPolicy.kt",
+    "sha": "177eb677801a3ba6e51df1f3e2efcd60ce4333a81fde322948f921fd9ecf4fe0",
+    "before": [],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlayerSeriesArtwork.kt",
+    "sha": "771cc2545b801cffcd5414d28656c1b685927a3689f1569688ccbb7f748775db",
+    "before": [
+      "771cc2545b801cffcd5414d28656c1b685927a3689f1569688ccbb7f748775db"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlayerTheme.kt",
+    "sha": "88447dbc012a736a3c2e6ceec76a3ebc3feedf3138d7374fb0e1d8e03579138e",
+    "before": [
+      "c4ac34588c466f62310e94b81f6e6c1d6ed75d93da0590c8de7944f42a7402d7"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ScreenFormatPanel.kt",
+    "sha": "ad7c6e28876621e794ef7a9d566826a7c89a7a09a6f099dcd2addf713f2303fc",
+    "before": [
+      "6598a73496ecc5c2f4c9b544ba3859b8e5f9dd910a1f6e51650cfd678c6d7c41",
+      "bd2f6b678fec848fe2068d524f3ae9f58dede50389eb2bea60bd0d1adb9d096e",
+      "dd30419c81f96c7bac1aa7ad50d95bb6000954049347d49e1e2f07bb55c74dda"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleAppearance.kt",
+    "sha": "7a823840368efe44ca1fc358a15ff0b1b8250a2be6107d35c6491619b495b00d",
+    "before": [
+      "315fe184c8ac6e5d4a8e1071ae038a13611704fcf60a4f35ca682e8ca125c4b1",
+      "7a823840368efe44ca1fc358a15ff0b1b8250a2be6107d35c6491619b495b00d"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleAppearanceRendering.kt",
+    "sha": "44aa26a1f862acf1d9b794c83ebedaecd4a04191bdfffc0f4b537920a7bc0a9b",
+    "before": [
+      "44aa26a1f862acf1d9b794c83ebedaecd4a04191bdfffc0f4b537920a7bc0a9b",
+      "75ffc51cc156962adb2c9140b5871fa4cf83a9b936fe67acc1a7555f361577e8"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleProviderUpdates.kt",
+    "sha": "6325f142db97693d4e517a1cc42ecf8c08365ae89e63fdbc8fde7fbf23322be0",
+    "before": [
+      "6325f142db97693d4e517a1cc42ecf8c08365ae89e63fdbc8fde7fbf23322be0"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheStorageBudget.kt",
+    "sha": "aadf8499e33531ed814998caa4077417449546622edea053ca3c1996c4797ef0",
+    "before": [
+      "aadf8499e33531ed814998caa4077417449546622edea053ca3c1996c4797ef0",
+      "c2dc582adcc1a7b76d21eecee1006ec5301c61dd4863e355b34233be37f85e2c"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/CatalogDetailsWarmupCache.kt",
+    "sha": "62ffcb7977b6e4012c4fe6fb5fdfceb7c9ec55b4cb782b5f7c934bacc9708420",
+    "before": [
+      "62ffcb7977b6e4012c4fe6fb5fdfceb7c9ec55b4cb782b5f7c934bacc9708420",
+      "8c018f25c7ab4c61a888e79d876f39699ab73ceef2bcda5d38a881fe463aa0c0"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogMetadataCache.kt",
+    "sha": "df891881c3bbfa38f52a2cbf134d865c331220766cf6f5c4de5d498078d8c531",
+    "before": [
+      "df891881c3bbfa38f52a2cbf134d865c331220766cf6f5c4de5d498078d8c531"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogMetadataDiskCache.kt",
+    "sha": "799fb9b23b1f54b9ece9873da6a94aee5563f0fa4dd4c16a133f694e612399e0",
+    "before": [
+      "799fb9b23b1f54b9ece9873da6a94aee5563f0fa4dd4c16a133f694e612399e0"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogMetadataIdentity.kt",
+    "sha": "65d744d3e96d2762baccff74443f7a076a14941aeecbe50c43b6ebcdd1d11c45",
+    "before": [
+      "65d744d3e96d2762baccff74443f7a076a14941aeecbe50c43b6ebcdd1d11c45"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/CatalogSeasonArtwork.kt",
+    "sha": "28c6c235c7493dc4de0a4b9613d0831708e53599fcb114a7430b72e308cfcae1",
+    "before": [
+      "28c6c235c7493dc4de0a4b9613d0831708e53599fcb114a7430b72e308cfcae1"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt",
+    "sha": "a3a5965494dd04da2c1b55787272a6ce65f388345b4e9cf4e367966240f8fce8",
+    "before": [
+      "5700147a80f92ed8fbcc91c1130a8be44ce31ac4bf8d2762af8e4f5a75a14e78",
+      "a3a5965494dd04da2c1b55787272a6ce65f388345b4e9cf4e367966240f8fce8"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesArtworkFallback.kt",
+    "sha": "49d0aec1191e4892f7be3adcd7678dc9bfae98727ec3ab711e0f2c4eadecab5d",
+    "before": [
+      "26416640ca363520444c4e9f168d5643e88088e2b4cf3aa17ccba934bcd92af9",
+      "49d0aec1191e4892f7be3adcd7678dc9bfae98727ec3ab711e0f2c4eadecab5d"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesArtworkIdentityResolver.kt",
+    "sha": "15e795c9180b37f97c51c5dfc0d8022beeb67b7541027067d6884fb0d6a8fddf",
+    "before": [
+      "15e795c9180b37f97c51c5dfc0d8022beeb67b7541027067d6884fb0d6a8fddf",
+      "6b7d915d564f5c7381c48d9093cc62283aa1c5bf04b37520efd3382e800cd398"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/SeriesSeasonArtwork.kt",
+    "sha": "a573cf7de80b0757d9852dc7abdb743e8fd8bd5b2cf4725097e23266fec27a6e",
+    "before": [
+      "a573cf7de80b0757d9852dc7abdb743e8fd8bd5b2cf4725097e23266fec27a6e"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogEscapeRouter.kt",
+    "sha": "a78a25b79ec4a3e222e9e7542db480d33c0e534b96a47dd18adea08222fb0d42",
+    "before": [
+      "a78a25b79ec4a3e222e9e7542db480d33c0e534b96a47dd18adea08222fb0d42",
+      "db063cbb2eaa33f1c169ad178bfbb31a6b89fa52819ec43ea44b507b8361b1a8"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogFocusRecovery.kt",
+    "sha": "2d15eee01d25094914cd0b839f25642b1bf54c9d8b142c2a76e8bf2ca27acfef",
+    "before": [
+      "2d15eee01d25094914cd0b839f25642b1bf54c9d8b142c2a76e8bf2ca27acfef"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogTwoRowFrame.kt",
+    "sha": "3b103a85fad2c1795af0d64ba308fee40d4b3fcc8e03f82e345bf1da0a8a8a73",
+    "before": [
+      "3b103a85fad2c1795af0d64ba308fee40d4b3fcc8e03f82e345bf1da0a8a8a73",
+      "b972a8eb8ed14aa42baa739e9a2906a0308e71cf3eeb09dffbac742b832923c8"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/PlaybackMenuClock.kt",
+    "sha": "d652b16e7ce56398ac89f2bbd46766106914e6884f0d8b0fcf34fce0ec1dca7e",
+    "before": [
+      "67d981703ed5f1c59ccfb995279826cda08f7ce6dbc7fb7d7439a69a5a77669f",
+      "d652b16e7ce56398ac89f2bbd46766106914e6884f0d8b0fcf34fce0ec1dca7e"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/UnifiedMediaCatalog.kt",
+    "sha": "2c92da07b8de9204034259c4862ba55fa5dda8cc51eacab301029dc33b73ee8f",
+    "before": [
+      "2c92da07b8de9204034259c4862ba55fa5dda8cc51eacab301029dc33b73ee8f",
+      "61cfcaba6d02a797302c44b55f0813bddf77fc808dfc4cd5a36a95bb3ebd0e51"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbleLayeredHomeArtwork.kt",
+    "sha": "d737e575cf9df45c3319ce5ac96c0c576a9f475c20b1718350dd9184261d80fe",
+    "before": [
+      "8823055348f86648cb16ae213366a7d19e0055bc0f63659dbf1b865399de430f",
+      "d737e575cf9df45c3319ce5ac96c0c576a9f475c20b1718350dd9184261d80fe"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/MarbledHomeScreen.kt",
+    "sha": "b643d636cb8dd134c22018514db739a7a9cbfb09da36453d4d63a5421953b4f7",
+    "before": [
+      "77d47cfedebf4086ffad5eaa80b765d9f77f6311da3256bd2f24a08c9f04d989",
+      "b643d636cb8dd134c22018514db739a7a9cbfb09da36453d4d63a5421953b4f7"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsAppearance.kt",
+    "sha": "09a32ccec738344e11e4e0d99e933ef698b80876324391f67ea1a9aff0709660",
+    "before": [
+      "09a32ccec738344e11e4e0d99e933ef698b80876324391f67ea1a9aff0709660",
+      "da207194f808104a96283817e6d103270825e0cedd92dfdd553a3717b35d6fff"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsChannelsScreen.kt",
+    "sha": "a5df8ce38f1383297782aaa8ed5d9f55b889f074f6368736d0136d716e03616d",
+    "before": [
+      "36b0abff21dd3a27d27ffbe021c5a8eaa257b56545567deb8a2185fa87173ce1",
+      "a5df8ce38f1383297782aaa8ed5d9f55b889f074f6368736d0136d716e03616d",
+      "aa15fa1bf4827a11deee15f514aa6f8494d6dfa3deee90cf5773282e0f69fc11",
+      "c8ae7cc1630ef6cd1954fb1d6c787f89e21ef73f664fc9daba46bbdcb95168a8",
+      "d3812505c2652ad3754dd82bb19862accc66c91baa00c4e8fe631b18ca84ea48"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsCinema.kt",
+    "sha": "151e0cb12640857b94f9130c914a72f13762207da0e6447f8dbde370d5e8d59c",
+    "before": [
+      "151e0cb12640857b94f9130c914a72f13762207da0e6447f8dbde370d5e8d59c",
+      "6b71f90c119ae4838135ca119652ff3f56255b9410866805068b3dda08abbd15"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsMediaCatalog.kt",
+    "sha": "55f7053d28185d0d66c4afee8e5799824033d9fcf228281a78b300ad86842c01",
+    "before": [
+      "55d6009ebbd7c908636e99dc98d7a2fc04f9957804023d75e1fd34d949a1c8a3",
+      "55f7053d28185d0d66c4afee8e5799824033d9fcf228281a78b300ad86842c01"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsNavigationPolicy.kt",
+    "sha": "49cc9de518957fe3886b232d948f77fb5284125a11176d0bc03ffcaf5c0e73f4",
+    "before": [
+      "49cc9de518957fe3886b232d948f77fb5284125a11176d0bc03ffcaf5c0e73f4",
+      "f1e07ba601371e3b7fa310d0b8745daa5ca7e5041aabf5cf26c7ae8ce410cd59"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveSlimMenu.kt",
+    "sha": "1472ca5c6dd08adc2cabcee3596fb7efc2ddc85cde993f1656068d4458f36adf",
+    "before": [
+      "1472ca5c6dd08adc2cabcee3596fb7efc2ddc85cde993f1656068d4458f36adf",
+      "97f9e854d05dc61216f4750a5b70d54a5d3c0e6d0c180b08c07e484ed66318e3"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt",
+    "sha": "389dbc49b15020e3be9693a440aaec731f5c94b6bc3edf76dca7274a0373fe5b",
+    "before": [
+      "389dbc49b15020e3be9693a440aaec731f5c94b6bc3edf76dca7274a0373fe5b",
+      "623998a6048381aa98a930904b16eb28a3a867c8c3d3aa5db83c8f2c9341553f",
+      "b1ad56e6349dfe4be49a70b84e33f905134de61dae2575ca2449dbf84c706f51"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/CatalogPosterFallback.kt",
+    "sha": "bb4c9607e355219ae9b4fd5c16b31f413d292da8635693f197a21863e2e7feb9",
+    "before": [
+      "bb4c9607e355219ae9b4fd5c16b31f413d292da8635693f197a21863e2e7feb9"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt",
+    "sha": "ac2a9ee86b55f5544849b4645dfab47a493d5be271a28ac01bc5e8160afd9d6f",
+    "before": [
+      "78ad628cf8267f8f1d9b58f0222e2cedcfdee71708fc0d7d6eb6f1004a0c6d71",
+      "ac2a9ee86b55f5544849b4645dfab47a493d5be271a28ac01bc5e8160afd9d6f"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt",
+    "sha": "9771d9c50d408a209e548f576dce79e5b86afd85e4f2245fb69e0b51562bd192",
+    "before": [
+      "df07665724fab3bf42c2c9f2d8d8a60e9261f88d33fb76d4268df7b5431a2793",
+      "df66f9927aca0fc76c335eba34c836576ebdd46e4df4335bf11ed8f40e20d200"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt",
+    "sha": "e95946eb2453d75fa2c179abd4cfe1e89d292c8483b437f215d84af8dc264454",
+    "before": [
+      "84054f43e18fc214ae2e952c7363eb50963d447865cf1edaf0fc2e06b2eda218",
+      "e95946eb2453d75fa2c179abd4cfe1e89d292c8483b437f215d84af8dc264454"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/PremiumThemes.kt",
+    "sha": "6c99c5d7479d46d244b6620feb7dc3d20bfddfa6077a0e0a06cf62ee43dde2fb",
+    "before": [
+      "6c99c5d7479d46d244b6620feb7dc3d20bfddfa6077a0e0a06cf62ee43dde2fb",
+      "a46c0a745daf3a2d67b8c4ad37a556977099cbcf8c65cba03adbcb971f8f8ef9"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/ThemeArtwork.kt",
+    "sha": "d15a1cf6684ac3c0582c768fab45e32a20c659fa694e35f683e96807b77248cc",
+    "before": [
+      "187f4a679f602a69bad4a31833b0eded19a3bfad33a14b487887ffbc974e45a8",
+      "d15a1cf6684ac3c0582c768fab45e32a20c659fa694e35f683e96807b77248cc"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt.backup-20261015-232514685",
+    "sha": null,
+    "before": [
+      "32cc9cc0ae8c8691ee083b4aa7cef82c20f7abb8ea76e025fd20d22cb59d9029"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt.backup-20261014-205333451",
+    "sha": null,
+    "before": [
+      "befdadffab557f2a5ba16824306a869333ffebc01b5502f4e5e77a4cf1de3d74"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt.backup-20261015-230146959",
+    "sha": null,
+    "before": [
+      "2ded01d84afb5dad40aa75ac4a4cb1d872aa5cedae2e648b5112ab9f61a5cab3"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt.backup-20261015-160500541",
+    "sha": null,
+    "before": [
+      "8b347b222f1ffdc34ed45f49bead64bc1ed3341a450826c944a87ef167b9b780"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt.backup-20261015-031203908",
+    "sha": null,
+    "before": [
+      "1cf517c96145ab987ccae188e191fb190b837ed1b40dbb8f91a98f71fb6021db"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt.backup-20261015-185944064",
+    "sha": null,
+    "before": [
+      "f88a659a091559a6b17c9eded1881ee196821b1061ee961d12129e63f0e9a1da"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/MainActivity.kt.backup-20261016-151032713",
+    "sha": null,
+    "before": [
+      "e5a3af592d4ccc8e9b5bfbc446b2f9a0d4df48459f244d3393fdf322a8fa67f2"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentity.kt.backup-20261014-210009125",
+    "sha": null,
+    "before": [
+      "9481f8d68b5a46f046208b440679f09c677e16b5d53faec4eea55256488525cd"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalQr.kt.backup-20261015-115029396",
+    "sha": null,
+    "before": [
+      "86135230ed7cfaf362992cc3c6604f0f74b00080bd7d9beac12b62bffa1159c3"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalQr.kt.backup-20261015-122752742",
+    "sha": null,
+    "before": [
+      "2c483ffe411c5de95a8e41af6efe34058d9fd1c31c54463091d433723c22684e"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt.backup-20261015-031203908",
+    "sha": null,
+    "before": [
+      "e73c0e94e0c28e406b306647eeebd5572b523e16567cf4f777da1797dd50bab2"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalQr.kt.backup-20261015-121334543",
+    "sha": null,
+    "before": [
+      "2d29739cad4f20d302c497d9e1d87dde62918b1198556b066453a232e6972bd4"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalMessagingService.kt.backup-20261015-232514685",
+    "sha": null,
+    "before": [
+      "59d4284edb37f7702e6376a0d3dcc6089f0f8b249614ce35598a2c384b8c250d"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalAccessOverlay.kt.backup-20261015-185944064",
+    "sha": null,
+    "before": [
+      "4e8b7e1d485e93b3f4169eb4c8e47077bed96849775767bc0e65981ee0291bd0"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityStore.kt.backup-20261014-210009125",
+    "sha": null,
+    "before": [
+      "b52c603cdc7cf5bf9886b52726ef9d51cb02439b3e2f95675928490881576131"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentity.kt.backup-20261015-031203908",
+    "sha": null,
+    "before": [
+      "291431000d4b71590bca4d682586456245a62b53ab29c6ef6b87fced6616820f"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalQr.kt.backup-20261015-185944064",
+    "sha": null,
+    "before": [
+      "afbf3bb4f9f0c4e8502cf1ce9d0474dd6841a37792164d5302d35be15198637f"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt.backup-20261015-185944064",
+    "sha": null,
+    "before": [
+      "59b621ef461dc99bb4f4747c14e8844adee2cdbe132b9992984f42033ab6209f"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt.backup-20261015-230146959",
+    "sha": null,
+    "before": [
+      "c50aea5bff7aa6bd9c172dab9d0d7ea9526a9a45cde84f4f099a533baf5af1b3"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt.backup-20261015-185944064",
+    "sha": null,
+    "before": [
+      "493fbfc595c47875413b78134c665a126bea4062ae61b64de928cbe9bad5f4ea"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt.backup-20261015-162721341",
+    "sha": null,
+    "before": [
+      "53f9f32d903d6fcd831f88d0c02f6c03a1842ba412faee4fcd1cd5429e8492fe"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt.backup-20261015-193941084",
+    "sha": null,
+    "before": [
+      "2c435be8faa6be44e64c77c12cb959023fbd0c7816e5399d73f1767048dd6e57"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalQr.kt.backup-20261015-114215665",
+    "sha": null,
+    "before": [
+      "8b501b035af9fa0fecda85059ee94c902e4b519fe8780dddacfc9ae6bb15e58d"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt.backup-20261014-210009125",
+    "sha": null,
+    "before": [
+      "461a9ef87233c2aba5953c4400cf079aeccca5c917ba47a23319d7f635534a41"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt.backup-20261015-110935995",
+    "sha": null,
+    "before": [
+      "b04aafd092633b4bb09857873a9f4c6413ccfa1f7106c990331acba828e4319e"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt.backup-20261015-193941084",
+    "sha": null,
+    "before": [
+      "12cb3fb4b419a83b765879d278b881e835fdbf20e3050e0a3cc1b879176ff081"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt.backup-20261015-114215665",
+    "sha": null,
+    "before": [
+      "2b9519962c81966b7f90cbb9e6d527bdd1e40d5c80dc9f1571443bf2eb33bd0b"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityStore.kt.backup-20261015-031203908",
+    "sha": null,
+    "before": [
+      "ce24530e5cdd32793decff6bc616e837e6e2c28395b8b1af03e99ba4759b77ac"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt.backup-20261015-110935995",
+    "sha": null,
+    "before": [
+      "7680003e68d04be94d96595cfc00cdd66faf7f6b87ec9f70ec008fe2f8d977ed"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt.backup-20261015-114215665",
+    "sha": null,
+    "before": [
+      "e775adda22195d15eeeee75c26d820c34096f33b80d16edcb8e894333558e56f"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt.backup-20261015-122752742",
+    "sha": null,
+    "before": [
+      "736bb13a8dfd938eb08578ecbee4c1043e0554e955e3802d54d897b5c40d7bf8"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt.backup-20261015-160500541",
+    "sha": null,
+    "before": [
+      "95ead8ede8836100f7edead785a959eda9f2fe7d8f9fa173449fe88e18c5a961"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261016-151032713",
+    "sha": null,
+    "before": [
+      "d1a6990317fa5e47da7db3b8c22c034f79f1d5e6cad8fa24ee5600e3f178b219"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261015-203644378",
+    "sha": null,
+    "before": [
+      "3808be6275f9f1a0c9885ac526a9de0713eec40e4310f1c072e40d46162f7235"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "d09e448f955ad222f412bb93b6a2917c7fb58c2235144b8a3c2db83a4dc52516"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "4068ecf346564e6d375267d32eb59eed19b7cfda9e7b4522caf8813ab4b591ea"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSettingsScreen.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "560cda7f25bf2f58e12beae70c3ddb5d52e5742afc801ace89271f47c6a752a4"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSettingsScreen.kt.backup-20261015-114215665",
+    "sha": null,
+    "before": [
+      "a584bcba406704ba9c1f20948d53fdc50a35ab1daf59dad0e0f1a42e3a1f6ef5"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261014-173247331",
+    "sha": null,
+    "before": [
+      "10af7abb7b87e0e24bb9eff5833b0f37d7374a744fde6237c8a9a02ea192b2b4"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261014-175510384",
+    "sha": null,
+    "before": [
+      "52459ff42569fbae30d72ca701548e684b3ecfbac5ef34433c9f42690384705b"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSettingsScreen.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "6f82b0f433ca0c0dd76f395acbb79ee6ef5611f825ee98a865ace58a6405d2bf"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261014-202143048",
+    "sha": null,
+    "before": [
+      "9b00eb4486ae2b2b8826cc5bd491e63a67f4ae7efe780992aee166dab2ad1925"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261016-010331235",
+    "sha": null,
+    "before": [
+      "8206fd20405897eeb08e0f872d788dae3889606f88b9c9b5065dfaed7102799e"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261015-114215665",
+    "sha": null,
+    "before": [
+      "0babff06597cd79a52d32338fdffb1dd5d82b85a1f04ea0e5becc60f2e57c91d"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261014-021731",
+    "sha": null,
+    "before": [
+      "41033f6354cff29a2dff51f29cfeb733d64b837a515d302bc972762a1a9ae6e9"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261014-020447",
+    "sha": null,
+    "before": [
+      "6ecc188861eca2ea2e8607897a42559faa90124536d9d8c8a3d75aaa910c5c7f"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSettingsScreen.kt.backup-20261014-205333451",
+    "sha": null,
+    "before": [
+      "3b19bf7b7190dde7916f35c789462fc5751abcd846a17871b13c8fa9cbd9519a"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261015-193941084",
+    "sha": null,
+    "before": [
+      "9f1c7b69b5b50ec1bba3176f99bd502c4a42717ae8b6d6e07131296ccf13f8f7"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSettingsScreen.kt.backup-20261016-151032713",
+    "sha": null,
+    "before": [
+      "027fd979e3edb7b4e15060b94ba59c4aa17b65748e807dbe8f03e0b98135c509"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt.backup-20261014-174757734",
+    "sha": null,
+    "before": [
+      "3cf2ecba583cb7cffc06ad53b65ebef6ece7e994c925dd2dbaa540c35a649a7e"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261015-031203908",
+    "sha": null,
+    "before": [
+      "c2d94a91fbb8cb3e3d458ee4a4c55177fbfa3aa82363442ff4641ae02ec49e86"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-171714966",
+    "sha": null,
+    "before": [
+      "3aa9882398de5247042afdd55b11941d9b27e232c490be401c7cd57094484fbd"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-161515885",
+    "sha": null,
+    "before": [
+      "16846f7a66e896ee2278108be0ad0c18bf25887ab85f5f21edd2df89a3f4857a"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-151122528",
+    "sha": null,
+    "before": [
+      "75bf12aff0736b13932fbeff6588eb559f25087c4d8e6cb94ad9841e0cdb2ea9"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-202143048",
+    "sha": null,
+    "before": [
+      "b711ddd57282f2d74fd4f21de5629a9a48abaeb11b4e1bb1c4f85d62b4932943"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-162724032",
+    "sha": null,
+    "before": [
+      "90f2f452b39c7d65315061c1d8d578acb0403b0c8d3cad6800fc725ede37522a"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-163803977",
+    "sha": null,
+    "before": [
+      "b9b062c2f78d656140a8103e93be94f46aa3303a8d94b34fd92eb1df18acd8be"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/Media3PlaybackAdapter.kt.backup-20261016-010331235",
+    "sha": null,
+    "before": [
+      "8615b4f053d4af0fece5d8d5161d76134462edaa69710f2f23a4d7669c2255aa"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261016-010331235",
+    "sha": null,
+    "before": [
+      "7a79e0af4340ba0aa9cb18dcefc16f122bb89dbbbdc6c33a763069eed2d62d87"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-173247331",
+    "sha": null,
+    "before": [
+      "01ad876144702c24f085cfab722e78c669f339de453d01a0f41b5a0dce143ce8"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackResumeCinema.kt.backup-20261014-182319840",
+    "sha": null,
+    "before": [
+      "169c32cc0b31ab74799e2314372b34bc61ff07ab84dd11aa7e03c77fdf3644a5"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackModels.kt.backup-20261016-010331235",
+    "sha": null,
+    "before": [
+      "b0d12422d0b83fe3e59d7587435b38b248275e35ab2253e3de07175e15c10443"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackResumeCinema.kt.backup-20261014-175510384",
+    "sha": null,
+    "before": [
+      "a3380148f39c2ad142475693caa715324195017a8e1b1b666f639b0f379f4453"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackResumeCinema.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "2d892874a31992814e6211008d704a1d73cd9c573feaf1fc25367529eb68dcde"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackController.kt.backup-20261016-010331235",
+    "sha": null,
+    "before": [
+      "78116baca1efa8268a7f2a0fd5123ac4f9755a94ee0d21304539b04ca8eaecf9"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-165441007",
+    "sha": null,
+    "before": [
+      "de38960b216f084b6645f13a931181b9dfa68d3b781ff9020ea75e8523333b5f"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleAppearance.kt.backup-20261014-203100545",
+    "sha": null,
+    "before": [
+      "e6b7047fccb7aede45aaa244bd08b9aee43d83bbd888678deaf1f38f96ed3b51"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleAppearanceRendering.kt.backup-20261014-203100545",
+    "sha": null,
+    "before": [
+      "fc1f42f1078e42398c378c4bba1d8201f68ae5f90319fc0e698e580b63dd1acd"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackDisplayHdr.kt.backup-20261016-010331235",
+    "sha": null,
+    "before": [
+      "d92791187e63079e8d37fd68cb48d8096bbd75a0cc9e7151f56351a24680827e"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "bc2ea140f737abbc149e7eb4e87f36aab120e2dc8fea8df47d2695cbe0f74617"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "adfc065d4c2077424bc397b30be0bf44993ee1ed114b502d75a936e0149ef0dc"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261016-014205914",
+    "sha": null,
+    "before": [
+      "9a1860f51c9f503d9a0716e410527996e0b162605106b2a650f2caeebf1fdcac"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-182829929",
+    "sha": null,
+    "before": [
+      "f8a38b9ad5bfff77b4908e06237c2c67aa6bbb38642c82f32e38de7d959458a2"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleAppearanceRendering.kt.backup-20261015-031203908",
+    "sha": null,
+    "before": [
+      "20bc8639bf5ed76c34f8a1e2dd23f9e4ec459774e58b7a3be2c9287c6a1eb2c5"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackResumeCinema.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "1f1e5cecd0629fecbaad58077a7fde2ad077f7e6ecd32e3b99d7508c40dfbee0"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-170556316",
+    "sha": null,
+    "before": [
+      "333eb47b8ae204e011697e85eeba61d335d4ca6856f859b03123610bb5e5001f"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackEngineContract.kt.backup-20261016-010331235",
+    "sha": null,
+    "before": [
+      "4af99cf4a8004e1b5cf9c74aa6d3aae1f3d396418acc038b1a4b50985453e6c6"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SeriesAutoNext.kt.backup-20261016-010331235",
+    "sha": null,
+    "before": [
+      "dead7c21af464d42d03aedf5b055c01393ca7081805f2275298206445838c04f"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261015-193941084",
+    "sha": null,
+    "before": [
+      "24c02abea303de4825d69e460136107ecce435de6ec02011c47acb46ee3ccf6f"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261016-151032713",
+    "sha": null,
+    "before": [
+      "9cfac9eb0ce045040a27976455b915023fd7db85d6a51c84e2fc40523ba2821c"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-150847095",
+    "sha": null,
+    "before": [
+      "b9f98d0f5a587a4215e6d9a770a73bff826801849db5a298036aeec7243313cd"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/LibVlcPlaybackAdapter.kt.backup-20261016-010331235",
+    "sha": null,
+    "before": [
+      "e750bbffada6ea62828c8594426b311ee4246102572ac14ca8eb8b014931dadd"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubdlCredentialStore.kt.backup-20261015-031203908",
+    "sha": null,
+    "before": [
+      "ac2c81474ed7ea782d8fd770d703abd7fb52f40ae45c4078df9b989f1fa262e9"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-203100545",
+    "sha": null,
+    "before": [
+      "1187934876e54e0a95f9b43278a66ebf9335159eec61376acdf22acc780d11d3"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt.backup-20261014-164501817",
+    "sha": null,
+    "before": [
+      "eba2c8c8b9677a2ac4cda0ed58ad827c6f717be925f81758e27d7ece74ce1f3d"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/Media3PlaybackAdapter.kt.backup-20261014-173247331",
+    "sha": null,
+    "before": [
+      "3c8269a2988a0de207ec1eace2f3d0ccd9a1369492b000edf68429907253b7b1"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistListScreen.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "7aa88b39fdb88c47acc272cdee599cb05dcd85cb2c91e63fb357cb295665718d"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistSetupScreen.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "4a815d1c99d4649efc3e6182ced8e3a2cf1b66b1ed0d46a6510eac81380fec41"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistSetupScreen.kt.backup-20261014-205333451",
+    "sha": null,
+    "before": [
+      "ddb10f58da14d1c15a0d5797e8501addb79fa2c6c32d0ebcf8d59d83a27b4192"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistListScreen.kt.backup-20261014-202143048",
+    "sha": null,
+    "before": [
+      "5be9b64f477dc438d3bf72b7dd5ecee3c9ed3075f9dfdadf1b3bb9204a7bfbde"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistSetupScreen.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "b5f3e1d3a8ee8258f435c5d7c3cc23ed9f63d49e8c66b0b9effc68432db93798"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistListScreen.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "dddceba441be7f2efde7d477fd67205f984ab22d514f934a0bb9e8f2385c1d7b"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistListScreen.kt.backup-20261015-121334543",
+    "sha": null,
+    "before": [
+      "42d691277fc5fac83a6e786901257f6d2b2dcbd7226e17794c6ef0d7ab7feafd"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistListScreen.kt.backup-20261015-193941084",
+    "sha": null,
+    "before": [
+      "b09b68a6794d5dae832f63b06453e88d8da2ce240a12cc4f18b95d7022a65ac3"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistSetupScreen.kt.backup-20261015-122752742",
+    "sha": null,
+    "before": [
+      "c5191c3d8a5405974fa69b69ff50b7db8e2ed31a5ec1b4bbe802a50e5cec3f70"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistSetupScreen.kt.backup-20261014-202143048",
+    "sha": null,
+    "before": [
+      "d04e24002a2b61127d5c7c1f148f98eeedc16fbdc9c9d8d8dbb5c9ae791d0697"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistSetupScreen.kt.backup-20261015-121334543",
+    "sha": null,
+    "before": [
+      "838a84e31e365eafc8b4b0dad7add2183cdef900b43479f7267e71d55c7572f6"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/playlist/PlaylistSetupScreen.kt.backup-20261015-193941084",
+    "sha": null,
+    "before": [
+      "a75794e3b9830fbc665183a10faef8d07c4a7b2d4d85e9c2d5a73ea94a7b2292"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt.backup-20261014-202143048",
+    "sha": null,
+    "before": [
+      "7ccb10589e52744406153484ede7791e79c927865ff89156dd6ac78a739ca82d"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "43e0d75f887ba633da1a75b7ecabca716f27e186f7e5f46af7c4432e5df13401"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "e6d8786fb38de43a05f610284dda7fe17199091fcb65b5cdd0439dd22013a0c4"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/AppStartupLoadingScreen.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "c4f10e363ae93fb8ce02ee06ca483d7b11ace38d73d4cd8742309ebb75655fdb"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/HomeScreen.kt.backup-20261014-154247398",
+    "sha": null,
+    "before": [
+      "8e15a2e16858fde2c1e3492ac4ce7d7157559dfe076707670e6197ba71f1618b"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/AppStartupLoadingScreen.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "e2137aab38c0d5a7a5b9f7aa1619533d53264f4c608c85dd0cc5ff306285b672"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/HomeScreen.kt.backup-20261014-154406289",
+    "sha": null,
+    "before": [
+      "8e15a2e16858fde2c1e3492ac4ce7d7157559dfe076707670e6197ba71f1618b"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/home/HomeScreen.kt.backup-20261014-154055948",
+    "sha": null,
+    "before": [
+      "52c12ef20af2635542a89b8d6577fcff7872a03daf43041c339ce475e01e26f8"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesLoadingOverlay.kt.backup-20261014-021731",
+    "sha": null,
+    "before": [
+      "21e92827c48f46351df5364edc802c486048f6a833879a92d7ee03138fe2fba1"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "416871f4ef2b37004c06cbe4c48695f58ea43d2d81762540601aeabdea2457ad"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "98530e7af59b2b456ec46a23c2aa3f8281bf6077c49645da9889a986e3839301"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt.backup-20261014-185644823",
+    "sha": null,
+    "before": [
+      "f3e3b7c4a6100724cdf417ff5ceffb2b12d36a2638ed09e358a0daffc4ceca61"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt.backup-20261014-191037427",
+    "sha": null,
+    "before": [
+      "564c77da8495b7558c9ace8f9e3372fae5745a329793577d257bf305b82e433e"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "e0f2878f17281ef64d6c4412ffcc10876f44d8c979dd571f83f26faf8de16621"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesScreen.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "289af62ed2c6c5fbf8af0aef70b4987b9a186e2488ef2910ad25345f775abd57"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/AppKeyboard.kt.backup-20261014-202143048",
+    "sha": null,
+    "before": [
+      "8975869e2b73bcd446986885513cf89c7aa0349cddebd99629c94c09988c2bda"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/HomeMenuCard.kt.backup-20261014-152215993",
+    "sha": null,
+    "before": [
+      "e9aea34e07edf664be0155b529778055facb0067707b4c5653e1f89ba6bbbb04"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/HomeMenuCard.kt.backup-20261014-030205",
+    "sha": null,
+    "before": [
+      "a723cf2b7eb5d6f1ff1ad9540a8f563e6f7db358a28ada87da25f381c3bd0a14"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/AppKeyboard.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "686654995afefbe7a3bc7af5a37f3c73e3e978ce3edc8b2d797c7f260c3239b5"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/MediaActionButton.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "39aabee48d8d110e1a718b61ecd9438925a7937b07f9b490ccc7800887d0aadc"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt.backup-20261014-185644823",
+    "sha": null,
+    "before": [
+      "a2bc2e1d454df24c7d0d2ecc1d426f446aeb356eab56e8f5b05d86d12cd4edce"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "97450a2023c6635e9241d463d469313e474a824908c36e573bb181c0b523c88c"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/ActorDetailsScreen.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "e46fbdad1296b1136c6ebc1b852530cc971482ed055c7fc7c1e68d6f8181cf6b"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt.backup-20261014-191037427",
+    "sha": null,
+    "before": [
+      "8eb765a8d412ed0b9185952dc3b8b41053b159252bd9bf0cd4db484fd3f000c4"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviesScreen.kt.backup-20261014-195328687",
+    "sha": null,
+    "before": [
+      "59996599bbdf17239efaf7fb6122599eb0d27d0039490347ce7b79c81cae2a87"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt.backup-20261014-184222166",
+    "sha": null,
+    "before": [
+      "f9c17c5575c0b6f900181e8fac924227cc59a2f7d437c3d00b3daa64dad2e4e1"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/ActorDetailsScreen.kt.backup-20261014-185644823",
+    "sha": null,
+    "before": [
+      "87ccd97d8acaa2cdd594fda0bec7d19d099903275306e5a6575baa5d8baec444"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/storage/PlaylistStorage.kt.backup-20261015-114215665",
+    "sha": null,
+    "before": [
+      "6edb79eb4de191da394ccbb948e0ae68fa40852d069e26fa9fb1c6a90558eb7a"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/storage/PlaylistStorage.kt.backup-20261015-193941084",
+    "sha": null,
+    "before": [
+      "796f8c9bb54151810e53abeb7c1f23ce75a6e758376fe5a8738735e811476fd8"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/storage/PlaylistStorage.kt.backup-20261015-031203908",
+    "sha": null,
+    "before": [
+      "1fd981f7e631147c12a511a7087916019d903d9be11a571fbcfa7b8a29792c4b"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/WatchHistoryStore.kt.backup-20261016-151032713",
+    "sha": null,
+    "before": [
+      "d37cb4f7eada327a191f5026e35e16d7fb83060d6be45720d007843266bb4c73"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/PlaylistCatalogRepository.kt.backup-20261016-151032713",
+    "sha": null,
+    "before": [
+      "7f92ed5891a7a933e493a815517e6d5a1518dd5f5b47b5d162250e50c4cb0872"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt.backup-20261014-015718",
+    "sha": null,
+    "before": [
+      "df416ead1869a0e48fd57765c935e34c7f3b3a2d1fa36879b1e0c1f8364e6409"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt.backup-20261014-001555",
+    "sha": null,
+    "before": [
+      "c0d8a602deb0cbfc9918a5884583cebd1c64e67812616b101cc4117f42e61585"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt.backup-20261013-234403",
+    "sha": null,
+    "before": [
+      "a43655e8f0d9fe778fdb758da0a68af186ac5c827e4b246e79aa786a7b87e5ad"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt.backup-20261014-003157",
+    "sha": null,
+    "before": [
+      "d2c57a71331ec94fd0b595b3334d1acb69800af82158cadb6db79544dfdf54ab"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt.backup-20261014-004911",
+    "sha": null,
+    "before": [
+      "37f5bb1aa69b88e7eb7dcb75ddfc6413d2e6f7bebac4a7d3ce37d89e72c58f3d"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt.backup-20261014-011642",
+    "sha": null,
+    "before": [
+      "c6244bdffcf5cd3489a650dcd5efcebeadb49d5c7a83f53089df7624f620751b"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/repository/DefaultPlaylistRepository.kt.backup-20261014-010409",
+    "sha": null,
+    "before": [
+      "5e0401e2654d7f40aad3b519c6d2532fb737d0a48d22639534d5b5079c23c70f"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/M3uSourceSynchronizer.kt.backup-20261013-235751",
+    "sha": null,
+    "before": [
+      "4af0d319daa2f8a81e070a27e424dfbcc87add4936c765aafa3ec5d247518101"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/KidsMoviesCatalog.kt",
+    "sha": null,
+    "before": [
+      "5d07cf01672e5c4948008fe1c2f8e2a4ee61db7f7fbc67c2f37ed7917c625eea"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/KidsSeriesCatalog.kt",
+    "sha": null,
+    "before": [
+      "41574b6a1643b88e508394e025afc4ea5a4b8948f96202029b599c1e397d54e3"
+    ],
+    "allowMissing": true,
+    "binary": false,
+    "remove": true
+  }
+]

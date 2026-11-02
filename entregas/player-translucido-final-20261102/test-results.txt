@@ -1,0 +1,2 @@
+51 checks passed: hold/repeats/cancellation, isolated player favorites, episode persistence, shared season parser and artwork validation
+PASS integration contracts: clean artwork, shared heart outside images, no underline, CH/episode callbacks, independent playback, traditional season loader and landscape/backdrop fallback

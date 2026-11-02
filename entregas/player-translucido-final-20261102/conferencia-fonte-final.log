@@ -1,0 +1,19 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Unable to initialize metrics, ensure /home/agent/.android is writable, details: /home/agent/.android/analytics.settings (No such file or directory)
+Reusing configuration cache.
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDesempenhoBuild UP-TO-DATE
+> Task :app:generateDesempenhoBuildConfig UP-TO-DATE
+> Task :app:generateDesempenhoResValues UP-TO-DATE
+> Task :app:generateDesempenhoResources UP-TO-DATE
+> Task :app:packageDesempenhoResources UP-TO-DATE
+> Task :app:processDesempenhoNavigationResources UP-TO-DATE
+> Task :app:parseDesempenhoLocalResources UP-TO-DATE
+> Task :app:generateDesempenhoRFile UP-TO-DATE
+> Task :app:kspDesempenhoKotlin
+> Task :app:compileDesempenhoKotlin
+
+BUILD SUCCESSFUL in 22s
+9 actionable tasks: 2 executed, 7 up-to-date
+Configuration cache entry reused.
