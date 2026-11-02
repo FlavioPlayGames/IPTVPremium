@@ -1,0 +1,45 @@
+PASS CH/list key 166 opens catalog
+PASS CH/list key 167 opens catalog
+PASS CH/list key 256 opens catalog
+PASS key 4 keeps its normal function
+PASS key 19 keeps its normal function
+PASS key 20 keeps its normal function
+PASS key 21 keeps its normal function
+PASS key 22 keeps its normal function
+PASS key 23 keeps its normal function
+PASS key 85 keeps its normal function
+PASS key 82 keeps its normal function
+PASS selecting the playing movie dismisses without restarting
+PASS another provider edition remains a distinct playable item
+PASS same numeric ID in another section is not current movie
+PASS selecting playing episode preserves current playback/pause
+PASS episode identity includes its series
+PASS choosing another episode requests a replacement
+PASS legacy lists-only pull remains available
+PASS automatic content sync includes subtitle commands
+PASS manual full sync unchanged
+PASS authenticated queue hint lists_changed recognized
+PASS authenticated queue hint subtitles_changed recognized
+PASS authenticated queue hint subtitle_key_changed recognized
+PASS authenticated queue hint settings_changed recognized
+PASS push never applies raw credential commands
+PASS unknown notification version rejected
+PASS foreground fallback begins at two minutes
+PASS failures back off instead of polling rapidly
+PASS fallback retries bounded at fifteen minutes
+PASS strong yellow 22 shadow is the production default
+PASS READY allows in-player posters and portal sync
+PASS PLAYING allows in-player posters and portal sync
+PASS PAUSED allows in-player posters and portal sync
+PASS ERROR allows in-player posters and portal sync
+PASS ENDED allows in-player posters and portal sync
+PASS IDLE protects stream startup/refill
+PASS PREPARING protects stream startup/refill
+PASS BUFFERING protects stream startup/refill
+PASS fresh preferences use yellow shadow
+PASS legacy white 22 outline migrates once
+PASS subsequent explicit user style is preserved
+PASS custom styles are not overwritten
+PASS new portal credential invalidates active subtitle search state
+43 checks passed (host tests; no physical TV input simulated).
+PASS integration contracts: independent Paging, no player control from browser, direct playback routes, history, catalog-safe hide timer and lifecycle-scoped sync

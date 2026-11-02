@@ -1,0 +1,10 @@
+HISTORICO UNIFICADO — 02/11/2026
+Base: java.zip enviado pelo usuario, SHA256 e2e3f7d150c8c3fc5d0046b46f3b9f2798905f838adce65bd74140a863f83e31.
+Pacote incremental: 13 fontes Kotlin novos/alterados, 287 fontes ativos. Sem remocoes de fontes.
+Compilacao Kotlin e Lint Android passaram no fonte final. Relatorio completo acompanha o pacote, sem desativacao global de verificacoes.
+61 verificacoes da logica real de historico: A-B-C com retencao de ausentes; variantes e nao duplicacao; identidade externa, ano, titulos alternativos e rejeicao de remakes; disponibilidade real; busca seletiva; favoritos unificados e migracao unica; ordenacao de eventos assincronos; conclusao e sucessor real; remocao global; posicoes antigas; concorrencia e isolamento Kids.
+43 verificacoes de regressao do player/legendas/sincronizacao passaram. Cinco grupos de politicas Kids passaram. Contratos verificaram ligacao dos checkpoints ao ciclo de vida, escrita fora da interface, estabilidade da lista e foco, favoritos compartilhados e remocao individual de serie.
+Instalador: base enviada e snapshot anterior, reaplicacao, recusa de edicao desconhecida ou pacote corrompido, restauracao byte a byte, protecao contra conflito ao desfazer, e sintaxe PowerShell passaram.
+Limites mantidos: 10 segundos de posicao para Continuar, 95% de conclusao, 400 registros canonicos locais. Nao ha sincronizacao de historico entre aparelhos. Favoritos de episodios continuam marcacoes individuais; filmes e series compartilham favoritos entre catalogo e player, com isolamento normal/Kids.
+Sem TV/emulador: testes de logica e contratos nao simulam foco e ciclo de vida Android reais. Validar controle remoto, pause/segundo plano, troca de lista e favoritos na TV.
+Ajuste automatico e visual anteriores preservados. Nao acompanha APK, credenciais ou configuracoes locais. Aplicar.ps1 -Testar compila usando o projeto do usuario.

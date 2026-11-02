@@ -1,0 +1,62 @@
+PASS 4K falls back to real FHD; one card despite two available editions
+PASS fallback preserves position
+PASS different Spider-Man film is not matched
+PASS list switch does not materialize copies or discard absent titles
+PASS A to B to C recovers work absent from B
+PASS canonical progress survives unavailable original catalog
+PASS newest watch wins on returning to an older list
+PASS explicit removal hides all linked editions
+PASS explicit removal suppresses stale standalone resume positions
+PASS removal does not resurrect through another list
+PASS a later actual watch restores hidden work
+PASS favorite-only movie is eligible and maps to available edition
+PASS completed nonfavorite and unrelated catalog do not seed searches
+PASS no metadata requests for unrelated or already matched titles
+PASS explicit unfavorite supersedes an older favorite without rescan
+PASS name and year fallback keeps remakes separate
+PASS new completion supersedes old unfinished progress globally
+PASS completed work cannot offer an older resume position
+PASS 10 second entry policy retained
+PASS 95 percent completion retained
+PASS queuing next episode retains completed predecessor
+PASS real next episode is queued at zero without inventing progress
+PASS queued state survives a new store instance
+PASS series card follows actual next episode
+PASS queue cannot erase an already completed episode
+PASS completed newest episode does not expose an older unfinished episode
+PASS end event marks completed even without known duration
+PASS duplicate exit does not undo unknown-duration completion
+PASS confirmed external ID outranks a weaker 4K title match
+PASS removed catalog version vanishes without deleting canonical history
+PASS movie title alone cannot guess an edition without year or external ID
+PASS metadata enrichment is restricted to an eligible source missing identity
+PASS confirmed metadata unlocks the real available movie
+PASS official aliases locate translated catalog names without fuzzy guesses
+PASS series identity alone never invents a target episode
+PASS incomplete history cannot silently add a series favorite
+PASS series progress resolves actual target season and episode ID
+PASS ambiguous episode coordinates are rejected
+PASS incomplete episode lookup never announces completed history
+PASS concurrent store instances cannot overwrite each other's checkpoints
+PASS old player favorites migrate once for each scope
+PASS migration unions player and normal favorites without dropping either
+PASS migration preserves Kids isolation
+PASS favorite migration is idempotent
+PASS a former player-only favorite participates in cross-list matching
+PASS later removal wins over imported player favorites
+PASS local favorite editions collapse into one actual catalog card
+PASS out-of-order asynchronous favorite edits keep the latest user action
+PASS recycled provider ID cannot attach old progress to another movie
+PASS explicit playback also rejects an unrelated recycled ID
+PASS legacy resume cannot bypass a recognized identity conflict
+PASS confirmed duplicate history editions compact to the newest state, not the furthest position
+PASS late checkpoints cannot overwrite newer playback positions
+PASS closed playback owner rejects pending background writes
+PASS a failed navigation can reopen its existing playback owner
+PASS external ID allows translated titles
+PASS external-ID conflict blocks a false match
+PASS numbers belonging to titles survive normalization
+PASS same quality preferred when actually available
+PASS language preference before quality fallback
+PASS resume and Continue share completion threshold
+61 checks passed: global availability, A-B-C retention, variants, selective lookup, completion, queue and resume

@@ -1,0 +1,744 @@
+<projeto>/app/src/main/AndroidManifest.xml:7: Warning: Requiring Wifi permissions limits app availability on TVs that support only Ethernet [LeanbackUsesWifi]
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "LeanbackUsesWifi":
+   WiFi is not required for Android TV and many devices connect to the
+   internet via alternative methods e.g. Ethernet.
+
+   If your app is not focused specifically on WiFi functionality and only
+   wishes to connect to the internet, please modify your Manifest to contain:
+   <uses-feature android:name="android.hardware.wifi" android:required="false"
+   />
+
+   Un-metered or non-roaming connections can be detected in software using
+   NetworkCapabilities#NET_CAPABILITY_NOT_METERED and
+   NetworkCapabilities#NET_CAPABILITY_NOT_ROAMING.
+
+<projeto>/app/build.gradle.kts:134: Warning: A newer version of com.google.firebase:firebase-messaging than 24.1.2 is available: 25.0.1 [GradleDependency]
+    implementation("com.google.firebase:firebase-messaging:24.1.2")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "GradleDependency":
+   This detector looks for usages of libraries where the version you are using
+   is not the current stable release. Using older versions is fine, and there
+   are cases where you deliberately want to stick with an older version.
+   However, you may simply not be aware that a more recent version is
+   available, and that is what this lint check helps find.
+
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsScreen.kt:88: Warning: Composable functions with a return type should start with a lowercase letter [ComposableNaming from androidx.compose.runtime]
+internal fun KidsRouteAllowed(onBack:()->Unit):Boolean {
+             ~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ParentalControlsUi.kt:121: Warning: Composable functions with a return type should start with a lowercase letter [ComposableNaming from androidx.compose.runtime]
+internal fun ParentalItemAllowed(playlist: String?, type: String, id: String?, repository: PlaylistCatalogRepository, onBack: () -> Unit): Boolean {
+             ~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "ComposableNaming":
+   @Composable functions without a return type should use similar naming to
+   classes, starting with an uppercase letter and ending with a noun.
+   @Composable functions with a return type should be treated as normal Kotlin
+   functions, starting with a lowercase letter.
+
+   Vendor: Jetpack Compose
+   Identifier: androidx.compose.runtime
+   Feedback: https://issuetracker.google.com/issues/new?component=612128
+
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:4415: Warning: Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+                    configuration.screenWidthDp.dp.roundToPx().coerceAtLeast(1)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:4418: Warning: Using Configuration.screenHeightDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+                    configuration.screenHeightDp.dp.roundToPx().coerceAtLeast(1)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:5819: Warning: Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+    val compact = LocalConfiguration.current.screenWidthDp < 700
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/HomeMenuCard.kt:55: Warning: Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ParentalControlsUi.kt:497: Warning: Using Configuration.screenHeightDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+            .heightIn(max = (LocalConfiguration.current.screenHeightDp * .92f).dp)
+                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/PinNumericKeyboard.kt:128: Warning: Using Configuration.screenHeightDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+    val maxHeight = (LocalConfiguration.current.screenHeightDp * .9f).dp
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackResumeCinema.kt:60: Warning: Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+    val compact = configuration.screenWidthDp < 700
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackResumeCinema.kt:96: Warning: Using Configuration.screenHeightDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+                .heightIn(max = (configuration.screenHeightDp - 32).coerceAtLeast(120).dp)
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt:134: Warning: Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+    val isCompactScreen = LocalConfiguration.current.screenWidthDp < 700
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt:996: Warning: Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).widthIn(min=(LocalConfiguration.current.screenWidthDp-24).coerceAtLeast(1).dp),verticalAlignment=Alignment.CenterVertically,
+                                                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt:1046: Warning: Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+                val panelWidth = (LocalConfiguration.current.screenWidthDp *
+                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt:1068: Warning: Using Configuration.screenHeightDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+                            else Modifier.heightIn(max = (LocalConfiguration.current.screenHeightDp - 24).coerceAtLeast(120).dp)
+                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt:1474: Warning: Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+    val maxWidth = (LocalConfiguration.current.screenWidthDp * if (compact) 0.88f else 0.64f).dp
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalAccessOverlay.kt:36: Warning: Using Configuration.screenHeightDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+            Column(Modifier.widthIn(max = 520.dp).heightIn(max = LocalConfiguration.current.screenHeightDp.dp)
+                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt:587: Warning: Using Configuration.screenHeightDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+    val compactLayout = configuration.screenHeightDp < 500 || configuration.screenWidthDp < 800
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt:587: Warning: Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+    val compactLayout = configuration.screenHeightDp < 500 || configuration.screenWidthDp < 800
+                                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt:589: Warning: Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+        configuration.screenWidthDp.dp.roundToPx().coerceAtLeast(1)
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/series/SeriesDetailsScreen.kt:592: Warning: Using Configuration.screenHeightDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+        configuration.screenHeightDp.dp.roundToPx().coerceAtLeast(1)
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/ThemeArtwork.kt:243: Warning: Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize [ConfigurationScreenWidthHeight from androidx.compose.ui]
+    val screenWidth = LocalConfiguration.current.screenWidthDp.coerceAtLeast(1)
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "ConfigurationScreenWidthHeight":
+   Configuration.screenWidthDp and Configuration.screenHeightDp have different
+   insets behaviour depending on target SDK version, and are rounded to the
+   nearest Dp. This means that using these values in composition to size a
+   layout can result in issues, as these values do not accurately represent
+   the actual available window size. Instead it is recommended to use
+   WindowInfo.containerSize which accurately represents the window size.
+
+   Vendor: Jetpack Compose
+   Identifier: androidx.compose.ui
+   Feedback: https://issuetracker.google.com/issues/new?component=612128
+
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt:136: Warning: Modifier parameter should be the first optional parameter [ModifierParameter from androidx.compose.ui]
+internal fun PortalOutlineButton(label: String, enabled: Boolean = true, modifier: Modifier = Modifier.fillMaxWidth(), textColor: Color? = null, onClick: () -> Unit) {
+                                                                         ~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityCard.kt:136: Warning: Optional Modifier parameter should have a default value of Modifier [ModifierParameter from androidx.compose.ui]
+internal fun PortalOutlineButton(label: String, enabled: Boolean = true, modifier: Modifier = Modifier.fillMaxWidth(), textColor: Color? = null, onClick: () -> Unit) {
+                                                                         ~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/GenericPosterArtwork.kt:57: Warning: Modifier parameter should be the first optional parameter [ModifierParameter from androidx.compose.ui]
+    resolveCategory:(suspend (String)->String?)?=null,modifier:Modifier=Modifier) {
+                                                      ~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsCinema.kt:121: Warning: Modifier parameter should be the first optional parameter [ModifierParameter from androidx.compose.ui]
+internal fun KidsCinemaBackdrop(style:KidsStyle=KidsAppearance.style,modifier:Modifier=Modifier,catalog:Boolean=false) {
+                                                                     ~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/MarbleSettingsButton.kt:21: Warning: Modifier parameter should be the first optional parameter [ModifierParameter from androidx.compose.ui]
+internal fun MarbleSettingsButton(label:String,enabled:Boolean=true,modifier:Modifier=Modifier.fillMaxWidth(),
+                                                                    ~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/MarbleSettingsButton.kt:21: Warning: Optional Modifier parameter should have a default value of Modifier [ModifierParameter from androidx.compose.ui]
+internal fun MarbleSettingsButton(label:String,enabled:Boolean=true,modifier:Modifier=Modifier.fillMaxWidth(),
+                                                                    ~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/ReferenceDetailHeader.kt:53: Warning: Modifier parameter should be the first optional parameter [ModifierParameter from androidx.compose.ui]
+private fun DetailGlyph(icon:DetailIcon,color:Color,filled:Boolean=false,modifier:Modifier=Modifier) {
+                                                                         ~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/ReferenceDetailHeader.kt:125: Warning: Modifier parameter should be the first optional parameter [ModifierParameter from androidx.compose.ui]
+internal fun ReferenceFavoriteGlyph(isFavorite:Boolean,focused:Boolean=false,modifier:Modifier=Modifier) {
+                                                                             ~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/SettingsPanels.kt:38: Warning: Optional Modifier parameter should have a default value of Modifier [ModifierParameter from androidx.compose.ui]
+internal fun SettingsSymbolIcon(symbol:SettingsSymbol,modifier:Modifier=Modifier.size(30.dp)) {
+                                                      ~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/ThemeArtwork.kt:296: Warning: Optional Modifier parameter should have a default value of Modifier [ModifierParameter from androidx.compose.ui]
+internal fun KidsLoadingWallpaper(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier) {
+                                  ~~~~~~~~
+
+   Explanation for issues of type "ModifierParameter":
+   The first (or only) Modifier parameter in a Composable function should
+   follow the following rules:
+   - Be named modifier
+   - Have a type of Modifier
+   - Either have no default value, or have a default value of Modifier
+   - If optional, be the first optional parameter in the parameter list
+
+   Vendor: Jetpack Compose
+   Identifier: androidx.compose.ui
+   Feedback: https://issuetracker.google.com/issues/new?component=612128
+
+<projeto>/app/src/main/AndroidManifest.xml:54: Warning: Fixed screen orientations will be ignored in most cases, starting from Android 16. Android is moving toward a model where apps are expected to adapt to various orientations, display sizes, and aspect ratios. [DiscouragedApi]
+            android:screenOrientation="sensorLandscape" />
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/AndroidManifest.xml:58: Warning: Fixed screen orientations will be ignored in most cases, starting from Android 16. Android is moving toward a model where apps are expected to adapt to various orientations, display sizes, and aspect ratios. [DiscouragedApi]
+            android:screenOrientation="sensorLandscape"
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "DiscouragedApi":
+   Discouraged APIs are allowed and are not deprecated, but they may be unfit
+   for common use (e.g. due to slow performance or subtle behavior).
+
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DeviceIdentityStore.kt:59: Warning: Using getMacAddress to get device identifiers is not recommended [HardwareIds]
+            wifi?.connectionInfo?.macAddress
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt:368: Warning: Using getString to get device identifiers is not recommended [HardwareIds]
+    val androidId = android.provider.Settings.Secure.getString(context.contentResolver, android.provider.Settings.Secure.ANDROID_ID)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "HardwareIds":
+   Using these device identifiers is not recommended other than for high value
+   fraud prevention and advanced telephony use-cases. For advertising
+   use-cases, use AdvertisingIdClient$Info#getId and for analytics, use
+   InstanceId#getId.
+
+   https://developer.android.com/training/articles/user-data-ids.html
+
+<projeto>/app/src/main/res/mipmap-anydpi-v26: Warning: This folder configuration (v26) is unnecessary; minSdkVersion is 28. Merge all the resources in this folder into mipmap-anydpi. [ObsoleteSdkInt]
+
+   Explanation for issues of type "ObsoleteSdkInt":
+   This check flags version checks that are not necessary, because the
+   minSdkVersion (or surrounding known API level) is already at least as high
+   as the version checked for.
+
+   Similarly, it also looks for resources in -vNN folders, such as values-v14
+   where the version qualifier is less than or equal to the minSdkVersion,
+   where the contents should be merged into the best folder.
+
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/update/AppUpdateManager.kt:24: Warning: Do not place Android context classes in static fields (static reference to AppUpdateManager which has field app pointing to Context); this is a memory leak [StaticFieldLeak]
+/** No APK or installation credential is sent through the portal database. */
+^
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/update/AppUpdateManager.kt:30: Warning: Do not place Android context classes in static fields; this is a memory leak [StaticFieldLeak]
+    private lateinit var app: Context
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt:687: Warning: Do not place Android context classes in static fields (static reference to SharedLibraryStore which has field app pointing to Context); this is a memory leak [StaticFieldLeak]
+        @Volatile private var instance: SharedLibraryStore? = null
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "StaticFieldLeak":
+   A static field will leak contexts.
+
+   Non-static inner classes have an implicit reference to their outer class.
+   If that outer class is for example a Fragment or Activity, then this
+   reference means that the long-running handler/loader/task will hold a
+   reference to the activity which prevents it from getting garbage
+   collected.
+
+   Similarly, direct field references to activities and fragments from these
+   longer running instances can cause leaks.
+
+   ViewModel classes should never point to Views or non-application Contexts.
+
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:738: Hint: Prefer mutableLongStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+    var directCatalogStartMs by remember { mutableStateOf(0L) }
+                                           ~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:1094: Hint: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+    var catalogStartupRetry by remember { mutableStateOf(0) }
+                                          ~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:2785: Hint: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+                    mutableStateOf(0)
+                    ~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt:568: Hint: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+        mutableStateOf(3)
+        ~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MovieDetailsScreen.kt:287: Hint: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+        var measuredCastHeight by remember(cast.isNotEmpty(), compactLayout) { mutableStateOf(0) }
+                                                                               ~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt:330: Hint: Prefer mutableLongStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+    var lastBackHandledAtMs by remember { mutableStateOf(0L) }
+                                          ~~~~~~~~~~~~~~
+
+   Explanation for issues of type "AutoboxingStateCreation":
+   Calling mutableStateOf<T>() when T is either backed by a primitive type on
+   the JVM or is a value class results in a state implementation that requires
+   all state values to be boxed. This usually causes an additional allocation
+   for each state write, and adds some additional work to auto-unbox values
+   when reading the value of the state. Instead, prefer to use a specialized
+   primitive state implementation for Int, Long, Float, and Double when the
+   state does not need to track null values and does not override the default
+   SnapshotMutationPolicy. See mutableIntStateOf(), mutableLongStateOf(),
+   mutableFloatStateOf(), and mutableDoubleStateOf() for more information.
+
+   Vendor: Jetpack Compose
+   Identifier: androidx.compose.runtime
+   Feedback: https://issuetracker.google.com/issues/new?component=612128
+
+<projeto>/app/build.gradle.kts: Warning: The resource R.string.project_id appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/values/cloud_kids_drawable_fixtures.xml:2: Warning: The resource R.drawable.kids_bear appears to be unused [UnusedResources]
+<item type="drawable" name="kids_bear">@drawable/home_background</item>
+                      ~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/res/values/cloud_kids_drawable_fixtures.xml:3: Warning: The resource R.drawable.kids_brand_marks appears to be unused [UnusedResources]
+<item type="drawable" name="kids_brand_marks">@drawable/home_background</item>
+                      ~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/res/values/cloud_kids_drawable_fixtures.xml:4: Warning: The resource R.drawable.kids_category_symbols appears to be unused [UnusedResources]
+<item type="drawable" name="kids_category_symbols">@drawable/home_background</item>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/res/values/cloud_kids_drawable_fixtures.xml:5: Warning: The resource R.drawable.kids_home_blue appears to be unused [UnusedResources]
+<item type="drawable" name="kids_home_blue">@drawable/home_background</item>
+                      ~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/res/values/cloud_kids_drawable_fixtures.xml:6: Warning: The resource R.drawable.kids_home_objects appears to be unused [UnusedResources]
+<item type="drawable" name="kids_home_objects">@drawable/home_background</item>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/res/values/cloud_kids_drawable_fixtures.xml:7: Warning: The resource R.drawable.kids_home_pink appears to be unused [UnusedResources]
+<item type="drawable" name="kids_home_pink">@drawable/home_background</item>
+                      ~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/res/values/cloud_uploaded_home_fixtures.xml:3: Warning: The resource R.drawable.home_original_blue_white appears to be unused [UnusedResources]
+<item type="drawable" name="home_original_blue_white">@drawable/home_background</item>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/res/values/cloud_uploaded_home_fixtures.xml:5: Warning: The resource R.drawable.home_original_gold_white appears to be unused [UnusedResources]
+<item type="drawable" name="home_original_gold_white">@drawable/home_background</item>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/res/values/cloud_uploaded_home_fixtures.xml:7: Warning: The resource R.drawable.home_original_pink_white appears to be unused [UnusedResources]
+<item type="drawable" name="home_original_pink_white">@drawable/home_background</item>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/res/values/cloud_uploaded_home_fixtures.xml:9: Warning: The resource R.drawable.home_original_purple_white appears to be unused [UnusedResources]
+<item type="drawable" name="home_original_purple_white">@drawable/home_background</item>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/res/values/cloud_uploaded_home_fixtures.xml:11: Warning: The resource R.drawable.home_original_red_white appears to be unused [UnusedResources]
+<item type="drawable" name="home_original_red_white">@drawable/home_background</item>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/res/drawable-nodpi/home_corrected_blue.webp: Warning: The resource R.drawable.home_corrected_blue appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/home_corrected_blue_white.webp: Warning: The resource R.drawable.home_corrected_blue_white appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/home_corrected_gold.webp: Warning: The resource R.drawable.home_corrected_gold appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/home_corrected_gold_white.webp: Warning: The resource R.drawable.home_corrected_gold_white appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/home_corrected_pink.webp: Warning: The resource R.drawable.home_corrected_pink appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/home_corrected_pink_white.webp: Warning: The resource R.drawable.home_corrected_pink_white appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/home_corrected_purple.webp: Warning: The resource R.drawable.home_corrected_purple appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/home_corrected_purple_white.webp: Warning: The resource R.drawable.home_corrected_purple_white appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/home_corrected_red.webp: Warning: The resource R.drawable.home_corrected_red appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/home_corrected_red_white.webp: Warning: The resource R.drawable.home_corrected_red_white appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/kids_catalog_blue.webp: Warning: The resource R.drawable.kids_catalog_blue appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/kids_catalog_pink.webp: Warning: The resource R.drawable.kids_catalog_pink appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/kids_cinema_blue.webp: Warning: The resource R.drawable.kids_cinema_blue appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/kids_cinema_brand.webp: Warning: The resource R.drawable.kids_cinema_brand appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/kids_cinema_pink.webp: Warning: The resource R.drawable.kids_cinema_pink appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/kids_cinema_sprites.webp: Warning: The resource R.drawable.kids_cinema_sprites appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/kids_loading_neutral.webp: Warning: The resource R.drawable.kids_loading_neutral appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/marble_wallpaper_black.png: Warning: The resource R.drawable.marble_wallpaper_black appears to be unused [UnusedResources]
+<projeto>/app/src/main/res/drawable-nodpi/marble_wallpaper_white.png: Warning: The resource R.drawable.marble_wallpaper_white appears to be unused [UnusedResources]
+
+   Explanation for issues of type "UnusedResources":
+   Unused resources make applications larger and slow down builds.
+
+
+   The unused resource check can ignore tests. If you want to include
+   resources that are only referenced from tests, consider packaging them in a
+   test source set instead.
+
+   You can include test sources in the unused resource check by setting the
+   system property lint.unused-resources.include-tests=true, and to exclude
+   them (usually for performance reasons), use
+   lint.unused-resources.exclude-tests=true.
+
+   Available options:
+
+   **skip-libraries** (default is true):
+   Whether the unused resource check should skip reporting unused resources in libraries.
+
+   Many libraries will declare resources that are part of the library surface; other modules depending on the library will also reference the resources. To avoid reporting all these resources as unused (in the context of a library), the unused resource check normally skips reporting unused resources in libraries. Instead, run the unused resource check on the consuming app module (along with `checkDependencies=true`).
+
+   However, there are cases where you want to check that all the resources declared in a library are used; in that case, you can disable the skip option.
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UnusedResources">
+           <option name="skip-libraries" value="true" />
+       </issue>
+   </lint>
+   ```
+
+<projeto>/app/src/main/res/drawable/home_background.webp: Warning: Found bitmap drawable res/drawable/home_background.webp in densityless folder [IconLocation]
+<projeto>/app/src/main/res/drawable/iptv_premium_logo.webp: Warning: Found bitmap drawable res/drawable/iptv_premium_logo.webp in densityless folder [IconLocation]
+<projeto>/app/src/main/res/drawable/iptv_premium_tv_banner_320x180.png: Warning: Found bitmap drawable res/drawable/iptv_premium_tv_banner_320x180.png in densityless folder [IconLocation]
+
+   Explanation for issues of type "IconLocation":
+   The res/drawable folder is intended for density-independent graphics such
+   as shapes defined in XML. For bitmaps, move it to drawable-mdpi and
+   consider providing higher and lower resolution versions in drawable-ldpi,
+   drawable-hdpi and drawable-xhdpi. If the icon really is density independent
+   (for example a solid color) you can place it in drawable-nodpi.
+
+   https://developer.android.com/guide/practices/screens_support.html
+
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/StableLiveVideo.kt:25: Warning: Custom view LiveSurfaceHost is missing constructor used by tools: (Context) or (Context,AttributeSet) or (Context,AttributeSet,int) [ViewConstructor]
+private class LiveSurfaceHost(context:Context,val player:ExoPlayer):FrameLayout(context) {
+              ~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "ViewConstructor":
+   Some layout tools (such as the Android layout editor) need to find a
+   constructor with one of the following signatures:
+   * View(Context context)
+   * View(Context context, AttributeSet attrs)
+   * View(Context context, AttributeSet attrs, int defStyle)
+
+   If your custom view needs to perform initialization which does not apply
+   when used in a layout editor, you can surround the given code with a check
+   to see if View#isInEditMode() is false, since that method will return false
+   at runtime but true within a user interface editor.
+
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/ActivePlaylistRefresh.kt:12: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        return preferences.edit().clear().putString("playlist",id).commit()
+               ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/ActivePlaylistRefresh.kt:19: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        return preferences.edit().putString("imported_generation",generation).commit()
+               ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/ActivePlaylistRefresh.kt:23: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        return preferences.edit().clear().commit()
+               ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/sync/AndroidM3uTransportStore.kt:11: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        check(preferences.edit().putString(key, value).commit()) { "Não foi possível salvar o transporte da lista." }
+              ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:696: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            favoritePreferences.edit().putStringSet(br.com.flaviotorres.iptvpremium.domain.model.FavoriteScope.key(playlist,kind,true),updated.toHashSet()).apply()
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:704: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        favoritePreferences.edit().putStringSet("${kind}_$playlist",if(selected)persisted+id else persisted-id).apply()
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:1337: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                        automaticSyncPreferences.edit()
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:1384: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                        automaticSyncPreferences.edit()
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:1599: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            automaticSyncPreferences.edit().putLong("success_$playlistId", nowMs).apply()
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:1667: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                automaticSyncPreferences.edit()
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:1951: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                                        automaticSyncPreferences.edit().putLong("success_${playlist.id}",System.currentTimeMillis()).apply()
+                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:2033: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                                        automaticSyncPreferences.edit()
+                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:5731: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        preferences.edit()
+        ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:5742: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        preferences.edit().remove(positionKey(playlistId, seriesId, episodeId)).apply()
+        ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:5747: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        val edit=preferences.edit().remove("last:${scope(playlistId,seriesId)}")
+                 ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:5764: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        preferences.edit()
+        ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:5789: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().remove(key(playlistId, movieId)).apply()
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:5801: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putLong(itemKey, safePositionMs).apply()
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/update/AppUpdateManager.kt:40: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            preferences.edit().putLong("deferred_until", System.currentTimeMillis() + REMINDER_DELAY_MS).apply()
+            ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/update/AppUpdateManager.kt:72: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        preferences.edit().putLong("deferred_version", current.versionCode).putLong("deferred_until", now + REMINDER_DELAY_MS).apply()
+        ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/update/AppUpdateScreen.kt:100: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                        permission.launch(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + context.packageName)))
+                                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/components/CatalogStyle.kt:28: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        context.applicationContext.getSharedPreferences("iptvpremium_settings_v2", Context.MODE_PRIVATE)
+        ^
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt:123: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            prefs.edit().clear().apply()
+            ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt:394: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            prefs.edit().putString(cacheKey, JSONObject().put("until", expires)
+            ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt:525: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            prefs.edit().putString(cacheKey, JSONObject()
+            ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt:577: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+        val headers = if (Uri.parse(uri).host == "api.subdl.com")
+                          ~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt:634: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                prefs.edit().putString(prefKey, previous.toString()).apply()
+                ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt:648: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            else prefs.edit().putString(prefKey, JSONArray().apply {
+                 ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt:883: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        if (selected != null) prefs.edit().putString(cacheKey, JSONObject()
+                              ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt:995: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putString(cacheKey, JSONObject()
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt:1070: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putString(cacheKey, JSONObject()
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt:1331: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                        prefs.edit().putLong("blocked_until_$provider",
+                        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt:1378: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+        val uri = Uri.parse(value)
+                  ~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/ImportTuning.kt:17: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        check(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString("perfil", profile.name).commit())
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsChannelsScreen.kt:162: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putStringSet(favoritesKey,favorites.toHashSet()).apply()}
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsChannelsScreen.kt:191: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                if(!sourceKey.isNullOrBlank())prefs.edit().putString(lastKey,channel.id).putString(recentKey,JSONArray(recent).toString()).apply()
+                                              ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsChannelsScreen.kt:422: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                        dual=value;uiPrefs.edit().putBoolean(liveNavigationPreferenceKey(true),value).apply();modeDialog=false;enter(KidsChannelArea.CHANNELS)
+                                   ~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/LibVlcPlaybackAdapter.kt:324: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+            val media = Media(libVlc, Uri.parse(request.media.streamUrl))
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveChannelConnection.kt:55: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                val path=Uri.parse(url).path.orEmpty().lowercase(Locale.ROOT)
+                         ~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveImageSettings.kt:34: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    p.edit().putString("live_layout_mode",layout.mode.name).putFloat("live_zoom",layout.manual.zoom)
+    ~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt:497: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            favoritePreferences.edit().putStringSet(channelFavoritesKey, updated.toHashSet()).apply()
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt:511: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        if(!epgSourceKey.isNullOrBlank()) favoritePreferences.edit().putString(lastChannelKey,id).apply()
+                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt:544: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        favoritePreferences.edit().putString(historyKey,org.json.JSONArray(updated).toString()).apply()
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/live/LiveTvScreen.kt:1481: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                                navigationPreferences.edit().putBoolean(navigationPreferenceKey,twoColumns).apply()
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/Media3PlaybackAdapter.kt:795: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+        val path = android.net.Uri.parse(url).path?.lowercase(Locale.ROOT) ?: return null
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviePosterLoader.kt:446: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                val edit=prefs.edit().clear()
+                         ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/movies/MoviePosterLoader.kt:480: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                val edit=prefs.edit().putLong(key,now)
+                         ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/ratings/PersonalRatingStore.kt:21: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                val editor=preferences.edit()
+                           ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/ratings/PersonalRatingStore.kt:33: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        val editor=preferences.edit().putLong("last_revision",revision)
+                   ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlayerEpisodeFavorites.kt:20: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putString("$key:$kind",JSONArray(ids.sorted()).toString()).apply()
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlayerEpisodeFavorites.kt:35: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putString(key,array.toString()).apply()
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlayerVideoLayoutStore.kt:35: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putString(key,JSONObject().put("version",1).put("mode",value.mode.name).put("zoom",manual.zoom)
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalAccessOverlay.kt:47: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BuildConfig.DEVICE_PORTAL_URL))) }
+                                                                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalMessagingService.kt:33: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            savePending = { value -> check(preferences(context.applicationContext).edit().apply {
+                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalMessagingService.kt:89: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        if (token.length in 20..4096) preferences(context).edit().putString("token", token).apply()
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalTrialOverlay.kt:187: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                                                         ~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalTrialState.kt:26: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        check(prefs(context).edit().putString("mac", snapshot.mac).putLong("expires", snapshot.expiresAt)
+              ~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalTrialState.kt:43: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        check(p.edit().putLong("failures", failures).putLong("retryAfter", now + delay).commit())
+              ~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/PortalTrialState.kt:46: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        if (pending(context) == choice) check(prefs(context).edit().putBoolean("pending", false).commit())
+                                              ~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/cache/PosterResolution.kt:41: Warning: Use the KTX extension function Bitmap.scale instead? [UseKtx]
+            Bitmap.createScaledBitmap(original, maxOf(1, (original.width * scale).roundToInt()),
+            ^
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/PremiumThemes.kt:37: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        if(stored=="emerald" || stored=="cyan") prefs.edit().putString("visual_theme", "gold").apply()
+                                                ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/PremiumThemes.kt:40: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        context.applicationContext.getSharedPreferences("iptvpremium_settings_v2", Context.MODE_PRIVATE)
+        ^
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsPreferences.kt:18: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putString("kids_style", value).apply()
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsPreferences.kt:21: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    fun setCatalogColumns(value: Int) { require(value == 4 || value == 5); prefs.edit().putInt("catalog_columns", value).apply() }
+                                                                           ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsPreferences.kt:23: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    fun setEngine(value: String) { require(value in listOf("media3", "vlc")); prefs.edit().putString("engine", value).apply() }
+                                                                              ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsPreferences.kt:24: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    fun setAutoNext(value: Boolean) { prefs.edit().putBoolean("auto_next", value).apply() }
+                                      ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsPreferences.kt:25: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    fun setTextScale(value: Float) { require(value in listOf(1f, 1.1f, 1.2f)); prefs.edit().putFloat("text_scale", value).apply() }
+                                                                               ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SettingsPreferences.kt:29: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putString("order_$type", value).apply()
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt:85: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        if (!prefs.edit().putString("identities", a.toString()).commit()) {
+             ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt:141: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                val edit=legacy.edit().remove("last:$scope")
+                         ~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt:639: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        if(historySource()==null)check(prefs.edit().putString("completed_history_source",playlist).commit())
+                                       ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/SharedLibraryStore.kt:676: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        check(prefs.edit().putString("completed_history_source",playlist).commit()) {"Falha ao concluir histórico"}
+              ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleAppearanceRendering.kt:19: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            preferences.edit().apply {
+            ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleAppearanceRendering.kt:42: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        preferences.edit().putInt("color", value.textArgb).putString("background", value.background.name)
+        ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSettingsScreen.kt:155: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://subdl.com"))
+                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSettingsScreen.kt:259: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                        Intent(Intent.ACTION_VIEW, Uri.parse("https://subsource.net"))
+                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/ThemeArtwork.kt:135: Warning: Use the KTX extension function Bitmap.scale instead? [UseKtx]
+                    return@withPermit Bitmap.createScaledBitmap(bitmap, outWidth, outHeight, true).also { it.prepareToDraw() }.asImageBitmap()
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/history/WatchHistoryStore.kt:142: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        check(prefsContext.getSharedPreferences(legacy, Context.MODE_PRIVATE).edit().clear().commit())
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/epg/XmltvGuide.kt:42: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putString("header_$playlist",JSONArray(safe).toString()).putString("source_$playlist",xmltvHash(playlistUrl))
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/epg/XmltvGuide.kt:134: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putStringSet("feeds_$playlist",hashes).apply()
+        ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/data/epg/XmltvGuide.kt:141: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            prefs.edit().remove("feeds_$playlist").remove("header_$playlist").remove("source_$playlist").remove("probe_$playlist").remove("probe_ok_$playlist").apply()
+            ~~~~~~~~~~~~
+
+   Explanation for issues of type "UseKtx":
+   The Android KTX libraries decorates the Android platform SDK as well as
+   various libraries with more convenient extension functions available from
+   Kotlin, allowing you to use default parameters, named parameters, and
+   more.
+
+   Available options:
+
+   **remove-defaults** (default is true):
+   Whether to skip arguments that match the defaults provided by the extension.
+
+   Extensions often provide default values for some of the parameters. For example:
+   ```kotlin
+   fun Path.readLines(charset: Charset = Charsets.UTF_8): List<String> { return Files.readAllLines(this, charset) }
+   ```
+   This lint check will by default automatically omit parameters that match the default, so if your code was calling
+
+   ```kotlin
+   Files.readAllLines(file, Charset.UTF_8)
+   ```
+   lint would replace this with
+   ```kotlin
+   file.readLines()
+   ```
+   rather than
+
+   ```kotlin
+   file.readLines(Charset.UTF_8
+   ```
+   You can turn this behavior off using this option.
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UseKtx">
+           <option name="remove-defaults" value="true" />
+       </issue>
+   </lint>
+   ```
+
+   **require-present** (default is true):
+   Whether to only offer extensions already available.
+
+   This option lets you only have lint suggest extension replacements if those extensions are already available on the class path (in other words, you're already depending on the library containing the extension method.)
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UseKtx">
+           <option name="require-present" value="true" />
+       </issue>
+   </lint>
+   ```
+
+<projeto>/app/build.gradle.kts:134: Warning: Use version catalog instead [UseTomlInstead]
+    implementation("com.google.firebase:firebase-messaging:24.1.2")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/build.gradle.kts:135: Warning: Use version catalog instead [UseTomlInstead]
+    implementation("androidx.work:work-runtime-ktx:2.10.1")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/build.gradle.kts:148: Warning: Use version catalog instead [UseTomlInstead]
+        "androidx.lifecycle:lifecycle-viewmodel-ktx:2.11.0"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/build.gradle.kts:151: Warning: Use version catalog instead [UseTomlInstead]
+        "androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/build.gradle.kts:154: Warning: Use version catalog instead [UseTomlInstead]
+    implementation("com.google.zxing:core:3.5.3")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/build.gradle.kts:163: Warning: Use version catalog instead [UseTomlInstead]
+        "androidx.datastore:datastore-preferences:1.2.1"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/build.gradle.kts:177: Warning: Use version catalog instead [UseTomlInstead]
+    implementation("androidx.media3:media3-exoplayer:$media3Version")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/build.gradle.kts:178: Warning: Use version catalog instead [UseTomlInstead]
+    implementation("androidx.media3:media3-exoplayer-hls:$media3Version")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/build.gradle.kts:179: Warning: Use version catalog instead [UseTomlInstead]
+    implementation("androidx.media3:media3-exoplayer-dash:$media3Version")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/build.gradle.kts:180: Warning: Use version catalog instead [UseTomlInstead]
+    implementation("androidx.media3:media3-exoplayer-rtsp:$media3Version")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/build.gradle.kts:181: Warning: Use version catalog instead [UseTomlInstead]
+    implementation("androidx.media3:media3-ui:$media3Version")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/build.gradle.kts:185: Warning: Use version catalog instead [UseTomlInstead]
+    implementation("org.videolan.android:libvlc-all:3.7.7")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "UseTomlInstead":
+   If your project is using a libs.versions.toml file, you should place all
+   Gradle dependencies in the TOML file. This lint check looks for version
+   declarations outside of the TOML file and suggests moving them (and in the
+   IDE, provides a quickfix to performing the operation automatically).
+
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/storage/CacheRestartActivity.kt:38: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+            text = "Atualizando sua experiência…"
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt:57: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        retry = Button(this).apply { text = "Tentar outro"; visibility = View.GONE; setOnClickListener {
+                                             ~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt:72: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        status.text = "Procurando trailer…"
+                       ~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt:134: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        status.text = "Carregando trailer…"
+                       ~~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt:155: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                    status.text = "Iniciando trailer…"
+                                   ~~~~~~~~~~~~~~~~~~
+<projeto>/app/src/main/java/br/com/flaviotorres/iptvpremium/core/media/TrailerPlayerActivity.kt:172: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                    status.text = "Pressione OK ou toque em Reproduzir."
+                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "SetTextI18n":
+   When calling TextView#setText
+   * Never call Number#toString() to format numbers; it will not handle
+   fraction separators and locale-specific digits properly. Consider using
+   String#format with proper format specifications (%d or %f) instead.
+   * Do not pass a string literal (e.g. "Hello") to display text. Hardcoded
+   text can not be properly translated to other languages. Consider using
+   Android resource strings instead.
+   * Do not build messages by concatenating text chunks. Such messages can not
+   be properly translated.
+
+   https://developer.android.com/guide/topics/resources/localization.html
+
+0 errors, 175 warnings, 6 hints

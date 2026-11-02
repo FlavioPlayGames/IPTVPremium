@@ -1,0 +1,1 @@
+PASS integration contracts: global source, selective lookup, no copies, real availability, checkpoint lifecycle/owner/IO, stable focus, unified favorites and removals
