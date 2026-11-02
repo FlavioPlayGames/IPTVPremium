@@ -1,0 +1,45 @@
+PLAYER MINIMALISTA + CATALOGO — 02/11/2026
+
+Pacote CUMULATIVO para o java.zip enviado em 02/11/2026 e as revisoes conhecidas 845fb56, 58725bf e a0a550b. Inclui foco Kids, relogio e revisao de catalogos/metadados anteriores. Use este pacote; nao precisa reaplicar os ZIPs anteriores.
+Base enviada SHA-256: 3f9da8530971da6f9518c882dbe5be5703e8e7b6be177a5f1a864048e6de2c84.
+Mantem os recursos graficos ja existentes no projeto. Sem nova dependencia ou migracao do banco.
+
+INSTALAR
+Extraia player-catalogo-minimalista.zip. No PowerShell, execute:
+.\Aplicar.ps1 -Projeto 'C:\Users\flavi\AndroidStudioProjects\IPTVPremium' -Testar
+.\Instalar-TV.ps1 -Projeto 'C:\Users\flavi\AndroidStudioProjects\IPTVPremium'
+O script compila o APK atualizado no seu projeto e instala com -r, sem limpar dados.
+
+PLAYER
+- Estilo 1: degradê discreto, controles sem painel flutuante e destaque na cor do tema. Horario HH:mm usa o fuso configurado na TV.
+- Botoes: Voltar 10s, Pausar/Reproduzir, Avancar 10s, Catalogo, Legendas, Tela e Opcoes. Em conteudos sem busca, os atalhos de 10s nao aparecem. Audio, velocidade, reprodutor e informacoes tecnicas permanecem em Opcoes.
+- Tela fica direto na barra e abre Normal, Zoom, Tela cheia e Ajuste manual existentes.
+- O novo Catalogo e exclusivo de Filmes/Series. Nao mistura canais, filmes e series em abas. As telas de Canais mantem seu fluxo anterior.
+
+CATALOGO NO PLAYER
+- Botao Catalogo na tela e CH+/CH- do controle abrem/fecham o menu. Tambem aceita o codigo Android de lista de conteudo (TV_CONTENTS_MENU).
+- Uma coluna lateral, com nomes e capas verticais dos filmes/series. Episodios usam suas imagens horizontais quando disponiveis.
+- Comeca na categoria da obra atual. O item em reproducao fica no inicio dessa categoria. Categorias/seletores usam a mesma coluna, sem outra barra lateral.
+- Filmes navega somente em categorias de filmes. Series navega em categorias de series, serie, temporada e episodio. Na serie atual, a temporada/episodio atuais ficam como alvo inicial quando disponiveis.
+- OK em outro filme/episodio confirma a troca e abre diretamente a rota de reproducao. Nao abre ficha de informacoes nem prompt de retomada nessa troca; o novo item comeca do inicio. O historico do item anterior e salvo.
+- OK no filme/episodio ja em reproducao apenas fecha o catalogo, sem reiniciar ou alterar a pausa.
+- Navegar, carregar capas/temporadas ou mudar de categoria nao pausa, retoma nem prepara outro video. Se estava pausado, continua pausado ate comando explicito.
+- Voltar ou seta direita fecha o catalogo; seta esquerda volta ao nivel anterior/categorias. Toque fora do painel tambem fecha. O timer de cinco segundos dos controles nao fecha o catalogo enquanto estiver navegando.
+- As listas usam Paging independente do catalogo externo. Nao baixam a biblioteca inteira nem mudam seus filtros. Regras parentais e fonte ativa sao verificadas novamente na confirmacao.
+
+LEGENDAS
+- Novo padrao: amarelo forte (#FFFF00), tamanho 22 e sombra. O antigo padrao branco/22/contorno migra uma unica vez. Outras personalizacoes sao preservadas; escolhas posteriores continuam respeitadas. Fundo e familia da fonte nao sao forcados.
+- O estilo aplica-se ao texto renderizado pelo app. Legendas em imagem e certas faixas internas do VLC podem manter o estilo nativo, como ja informado nos menus existentes.
+- SubDL e Subsource: as chaves enviadas pela fila da central sao recebidas na sincronizacao completa, armazenadas com a protecao existente e notificam a busca de legendas do player sem reiniciar o video.
+- Avisos reconhecidos da central pedem sincronizacao imediata. Como complemento, o app consulta a fila a cada dois minutos enquanto estiver aberto; falhas aumentam o intervalo ate quinze minutos. Ao ir para segundo plano, esse ciclo para. A checagem cede brevemente a abertura do video, sem ficar bloqueada indefinidamente.
+- Isso reaproveita o endpoint autenticado ja existente. Nao houve acesso ao codigo/servidor do site; o site precisa efetivamente enfileirar o envio para a TV correta. Nenhuma chave real ou credencial acompanha este ZIP.
+
+PRESERVACAO E RESTAURACAO
+Todos os fontes sao validados por hash antes de alterar. Arquivos diferentes das bases conhecidas sao recusados sem sobrescrever trabalho local. Originais ficam em .player-catalogo-backups/<identificador>.
+Mantem listas, favoritos, historico, PIN e preferencias. A limpeza cumulativa retira os 138 backups antigos de dentro de java e dois marcadores vazios de telas Kids antigas, guardando-os no backup local; nao os publica neste ZIP.
+Para desfazer os fontes deste pacote:
+.\Desfazer.ps1 -Projeto 'C:\Users\flavi\AndroidStudioProjects\IPTVPremium' -Testar
+Compile e instale novamente depois. Restauracao recusa sobrescrever arquivos editados apos a aplicacao. Preferencias que voce alterou no aplicativo nao sao apagadas.
+
+VALIDACAO
+Veja VALIDACAO.txt e os resultados anexos. Nao houve acesso a TV fisica ou ao fornecedor/portal privado. Confira CH, pausa, troca direta, capas, Tela e envio de chaves no aparelho. A referencia visual aprovada orienta o layout; foco e escala final dependem da TV.

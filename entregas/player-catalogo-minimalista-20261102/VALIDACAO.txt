@@ -1,0 +1,15 @@
+PLAYER MINIMALISTA / CATALOGO — VALIDACAO
+Base cumulativa: java.zip 02/11/2026 SHA256 3f9da8530971da6f9518c882dbe5be5703e8e7b6be177a5f1a864048e6de2c84, revisoes conhecidas 845fb56, 58725bf, a0a550b.
+40 fontes Kotlin instalados/atualizados; 275 Kotlin ativos no projeto. Duas telas Kids antigas vazias e 138 backups historicos retirados de java, preservados somente no backup local do instalador.
+
+COMPILACAO FINAL: :app:compileDesempenhoKotlin + :app:lintDesempenho, offline, max-workers=1. BUILD SUCCESSFUL em 3m 4s. Lint: 0 erros, 169 avisos, 5 sugestoes. Relatorio acompanha o pacote; sem desativacao global de verificacoes.
+ASSEMBLE OTIMIZADO: :app:assembleDesempenho/R8 passou em 4m 23s antes do ultimo ajuste que limita a espera do poll de portal a dois segundos. Esse ajuste passou na compilacao/Lint finais. O ZIP entrega fontes; Aplicar.ps1 -Testar gera o APK atualizado no projeto do usuario. Nao acompanha APK de validacao com configuracoes locais.
+
+TESTES: 43 verificacoes de logica passaram: CH/lista, teclas que mantem suas funcoes, identidade por tipo/serie/episodio, selecao do item atual, prioridade de rede em preparo/buffer vs reproducao/pausa, sincronizacao completa/listas, notificacoes reconhecidas, versoes rejeitadas, intervalo/backoff, novo padrao amarelo22sombra, migracao unica e preservacao de personalizacoes, revisao de chaves de legenda.
+Contratos de integracao conferidos nos fontes: Paging independente, navegador sem acesso ao controlador de video, confirmacao pela rota Playback sem detalhes, historico/retomada, timer que nao fecha Catalogo e sincronizacao limitada ao ciclo STARTED.
+REGRESSAO: 23 verificacoes anteriores de metadados/grade/Voltar e os cinco grupos de politicas Kids passaram novamente.
+INSTALADOR: base original, ultima base, fontes ja limpos, reaplicacao sem novo backup, restauracao byte a byte, recusa de pacote corrompido, recusa de fonte alterado, protecao contra sobrescrita na restauracao e sintaxe dos tres PowerShells passaram.
+
+NA TV: CH, foco do Compose, escala, fluidez, Exo/VLC, troca de filmes/episodios e recebimento pela central precisam de teste no aparelho. Nao houve acesso fisico nem medicao de FPS/PSS. O codigo/servidor do site nao estava disponivel; o app foi preparado para receber os comandos existentes de SubDL/Subsource na sincronizacao completa, com avisos e consulta de dois minutos enquanto aberto. O envio precisa estar enfileirado pelo site para a TV correta. Nenhuma chave real foi usada ou exportada.
+
+DADOS: sem migracao do banco, nova dependencia ou limpeza de dados do aparelho. Historico e favoritos mantidos. Restauracao de fontes nao apaga preferencias; a migracao de estilo e preservada como configuracao do usuario.

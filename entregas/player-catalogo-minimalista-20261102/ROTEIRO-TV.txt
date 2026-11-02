@@ -1,0 +1,10 @@
+1. Abrir filme, confirmar horario e barra na cor do tema. Conferir os nomes Catalogo e Tela.
+2. Com filme tocando, pressionar CH: entrar na categoria atual, navegar varias capas e categorias por mais de cinco segundos. Audio/video devem continuar. Nenhum item so focado deve iniciar.
+3. Pausar o filme, abrir Catalogo e navegar. Deve continuar pausado. Fechar o menu e confirmar que permanece pausado.
+4. OK no item atual deve somente fechar o menu. OK em outro filme deve salvar o progresso anterior e iniciar o escolhido do inicio, sem ficha nem dialogo de retomada.
+5. Trocar de filme diversas vezes e sair. Conferir historico, ausencia de varias rotas de player empilhadas e ausencia de audio duplicado na troca.
+6. Repetir em Series: outra categoria, serie, temporada, episodio. Conferir retomada do foco na temporada/episodio atuais e capa da serie no historico, sem usar a foto do episodio como capa.
+7. Abrir Tela e testar Normal, Zoom, Tela cheia e Ajuste manual. Conferir Audio, Legendas, Velocidade e Reprodutor em Opcoes, tanto Exo quanto VLC.
+8. Conferir legenda amarelo forte/22/sombra. Personalizar e voltar para conferir persistencia. Legendas bitmap e algumas faixas internas VLC podem manter estilo nativo.
+9. Enviar cada chave pelo site para esta TV. Conferir recebimento por aviso ou em ate cerca de dois minutos com app aberto e rede disponivel. Abrir Legendas sem reiniciar o filme. Uma falha de rede pode aumentar o intervalo de nova tentativa.
+10. Repetir um acesso com controle parental/Kids: nenhum filme/serie bloqueado deve aparecer ou iniciar. Canais continua com sua navegacao anterior.
