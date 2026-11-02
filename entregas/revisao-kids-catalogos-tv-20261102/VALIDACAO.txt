@@ -1,0 +1,10 @@
+BASE: java.zip 02/11/2026, SHA256 3f9da8530971da6f9518c882dbe5be5703e8e7b6be177a5f1a864048e6de2c84.
+ENTREGA: 28 fontes adicionados/alterados; duas telas antigas vazias + 138 backups retirados da pasta de fontes. Originais guardados somente no backup local de aplicacao. Nenhuma credencial ou copia antiga de fonte e distribuida como backup no ZIP.
+INVENTARIO: 267 Kotlin de entrada, 270 ativos na entrega. app/src/main/java conferido com manifest.json.
+COMPILACAO FINAL: :app:compileDesempenhoKotlin + :app:lintDesempenho, offline, max-workers=1. BUILD SUCCESSFUL em 3m 7s. Lint: 0 erros, 167 avisos, 5 sugestoes; sem desativacao global de detectores. Arquivos exatos desta entrega conferidos por hash.
+ASSEMBLE: :app:assembleDesempenho otimizado/R8 passou em 4m 45s antes dos ultimos ajustes pequenos de cache persistente e latch de Voltar; esses ajustes passaram na compilacao/Lint finais. Esta entrega e de fontes; o instalador compila o APK atualizado no projeto do usuario. APKs locais de validacao nao acompanham o ZIP.
+TESTES NOVOS: 23 verificacoes de identidade, remakes/continuacoes, cache concorrente e em disco com cota real, limites, cancelamento, busca por IMDb/TMDB, ambiguidade, geometria em 18 combinacoes e politica de Voltar. PASS.
+REGRESSAO: quatro grupos da politica Kids e tres grupos do cache nativo de artes. PASS.
+INSTALADOR: aplicar, reaplicar, fontes ja limpos, recusar fonte editado, recusar pacote corrompido, restaurar byte a byte, recusar restauracao sobre arquivo recriado e sintaxe dos tres PowerShells. PASS.
+AMBIENTE: toolchain existente Android/JDK/Gradle, sem atualizacao de dependencias ou migracao do banco.
+LIMITES: testes de host usam fixtures HTTP, nao simulam foco real do Compose na TV. Sem medicao de FPS/PSS ou teste com fornecedor privado. Ver REVISAO.md e roteiro de regressao na TV. Configuracao TMDB existente detectada; chamada externa nao concluida pela rede do ambiente. Token nao foi exportado.

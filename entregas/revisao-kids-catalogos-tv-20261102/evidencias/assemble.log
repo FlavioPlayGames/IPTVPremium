@@ -1,0 +1,69 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Calculating task graph as no cached configuration is available for tasks: :app:assembleDesempenho
+
+> Configure project :app
+Unable to initialize metrics, ensure /home/agent/.android is writable, details: /home/agent/.android/analytics.settings (No such file or directory)
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDesempenhoBuild UP-TO-DATE
+> Task :app:mergeDesempenhoJniLibFolders UP-TO-DATE
+> Task :app:mergeDesempenhoNativeLibs UP-TO-DATE
+> Task :app:stripDesempenhoDebugSymbols UP-TO-DATE
+> Task :app:extractDesempenhoNativeSymbolTables UP-TO-DATE
+> Task :app:mergeDesempenhoNativeDebugMetadata NO-SOURCE
+> Task :app:checkDesempenhoDuplicateClasses UP-TO-DATE
+> Task :app:generateDesempenhoBuildConfig UP-TO-DATE
+> Task :app:generateDesempenhoResValues UP-TO-DATE
+> Task :app:generateDesempenhoResources UP-TO-DATE
+> Task :app:packageDesempenhoResources UP-TO-DATE
+> Task :app:processDesempenhoNavigationResources UP-TO-DATE
+> Task :app:parseDesempenhoLocalResources UP-TO-DATE
+> Task :app:generateDesempenhoRFile UP-TO-DATE
+> Task :app:kspDesempenhoKotlin
+> Task :app:compileDesempenhoKotlin
+> Task :app:javaPreCompileDesempenho UP-TO-DATE
+> Task :app:compileDesempenhoJavaWithJavac UP-TO-DATE
+> Task :app:mergeDesempenhoArtProfile UP-TO-DATE
+> Task :app:checkDesempenhoAarMetadata UP-TO-DATE
+> Task :app:mapDesempenhoSourceSetPaths UP-TO-DATE
+> Task :app:compileDesempenhoNavigationResources UP-TO-DATE
+> Task :app:mergeDesempenhoResources UP-TO-DATE
+> Task :app:createDesempenhoCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDesempenho UP-TO-DATE
+> Task :app:processDesempenhoMainManifest UP-TO-DATE
+> Task :app:processDesempenhoManifest UP-TO-DATE
+> Task :app:processDesempenhoManifestForPackage UP-TO-DATE
+> Task :app:processDesempenhoResources UP-TO-DATE
+> Task :app:expandDesempenhoArtProfileWildcards
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:mergeDesempenhoGeneratedProguardFiles UP-TO-DATE
+> Task :app:processDesempenhoJavaRes UP-TO-DATE
+> Task :app:mergeDesempenhoJavaResource UP-TO-DATE
+> Task :app:mergeDesempenhoStartupProfile UP-TO-DATE
+> Task :app:minifyDesempenhoWithR8
+> Task :app:compileDesempenhoArtProfile
+> Task :app:generateDesempenhoAssets UP-TO-DATE
+> Task :app:mergeDesempenhoAssets UP-TO-DATE
+> Task :app:compressDesempenhoAssets UP-TO-DATE
+> Task :app:extractDesempenhoVersionControlInfo UP-TO-DATE
+> Task :app:generateDesempenhoLintVitalReportModel
+> Task :app:lintVitalAnalyzeDesempenho
+Warning: Unable to initialize metrics, ensure /home/agent/.android is writable, details: /home/agent/.android/analytics.settings (No such file or directory)
+
+> Task :app:lintVitalReportDesempenho
+> Task :app:lintVitalDesempenho
+> Task :app:convertShrunkResourcesToBinaryDesempenho
+> Task :app:optimizeDesempenhoResources
+> Task :app:collectDesempenhoDependencies UP-TO-DATE
+> Task :app:sdkDesempenhoDependencyData UP-TO-DATE
+> Task :app:validateSigningDesempenho UP-TO-DATE
+> Task :app:writeDesempenhoAppMetadata UP-TO-DATE
+> Task :app:writeDesempenhoSigningConfigVersions UP-TO-DATE
+> Task :app:packageDesempenho
+> Task :app:createDesempenhoApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleDesempenho
+
+BUILD SUCCESSFUL in 4m 45s
+51 actionable tasks: 12 executed, 39 up-to-date
+Configuration cache entry stored.

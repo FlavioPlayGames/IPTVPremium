@@ -1,0 +1,38 @@
+REVISAO KIDS, CANAIS E METADADOS — 02/11/2026
+
+Base: java.zip enviado em 02/11, SHA-256:
+3f9da8530971da6f9518c882dbe5be5703e8e7b6be177a5f1a864048e6de2c84
+Aplicar sobre esse projeto, que ja contem as artes aprovadas da opcao 1.
+Nao e necessario aplicar novamente os pacotes Kids anteriores.
+
+1. Extraia o ZIP desta revisao.
+2. No PowerShell, dentro do projeto Android, execute o Aplicar.ps1 extraido:
+   & 'C:\caminho\revisao-kids-catalogos-tv\Aplicar.ps1' -Projeto (Get-Location).Path -Testar
+3. Para instalar o APK compilado por ADB:
+   & 'C:\caminho\revisao-kids-catalogos-tv\Instalar-TV.ps1' -Projeto (Get-Location).Path
+O instalador usa atualizacao (-r), sem desinstalar ou limpar os dados da TV.
+
+ALTERACOES
+- Home principal conserva sua propria paleta ao entrar/sair do Kids.
+- Grade Kids calcula duas linhas completas com os mesmos criterios do catalogo normal. Ao descer alem da segunda linha, a janela avanca uma linha de cinco capas. Mantida a velocidade de rolagem aprovada.
+- Recuperacao de foco em Canais normal/Kids, sem exigir OK para voltar. A atualizacao das categorias nao reposiciona a lista durante a navegacao. O ponto invisivel de carregamento nao permanece como destino depois da entrega do foco.
+- Voltar aceita uma nova pressao mesmo quando o controle omite o evento de soltar; o evento de soltar continua consumido quando a tela anterior ja foi removida.
+- Filmes/series em qualidades/idiomas diferentes compartilham metadados publicos por tipo + titulo normalizado + ano, ou ID externo. Os itens continuam separados no catalogo. IDs, links e episodios de cada fornecedor permanecem separados.
+- Sem capa, ou se a imagem falhar, o cartao visivel procura a obra no TMDB. A busca tambem aceita ID IMDb. A mesma ficha fornece fundo, sinopse, elenco, generos e avaliacao quando disponiveis. Nao escolhe resultados ambiguos pela popularidade.
+- Filmes tambem usam nome/ano locais se a ficha do fornecedor vier vazia ou falhar. Uma ficha publica ja existente em memoria/disco pode evitar nova consulta da ficha de outra edicao.
+- Cache publico limitado a 128 chaves/8 MiB em RAM; disco usa a cota de respostas ja existente (5 MB, compartilhados), com validade de 6 horas. Duas buscas de capas ausentes simultaneas; cartoes fora de tela cancelam a tarefa. Nao e feita varredura online do catalogo inteiro.
+- Dados externos sao do TMDB, conforme autorizado. ID IMDb e usado para identificacao; nota TMDB nao e apresentada como nota IMDb. Reutiliza a credencial TMDB configurada no projeto; nao inclui credenciais neste pacote.
+- Removidos 52 ramos obsoletos do visual Kids em Canais, 18 funcoes sem chamadas, o antigo recorte de atlas, efeitos sem operacao e os dois arquivos vazios das telas Kids antigas. Carregamento usa o novo fundo de ceu.
+- 138 arquivos .backup-* saem da pasta de fontes e ficam no backup local desta revisao. Eles ja nao eram compilados; essa limpeza organiza o projeto, sem prometer ganho de FPS.
+
+PRESERVACAO E RESTAURACAO
+Nao altera esquema do banco, listas, historico, favoritos, PIN ou preferencias de navegacao. Nao remove as variantes de filmes/series.
+O script valida todos os arquivos antes de escrever. Arquivos diferentes do java.zip sao recusados, sem sobrescrever trabalho local.
+Os originais ficam em .revisao-tv-backups/<identificador>, inclusive os backups antigos retirados de java.
+Para desfazer os fontes:
+   & 'C:\caminho\revisao-kids-catalogos-tv\Desfazer.ps1' -Projeto (Get-Location).Path -Testar
+Compile/instale novamente depois de desfazer. A restauracao recusa arquivos editados ou recriados apos esta revisao.
+
+VALIDACAO
+Veja VALIDACAO.txt, REVISAO.md e os resultados de testes anexos.
+Os testes de foco fisico, fluidez/FPS e resposta do fornecedor particular dependem da TV e da lista real. Nao houve acesso ao aparelho. Correspondencia ambigua ou dados inexistentes no TMDB mantem o fallback existente, sem inventar informacoes.
