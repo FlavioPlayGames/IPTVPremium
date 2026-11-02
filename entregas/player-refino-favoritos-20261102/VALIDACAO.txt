@@ -1,0 +1,13 @@
+PLAYER REFINADO / FAVORITOS — VALIDACAO
+Base cumulativa: java.zip 02/11/2026 SHA256 3f9da8530971da6f9518c882dbe5be5703e8e7b6be177a5f1a864048e6de2c84; revisoes conhecidas 845fb56, 58725bf, a0a550b e 3d0b7a6.
+46 fontes Kotlin instalados/atualizados; 278 Kotlin ativos. Duas telas Kids antigas vazias e 138 backups historicos retirados de java e preservados no backup local do instalador.
+
+COMPILACAO: :app:compileDesempenhoKotlin + :app:lintDesempenho, offline, max-workers=1. BUILD SUCCESSFUL. Relatorio Lint integral acompanha o pacote; zero erros, sem desativacao global de verificacoes. O ZIP entrega fontes. Aplicar.ps1 -Testar gera o APK no projeto do usuario; nao acompanha APK com configuracoes locais.
+
+NOVOS TESTES: 17 verificacoes executadas sobre a logica de producao: limite 2999/3000ms, cancelamento por foco/janela, persistencia dos favoritos de episodios, identidade por serie+episodio, isolamento de playlist/perfil, remocao, JSON corrompido e caminhos validos de capas de temporadas.
+CONTRATOS DE INTEGRACAO: navegador sem controlador de playback, CH sobe/desce, posicao de Continuar enviada a rota direta, callbacks anterior/proximo, marcador de reproducao separado do foco, coracao condicional, mesma resolucao de identidade da serie, mesmo componente de menu ao vivo no Kids.
+REGRESSAO: 43 testes de politica de player/sincronizacao/legendas; 23 de metadados/grade/Voltar; cinco grupos de politicas Kids. Todos passaram. Os contratos de fontes complementam os testes de logica; nao simulam eventos reais do Compose nem substituem validacao no controle.
+INSTALADOR POWERSHELL: base original e ultima base, fontes ja limpos, reaplicacao sem backup extra, restauracao byte a byte, recusa de pacote corrompido/fonte alterado e protecao na restauracao passaram; sintaxe dos tres scripts verificada.
+
+LIMITES: sem TV/emulador nesta validacao. Escala, foco real, CH/OK longo e fluidez precisam de conferencia no aparelho. Sem medicao de FPS/PSS. O site/central nao estava disponivel; preservada a sincronizacao autenticada anterior de SubDL/Subsource, dependente do envio correto para a TV. Nenhuma chave real exportada.
+DADOS: sem nova dependencia, migracao de banco ou limpeza do aparelho. Favoritos de episodios usam preferencias locais separadas por playlist/perfil. Nao salvam URLs de streams. Navegar no catalogo nao pausa/reinicia o video; troca somente na confirmacao. Falha de metadados de temporadas preserva os episodios do fornecedor.

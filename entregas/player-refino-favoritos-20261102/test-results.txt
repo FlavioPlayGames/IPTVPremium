@@ -1,0 +1,2 @@
+17 checks passed: hold boundary/focus cancellation, favorite persistence/profile/playlist/identity, corrupt data and season artwork validation
+PASS integration contracts: CH directions, direct resume position, previous/next callbacks, scoped favorites, shared series identity, Kids menu reuse, browser independent of playback controller
