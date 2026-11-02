@@ -1,0 +1,25 @@
+PASS quality, language, accents share one work
+PASS remakes stay separate
+PASS sequels stay separate
+PASS numbers in real titles survive
+PASS numeric title survives
+PASS movie and series caches stay separate
+PASS no title-only sharing without year or external ID
+PASS year recovered from provider title
+PASS 10 simultaneous variants share search and details
+PASS cached metadata cannot be mutated by a caller
+PASS public metadata persisted without provider credentials
+PASS disk cache reused after RAM cache eviction
+PASS missing metadata does not flood network
+PASS cancellation is not cached as a permanent miss
+PASS IMDb ID resolves through TMDB
+PASS ambiguous names never pick a popular result
+PASS two rows fit at 18 density/font combinations; a down step exposes one row
+PASS hash-colliding titles never block each other; leases released
+PASS metadata memory cache stays bounded
+PASS Back repeats suppressed and missing key-up does not lock remote
+PASS Back key-up remains consumed when its screen was removed on key-down
+PASS Back on logical categories exits even after row focus was lost
+PASS Back from channel list returns categories without OK
+23 checks passed. Host tests; physical TV focus not simulated.
+
