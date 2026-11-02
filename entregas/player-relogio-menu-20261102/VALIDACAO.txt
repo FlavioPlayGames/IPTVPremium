@@ -1,0 +1,5 @@
+COMPILACAO: :app:compileDesempenhoKotlin, BUILD SUCCESSFUL em 28s, base de projeto existente, sem novas dependencias.
+INSTALADOR: revisao 845fb56 com/sem ajuste 58725bf, aplicar/reaplicar, restauracao byte a byte, recusa de arquivos alterados ou pacote corrompido, sintaxe PowerShell: PASS.
+ESCOPO: relogio HH:mm no menu de Filmes/Episodios e tela cheia de Canais normal/Kids. Componente compartilhado, atualizacao por minuto, removido junto ao menu. Texto sem foco/click, sem interferencia na reproducao ou temporizador dos controles. Titulo reserva espaco para o relogio em telas compactas; Canais normal usa canto superior esquerdo para nao sobrepor o menu lateral.
+PACOTE: inclui ajuste de foco Kids anterior; base preservada em .player-relogio-backups. Nao altera dados, listas ou preferencias.
+LIMITES: nenhuma TV fisica foi acessada. Conferir posicionamento e comportamento ao abrir/fechar menu no aparelho. Relogio usa o fuso/horario configurado na TV.

@@ -1,0 +1,5 @@
+PASS installer normal
+PASS installer normal-845
+PASS installer changed
+PASS installer corrupt
+PASS PowerShell syntax, including TV installer

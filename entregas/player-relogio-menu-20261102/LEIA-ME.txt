@@ -1,0 +1,12 @@
+RELOGIO JUNTO AO MENU DE REPRODUCAO
+Base: revisao 845fb56, com ou sem ajuste de foco Kids 58725bf.
+Inclui tambem o ajuste de foco Kids anterior, para permitir aplicacao direta sobre a revisao de 02/11.
+
+O horario atual da TV aparece em HH:mm junto aos controles de Filmes/Episodios e no menu de tela cheia de Canais normal/Kids. Some ao fechar o menu. Atualiza a cada virada de minuto e imediatamente ao abrir; usa o fuso configurado no aparelho. Texto com fundo escuro para leitura sobre o video, sem receber foco, alterar o player ou reiniciar o tempo do menu.
+
+Extraia e execute no PowerShell da pasta extraida:
+.\Aplicar.ps1 -Projeto 'C:\caminho\do\projeto' -Testar
+.\Instalar-TV.ps1 -Projeto 'C:\caminho\do\projeto'
+
+Backup proprio em .player-relogio-backups. Desfazer.ps1 restaura a base que estava aplicada. Nao limpa dados da TV. Fontes diferentes das bases conhecidas sao recusados antes de alteracao.
+Sem acesso a TV fisica: conferir posicionamento, atualizacao do minuto e desaparecimento junto ao menu no aparelho.
