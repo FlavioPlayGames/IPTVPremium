@@ -1,0 +1,13 @@
+CANAIS KIDS — FOCO DE ENTRADA
+Aplique sobre a revisao de 02/11/2026 (845fb56).
+
+Corrige a entrada ocasional em Organizar. A barra superior fica fora do foco enquanto a entrada da lista esta pendente. O foco so e entregue quando a linha do canal esta montada e aceita a solicitacao; montagem tardia do Paging provoca nova tentativa. O estado pendente nao e encerrado por uma solicitacao que falhou.
+Sem canal na lista, o destino sao as categorias; Organizar nao e fallback de entrada. Organizar continua acessivel ao navegar para cima normalmente. Restauracao do ultimo canal valido/primeiro permitido, reproducao, historico e preferencias sao mantidos.
+
+Extraia e, no PowerShell da pasta extraida, execute:
+.\Aplicar.ps1 -Projeto 'C:\caminho\do\projeto' -Testar
+.\Instalar-TV.ps1 -Projeto 'C:\caminho\do\projeto'
+
+O script valida os dois fontes antes de alterar. Backup em .kids-entrada-backups. Desfazer.ps1 restaura somente esta correcao; a revisao anterior permanece aplicada. Instalacao -r, sem apagar dados.
+
+Confira a entrada varias vezes com a TV, incluindo lista fria, retorno ao Kids e retomada com ultimo canal salvo. Compilacao e testes de politica nao simulam o foco real do aparelho.

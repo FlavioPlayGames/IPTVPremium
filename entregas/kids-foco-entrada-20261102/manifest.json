@@ -1,0 +1,22 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsChannelsScreen.kt",
+    "sha": "36b0abff21dd3a27d27ffbe021c5a8eaa257b56545567deb8a2185fa87173ce1",
+    "before": [
+      "c8ae7cc1630ef6cd1954fb1d6c787f89e21ef73f664fc9daba46bbdcb95168a8"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsNavigationPolicy.kt",
+    "sha": "49cc9de518957fe3886b232d948f77fb5284125a11176d0bc03ffcaf5c0e73f4",
+    "before": [
+      "f1e07ba601371e3b7fa310d0b8745daa5ca7e5041aabf5cf26c7ae8ce410cd59"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  }
+]

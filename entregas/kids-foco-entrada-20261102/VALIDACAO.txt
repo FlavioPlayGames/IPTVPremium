@@ -1,0 +1,8 @@
+Base: revisao 845fb56, java enviado em 02/11/2026.
+Dois fontes alterados: KidsChannelsScreen.kt e KidsNavigationPolicy.kt.
+Compilacao integrada :app:compileDesempenhoKotlin: BUILD SUCCESSFUL, 25s.
+Politicas de Home, Voltar, Paging, historico e entrada assincrona: PASS.
+Entrada testada: carregamento sem/com canal, fim do carregamento com canal, erro e lista vazia. Nenhum destino automatico e Organizar.
+Solicitacao de foco so conclui a entrada se aceita; montagem do alvo reinicia a solicitacao. Barra superior indisponivel durante entrada pendente. Sem alteracao de historico, preferencias, dados do provedor ou velocidade de navegacao.
+Instaladores: aplicar/reaplicar, restaurar bytes originais, recusar fonte editado, recusar pacote corrompido e sintaxe PowerShell: PASS. Backup proprio .kids-entrada-backups.
+Sem acesso ao controle remoto/TV fisica; a validacao no aparelho permanece necessaria.
