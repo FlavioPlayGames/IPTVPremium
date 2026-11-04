@@ -1,0 +1,17 @@
+PASS snapshot survives a fresh decode with exact bytes
+PASS another application version cannot consume old parcel
+PASS empty snapshot is rejected
+PASS empty file is rejected
+PASS incomplete header is rejected
+PASS interrupted write cannot restore partial UI
+PASS extra trailing bytes are rejected
+PASS corrupted saved state is rejected
+PASS unknown format is rejected
+PASS wrong file signature is rejected
+PASS declared oversized length is rejected
+PASS oversized input cannot allocate an unbounded state
+PASS oversized snapshot cannot be written
+PASS maximum bounded snapshot round trips
+PASS small snapshot round trips
+PASS repeated decode does not consume or alter saved state
+16 snapshot checks passed; Android Bundle lifecycle requires device validation

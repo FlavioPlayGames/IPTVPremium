@@ -1,0 +1,8 @@
+PASS installer normal
+PASS installer latest
+PASS installer already-cleaned
+PASS installer changed
+PASS installer changed-manifest
+PASS installer corrupt
+PASS installer undo-conflict
+PASS PowerShell syntax, including TV installer

@@ -1,0 +1,83 @@
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:banner="@drawable/iptv_premium_tv_banner_320x180"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.IPTVPremium"
+        android:usesCleartextTraffic="true"
+        android:largeHeap="true">
+
+        <!-- No visible notifications or analytics: this integration only receives data hints. -->
+        <meta-data android:name="firebase_messaging_auto_init_enabled" android:value="false" />
+        <meta-data android:name="firebase_analytics_collection_enabled" android:value="false" />
+        <service
+            android:name=".core.device.PortalMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/update_paths" />
+        </provider>
+
+        <activity
+            android:name=".core.storage.CacheRestartActivity"
+            android:exported="false"
+            android:process=":cache_restart"
+            android:taskAffinity="${applicationId}.cache_restart"
+            android:excludeFromRecents="true"
+            android:screenOrientation="sensorLandscape" />
+
+        <activity
+            android:name=".MainActivity"
+            android:alwaysRetainTaskState="true"
+            android:screenOrientation="sensorLandscape"
+            android:banner="@drawable/iptv_premium_tv_banner_320x180"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+
+        </activity>
+
+    </application>
+
+</manifest>
+
+<!-- IPTV_LISTS_SUBTITLES_CHANNELS_V1 -->
+
+<!-- IPTV_DEVICE_IDENTITY_V1 -->
+
+<!-- IPTV_MANDATORY_UPDATE_V1 -->
+
+<!-- IPTV_FIREBASE_LIST_HINTS_V1 -->

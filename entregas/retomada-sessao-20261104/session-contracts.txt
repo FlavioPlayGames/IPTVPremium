@@ -1,0 +1,1 @@
+PASS session wiring: durable UI state, no expiry, real episode recovery, retained task, screen awake in foreground, position and playback intent, background pause, live reconnect, explicit exit, atomic bounded private storage
