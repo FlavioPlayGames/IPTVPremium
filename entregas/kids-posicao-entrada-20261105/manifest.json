@@ -1,0 +1,32 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsAppearance.kt",
+    "sha": "828a4065794024cfd500d3eb48598c59182537334ec2a1f472ab4cdca98e7b1e",
+    "before": [
+      "09a32ccec738344e11e4e0d99e933ef698b80876324391f67ea1a9aff0709660"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/kids/KidsCinema.kt",
+    "sha": "df020bd2f3e67d0f7512b141bf23264fc167ff760465e894b1d45a37933d190f",
+    "before": [
+      "151e0cb12640857b94f9130c914a72f13762207da0e6447f8dbde370d5e8d59c"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt",
+    "sha": "8995e68c3cee0e2e09e640d6de533c7b81a55181ae3ee2e7ae6cff0d7da9d074",
+    "before": [
+      "1c65304fbad6beb0d7b5c58b638510669987da98b3cd7c3eab73c30b3be19e80"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  }
+]
