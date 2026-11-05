@@ -1,0 +1,5 @@
+ESTRELA ALINHADA / 05/11/2026
+Apenas PlaybackCatalogBrowser.kt alterado, mantendo a versao 1.13. A linha Nota: estrela valor passa de tres Text em Row centralizada para um Text anotado com cor amarela restrita a estrela, tamanho 12sp e uma linha. Todos os elementos compartilham a mesma linha de base do texto. Sem ajuste por deslocamento fixo dependente da TV.
+Compilacao Kotlin e Lint Android passaram no fonte final; relatorio Lint inclui avisos existentes, sem erros ou desativacao global de verificacoes.
+Instalador validado: aplicacao e reaplicacao, backup/restauracao byte a byte, rejeicao de fonte desconhecido/pacote corrompido e conflito ao desfazer, sintaxe PowerShell dos tres scripts. Manifesto confere hashes do unico fonte alterado.
+Sem teste visual em TV ou emulador. Conferir alinhamento em normal/Kids, Continuar, filmes e capas de series, com e sem selecao e nota ausente. Nenhuma alteracao nos motores, video, buffer, historico ou abertura do player. Sem APK e sem configuracoes privadas.

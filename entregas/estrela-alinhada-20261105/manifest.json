@@ -1,0 +1,12 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackCatalogBrowser.kt",
+    "sha": "11e8471fcef322445a6b1be473eeab5a5aa298d0baf771dcc75ad63bc6f9bde6",
+    "before": [
+      "3d9c835290cea3701435804a09d1aa67113dafaaa516c2840626cf3563a56189"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  }
+]
