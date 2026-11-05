@@ -1,0 +1,4 @@
+PASS quality preservation: 291 unchanged Kotlin sources; both engines, buffers, track selection and rendering byte-equivalent after line ending normalization.
+PASS no blocking TMDB request on episode startup; on-demand subtitle identity fallback retained.
+PASS movie route and stream source construction unchanged.
+PASS actual DAO SQL: episode 6000, four identity boundaries and missing records.
