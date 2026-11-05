@@ -1,0 +1,39 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Unable to initialize metrics, ensure /home/agent/.android is writable, details: /home/agent/.android/analytics.settings (No such file or directory)
+Reusing configuration cache.
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDesempenhoBuild UP-TO-DATE
+> Task :app:generateDesempenhoBuildConfig UP-TO-DATE
+> Task :app:generateDesempenhoResValues UP-TO-DATE
+> Task :app:generateDesempenhoResources UP-TO-DATE
+> Task :app:packageDesempenhoResources UP-TO-DATE
+> Task :app:processDesempenhoNavigationResources UP-TO-DATE
+> Task :app:parseDesempenhoLocalResources UP-TO-DATE
+> Task :app:generateDesempenhoRFile UP-TO-DATE
+> Task :app:kspDesempenhoKotlin
+> Task :app:compileDesempenhoKotlin
+w: file:///workspace/backup-reviewed-build/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:652:91 'static field TRIM_MEMORY_COMPLETE: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/backup-reviewed-build/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:2446:46 Condition is always 'true'.
+w: file:///workspace/backup-reviewed-build/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:2446:97 Condition is always 'true'.
+w: file:///workspace/backup-reviewed-build/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:2601:42 Condition is always 'true'.
+w: file:///workspace/backup-reviewed-build/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/AppNavigation.kt:5063:63 Condition is always 'false'.
+
+> Task :app:javaPreCompileDesempenho UP-TO-DATE
+> Task :app:compileDesempenhoJavaWithJavac UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:extractDeepLinksDesempenho UP-TO-DATE
+> Task :app:processDesempenhoMainManifest UP-TO-DATE
+> Task :app:generateDesempenhoLintReportModel
+> Task :app:lintAnalyzeDesempenho
+Warning: Unable to initialize metrics, ensure /home/agent/.android is writable, details: /home/agent/.android/analytics.settings (No such file or directory)
+
+> Task :app:lintReportDesempenho
+Wrote HTML report to file:///workspace/backup-reviewed-build/app/build/reports/lint-results-desempenho.html
+Wrote SARIF report to file:///workspace/backup-reviewed-build/app/build/reports/lint-results-desempenho.sarif
+
+> Task :app:lintDesempenho
+
+BUILD SUCCESSFUL in 3m 31s
+18 actionable tasks: 6 executed, 12 up-to-date
+Configuration cache entry reused.

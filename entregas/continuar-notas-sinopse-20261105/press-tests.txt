@@ -1,0 +1,1 @@
+PASS synopsis confirmation: one action on key-up, repeats ignored, long press without favorite, focus cancellation and canceled key

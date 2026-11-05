@@ -1,0 +1,6 @@
+PASS Home: boundaries and skip blocked sections
+PASS channel BACK: overlays first, fullscreen/keyboard/header/video to playing, channels to categories, categories to exit
+PASS paging handoff: reject stale/loading page, allow refreshed/errors/local favorites, restore valid channel only
+PASS movie/series history: series artwork only, latest episode per series, completed excluded, removal focus and paging keys
+PASS entry focus: loading to restored/first channel, error to retry, empty to categories; never toolbar
+PASS Continue ratings/year/progress: normal and Kids movies, absent rating, and series cover metadata
