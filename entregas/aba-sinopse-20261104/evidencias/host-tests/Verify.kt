@@ -1,0 +1,55 @@
+package br.com.flaviotorres.iptvpremium.core.player
+
+import android.content.Context
+import br.com.flaviotorres.iptvpremium.core.device.*
+
+fun main() {
+ var checks=0
+ fun ok(value:Boolean,label:String){check(value){label};checks++;println("PASS $label")}
+ for(code in listOf(166,167,256))ok(isPlaybackCatalogKey(code),"CH/list key $code opens catalog")
+ for(code in listOf(4,19,20,21,22,23,85,82))ok(!isPlaybackCatalogKey(code),"key $code keeps its normal function")
+ val movie=CatalogPlaybackIdentity(PlaybackContentType.MOVIE,"100")
+ ok(isCurrentCatalogSelection(movie,movie),"selecting the playing movie dismisses without restarting")
+ ok(!isCurrentCatalogSelection(movie,movie.copy(id="101")),"another provider edition remains a distinct playable item")
+ ok(!isCurrentCatalogSelection(movie,CatalogPlaybackIdentity(PlaybackContentType.EPISODE,"100","s")),"same numeric ID in another section is not current movie")
+ val episode=CatalogPlaybackIdentity(PlaybackContentType.EPISODE,"200","series-a")
+ ok(isCurrentCatalogSelection(episode,episode),"selecting playing episode preserves current playback/pause")
+ ok(!isCurrentCatalogSelection(episode,episode.copy(seriesId="series-b")),"episode identity includes its series")
+ ok(!isCurrentCatalogSelection(episode,episode.copy(id="201")),"choosing another episode requests a replacement")
+ ok(portalPullPath(true,false)=="/api/device/pull?mode=auto","legacy lists-only pull remains available")
+ ok(portalPullPath(true,true)=="/api/device/pull","automatic content sync includes subtitle commands")
+ ok(portalPullPath(false,false)=="/api/device/pull","manual full sync unchanged")
+ for(type in listOf("lists_changed","subtitles_changed","subtitle_key_changed","settings_changed"))ok(isPortalContentHint(type,"1"),"authenticated queue hint $type recognized")
+ ok(!isPortalContentHint("subtitle_key","1"),"push never applies raw credential commands")
+ ok(!isPortalContentHint("subtitles_changed","2"),"unknown notification version rejected")
+ ok(portalContentRetryDelay(0)==120000L,"foreground fallback begins at two minutes")
+ ok(portalContentRetryDelay(1)==240000L&&portalContentRetryDelay(2)==480000L,"failures back off instead of polling rapidly")
+ ok(portalContentRetryDelay(100)==900000L,"fallback retries bounded at fifteen minutes")
+ val default=SubtitleAppearance()
+ ok(default.textArgb==0xFFFFFF00.toInt()&&default.sizeSp==22&&default.edge==SubtitleEdge.SHADOW,"strong yellow 22 shadow is the production default")
+ for(status in listOf(PlaybackStatus.READY,PlaybackStatus.PLAYING,PlaybackStatus.PAUSED,PlaybackStatus.ERROR,PlaybackStatus.ENDED))
+  ok(!playbackNeedsNetworkPriority(status),"$status allows in-player posters and portal sync")
+ for(status in listOf(PlaybackStatus.IDLE,PlaybackStatus.PREPARING,PlaybackStatus.BUFFERING))
+  ok(playbackNeedsNetworkPriority(status),"$status protects stream startup/refill")
+ val context=Context();val store=SubtitleAppearanceStore(context)
+ ok(store.load().textArgb==default.textArgb&&store.load().edge==SubtitleEdge.SHADOW,"fresh preferences use yellow shadow")
+ val old=Context();old.getSharedPreferences("subtitle_appearance_v1",0).edit().putInt("color",-1).putInt("size",22).putString("edge","OUTLINE").apply()
+ val migrated=SubtitleAppearanceStore(old)
+ ok(migrated.load().textArgb==default.textArgb&&migrated.load().edge==SubtitleEdge.SHADOW,"legacy white 22 outline migrates once")
+ migrated.save(default.copy(textArgb=-1,edge=SubtitleEdge.OUTLINE))
+ ok(migrated.load().textArgb==-1&&migrated.load().edge==SubtitleEdge.OUTLINE,"subsequent explicit user style is preserved")
+ val custom=Context();custom.getSharedPreferences("subtitle_appearance_v1",0).edit().putInt("color",0xFFE5E5E5.toInt()).putInt("size",30).putString("edge","NONE").apply()
+ val customResult=SubtitleAppearanceStore(custom).load()
+ ok(customResult.textArgb==0xFFE5E5E5.toInt()&&customResult.sizeSp==30&&customResult.edge==SubtitleEdge.NONE,"custom styles are not overwritten")
+ val revision=SubtitleProviderUpdates.revision.value
+ SubtitleProviderUpdates.changed()
+ ok(SubtitleProviderUpdates.revision.value==revision+1,"new portal credential invalidates active subtitle search state")
+ for(level in PlayerCatalogLevel.entries)ok(catalogBackStep(level,true)==CatalogBackStep.SYNOPSIS,"synopsis closes first from $level")
+ ok(catalogBackStep(PlayerCatalogLevel.EPISODES,false)==CatalogBackStep.SEASONS,"episode list returns only to seasons")
+ ok(catalogBackStep(PlayerCatalogLevel.SEASONS,false)==CatalogBackStep.COVERS,"season list returns only to series covers")
+ ok(catalogBackStep(PlayerCatalogLevel.ITEMS,false)==CatalogBackStep.CATEGORIES,"covers return only to categories")
+ ok(catalogBackStep(PlayerCatalogLevel.CATEGORIES,false)==CatalogBackStep.CLOSE,"catalog closes only after categories")
+ val path=listOf(catalogBackStep(PlayerCatalogLevel.EPISODES,false),catalogBackStep(PlayerCatalogLevel.SEASONS,false),catalogBackStep(PlayerCatalogLevel.ITEMS,false),catalogBackStep(PlayerCatalogLevel.CATEGORIES,false))
+ ok(path==listOf(CatalogBackStep.SEASONS,CatalogBackStep.COVERS,CatalogBackStep.CATEGORIES,CatalogBackStep.CLOSE),"one BACK per level in the complete series path")
+ println("$checks checks passed (host tests; no physical TV input simulated).")
+}
