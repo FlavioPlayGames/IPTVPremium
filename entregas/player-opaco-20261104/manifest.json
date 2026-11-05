@@ -1,0 +1,62 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlayerTheme.kt",
+    "sha": "b7f6e2b67e609ee3ef16d43986b927f75b00bb82b136b4345cb2fd8176b01b38",
+    "before": [
+      "88447dbc012a736a3c2e6ceec76a3ebc3feedf3138d7374fb0e1d8e03579138e"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/NeutralPlayerControls.kt",
+    "sha": "80ee9b3c36b04a41b42b6c4222cca62655b9c0716873fdafea195f810f038db6",
+    "before": [
+      "d35870d28a63e463ace0d47f8d5b953bf0f6729f61b8cf5830342da0969d5ccd"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt",
+    "sha": "7c416f41010c956a2926912bc145994dd535c55485c49ae4c0eeb46e1e85f582",
+    "before": [
+      "c5a812ddac308dd7def9156962c66c7ea6c7a005a0c65f905903247f39b52838"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackResumeCinema.kt",
+    "sha": "63b9b59d225c64bd1119eae865b0a011411a64530490b5f1a0aec114326fc5d7",
+    "before": [
+      "7e584a4cf7bbf14c87dd740730c3de7451182118ca028ee2136b26d990675330"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/CatalogSynopsisPresentation.kt",
+    "sha": "a3fa1d4d18f991df2ebd581b7a15bf7e272a010c8e3a75e263792fbf7e48a411",
+    "before": [
+      "75104898df658f35979537a786ccf3f4404b2857c06231982c94a5da1aae54e2"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackCatalogBrowser.kt",
+    "sha": "7939ac6be25607c57fd28534acfe2e46104a6e2ac8b056e559468d066ee29d65",
+    "before": [
+      "09fd53c0dcdfed0a866bb611978bf0fd29a75d1165c78f6389d2f88127eb928c"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  }
+]

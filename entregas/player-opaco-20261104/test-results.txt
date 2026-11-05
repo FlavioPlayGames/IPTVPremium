@@ -1,0 +1,77 @@
+PASS CH/list key 166 opens catalog
+PASS CH/list key 167 opens catalog
+PASS CH/list key 256 opens catalog
+PASS key 4 keeps its normal function
+PASS key 19 keeps its normal function
+PASS key 20 keeps its normal function
+PASS key 21 keeps its normal function
+PASS key 22 keeps its normal function
+PASS key 23 keeps its normal function
+PASS key 85 keeps its normal function
+PASS key 82 keeps its normal function
+PASS selecting the playing movie dismisses without restarting
+PASS another provider edition remains a distinct playable item
+PASS same numeric ID in another section is not current movie
+PASS selecting playing episode preserves current playback/pause
+PASS episode identity includes its series
+PASS choosing another episode requests a replacement
+PASS legacy lists-only pull remains available
+PASS automatic content sync includes subtitle commands
+PASS manual full sync unchanged
+PASS authenticated queue hint lists_changed recognized
+PASS authenticated queue hint subtitles_changed recognized
+PASS authenticated queue hint subtitle_key_changed recognized
+PASS authenticated queue hint settings_changed recognized
+PASS push never applies raw credential commands
+PASS unknown notification version rejected
+PASS foreground fallback begins at two minutes
+PASS failures back off instead of polling rapidly
+PASS fallback retries bounded at fifteen minutes
+PASS strong yellow 22 shadow is the production default
+PASS READY allows in-player posters and portal sync
+PASS PLAYING allows in-player posters and portal sync
+PASS PAUSED allows in-player posters and portal sync
+PASS ERROR allows in-player posters and portal sync
+PASS ENDED allows in-player posters and portal sync
+PASS IDLE protects stream startup/refill
+PASS PREPARING protects stream startup/refill
+PASS BUFFERING protects stream startup/refill
+PASS fresh preferences use yellow shadow
+PASS legacy white 22 outline migrates once
+PASS subsequent explicit user style is preserved
+PASS custom styles are not overwritten
+PASS new portal credential invalidates active subtitle search state
+PASS synopsis closes first from ITEMS
+PASS synopsis closes first from CATEGORIES
+PASS synopsis closes first from SEASONS
+PASS synopsis closes first from EPISODES
+PASS episode list returns only to seasons
+PASS season list returns only to series covers
+PASS covers return only to categories
+PASS catalog closes only after categories
+PASS one BACK per level in the complete series path
+PASS closed pull attaches to the selected cover edge
+PASS open pull travels to drawer outer edge
+PASS pull keeps the same vertical position during the full animation
+PASS reading rectangle is taller than the fixed pull
+PASS pull and drawer advance together at half travel
+PASS negative animation overshoot clamps closed
+PASS positive animation overshoot clamps open
+PASS invalid animation value cannot send pull off screen
+PASS drawer fits smaller viewport
+PASS very narrow viewport keeps pull within screen
+PASS last visible cover cannot push drawer below screen
+PASS cover separates the Ano label from localized rating
+PASS separate rating keeps one decimal place
+PASS missing year and rating are not invented
+PASS NaN rating is unavailable
+PASS invalid rating outside ten-point scale is unavailable
+PASS provider zero rating is unavailable
+PASS reader keeps year genre and actual duration
+PASS duration pads minute remainder and retains cover year
+PASS short duration formats without invented hours
+PASS unknown duration is omitted
+PASS empty and duplicate genres do not pollute metadata
+PASS absent reader metadata stays absent
+75 checks passed (host tests; no physical TV input simulated).
+PASS integration contracts: independent Paging, no player control from browser, direct playback routes, history, catalog-safe hide timer and lifecycle-scoped sync
