@@ -1,0 +1,3 @@
+Versao verificada na compilacao local: 1.13, versionCode 15.
+BuildConfig e manifesto principal conferidos.
+O instalador eleva automaticamente o piso do codigo quando APP_VERSION_CODE do projeto do usuario ja for maior.
