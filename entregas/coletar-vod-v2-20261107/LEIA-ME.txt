@@ -1,0 +1,6 @@
+COLETA VOD V2 - BLOCO MP4 COMPLETO
+A coleta inicial continha 4 MiB do inicio e 8 MiB do final. O MP4 analisado anuncia um moov de 10464831 bytes no offset 28, portanto esse bloco ficou incompleto. Esta versao le somente os primeiros 12 MiB (12582912 bytes), suficientes para incluir esse moov inteiro. Nao baixa o filme inteiro nem altera aplicativo/projeto/qualidade.
+Usa a URL apenas localmente, a partir de Downloads/iptvplus-legendas.txt, e gera vod-diagnostico-<identificador>.zip em Downloads. Envie esse resultado na conversa. Nao inclui o log original, URL ou credenciais no resumo. Os trechos podem conter dados do video; nao publique o resultado.
+O script limita a leitura local a 12 MiB mesmo se o servidor ignorar Range. Uma tentativa, limite de 45 segundos. Respostas 401/403 ou erros nao sao contornados. Se o servidor nao permitir, gera apenas um resumo do erro.
+Execute Coletar-Vod.ps1 no PowerShell. Para outro caminho: -Log 'C:\caminho\iptvplus-legendas.txt'.
+Testado com servidor HTTP local: 206 correto, 200 que ignora Range e 403. Confirmados 12 MiB maximos, uma requisicao, nenhum arquivo final.bin e credenciais omitidas do resumo/console. Executado em PowerShell 7 Linux; requer validacao no Windows/servidor do usuario.
