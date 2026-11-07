@@ -1,0 +1,174 @@
+{
+  "patches": [
+    {
+      "path": "worker-atualizacao-abi.js",
+      "beforeSha": "1deaf706e1c21d5a5a65a836cf9175394fdfe0c274ed60330724622a65ba24c5",
+      "afterSha": "d8a4704f4afbbb5927b6d3c41474aded2d17f3397128ba413f3b2971911ab5fb",
+      "operations": [
+        {
+          "before": "import { validatePlaylistInput } from './playlist-validation.js';",
+          "after": "import { openPortalReady, connectOpenAccount, OpenPortalError } from './opensubtitles.js';\nimport { validatePlaylistInput } from './playlist-validation.js';"
+        },
+        {
+          "before": "async function queue(env, id, kind, payload, requestId) {",
+          "after": "async function queue(env, id, kind, payload, requestId, ttl = QUEUE_TTL) {"
+        },
+        {
+          "before": "now, now + QUEUE_TTL, id, now).run();",
+          "after": "now, now + Math.min(QUEUE_TTL, ttl), id, now).run();"
+        },
+        {
+          "before": "...row2.kind === \"subtitle_key\" && cipher ? { provider: (await unseal(env, cipher, id)).provider } : {}",
+          "after": "...row2.kind === \"subtitle_session\" ? { provider: \"opensubtitles\" } : row2.kind === \"subtitle_key\" && cipher ? { provider: (await unseal(env, cipher, id)).provider } : {}"
+        },
+        {
+          "before": "function normalizeSnapshot(b) {\n  if (!Array.isArray(b.lists) || b.lists.length > 30) fail(422, \"Listas inv\\xE1lidas.\");\n  const lists = b.lists.map(playlist);\n  if (new Set(lists.map((x) => x.id)).size !== lists.length) fail(422, \"Listas duplicadas.\");\n  return { lists, subtitles: style(b.subtitles), providers: { subdl: !!b.providers?.subdl, subsource: !!b.providers?.subsource } };\n}\n",
+          "after": "function normalizeSnapshot(b) {\n  if (!Array.isArray(b.lists) || b.lists.length > 30) fail(422, \"Listas inv\\xE1lidas.\");\n  const lists = b.lists.map(playlist);\n  if (new Set(lists.map((x) => x.id)).size !== lists.length) fail(422, \"Listas duplicadas.\");\n  return { lists, subtitles: style(b.subtitles), subtitleProtocol: b.subtitleProtocol===2 ? 2 : 1,\n    openSubtitlesFingerprint: /^[a-f0-9]{64}$/.test(b.openSubtitlesFingerprint||\"\") ? b.openSubtitlesFingerprint : \"\",\n    providers: { subdl: !!b.providers?.subdl, subsource: false, opensubtitles: !!b.providers?.opensubtitles } };\n}\n"
+        },
+        {
+          "before": "  if (p === \"/api/account\" && m === \"GET\") return json(await account2(env, id, s.role === \"admin\"));",
+          "after": "  if (p === \"/api/account\" && m === \"GET\") {\n    const account = await account2(env, id, s.role === \"admin\");\n    return json({ ...account, openSubtitlesAvailable: await openPortalReady(env, account.snapshot) });\n  }\n  if (p === \"/api/opensubtitles/connect\" && m === \"POST\") {\n    await limit(env,\"open-login:\"+id,6,600);\n    const b=await readBody(r);\n    if(!/^[0-9a-f-]{36}$/.test(b.requestId||\"\")) fail(422,\"Identificação de envio inválida.\");\n    const previous=await env.DB.prepare(\"SELECT device_id,kind,state FROM commands WHERE id=?\").bind(b.requestId).first();\n    if(previous) {\n      if(previous.device_id!==id || previous.kind!==\"subtitle_session\")fail(409,\"Identificação de envio já utilizada.\");\n      return json({id:b.requestId,state:previous.state});\n    }\n    const account=await account2(env,id,s.role===\"admin\");\n    if(!await openPortalReady(env,account.snapshot))fail(503,\"Abra a etapa de conexão na TV e atualize o status. Se necessário, atualize o aplicativo.\");\n    let payload;\n    try{payload=await connectOpenAccount(env,b);}\n    catch(error){if(error instanceof OpenPortalError)fail(error.status,error.message);throw error;}\n    finally{b.password=\"\";}\n    const queued=await queue(env,id,\"subtitle_session\",payload,b.requestId,Math.min(900000,payload.expiresAt-Date.now()));\n    if([\"pending\",\"delivering\"].includes(queued.state)) {\n      const task=notifyLists(env,id,unseal);if(ctx?.waitUntil)ctx.waitUntil(task);else await task;\n    }\n    return json(queued);\n  }"
+        },
+        {
+          "before": "if (![\"subdl\", \"subsource\"].includes(b.data?.provider))",
+          "after": "if (![\"subdl\", \"opensubtitles\"].includes(b.data?.provider))"
+        },
+        {
+          "before": "        const key = b.data.key === null ? null : text(b.data.key, 512, \"Chave\");",
+          "after": "        if(b.data.provider===\"opensubtitles\" && b.data.key!==null)fail(422,\"Use o login OpenSubtitles nesta página.\");\n        const key = b.data.key === null ? null : text(b.data.key, 512, \"Chave\");"
+        },
+        {
+          "before": "if ([\"list_upsert\", \"list_delete\", \"snapshot\"].includes(b.kind)",
+          "after": "if ([\"list_upsert\", \"list_delete\", \"snapshot\", \"subtitle_key\", \"subtitle_style\"].includes(b.kind)"
+        }
+      ]
+    },
+    {
+      "path": "public/app.js",
+      "beforeSha": "ca46c39fa31c6a9f4e341ac3f1f0a07238c656877653be504f94915db0b4a5c5",
+      "afterSha": "52c518e0535de9a37d081ef40fd3297874248c513826cff500cb96a7826651c4",
+      "operations": [
+        {
+          "before": "import {updateArtifactNames,createUpdateDraft,buildUpdateBody,samePublishedUpdate} from './update-artifacts.js';",
+          "after": "import {createSubtitlePortal} from './subtitles.js';\nimport {updateArtifactNames,createUpdateDraft,buildUpdateBody,samePublishedUpdate} from './update-artifacts.js';"
+        },
+        {
+          "before": "const snapshotRequests=new Map();",
+          "after": "const snapshotRequests=new Map();\nlet subtitlePortal;"
+        },
+        {
+          "before": "subtitle_key:'Chave de legendas',",
+          "after": "subtitle_key:'Conexão de legendas',subtitle_session:'Conta OpenSubtitles',"
+        },
+        {
+          "before": "'subdl-key','subsource-key'",
+          "after": "'subdl-key','open-user','open-password'"
+        },
+        {
+          "before": "function wipeInputs(){",
+          "after": "function wipeInputs(){subtitlePortal?.wipe();"
+        },
+        {
+          "before": "['subdl','subsource'].forEach(id=>{const configured=account.snapshot?.providers?.[id],pending=account.commands.some(x=>x.kind==='subtitle_key'&&x.provider===id&&['pending','delivering'].includes(x.state));$(id+'-status').querySelector('span').textContent=pending?'Envio de chave aguardando recebimento':configured?'Chave configurada no aparelho':account.snapshot?'Não configurado':'Aguardando informação do aparelho';$(id+'-form').hidden=!!configured;$(id+'-manage').hidden=!configured})",
+          "after": "subtitlePortal?.render(account)"
+        },
+        {
+          "before": "['subdl','subsource'].forEach(id=>{const input=$(id+'-key'),form=$(id+'-form'),manage=$(id+'-manage');input.maxLength=512;input.minLength=8;$(id+'-toggle').onclick=()=>{input.type=input.type==='password'?'text':'password'};$(id+'-edit').onclick=()=>{form.hidden=false;manage.hidden=true;input.value='';input.type='password';input.placeholder='Cole a nova chave';$(id+'-label').textContent='Editar chave de API';$(id+'-cancel').hidden=false;input.focus()};$(id+'-cancel').onclick=()=>{input.value='';renderAccount()};form.onsubmit=e=>{e.preventDefault();run(async()=>{const key=input.value.trim();await sendCommand('subtitle_key',{provider:id,key});input.value='';input.type='password';toast('Chave enviada. Ela será apagada do servidor após o aplicativo confirmar o recebimento.')},e.submitter)};$(id+'-remove').onclick=()=>run(async()=>{if(!confirm('Remover a chave deste provedor no aplicativo?'))return;await sendCommand('subtitle_key',{provider:id,key:null});toast('Pedido de remoção enviado.')})});",
+          "after": "subtitlePortal=createSubtitlePortal({$,api,target,run,toast,getAccount:()=>account,sendCommand,loadAccount,requestSnapshot,startPoll});"
+        },
+        {
+          "before": "function show(view){",
+          "after": "function show(view){if(view==='style')subtitlePortal?.opened();"
+        },
+        {
+          "before": "account=b;device=b.id;",
+          "after": "if(account?.id!==b.id)subtitlePortal?.wipe();account=b;device=b.id;"
+        },
+        {
+          "before": "pollCount<6&&account.commands",
+          "after": "pollCount<18&&account.commands"
+        },
+        {
+          "before": "Cadastre suas chaves pessoais dos provedores de legendas.",
+          "after": "Conecte suas contas de legendas ao aparelho."
+        }
+      ]
+    },
+    {
+      "path": "public/index.html",
+      "beforeSha": "ec7934d7f9fc24e8641d309f36fc9323796308d3170b741b2906334b1d9a4656",
+      "afterSha": "b2baa92f38c2daba0f9749996807bdccfecc0027161862265cb2fc765a3630f1",
+      "operations": [
+        {
+          "before": "<div id=\"provider-settings\"><div class=\"glass provider-intro\"><h2>Seu provedor não oferece legendas em português?</h2><p>Temos uma alternativa com dois provedores externos: <strong>SubDL</strong> e <strong>SubSource</strong>. Eles oferecem acesso gratuito, com cadastro e limites próprios de uso.</p><p>Crie sua conta no site do provedor, obtenha a sua chave de API e cole no campo correspondente abaixo. <strong>Recomendamos cadastrar os dois provedores para ampliar as opções de legendas.</strong></p><p>O player busca legendas em português nos catálogos do SubDL e do SubSource. A disponibilidade depende do filme ou da série e das legendas oferecidas por cada serviço.</p></div>\n<div class=\"providers-grid\">\n<section class=\"glass provider-card\" aria-labelledby=\"subdl-title\"><div class=\"provider-head\"><div><p class=\"eyebrow\">Provedor 01</p><h2 id=\"subdl-title\">SubDL</h2></div></div><p class=\"provider-description\">Crie sua conta pessoal no SubDL e cadastre a chave de API no campo abaixo.</p><div class=\"provider-status\" id=\"subdl-status\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v5M12 7h.01\"/></svg><span>Não configurado</span></div><form id=\"subdl-form\"><div class=\"field\"><label for=\"subdl-key\" id=\"subdl-label\">Cadastrar chave de API do SubDL</label><div class=\"key-input\"><input id=\"subdl-key\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Cole sua chave pessoal aqui\" required><button class=\"text key-toggle\" type=\"button\" id=\"subdl-toggle\" aria-label=\"Mostrar chave do SubDL\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg></button></div></div><div class=\"provider-actions\"><button class=\"selected\" type=\"submit\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 12h14m-5-5 5 5-5 5\"/></svg>Enviar ao aplicativo</button><button class=\"ghost\" type=\"button\" id=\"subdl-cancel\" hidden>Cancelar</button></div></form><div class=\"provider-actions\" id=\"subdl-manage\" hidden><button class=\"selected\" type=\"button\" id=\"subdl-edit\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M14 5l5 5M4 20l5-1L20 8a2 2 0 00-5-5L4 14z\"/></svg>Editar chave</button><button class=\"ghost\" type=\"button\" id=\"subdl-remove\">Remover</button></div><p class=\"provider-caption\">A chave do SubDL é independente da chave do SubSource.</p><div class=\"provider-signup\"><a class=\"provider-link\" href=\"https://subdl.com\" target=\"_blank\" rel=\"noopener noreferrer\">Criar conta no SubDL <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M14 3h7v7M21 3L10 14M10 4H4v16h16v-6\"/></svg></a><p class=\"provider-domain\">Site oficial · subdl.com</p><div class=\"key-help\"><strong>Onde encontrar a chave</strong><p>Depois de criar sua conta, entre em <b>Conta → API</b> e copie a chave. Depois, cole no campo acima.</p></div></div></section>\n<section class=\"glass provider-card\" aria-labelledby=\"subsource-title\"><div class=\"provider-head\"><div><p class=\"eyebrow\">Provedor 02</p><h2 id=\"subsource-title\">SubSource</h2></div></div><p class=\"provider-description\">Crie sua conta pessoal no SubSource e cadastre a chave de API no campo abaixo.</p><div class=\"provider-status\" id=\"subsource-status\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v5M12 7h.01\"/></svg><span>Não configurado</span></div><form id=\"subsource-form\"><div class=\"field\"><label for=\"subsource-key\" id=\"subsource-label\">Cadastrar chave de API do SubSource</label><div class=\"key-input\"><input id=\"subsource-key\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Cole sua chave pessoal aqui\" required><button class=\"text key-toggle\" type=\"button\" id=\"subsource-toggle\" aria-label=\"Mostrar chave do SubSource\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg></button></div></div><div class=\"provider-actions\"><button class=\"selected\" type=\"submit\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 12h14m-5-5 5 5-5 5\"/></svg>Enviar ao aplicativo</button><button class=\"ghost\" type=\"button\" id=\"subsource-cancel\" hidden>Cancelar</button></div></form><div class=\"provider-actions\" id=\"subsource-manage\" hidden><button class=\"selected\" type=\"button\" id=\"subsource-edit\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M14 5l5 5M4 20l5-1L20 8a2 2 0 00-5-5L4 14z\"/></svg>Editar chave</button><button class=\"ghost\" type=\"button\" id=\"subsource-remove\">Remover</button></div><p class=\"provider-caption\">Cadastrar este provedor não altera sua chave do SubDL.</p><div class=\"provider-signup\"><a class=\"provider-link\" href=\"https://subsource.net\" target=\"_blank\" rel=\"noopener noreferrer\">Criar conta no SubSource <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M14 3h7v7M21 3L10 14M10 4H4v16h16v-6\"/></svg></a><p class=\"provider-domain\">Site oficial · subsource.net</p><div class=\"key-help\"><strong>Onde encontrar a chave</strong><p>Depois de criar sua conta, abra <b>Configurações</b> e desça a página até encontrar a chave. Copie e cole no campo acima.</p></div></div></section></div>\n<div class=\"note\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v5M12 7h.01\"/></svg><span>Cadastrar e editar: preencha o campo e confirme em “Enviar ao aplicativo”. A chave fica no aparelho; o envio é apagado do servidor após a confirmação de recebimento.</span></div></div>",
+          "after": "<div id=\"provider-settings\">\n <div class=\"glass subtitle-intro\"><p class=\"eyebrow\">Conexão pelo celular</p><h2>Conecte seus serviços à TV</h2><p>Se o seu provedor não oferecer legendas, use estas opções gratuitas. Recomendamos cadastrar-se nas duas, pois cada serviço tem limites de uso.</p><p id=\"subtitle-device-label\" class=\"subtitle-device\"></p><button type=\"button\" class=\"ghost\" id=\"subtitle-refresh\">Atualizar status da TV</button></div>\n <div class=\"providers-grid\">\n  <section class=\"glass provider-card\" aria-labelledby=\"subdl-title\">\n   <div class=\"provider-head\"><div><p class=\"eyebrow\">Chave de API pessoal</p><h2 id=\"subdl-title\">SubDL</h2></div></div>\n   <p class=\"provider-description\">Crie sua conta no site oficial, gere a chave de API e cole abaixo. A chave permite buscar legendas sem informar sua senha aqui.</p>\n   <a class=\"provider-link\" href=\"https://subdl.com\" target=\"_blank\" rel=\"noopener noreferrer\">Criar conta no SubDL ↗</a>\n   <p class=\"provider-status\" id=\"subdl-status\" role=\"status\">Aguardando informação da TV</p>\n   <form id=\"subdl-form\" method=\"post\"><div class=\"field\"><label for=\"subdl-key\">Sua chave de API SubDL</label><div class=\"key-input\"><input id=\"subdl-key\" autocapitalize=\"none\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" minlength=\"8\" maxlength=\"512\" placeholder=\"Cole a chave da sua conta\" required><button class=\"text key-toggle\" type=\"button\" id=\"subdl-toggle\" aria-label=\"Mostrar chave do SubDL\">Mostrar</button></div></div><p class=\"provider-caption\">Na sua conta SubDL, procure a área API e copie a chave pessoal.</p><div class=\"provider-actions\"><button class=\"selected\" id=\"subdl-send\" type=\"submit\">Enviar chave para a TV</button><button class=\"ghost\" type=\"button\" id=\"subdl-cancel\" hidden>Cancelar</button></div></form>\n   <div class=\"provider-actions\" id=\"subdl-manage\" hidden><button class=\"selected\" type=\"button\" id=\"subdl-edit\">Atualizar chave</button><button class=\"ghost\" type=\"button\" id=\"subdl-remove\">Desconectar</button></div>\n  </section>\n  <section class=\"glass provider-card\" aria-labelledby=\"open-title\">\n   <div class=\"provider-head\"><div><p class=\"eyebrow\">Login da sua conta</p><h2 id=\"open-title\">OpenSubtitles</h2></div></div>\n   <p class=\"provider-description\">Para conectar, basta entrar com usuário e senha do OpenSubtitles.com. Você não precisa gerar uma chave de API.</p>\n   <a class=\"provider-link\" href=\"https://www.opensubtitles.com\" target=\"_blank\" rel=\"noopener noreferrer\">Criar conta no OpenSubtitles ↗</a>\n   <p class=\"provider-status\" id=\"open-status\" role=\"status\">Não conectado</p>\n   <form id=\"open-form\" method=\"post\"><div class=\"field\"><label for=\"open-user\">Usuário do OpenSubtitles.com</label><input id=\"open-user\" autocapitalize=\"none\" autocorrect=\"off\" maxlength=\"320\" autocomplete=\"username\" spellcheck=\"false\" placeholder=\"Seu usuário\" required></div><div class=\"field\"><label for=\"open-password\">Senha</label><div class=\"key-input\"><input id=\"open-password\" type=\"password\" maxlength=\"1024\" autocomplete=\"off\" placeholder=\"Sua senha\" required><button class=\"text key-toggle\" id=\"open-toggle\" type=\"button\" aria-label=\"Mostrar senha\">Mostrar</button></div></div><p id=\"open-help\" class=\"provider-caption\">A senha é usada no login e não fica salva.</p><div class=\"provider-actions\"><button class=\"selected\" id=\"open-send\" type=\"submit\">Entrar e conectar à TV</button><button class=\"ghost\" type=\"button\" id=\"open-cancel\" hidden>Cancelar</button></div></form>\n   <div class=\"provider-actions\" id=\"open-manage\" hidden><button class=\"selected\" type=\"button\" id=\"open-edit\">Entrar com outra conta</button><button class=\"ghost\" type=\"button\" id=\"open-remove\">Desconectar</button></div>\n  </section>\n </div>\n <p class=\"subtitle connection-note\">Mantenha a etapa 2 aberta na TV. O status será atualizado após o recebimento. Os arquivos de legenda só serão baixados quando você escolher uma opção no player.</p>\n</div>\n"
+        },
+        {
+          "before": "<link rel=\"stylesheet\" href=\"/style.css?v=update-optional-1\">",
+          "after": "<link rel=\"stylesheet\" href=\"/style.css?v=update-optional-1\"><link rel=\"stylesheet\" href=\"/subtitles.css?v=steps-2\">"
+        },
+        {
+          "before": "Cadastre suas chaves pessoais dos provedores de legendas.",
+          "after": "Conecte suas contas de legendas ao aparelho."
+        },
+        {
+          "before": "aria-pressed=\"true\">Provedores</button>",
+          "after": "aria-pressed=\"true\">Conectar serviços</button>"
+        },
+        {
+          "before": "/app.js?v=xtream-validation-2",
+          "after": "/app.js?v=subtitle-steps-2"
+        },
+        {
+          "before": "// IPTV_FETCH_DEVICE_LISTS_V1",
+          "after": "<!-- IPTV_FETCH_DEVICE_LISTS_V1 -->"
+        }
+      ]
+    },
+    {
+      "path": "public/admin/index.html",
+      "beforeSha": "a9635975aa41dd61c39c4c1d42db99bd4d35fa8785a08c7ed898845272ca80dd",
+      "afterSha": "012c5f4a4fd95e41f338c9664cfab33d3df1bb3a70136b20add904a6e74d275d",
+      "operations": [
+        {
+          "before": "<div id=\"provider-settings\"><div class=\"glass provider-intro\"><h2>Seu provedor não oferece legendas em português?</h2><p>Temos uma alternativa com dois provedores externos: <strong>SubDL</strong> e <strong>SubSource</strong>. Eles oferecem acesso gratuito, com cadastro e limites próprios de uso.</p><p>Crie sua conta no site do provedor, obtenha a sua chave de API e cole no campo correspondente abaixo. <strong>Recomendamos cadastrar os dois provedores para ampliar as opções de legendas.</strong></p><p>O player busca legendas em português nos catálogos do SubDL e do SubSource. A disponibilidade depende do filme ou da série e das legendas oferecidas por cada serviço.</p></div>\n<div class=\"providers-grid\">\n<section class=\"glass provider-card\" aria-labelledby=\"subdl-title\"><div class=\"provider-head\"><div><p class=\"eyebrow\">Provedor 01</p><h2 id=\"subdl-title\">SubDL</h2></div></div><p class=\"provider-description\">Crie sua conta pessoal no SubDL e cadastre a chave de API no campo abaixo.</p><div class=\"provider-status\" id=\"subdl-status\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v5M12 7h.01\"/></svg><span>Não configurado</span></div><form id=\"subdl-form\"><div class=\"field\"><label for=\"subdl-key\" id=\"subdl-label\">Cadastrar chave de API do SubDL</label><div class=\"key-input\"><input id=\"subdl-key\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Cole sua chave pessoal aqui\" required><button class=\"text key-toggle\" type=\"button\" id=\"subdl-toggle\" aria-label=\"Mostrar chave do SubDL\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg></button></div></div><div class=\"provider-actions\"><button class=\"selected\" type=\"submit\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 12h14m-5-5 5 5-5 5\"/></svg>Enviar ao aplicativo</button><button class=\"ghost\" type=\"button\" id=\"subdl-cancel\" hidden>Cancelar</button></div></form><div class=\"provider-actions\" id=\"subdl-manage\" hidden><button class=\"selected\" type=\"button\" id=\"subdl-edit\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M14 5l5 5M4 20l5-1L20 8a2 2 0 00-5-5L4 14z\"/></svg>Editar chave</button><button class=\"ghost\" type=\"button\" id=\"subdl-remove\">Remover</button></div><p class=\"provider-caption\">A chave do SubDL é independente da chave do SubSource.</p><div class=\"provider-signup\"><a class=\"provider-link\" href=\"https://subdl.com\" target=\"_blank\" rel=\"noopener noreferrer\">Criar conta no SubDL <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M14 3h7v7M21 3L10 14M10 4H4v16h16v-6\"/></svg></a><p class=\"provider-domain\">Site oficial · subdl.com</p><div class=\"key-help\"><strong>Onde encontrar a chave</strong><p>Depois de criar sua conta, entre em <b>Conta → API</b> e copie a chave. Depois, cole no campo acima.</p></div></div></section>\n<section class=\"glass provider-card\" aria-labelledby=\"subsource-title\"><div class=\"provider-head\"><div><p class=\"eyebrow\">Provedor 02</p><h2 id=\"subsource-title\">SubSource</h2></div></div><p class=\"provider-description\">Crie sua conta pessoal no SubSource e cadastre a chave de API no campo abaixo.</p><div class=\"provider-status\" id=\"subsource-status\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v5M12 7h.01\"/></svg><span>Não configurado</span></div><form id=\"subsource-form\"><div class=\"field\"><label for=\"subsource-key\" id=\"subsource-label\">Cadastrar chave de API do SubSource</label><div class=\"key-input\"><input id=\"subsource-key\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Cole sua chave pessoal aqui\" required><button class=\"text key-toggle\" type=\"button\" id=\"subsource-toggle\" aria-label=\"Mostrar chave do SubSource\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg></button></div></div><div class=\"provider-actions\"><button class=\"selected\" type=\"submit\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 12h14m-5-5 5 5-5 5\"/></svg>Enviar ao aplicativo</button><button class=\"ghost\" type=\"button\" id=\"subsource-cancel\" hidden>Cancelar</button></div></form><div class=\"provider-actions\" id=\"subsource-manage\" hidden><button class=\"selected\" type=\"button\" id=\"subsource-edit\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M14 5l5 5M4 20l5-1L20 8a2 2 0 00-5-5L4 14z\"/></svg>Editar chave</button><button class=\"ghost\" type=\"button\" id=\"subsource-remove\">Remover</button></div><p class=\"provider-caption\">Cadastrar este provedor não altera sua chave do SubDL.</p><div class=\"provider-signup\"><a class=\"provider-link\" href=\"https://subsource.net\" target=\"_blank\" rel=\"noopener noreferrer\">Criar conta no SubSource <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M14 3h7v7M21 3L10 14M10 4H4v16h16v-6\"/></svg></a><p class=\"provider-domain\">Site oficial · subsource.net</p><div class=\"key-help\"><strong>Onde encontrar a chave</strong><p>Depois de criar sua conta, abra <b>Configurações</b> e desça a página até encontrar a chave. Copie e cole no campo acima.</p></div></div></section></div>\n<div class=\"note\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v5M12 7h.01\"/></svg><span>Cadastrar e editar: preencha o campo e confirme em “Enviar ao aplicativo”. A chave fica no aparelho; o envio é apagado do servidor após a confirmação de recebimento.</span></div></div>",
+          "after": "<div id=\"provider-settings\">\n <div class=\"glass subtitle-intro\"><p class=\"eyebrow\">Conexão pelo celular</p><h2>Conecte seus serviços à TV</h2><p>Se o seu provedor não oferecer legendas, use estas opções gratuitas. Recomendamos cadastrar-se nas duas, pois cada serviço tem limites de uso.</p><p id=\"subtitle-device-label\" class=\"subtitle-device\"></p><button type=\"button\" class=\"ghost\" id=\"subtitle-refresh\">Atualizar status da TV</button></div>\n <div class=\"providers-grid\">\n  <section class=\"glass provider-card\" aria-labelledby=\"subdl-title\">\n   <div class=\"provider-head\"><div><p class=\"eyebrow\">Chave de API pessoal</p><h2 id=\"subdl-title\">SubDL</h2></div></div>\n   <p class=\"provider-description\">Crie sua conta no site oficial, gere a chave de API e cole abaixo. A chave permite buscar legendas sem informar sua senha aqui.</p>\n   <a class=\"provider-link\" href=\"https://subdl.com\" target=\"_blank\" rel=\"noopener noreferrer\">Criar conta no SubDL ↗</a>\n   <p class=\"provider-status\" id=\"subdl-status\" role=\"status\">Aguardando informação da TV</p>\n   <form id=\"subdl-form\" method=\"post\"><div class=\"field\"><label for=\"subdl-key\">Sua chave de API SubDL</label><div class=\"key-input\"><input id=\"subdl-key\" autocapitalize=\"none\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" minlength=\"8\" maxlength=\"512\" placeholder=\"Cole a chave da sua conta\" required><button class=\"text key-toggle\" type=\"button\" id=\"subdl-toggle\" aria-label=\"Mostrar chave do SubDL\">Mostrar</button></div></div><p class=\"provider-caption\">Na sua conta SubDL, procure a área API e copie a chave pessoal.</p><div class=\"provider-actions\"><button class=\"selected\" id=\"subdl-send\" type=\"submit\">Enviar chave para a TV</button><button class=\"ghost\" type=\"button\" id=\"subdl-cancel\" hidden>Cancelar</button></div></form>\n   <div class=\"provider-actions\" id=\"subdl-manage\" hidden><button class=\"selected\" type=\"button\" id=\"subdl-edit\">Atualizar chave</button><button class=\"ghost\" type=\"button\" id=\"subdl-remove\">Desconectar</button></div>\n  </section>\n  <section class=\"glass provider-card\" aria-labelledby=\"open-title\">\n   <div class=\"provider-head\"><div><p class=\"eyebrow\">Login da sua conta</p><h2 id=\"open-title\">OpenSubtitles</h2></div></div>\n   <p class=\"provider-description\">Para conectar, basta entrar com usuário e senha do OpenSubtitles.com. Você não precisa gerar uma chave de API.</p>\n   <a class=\"provider-link\" href=\"https://www.opensubtitles.com\" target=\"_blank\" rel=\"noopener noreferrer\">Criar conta no OpenSubtitles ↗</a>\n   <p class=\"provider-status\" id=\"open-status\" role=\"status\">Não conectado</p>\n   <form id=\"open-form\" method=\"post\"><div class=\"field\"><label for=\"open-user\">Usuário do OpenSubtitles.com</label><input id=\"open-user\" autocapitalize=\"none\" autocorrect=\"off\" maxlength=\"320\" autocomplete=\"username\" spellcheck=\"false\" placeholder=\"Seu usuário\" required></div><div class=\"field\"><label for=\"open-password\">Senha</label><div class=\"key-input\"><input id=\"open-password\" type=\"password\" maxlength=\"1024\" autocomplete=\"off\" placeholder=\"Sua senha\" required><button class=\"text key-toggle\" id=\"open-toggle\" type=\"button\" aria-label=\"Mostrar senha\">Mostrar</button></div></div><p id=\"open-help\" class=\"provider-caption\">A senha é usada no login e não fica salva.</p><div class=\"provider-actions\"><button class=\"selected\" id=\"open-send\" type=\"submit\">Entrar e conectar à TV</button><button class=\"ghost\" type=\"button\" id=\"open-cancel\" hidden>Cancelar</button></div></form>\n   <div class=\"provider-actions\" id=\"open-manage\" hidden><button class=\"selected\" type=\"button\" id=\"open-edit\">Entrar com outra conta</button><button class=\"ghost\" type=\"button\" id=\"open-remove\">Desconectar</button></div>\n  </section>\n </div>\n <p class=\"subtitle connection-note\">Mantenha a etapa 2 aberta na TV. O status será atualizado após o recebimento. Os arquivos de legenda só serão baixados quando você escolher uma opção no player.</p>\n</div>\n"
+        },
+        {
+          "before": "<link rel=\"stylesheet\" href=\"/style.css?v=update-optional-1\">",
+          "after": "<link rel=\"stylesheet\" href=\"/style.css?v=update-optional-1\"><link rel=\"stylesheet\" href=\"/subtitles.css?v=steps-2\">"
+        },
+        {
+          "before": "Cadastre suas chaves pessoais dos provedores de legendas.",
+          "after": "Conecte suas contas de legendas ao aparelho."
+        },
+        {
+          "before": "aria-pressed=\"true\">Provedores</button>",
+          "after": "aria-pressed=\"true\">Conectar serviços</button>"
+        },
+        {
+          "before": "/app.js?v=xtream-validation-2",
+          "after": "/app.js?v=subtitle-steps-2"
+        },
+        {
+          "before": "// IPTV_FETCH_DEVICE_LISTS_V1",
+          "after": "<!-- IPTV_FETCH_DEVICE_LISTS_V1 -->"
+        }
+      ]
+    }
+  ],
+  "newFiles": [
+    {
+      "path": "opensubtitles.js",
+      "sha": "0bd95ec4be85a01a237f9f67efce1ed1d42f148904f03c6e012ea23997d26c7c"
+    },
+    {
+      "path": "public/subtitles.js",
+      "sha": "6a57b16c128a36e3de4c25dbbe4c17d871c99cfc046ead65d45ffbfa9af408dc"
+    },
+    {
+      "path": "public/subtitles.css",
+      "sha": "b6bd3dd346e1d3ca18b0d8a96aa6a87636bbc783383e9e32a6bcbd0ef2407b77"
+    }
+  ]
+}

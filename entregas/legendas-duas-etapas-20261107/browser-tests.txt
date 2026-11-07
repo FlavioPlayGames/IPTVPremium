@@ -1,0 +1,3 @@
+PASS mobile: providers, appearance, responsive layout, password error keeps portal login, click-only auth, credentials cleared, same-account status, no browser credential storage.
+PASS desktop: providers, appearance, responsive layout, password error keeps portal login, click-only auth, credentials cleared, same-account status, no browser credential storage.
+24 browser checks passed; local mocked API only.

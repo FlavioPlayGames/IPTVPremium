@@ -1,0 +1,8 @@
+{
+  "provider": "opensubtitles",
+  "token": "test-open-session-token",
+  "apiHost": "api.opensubtitles.com",
+  "expiresAt": 1794111267231,
+  "appFingerprint": "124d16d852efa6eba3d5a1e637e2639551f00caffb63fa5b2c7f77f2d474784d",
+  "accountScope": "d095893ba25323c2c80c72dbe0fd64de8fa45f8bb8a324e3011b4c45f3fd6b4f"
+}

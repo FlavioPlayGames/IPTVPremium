@@ -1,0 +1,5 @@
+PASS site installer normal
+PASS site installer custom-unrelated
+PASS site installer unknown-fragment
+PASS site installer corrupt
+PASS site installer undo-conflict

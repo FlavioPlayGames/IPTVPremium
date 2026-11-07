@@ -1,0 +1,60 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSettingsScreen.kt",
+    "sha": "622acedc348cb053334c8953c9a14e5aa29cf39297b0135a8d7f1781431e3b3d",
+    "before": [
+      "5705404926c2384785f5cf9a03259d58443c673aeb4387723a2a228721a0e480"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSetupWizard.kt",
+    "sha": "22dff418bbcf485bef759b01f1b3bad88489e6a763879a6bfaa7886e63f64b5c",
+    "before": [],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalQr.kt",
+    "sha": "fcd45ec772515dd8f7fa57d5a3c7dc23102796b04898992d46835bc8573aaf9d",
+    "before": [
+      "fae1fe6cb202f9b2eb0f0d92743188b833ecaf5def1cd9aff05ad6ab6eb62aef"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt",
+    "sha": "85dbbd5e1cd699d68f1f6ee74220a9a17604573e738e014336dcedd9b57ec7d6",
+    "before": [
+      "cca720b8d5e8694a380c28def3a3aea0128992307a2921f0a54e8bf3483f800d"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/OpenSubtitlesClient.kt",
+    "sha": "47e666848e4d66bc254a07bc32460fe42464a86c6dcb20ff6210ed744fe802ca",
+    "before": [
+      "0c98e74be7570d6cceb73e439a96d92df9dc7fe808a3b447742840db39555cc4"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/OpenSubtitlesProtocol.kt",
+    "sha": "92a1a39d35fcabe75e906ed53b56e16b919f9e6158fa435eaee2c28a9778e4a0",
+    "before": [
+      "c1b6f3562802351804447d4ed03230b45713158e3e5b3870d9b96ebe8a5a867e"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  }
+]
