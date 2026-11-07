@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Application registration, supplied by the maintainer in a private build-type override. -->
+    <string name="opensubtitles_api_key" translatable="false"></string>
+    <string name="opensubtitles_user_agent" translatable="false">IPTVPremium v1.13</string>
+</resources>

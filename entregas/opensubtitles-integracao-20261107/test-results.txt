@@ -1,0 +1,49 @@
+PASS three languages with Brazilian Portuguese first
+PASS wrong works, wrong years and duplicate files excluded
+PASS episode search requires correct parent series, season and episode
+PASS series ID is never sent as an episode TMDB ID
+PASS three search languages in one request
+PASS text lookup rejects unrelated titles
+PASS official VIP API base accepted
+PASS unsafe API base rejected
+PASS unsafe API base rejected
+PASS unsafe API base rejected
+PASS unsafe API base rejected
+PASS unsafe API base rejected
+PASS unsafe download URL rejected
+PASS unsafe download URL rejected
+PASS unsafe download URL rejected
+PASS unsafe download URL rejected
+PASS missing application registration performs no login
+PASS no request with missing app key
+PASS login preserves password and trims user
+PASS only token session is passed to account storage
+PASS search returns three verified language options
+PASS login and search never mint a download link
+PASS search uses viewer session
+PASS missing languages recovered when English crowds out a multi-page search
+PASS language recovery queries only the missing languages
+PASS selection mints exactly one download link
+PASS selected file ID is sent, not subtitle ID
+PASS public subtitle download never receives credentials or API key
+PASS untrusted download link rejected before GET
+PASS untrusted host receives no request
+PASS malformed successful search is not an empty search result
+PASS transport exceptions become fixed safe messages
+PASS logout during search discards late results
+PASS logout removes active session
+PASS login cannot install a malicious API host
+PASS invalid host is never saved
+PASS same account keeps a stable cache identity after login renewal
+PASS stale 401 from the same account is rejected
+PASS stale 401 cannot clear a newer session of the same account
+PASS old request reports expired authentication
+PASS old 401 cannot disconnect a newer login
+PASS old account selection cannot mint a new account download
+PASS 429 reported as limit, not invalid password
+PASS Retry-After prevents immediate repeated requests
+PASS cooldown actually suppresses network traffic
+PASS requests resume after provider cooldown
+PASS logout prevents a concurrent login from restoring the session
+PASS concurrent logout remains effective
+48 OpenSubtitles checks passed; mocked provider, no real API access.

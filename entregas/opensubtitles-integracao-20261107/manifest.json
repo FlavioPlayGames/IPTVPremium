@@ -1,0 +1,82 @@
+[
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt",
+    "sha": "3ae9c4cc1cc6b0513be97b7ba7d4ca412c9751aa2417051b1ffe28c25669fd60",
+    "before": [
+      "0e353c1390b99052a8d3fdc5a21c381cc75ea67e890f0c11c3c292c9215d00ae"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSettingsScreen.kt",
+    "sha": "5705404926c2384785f5cf9a03259d58443c673aeb4387723a2a228721a0e480",
+    "before": [
+      "30365c066027b69a4a6674ea65e9781b68b529de437c2915b2b13264c36c68fe"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/device/DevicePortalSync.kt",
+    "sha": "cca720b8d5e8694a380c28def3a3aea0128992307a2921f0a54e8bf3483f800d",
+    "before": [
+      "3fe4d85dfd6e02159dbbbb4907ce81ba8826041755b71e3a85334d5ef074ebe8"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt",
+    "sha": "efa5540b3d151086ef644dd1bf859d7be997fba26db3b0e19449e2d595b5024c",
+    "before": [
+      "7c416f41010c956a2926912bc145994dd535c55485c49ae4c0eeb46e1e85f582"
+    ],
+    "allowMissing": false,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/OpenSubtitlesProtocol.kt",
+    "sha": "c1b6f3562802351804447d4ed03230b45713158e3e5b3870d9b96ebe8a5a867e",
+    "before": [],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/OpenSubtitlesClient.kt",
+    "sha": "0c98e74be7570d6cceb73e439a96d92df9dc7fe808a3b447742840db39555cc4",
+    "before": [],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/OpenSubtitlesAccountStore.kt",
+    "sha": "bda116a425ff419b2df2652b92b654de8bb9035e1b29ef4a54dd8dddefb15833",
+    "before": [],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/OpenSubtitlesAccountPanel.kt",
+    "sha": "d96c0e33af311ee681fbb1b45c1dd9f682003526186c36b9f0d3e993e6c459cd",
+    "before": [],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  },
+  {
+    "path": "app/src/main/res/values/opensubtitles.xml",
+    "sha": "664134d43bebd54d972a6c864f7cb65cf14f0b6a10a5701ac13957ef225ff3d3",
+    "before": [],
+    "allowMissing": true,
+    "binary": false,
+    "remove": false
+  }
+]
