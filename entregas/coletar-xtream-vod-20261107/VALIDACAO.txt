@@ -1,0 +1,4 @@
+PASS valid; exact action/ID, JSON structure, redaction, bounded response, input unchanged
+PASS denied; exact action/ID, JSON structure, redaction, bounded response, input unchanged
+PASS invalid; exact action/ID, JSON structure, redaction, bounded response, input unchanged
+PASS oversized; exact action/ID, JSON structure, redaction, bounded response, input unchanged

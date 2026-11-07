@@ -1,0 +1,13 @@
+COLETA XTREAM get_vod_info / 07-11-2026
+
+Consulta somente os metadados do filme registrado em Downloads/iptvplus-legendas.txt. Extrai localmente usuario, senha e ID numerico da URL /movie/ e monta uma requisicao action=get_vod_info&vod_id=ID no servidor original http://infinitybr.top. O script publico nao inclui credenciais nem URL autenticada.
+
+Nao reproduz nem baixa o filme, nao busca outros titulos, nao instala APK e nao modifica projeto, aplicativo ou registro de entrada. Uma requisicao, limite de leitura de 4 MiB mais um byte de deteccao, prazo de 45 segundos. HTTP recusado, JSON invalido ou resposta acima do limite geram resumo de erro sem exportar o corpo original. Nao contorna recusas do servidor.
+
+A resposta JSON bruta fica somente na memoria. Antes de salvar, substitui valores de campos de credenciais, URLs HTTP/HTTPS, referencias relativas com consulta ou caminho absoluto, e as credenciais conhecidas (originais ou codificadas). URLs sao trocadas por marcadores; o resumo preserva apenas numero e extensao reconhecida, por exemplo .srt ou .vtt. Arrays, idiomas, objetos, booleanos, nulos e nomes de campos ficam disponiveis para analisar o formato real do provedor. Nenhum endereco de acesso completo deve ser necessario na conversa.
+
+Gera Downloads/xtream-vod-diagnostico-<identificador>.zip. Envie esse ZIP na conversa. Para caminho diferente do registro, use -Log. Para origem diferente, informe -Servidor sem usuario/senha/query. O padrao corresponde a lista fornecida nesta conversa.
+
+A presenca de um campo com nome relacionado a legenda nao prova sozinha uma URL utilizavel: sera necessario examinar seu valor e formato. A ausencia nesse endpoint nao exclui endpoints privados usados por outro aplicativo ou servicos externos.
+
+Validacao em PowerShell 7 Linux com servidor HTTP local: JSON com legendas aninhadas, referencias absolutas/relativas, credenciais e URLs assinadas; estrutura de arrays vazios e unitarios, zeros, false e null; HTTP 403; JSON invalido; limite de 4 MiB. Conferidos action/ID corretos, uma requisicao, entrada intacta e segredos ausentes no ZIP/console. Nao executado ainda no Windows ou no provedor real.
