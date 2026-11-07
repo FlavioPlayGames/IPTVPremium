@@ -1,0 +1,15 @@
+COLETA DA ESTRUTURA VOD / 07-11-2026
+
+Este pacote NAO altera o projeto Android nem instala APK.
+Usa localmente a URL do video registrada em Downloads/iptvplus-legendas.txt. Nao inclui uma URL ou credencial no script publico.
+Le ate 4 MiB do inicio e ate 8 MiB do final do video. Requer acesso ao servidor no computador; 403 ou timeout continuam sendo possiveis. Nao baixa o filme inteiro. Mesmo se o servidor ignorar Range, a leitura local e limitada e a conexao e descartada. Nao trata uma resposta completa como o final do arquivo. Cada tentativa tem limite de 45s.
+Gera um ZIP em Downloads chamado vod-diagnostico-<identificador>.zip, com os trechos lidos e um resumo de status/tamanhos. Esses trechos servem para examinar os metadados MP4 (moov/trak/stsd/mdhd) e identificar se ha faixas de legenda no proprio video. O ZIP de resultado deve ser enviado na conversa, nao publicado. Nao inclui o registro original, nem URL ou credenciais no resumo.
+Se faltar Content-Range/tamanho total, apenas o inicio pode ser coletado; se o bloco de metadados nao estiver nos trechos, a coleta pode nao bastar. Esse teste nao identifica sozinho o fornecedor de uma legenda externa do IPTV Plus.
+
+No PowerShell, dentro da pasta extraida:
+.\Coletar-Vod.ps1
+
+Se o registro estiver em outro local:
+.\Coletar-Vod.ps1 -Log 'C:\caminho\iptvplus-legendas.txt'
+
+Validacao: sintaxe PowerShell, servidor HTTP local com Range 206, servidor que ignora Range (200) e acesso negado (403). Conferidos limites de 4+8 MiB, identidade do intervalo final, preservacao dos arquivos de entrada e ausencia de credenciais na saida/resumo. Executado em PowerShell 7 no Linux; Windows/servidor real ainda precisam ser verificados.

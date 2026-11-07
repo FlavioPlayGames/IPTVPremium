@@ -1,0 +1,3 @@
+PASS range; bounded reads, range identity and credential redaction
+PASS ignore; bounded reads, range identity and credential redaction
+PASS denied; bounded reads, range identity and credential redaction
