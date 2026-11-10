@@ -1,3 +1,5 @@
+> **Aplicador substituído pela [revisão r2](../continuacao-iptv-premium-2026-11-10-r2/README.md).** Use r2 para evitar a falha de leitura do manifesto no Windows PowerShell 5.1.
+
 # IPTV Premium — correções de 10/11/2026
 
 [Baixar continuacao-iptv-premium.zip](./continuacao-iptv-premium.zip?raw=true)
