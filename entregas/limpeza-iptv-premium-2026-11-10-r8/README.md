@@ -25,3 +25,7 @@ O NDK 28.2.13676358 é uma ferramenta de desenvolvimento grande, instalada fora 
 O pacote inclui LEIA-ME.md, VALIDACAO.md e plano explícito de caminhos. Compilação Kotlin, Lint (zero erros, 154 avisos), assembleDesempenho, regressões JVM e testes de aplicação/reversão/limpeza passaram. Scripts testados em PowerShell 7 com comportamento JSON do Windows PowerShell 5.1 também simulado; execução física no Windows/TV precisa de conferência local. Não contém APK assinado, lista M3U, binários, credenciais ou configurações privadas.
 
 **Não publique/envie as pastas ou ZIPs de recuperação:** podem conter configurações privadas antigas. Para conferir tamanhos, envie somente tamanhos-apk.csv ou um novo inventário de metadados.
+
+## Correção Windows PowerShell 5.1
+
+O script agora carrega explicitamente as duas assemblies System.IO.Compression e FileSystem. Se a instalação já concluiu e a limpeza parou em ZipArchiveMode, atualize o pacote e execute somente Limpar-Arquivos.ps1, sem recompilar/reinstalar. O parâmetro -Recuperacao reaproveita a pasta externa criada pela tentativa interrompida, desde que ainda não tenha backups-antigos.zip.
