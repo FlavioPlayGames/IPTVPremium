@@ -48,7 +48,7 @@ if([string]::IsNullOrWhiteSpace($Recuperacao)) {
 }
 Write-Host "Recuperacao externa: $saida"
 $apks=Join-Path $saida 'APKs-desempenho'
-New-Item -ItemType Directory -Path $apks|Out-Null
+New-Item -ItemType Directory -Path $apks -Force|Out-Null
 $comparacao=[Collections.Generic.List[object]]::new()
 foreach($abi in @('arm64-v8a','armeabi-v7a','x86','x86_64')) {
     $nome="app-$abi-desempenho.apk"
