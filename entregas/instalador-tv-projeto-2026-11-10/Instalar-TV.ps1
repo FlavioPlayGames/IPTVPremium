@@ -9,8 +9,19 @@ param(
 $ErrorActionPreference = 'Stop'
 $Projeto = (Resolve-Path -LiteralPath $Projeto).Path
 if (!(Test-Path -LiteralPath $Adb -PathType Leaf)) { throw "ADB nao encontrado: $Adb" }
-$linhas = @(& $Adb devices -l 2>&1)
-if ($LASTEXITCODE -ne 0) { throw ('Falha ao consultar o ADB: ' + ($linhas -join "`n")) }
+function Ler-Adb([string[]]$Argumentos) {
+    # Windows PowerShell 5.1 converts redirected native stderr into error records.
+    # ADB daemon startup notices must not abort an otherwise successful command.
+    $preferenciaAnterior = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $saida = @(& $Adb @Argumentos 2>&1)
+        $codigo = $LASTEXITCODE
+    } finally { $ErrorActionPreference = $preferenciaAnterior }
+    if ($codigo -ne 0) { throw ('Falha no ADB: ' + ($saida -join "`n")) }
+    $saida | ForEach-Object { "$_" }
+}
+$linhas = @(Ler-Adb -Argumentos @('devices','-l'))
 $conectados = @($linhas | ForEach-Object {
     if ("$_" -match '^(\S+)\s+device(?:\s+(.*))?$') {
         [PSCustomObject]@{ Serial = $Matches[1]; Detalhes = [string]$Matches[2] }
@@ -28,8 +39,8 @@ if ([string]::IsNullOrWhiteSpace($Serial)) {
 }
 if ($Serial -notmatch '^[A-Za-z0-9._:-]+$') { throw 'Identificador ADB invalido.' }
 if (@($conectados | Where-Object { $_.Serial -eq $Serial }).Count -ne 1) { throw "Aparelho nao conectado ou nao autorizado: $Serial" }
-$estado = @(& $Adb -s $Serial get-state 2>&1)
-if ($LASTEXITCODE -ne 0 -or (($estado -join "`n").Trim()) -ne 'device') { throw "Aparelho indisponivel: $Serial" }
+$estado = @(Ler-Adb -Argumentos @('-s',$Serial,'get-state'))
+if ((($estado -join "`n").Trim()) -ne 'device') { throw "Aparelho indisponivel: $Serial" }
 $listaAbis = @(& $Adb -s $Serial shell getprop ro.product.cpu.abilist)
 if ($LASTEXITCODE -ne 0) { throw 'Nao foi possivel consultar a arquitetura da TV.' }
 $arquiteturas = ($listaAbis -join ',').Trim()
