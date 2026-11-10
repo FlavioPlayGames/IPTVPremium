@@ -1,3 +1,5 @@
+> **Substituído pela [revisão r3](../continuacao-iptv-premium-2026-11-10-r3/README.md)** para as correções adicionais de capas M3U e Continuar.
+
 # IPTV Premium — pacote r2 (aplicador corrigido)
 
 [Baixar continuacao-iptv-premium-r2.zip](./continuacao-iptv-premium-r2.zip?raw=true)

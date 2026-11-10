@@ -1,3 +1,5 @@
+> **Substituído pela [revisão r3](../continuacao-iptv-premium-2026-11-10-r3/README.md)** para as correções adicionais de capas M3U e Continuar.
+
 > **Aplicador substituído pela [revisão r2](../continuacao-iptv-premium-2026-11-10-r2/README.md).** Use r2 para evitar a falha de leitura do manifesto no Windows PowerShell 5.1.
 
 # IPTV Premium — correções de 10/11/2026
