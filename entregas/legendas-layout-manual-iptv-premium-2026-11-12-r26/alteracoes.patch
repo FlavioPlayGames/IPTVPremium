@@ -1,0 +1,1235 @@
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ManualSubtitleSettings.kt
+@@ -0,0 +1,195 @@
++package br.com.flaviotorres.iptvpremium.ui.settings
++
++import androidx.activity.compose.BackHandler
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.lazy.LazyColumn
++import androidx.compose.foundation.lazy.items
++import androidx.compose.runtime.*
++import androidx.compose.runtime.saveable.rememberSaveable
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.focus.FocusRequester
++import androidx.compose.ui.focus.focusRequester
++import androidx.compose.ui.platform.LocalContext
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import androidx.paging.LoadState
++import androidx.paging.cachedIn
++import androidx.paging.compose.collectAsLazyPagingItems
++import androidx.tv.material3.Text
++import br.com.flaviotorres.iptvpremium.core.player.*
++import br.com.flaviotorres.iptvpremium.data.cache.PlaylistCacheDatabase
++import br.com.flaviotorres.iptvpremium.data.m3uepisodes.DeferredM3uEpisodeAccess
++import br.com.flaviotorres.iptvpremium.data.remote.DefaultPlaylistHttpClient
++import br.com.flaviotorres.iptvpremium.data.repository.*
++import br.com.flaviotorres.iptvpremium.data.storage.PlaylistStorage
++import br.com.flaviotorres.iptvpremium.domain.model.PlaylistSource
++import br.com.flaviotorres.iptvpremium.ui.components.*
++import br.com.flaviotorres.iptvpremium.ui.kids.KidsSession
++import kotlinx.coroutines.*
++
++/** Pick from the active, parentally filtered catalogue; never send the catalogue to the site. */
++@Composable
++internal fun ManualSubtitleSettingsScreen(onBack:()->Unit) {
++    val context=LocalContext.current.applicationContext
++    val storage=remember(context){PlaylistStorage(context)}
++    val selection by storage.selection.collectAsState(initial=null)
++    val source=selection?.playlists?.firstOrNull{it.id==selection?.activeId}
++    val access by ParentalPolicy.accessFlow.collectAsState(initial=ParentalPolicy.access())
++    val kids by KidsSession.active.collectAsState()
++    val dao=remember(context){PlaylistCacheDatabase.getInstance(context).playlistCacheDao()}
++    val repository=remember(dao){PlaylistCatalogRepository(dao,context)}
++    val scope=rememberCoroutineScope()
++    var kind by rememberSaveable{mutableStateOf<String?>(null)}
++    var contentId by rememberSaveable{mutableStateOf<String?>(null)}
++    var title by rememberSaveable{mutableStateOf("")}
++    var year by rememberSaveable{mutableStateOf<Int?>(null)}
++    var tmdb by rememberSaveable{mutableStateOf<String?>(null)}
++    var season by rememberSaveable{mutableStateOf<Int?>(null)}
++    var episode by rememberSaveable{mutableStateOf<Int?>(null)}
++    var sendSeason by rememberSaveable{mutableStateOf<Boolean?>(null)}
++    var connecting by rememberSaveable{mutableStateOf(false)}
++    var episodes by remember{mutableStateOf<List<SeriesEpisodeInfo>>(emptyList())}
++    var loading by remember{mutableStateOf(false)}
++    var failure by remember{mutableStateOf<String?>(null)}
++    var query by rememberSaveable{mutableStateOf("")}
++    var keyboard by remember{mutableStateOf(false)}
++    var loadRevision by remember{mutableIntStateOf(0)}
++    val first=remember{FocusRequester()}
++    var appliedSelection by remember{mutableStateOf<String?>(null)}
++    LaunchedEffect(selection?.activeId,access) {
++        val revision="${selection?.activeId}|$access"
++        if(appliedSelection!=null&&appliedSelection!=revision){kind=null;contentId=null;season=null;episode=null;connecting=false;query=""}
++        appliedSelection=revision
++    }
++    val back:()->Unit={
++        when {
++            keyboard->keyboard=false
++            connecting->connecting=false
++            episode!=null->episode=null
++            season!=null->season=null
++            sendSeason!=null->sendSeason=null
++            contentId!=null->{contentId=null;query="";episodes=emptyList();failure=null}
++            kind!=null->{kind=null;query=""}
++            else->onBack()
++        }
++    }
++    BackHandler(onBack=back)
++    LaunchedEffect(kind,contentId,sendSeason,season,episode,connecting){withFrameNanos{};runCatching{first.requestFocus()}}
++    LaunchedEffect(source?.id,contentId,kind,loadRevision) {
++        val active=source?:return@LaunchedEffect
++        val id=contentId?:return@LaunchedEffect
++        if(kind!="series")return@LaunchedEffect
++        loading=true;failure=null;episodes=emptyList()
++        try {episodes=loadManualSeries(context,dao,active,id)}
++        catch(cancelled:CancellationException){throw cancelled}
++        catch(_:Exception){failure="Não foi possível carregar os episódios. Tente novamente."}
++        finally{loading=false}
++    }
++    val target=source?.let{active->contentId?.let{id->when {
++        kind=="movie"->ManualSubtitleTarget("movie",active.id,id,title,year,tmdb,kids=kids)
++        season!=null&&sendSeason==true->ManualSubtitleTarget("season",active.id,id,title,year,tmdb,season=season,
++            episodes=episodes.filter{it.seasonNumber==season}.map{it.episodeNumber}.distinct().sorted(),kids=kids)
++        season!=null&&episode!=null->ManualSubtitleTarget("episode",active.id,id,title,year,tmdb,season,episode,kids=kids)
++        else->null
++    }}}
++    if(connecting&&target!=null) {
++        ManualSubtitleUploadScreen(target,allowed={
++            selection?.activeId==target.playlistId &&
++                (if(target.kind=="movie")repository.getMovieById(target.playlistId,target.contentId)?.name
++                else repository.getSeriesById(target.playlistId,target.contentId)?.name)==target.title
++        },onBack={connecting=false})
++        return
++    }
++    SubtitleSettingsFrame("ENVIO MANUAL",if(title.isNotBlank()&&contentId!=null)title else "Escolha o destino antes de conectar o celular ou PC.",back) {
++        if(source==null){Text("Selecione uma lista com catálogo disponível para escolher o conteúdo.",color=SettingsLook.text);return@SubtitleSettingsFrame}
++        when {
++            kind==null->Column(verticalArrangement=Arrangement.spacedBy(14.dp)) {
++                MarbleSettingsButton("Filme",modifier=Modifier.focusRequester(first)){kind="movie"}
++                MarbleSettingsButton("Série"){kind="series"}
++            }
++            contentId==null->{
++                MarbleSettingsButton(if(query.isBlank())"Pesquisar ${if(kind=="movie")"filme"else"série"}"else "Pesquisar: $query",modifier=Modifier.focusRequester(first)){keyboard=!keyboard}
++                if(keyboard) {
++                    Text(query.ifBlank{"Digite o nome"},color=SettingsLook.text,fontSize=18.sp)
++                    AppKeyboard(actionText="PESQUISAR",onCharacter={query=(query+it).take(100)},onBackspace={query=query.dropLast(1)},
++                        currentText=query,onReplaceAll={query=it.take(100)},onClearAll={query=""},onAction={keyboard=false})
++                }else ManualCatalogPicker(repository,source.id,kind!!,query,scope,access,Modifier.weight(1f)) {id,name,release,external ->
++                    contentId=id;title=name;year=release;tmdb=external
++                }
++            }
++            kind=="series"&&sendSeason==null->Column(verticalArrangement=Arrangement.spacedBy(14.dp)) {
++                MarbleSettingsButton("Temporada inteira",modifier=Modifier.focusRequester(first)){sendSeason=true}
++                MarbleSettingsButton("Episódio individual"){sendSeason=false}
++            }
++            kind=="series"&&loading->Text("Carregando episódios…",color=SettingsLook.secondary)
++            kind=="series"&&episodes.isEmpty()->Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
++                Text(failure?:"Não encontramos episódios disponíveis para esta série.",color=SettingsLook.secondary)
++                MarbleSettingsButton("Tentar novamente",modifier=Modifier.focusRequester(first)){loadRevision++}
++            }
++            kind=="series"&&season==null->LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(10.dp)) {
++                val seasons=episodes.map{it.seasonNumber}.distinct().sorted()
++                items(seasons,key={it}) {number->MarbleSettingsButton(if(number==0)"Especiais"else"Temporada $number",
++                    modifier=if(number==seasons.first())Modifier.focusRequester(first)else Modifier){season=number}}
++            }
++            kind=="series"&&sendSeason==false&&episode==null->LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(10.dp)) {
++                val list=episodes.filter{it.seasonNumber==season}.distinctBy{it.episodeNumber}.sortedBy{it.episodeNumber}
++                items(list,key={it.episodeNumber}) {item->MarbleSettingsButton("Episódio ${item.episodeNumber} · ${item.title}",
++                    modifier=if(item==list.first())Modifier.focusRequester(first)else Modifier){episode=item.episodeNumber}}
++            }
++            target!=null->SettingsCard(Modifier.fillMaxWidth()) {
++                SettingsHeading("Destino do envio",target.description)
++                Text(target.title,color=SettingsLook.text,fontSize=22.sp)
++                Text("Anexe SRT ou ZIP pelo celular ou PC. Não é necessário renomear os arquivos.",color=SettingsLook.secondary,fontSize=15.sp)
++                MarbleSettingsButton("Conectar para enviar",modifier=Modifier.focusRequester(first)){connecting=true}
++            }
++        }
++    }
++}
++
++@Composable
++private fun ManualCatalogPicker(repository:PlaylistCatalogRepository,playlist:String,kind:String,query:String,
++    scope:CoroutineScope,access:Any,modifier:Modifier,onChoose:(String,String,Int?,String?)->Unit) {
++    val settled by produceState(query,query){delay(350L);value=query}
++    if(kind=="movie") {
++        val flow=remember(repository,playlist,settled,access){repository.movies(playlistId=playlist,searchQuery=settled)}
++        val paging=flow.collectAsLazyPagingItems()
++        LazyColumn(modifier,verticalArrangement=Arrangement.spacedBy(8.dp)) {
++            items(paging.itemCount,key={index->paging.peek(index)?.id?:"empty-$index"}){index->
++                val item=paging[index]
++                if(item!=null)MarbleSettingsButton(item.name+item.year?.let{" · $it"}.orEmpty()){onChoose(item.id,item.name,item.year,item.tmdbId)}
++            }
++            item{ManualPickerStatus(paging.loadState.refresh,paging.itemCount,{paging.retry()})}
++        }
++    }else {
++        val flow=remember(repository,playlist,settled,access){repository.series(playlistId=playlist,searchQuery=settled)}
++        val paging=flow.collectAsLazyPagingItems()
++        LazyColumn(modifier,verticalArrangement=Arrangement.spacedBy(8.dp)) {
++            items(paging.itemCount,key={index->paging.peek(index)?.id?:"empty-$index"}){index->
++                val item=paging[index]
++                if(item!=null)MarbleSettingsButton(item.name+item.year?.let{" · $it"}.orEmpty()){onChoose(item.id,item.name,item.year,item.tmdbId)}
++            }
++            item{ManualPickerStatus(paging.loadState.refresh,paging.itemCount,{paging.retry()})}
++        }
++    }
++}
++@Composable
++private fun ManualPickerStatus(state:LoadState,count:Int,retry:()->Unit) {
++    when {state is LoadState.Loading->Text("Carregando…",color=SettingsLook.secondary)
++        state is LoadState.Error->MarbleSettingsButton("Tentar novamente",onClick=retry)
++        count==0->Text("Nenhum resultado encontrado.",color=SettingsLook.secondary)}
++}
++
++private suspend fun loadManualSeries(context:android.content.Context,dao:br.com.flaviotorres.iptvpremium.data.cache.dao.PlaylistCacheDao,
++    source:PlaylistSource,id:String):List<SeriesEpisodeInfo> = withContext(Dispatchers.IO) {
++    val generation=dao.getActiveGeneration(source.id)?.generationId?:return@withContext emptyList()
++    if(source is PlaylistSource.M3u)DeferredM3uEpisodeAccess.initialize(context).ensure(dao,source.id,generation,id)
++    val local=mutableListOf<SeriesEpisodeInfo>();var offset=0
++    while(offset<5000){
++        val rows=dao.getEpisodesPage(source.id,generation,id,200,offset);if(rows.isEmpty())break
++        local+=rows.mapIndexed{index,item->SeriesEpisodeInfo(item.episodeId,item.seasonNumber?:1,item.episodeNumber?:offset+index+1,
++            item.name,item.posterUrl,null,item.durationSeconds?.toInt(),null)}
++        offset+=rows.size;if(rows.size<200)break
++    }
++    if(local.isNotEmpty())return@withContext local
++    SeriesEpisodesRepository(DefaultPlaylistHttpClient()).load(source,id,generation)?.episodes.orEmpty()
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/ManualSubtitleUploadScreen.kt
+@@ -0,0 +1,192 @@
++package br.com.flaviotorres.iptvpremium.ui.settings
++
++import android.graphics.Bitmap
++import androidx.activity.compose.BackHandler
++import androidx.compose.foundation.Image
++import androidx.compose.foundation.background
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.lazy.LazyColumn
++import androidx.compose.foundation.lazy.itemsIndexed
++import androidx.compose.runtime.*
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.focus.FocusRequester
++import androidx.compose.ui.focus.focusRequester
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.asImageBitmap
++import androidx.compose.ui.platform.LocalContext
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import androidx.lifecycle.Lifecycle
++import androidx.lifecycle.compose.LocalLifecycleOwner
++import androidx.lifecycle.repeatOnLifecycle
++import androidx.tv.material3.Text
++import br.com.flaviotorres.iptvpremium.core.player.*
++import br.com.flaviotorres.iptvpremium.ui.components.*
++import com.google.zxing.BarcodeFormat
++import com.google.zxing.qrcode.QRCodeWriter
++import kotlinx.coroutines.*
++
++private object ManualSubtitleCleanup {val scope=CoroutineScope(SupervisorJob()+Dispatchers.IO)}
++
++/** Immutable destination: changing it leaves this composition and invalidates the old request. */
++@Composable
++internal fun ManualSubtitleUploadScreen(target:ManualSubtitleTarget,allowed:suspend ()->Boolean,onBack:()->Unit) {
++    val context=LocalContext.current.applicationContext
++    val client=remember(context){ManualSubtitleClient(context)}
++    val owner=LocalLifecycleOwner.current
++    val scope=rememberCoroutineScope()
++    val first=remember{FocusRequester()}
++    var request by remember(target){mutableStateOf<ManualSubtitleRequest?>(null)}
++    var qr by remember(target){mutableStateOf<Bitmap?>(null)}
++    var message by remember(target){mutableStateOf("Preparando conexão…")}
++    var files by remember(target){mutableStateOf<List<ManualSubtitleFile>>(emptyList())}
++    var choices by remember(target){mutableStateOf<Map<Int,Int>>(emptyMap())}
++    var assign by remember(target){mutableStateOf<Int?>(null)}
++    var busy by remember{mutableStateOf(false)}
++    var saved by remember{mutableIntStateOf(0)}
++    var confirmed by remember{mutableStateOf(false)}
++    var retry by remember{mutableIntStateOf(0)}
++    var poll by remember{mutableIntStateOf(0)}
++    val latestAllowed by rememberUpdatedState(allowed)
++    val back:()->Unit={if(!busy)onBack()}
++    BackHandler(onBack=back)
++    LaunchedEffect(files.isNotEmpty(),saved>0){withFrameNanos{};runCatching{first.requestFocus()}}
++    DisposableEffect(target) {
++        onDispose{
++            val previous=request
++            if(previous!=null&&!confirmed) {
++                val count=saved
++                ManualSubtitleCleanup.scope.launch{runCatching{if(count>0)client.receipt(previous.id,count)else client.cancel(previous.id)}}
++            }
++        }
++    }
++    LaunchedEffect(target,retry) {
++        request?.let{runCatching{client.cancel(it.id)}}
++        request=null;qr=null;files=emptyList();choices=emptyMap();saved=0;confirmed=false
++        try{
++            check(latestAllowed()){ "Este conteúdo não está mais disponível nesta lista." }
++            val created=client.create(target);request=created
++            qr=withContext(Dispatchers.Default){
++                val matrix=QRCodeWriter().encode(created.url,BarcodeFormat.QR_CODE,384,384)
++                Bitmap.createBitmap(IntArray(384*384){i->if(matrix[i%384,i/384])android.graphics.Color.BLACK else android.graphics.Color.WHITE},384,384,Bitmap.Config.ARGB_8888)
++            }
++            message="Aguardando envio pelo site."
++        }catch(cancelled:CancellationException){throw cancelled}
++        catch(error:Exception){message=error.message?:"Não foi possível conectar. Tente novamente."}
++    }
++    LaunchedEffect(request?.id,poll) {
++        val current=request?:return@LaunchedEffect
++        owner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
++            while(isActive&&saved==0&&files.isEmpty()) {
++                if(System.currentTimeMillis()>=current.expires){qr=null;message="O pedido expirou. Gere outro acesso.";break}
++                try{
++                    val status=client.status(current.id)
++                    when(status.getString("state")) {
++                        "ready"->{
++                            val release=br.com.flaviotorres.iptvpremium.data.cache.MediaOpeningPriority.acquire()
++                            val decoded=try{
++                                val download=client.download(current.id)
++                                withContext(Dispatchers.Default){ManualSubtitleArchive.read(download.bytes,download.name)}
++                            }finally{release()}
++                            files=decoded.filter{file->when(target.kind){"movie"->file.season==null
++                                else->file.season==null||file.season==target.season}}
++                            if(files.isEmpty())error("As legendas identificadas pertencem a outra temporada. Envie outro arquivo.")
++                            choices=files.indices.mapNotNull{index->target.validEpisode(files[index])?.let{index to it}}
++                                .groupBy{it.second}.values.filter{it.size==1}.flatten().toMap()
++                            message="Confira as legendas antes de salvar. Arquivos desnecessários serão descartados."
++                            withFrameNanos{};runCatching{first.requestFocus()}
++                            break
++                        }
++                        "cancelled","expired"->{qr=null;message="O pedido terminou. Gere outro acesso.";break}
++                        else->message=status.optString("message").takeIf{it.isNotBlank()}?:"Aguardando envio pelo site."
++                    }
++                }catch(cancelled:CancellationException){throw cancelled}
++                catch(error:Exception){message=error.message?:"Falha ao receber o arquivo. Tente novamente.";break}
++                delay(5_000L)
++            }
++        }
++    }
++    SubtitleSettingsFrame("ENVIO MANUAL",target.title,back) {
++        SettingsHeading("Destino do envio",target.description)
++        if(saved>0) {
++            SettingsCard(Modifier.fillMaxWidth()) {
++                Text("$saved legenda(s) salva(s) nesta TV.",color=SettingsLook.text,fontSize=20.sp)
++                Text(message,color=SettingsLook.secondary,fontSize=14.sp)
++                if(!confirmed)MarbleSettingsButton("Confirmar recebimento no site",enabled=!busy) {
++                    scope.launch {try{client.receipt(request!!.id,saved);confirmed=true;message="Recebimento confirmado no site."}
++                        catch(cancelled:CancellationException){throw cancelled}
++                        catch(_:Exception){message="As legendas estão salvas. A confirmação no site continua pendente."}}
++                }
++                MarbleSettingsButton("Concluir",modifier=Modifier.focusRequester(first),onClick=back)
++            }
++        }else if(files.isNotEmpty()) {
++            Text(message,color=SettingsLook.secondary,fontSize=14.sp)
++            val assigning=assign
++            if(assigning!=null) {
++                Text("Escolha o episódio para ${files[assigning].name}",color=SettingsLook.text,fontSize=15.sp)
++                LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(8.dp)) {
++                    itemsIndexed(target.episodes){_,number->MarbleSettingsButton("Episódio $number") {
++                        choices=choices.filterValues{it!=number}+(assigning to number);assign=null
++                    }}
++                }
++                MarbleSettingsButton("Cancelar escolha"){assign=null}
++            }else {
++                LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(8.dp)) {
++                    itemsIndexed(files){index,file->
++                        val number=choices[index]
++                        val label=when{number==null->"Selecionar / associar";target.kind=="movie"->"Selecionada";else->"Episódio $number"}
++                        MarbleSettingsButton("${if(number!=null)"✓ "else""}${file.name} · $label",enabled=!busy,
++                            modifier=if(index==0)Modifier.focusRequester(first)else Modifier) {
++                            if(number!=null)choices=choices-index
++                            else {
++                                val known=target.validEpisode(file)
++                                if(known!=null)choices=choices.filterValues{it!=known}+(index to known)
++                                else if(target.kind=="season")assign=index
++                            }
++                        }
++                    }
++                }
++                Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
++                    MarbleSettingsButton(if(busy)"Salvando…"else"Salvar ${choices.size} legenda(s)",enabled=choices.isNotEmpty()&&!busy,modifier=Modifier.weight(1f)) {
++                        scope.launch {
++                            busy=true
++                            try{
++                                check(latestAllowed()){ "O acesso ao conteúdo mudou. Inicie outro envio." }
++                                val chosen=choices.map{(index,number)->files[index] to number}
++                                val count=withContext(NonCancellable+Dispatchers.IO){ManualSubtitleStore(context).save(target,chosen)}
++                                saved=count;files=emptyList();choices=emptyMap();busy=false
++                                message="Legendas salvas. Confirmando o recebimento no site…"
++                                try{client.receipt(request!!.id,count);confirmed=true;message="Recebimento confirmado no site."}
++                                catch(cancelled:CancellationException){throw cancelled}
++                                catch(_:Exception){message="Legendas salvas. Não foi possível confirmar no site; tente novamente."}
++                            }catch(cancelled:CancellationException){throw cancelled}
++                            catch(error:Exception){message=error.message?:"Não foi possível salvar."}
++                            finally{busy=false}
++                        }
++                    }
++                    MarbleSettingsButton("Enviar outro arquivo",enabled=!busy,modifier=Modifier.weight(1f)) {
++                        scope.launch{try{client.receipt(request!!.id,0,false);files=emptyList();choices=emptyMap();poll++}
++                            catch(cancelled:CancellationException){throw cancelled}
++                            catch(_:Exception){message="Não foi possível liberar outro envio. Gere um novo acesso."}}
++                    }
++                }
++            }
++        }else {
++            SettingsCard(Modifier.fillMaxWidth()) {
++                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(20.dp)) {
++                    Box(Modifier.size(150.dp).background(Color.White),contentAlignment=Alignment.Center) {
++                        qr?.let{Image(it.asImageBitmap(),"Acesso para enviar legenda a esta TV",Modifier.fillMaxSize())}
++                    }
++                    Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
++                        Text("Abra o site pelo celular",color=SettingsLook.text,fontSize=21.sp)
++                        Text("O destino já estará preenchido. Anexe SRT ou ZIP de até 8 MB.",color=SettingsLook.secondary,fontSize=14.sp)
++                        Text(message,color=SettingsLook.text,fontSize=14.sp)
++                    }
++                }
++            }
++            MarbleSettingsButton("Gerar novo acesso",modifier=Modifier.focusRequester(first)){retry++}
++            MarbleSettingsButton("Tentar receber novamente",enabled=request!=null){poll++}
++        }
++    }
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleAppearanceSettings.kt
+@@ -0,0 +1,76 @@
++package br.com.flaviotorres.iptvpremium.ui.settings
++
++import androidx.activity.compose.BackHandler
++import androidx.compose.foundation.background
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.verticalScroll
++import androidx.compose.runtime.*
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.focus.FocusRequester
++import androidx.compose.ui.focus.focusRequester
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.platform.LocalContext
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import androidx.tv.material3.Text
++import br.com.flaviotorres.iptvpremium.core.player.*
++import br.com.flaviotorres.iptvpremium.ui.components.*
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.launch
++import kotlinx.coroutines.withContext
++
++/** Shares the existing player's preference store; no new subtitle style or reset on entry. */
++@Composable
++internal fun SubtitleAppearanceSettingsScreen(onBack:()->Unit) {
++    BackHandler(onBack=onBack)
++    val context=LocalContext.current.applicationContext
++    val store=remember(context){SubtitleAppearanceStore(context)}
++    var appearance by remember{mutableStateOf<SubtitleAppearance?>(null)}
++    val scope=rememberCoroutineScope()
++    val first=remember{FocusRequester()}
++    val back=remember{FocusRequester()}
++    var loaded by remember{mutableStateOf(false)}
++    DisposableEffect(store) {
++        val observer=store.observe {scope.launch {appearance=withContext(Dispatchers.IO){store.load()}}}
++        onDispose{observer.close()}
++    }
++    LaunchedEffect(store){appearance=withContext(Dispatchers.IO){store.load()};loaded=true}
++    LaunchedEffect(loaded){if(loaded){withFrameNanos{};first.requestFocus()}}
++    fun update(value:SubtitleAppearance){appearance=value;store.save(value)}
++    SubtitleSettingsFrame("APARÊNCIA DAS LEGENDAS","As alterações são salvas automaticamente.",onBack,back) {
++        val value=appearance
++        if(value==null){Text("Carregando preferências…",color=SettingsLook.secondary);return@SubtitleSettingsFrame}
++        BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
++            val controls:@Composable (Modifier)->Unit={modifier ->
++                Column(modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
++                    SettingsHeading("Cor da letra")
++                    subtitleTextColors.forEachIndexed {index,color ->
++                        SettingsRadio(color.label,value.textArgb==color.argb,Modifier.fillMaxWidth()
++                            .then(if(index==0)Modifier.focusRequester(first)else Modifier)){update(value.copy(textArgb=color.argb))}
++                    }
++                    SettingsHeading("Tamanho")
++                    subtitleSizeChoices.forEach {size->SettingsRadio("$size",value.sizeSp==size){update(value.copy(sizeSp=size))}}
++                    SettingsHeading("Fonte")
++                    SubtitleTypeface.entries.forEach {font->SettingsRadio(font.label,value.typeface==font){update(value.copy(typeface=font))}}
++                    SettingsHeading("Fundo")
++                    SubtitleBackground.entries.forEach {background->SettingsRadio(background.label,value.background==background){update(value.copy(background=background))}}
++                    SettingsHeading("Acabamento")
++                    SubtitleEdge.entries.forEach {edge->SettingsRadio(edge.label,value.edge==edge){update(value.copy(edge=edge))}}
++                }
++            }
++            val preview:@Composable (Modifier)->Unit={modifier->
++                Column(modifier,verticalArrangement=Arrangement.spacedBy(12.dp)) {
++                    SettingsHeading("Prévia da legenda")
++                    Box(Modifier.fillMaxWidth().height(200.dp).background(Color(0xFF17191B)),contentAlignment=Alignment.BottomCenter) {
++                        StyledSubtitleText("Esta é a sua legenda.",value,Modifier.fillMaxWidth().height(100.dp))
++                    }
++                }
++            }
++            if(maxWidth>=660.dp)Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.spacedBy(24.dp)) {
++                controls(Modifier.weight(.45f).fillMaxHeight());preview(Modifier.weight(.55f))
++            }else Column(Modifier.fillMaxSize()) {preview(Modifier.fillMaxWidth());Spacer(Modifier.height(12.dp));controls(Modifier.weight(1f))}
++        }
++    }
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSettingsHome.kt
+@@ -0,0 +1,142 @@
++package br.com.flaviotorres.iptvpremium.ui.settings
++
++import androidx.activity.compose.BackHandler
++import androidx.compose.foundation.Canvas
++import androidx.compose.foundation.background
++import androidx.compose.foundation.border
++import androidx.compose.foundation.clickable
++import androidx.compose.foundation.interaction.MutableInteractionSource
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.foundation.verticalScroll
++import androidx.compose.runtime.*
++import androidx.compose.runtime.saveable.rememberSaveable
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.clip
++import androidx.compose.ui.focus.*
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.graphics.StrokeCap
++import androidx.compose.ui.graphics.StrokeJoin
++import androidx.compose.ui.graphics.drawscope.Stroke
++import androidx.compose.ui.graphics.drawscope.scale
++import androidx.compose.ui.graphics.vector.PathParser
++import androidx.compose.ui.semantics.Role
++import androidx.compose.ui.semantics.contentDescription
++import androidx.compose.ui.semantics.semantics
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.text.style.TextAlign
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import androidx.tv.material3.Text
++import br.com.flaviotorres.iptvpremium.ui.components.*
++
++/** The existing navigation route enters here; QR generation belongs only to a chosen action. */
++@Composable
++fun SubdlAccountScreen(onBack:()->Unit) {
++    var page by rememberSaveable { mutableStateOf("home") }
++    var selected by rememberSaveable { mutableIntStateOf(0) }
++    val back:()->Unit={if(page=="home")onBack() else page="home"}
++    BackHandler(onBack=back)
++    when(page) {
++        "accounts" -> SubtitleAccountsScreen(onBack=back)
++        "appearance" -> SubtitleAppearanceSettingsScreen(onBack=back)
++        "manual" -> ManualSubtitleSettingsScreen(onBack=back)
++        else -> SubtitleSettingsLanding(selected,onSelected={selected=it},onOpen={
++            selected=it;page=listOf("accounts","manual","appearance")[it]
++        },onBack=back)
++    }
++}
++
++@Composable
++internal fun SubtitleSettingsFrame(title:String,description:String,onBack:()->Unit,
++    backFocus:FocusRequester?=null,modifier:Modifier=Modifier,
++    content:@Composable ColumnScope.()->Unit) {
++    Box(modifier.fillMaxSize().background(SettingsLook.background)) {
++        SettingsBackdrop(Modifier.matchParentSize())
++        Column(Modifier.fillMaxSize().padding(horizontal=28.dp,vertical=18.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
++            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(16.dp)) {
++                Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)) {
++                    Text(title,color=SettingsLook.text,fontSize=27.sp,fontWeight=FontWeight.Bold)
++                    if(description.isNotBlank())Text(description,color=SettingsLook.secondary,fontSize=15.sp)
++                }
++                Box(Modifier.width(110.dp).height(54.dp),contentAlignment=Alignment.Center) {
++                    CatalogWordmark(compact=true,modifier=Modifier.fillMaxSize())
++                }
++                MarbleSettingsButton("‹  Voltar",modifier=Modifier.width(104.dp)
++                    .then(if(backFocus!=null)Modifier.focusRequester(backFocus)else Modifier),onClick=onBack)
++            }
++            Box(Modifier.fillMaxWidth().height(1.dp).background(CatalogStyle.accent.copy(alpha=.65f)))
++            content()
++        }
++    }
++}
++
++internal enum class SubtitleSettingsIcon(val path:String) {
++    ACCOUNTS("M14 35H12A9 9 0 0 1 10 17A14 14 0 0 1 37 16A10 10 0 0 1 38 36H35 M18 26L23 21A5 5 0 0 1 30 28L26 32 M28 30L23 35A5 5 0 0 1 16 28L20 24"),
++    UPLOAD("M12 4H30L38 12V44H12Z M30 4V12H38 M25 35V20 M18 27L25 20L32 27"),
++    APPEARANCE("M4 10H44V38H4Z M21 19C13 12 9 33 21 29 M38 19C30 12 26 33 38 29")
++}
++
++@Composable
++internal fun SubtitleSettingsGlyph(icon:SubtitleSettingsIcon,modifier:Modifier=Modifier.size(48.dp)) {
++    val path=remember(icon){PathParser().parsePathString(icon.path).toPath()}
++    val color=CatalogStyle.accent
++    Canvas(modifier) {
++        scale(size.width/48f,size.height/48f,pivot=Offset.Zero) {
++            drawPath(path,color,style=Stroke(2.1f,cap=StrokeCap.Round,join=StrokeJoin.Round))
++        }
++    }
++}
++
++@Composable
++private fun SubtitleSettingsLanding(selected:Int,onSelected:(Int)->Unit,onOpen:(Int)->Unit,onBack:()->Unit) {
++    val cards=remember {List(3){FocusRequester()}}
++    val back=remember{FocusRequester()}
++    LaunchedEffect(Unit) {withFrameNanos{};cards[selected.coerceIn(0,2)].requestFocus()}
++    SubtitleSettingsFrame("LEGENDAS","Escolha como deseja configurar.",onBack,back) {
++        BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
++            val wide=maxWidth>=660.dp
++            val height=if(wide)(maxHeight-44.dp).coerceIn(190.dp,300.dp)else 190.dp
++            val title=listOf("Contas de legendas","Envio manual","Aparência")
++            val detail=listOf("SubDL · OpenSubtitles · SubSource","Arquivo SRT ou ZIP","Fonte, tamanho e cores")
++            val caption=listOf("Gerenciar conexões","Filme, temporada ou episódio","Personalize a leitura")
++            val card:@Composable (Int,Modifier)->Unit={index,cell->
++                SubtitleLandingCard(title[index],detail[index],caption[index],SubtitleSettingsIcon.entries[index],
++                    cell.heightIn(min=height).focusRequester(cards[index]).focusProperties {
++                        if(wide){left=if(index==0)FocusRequester.Cancel else cards[index-1]
++                            right=if(index==2)FocusRequester.Cancel else cards[index+1]
++                            up=back;down=FocusRequester.Cancel}
++                    },onFocused={onSelected(index)},onClick={onOpen(index)})
++            }
++            if(wide) Row(Modifier.fillMaxSize(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)) {
++                for(index in 0..2)card(index,Modifier.weight(1f))
++            } else Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(14.dp)) {
++                for(index in 0..2)card(index,Modifier.fillMaxWidth())
++            }
++        }
++        Text("Use as setas para navegar · OK para selecionar",color=SettingsLook.secondary,fontSize=12.sp,
++            modifier=Modifier.align(Alignment.CenterHorizontally))
++    }
++}
++
++@Composable
++internal fun SubtitleLandingCard(title:String,detail:String,caption:String,icon:SubtitleSettingsIcon,
++    modifier:Modifier=Modifier,onFocused:()->Unit={},onClick:()->Unit) {
++    var focused by remember{mutableStateOf(false)}
++    val shape=RoundedCornerShape(16.dp)
++    Column(modifier.onFocusChanged{focused=it.isFocused;if(it.isFocused)onFocused()}
++        .semantics{contentDescription="$title. $detail. $caption"}.clip(shape)
++        .background(if(focused)SettingsLook.selection else SettingsLook.panel)
++        .border(if(focused)3.dp else 1.dp,if(focused)CatalogStyle.accent else SettingsLook.edge,shape)
++        .clickable(role=Role.Button,interactionSource=remember{MutableInteractionSource()},indication=null,onClick=onClick)
++        .padding(horizontal=16.dp,vertical=22.dp),horizontalAlignment=Alignment.CenterHorizontally,
++        verticalArrangement=Arrangement.spacedBy(12.dp,Alignment.CenterVertically)) {
++        SubtitleSettingsGlyph(icon,Modifier.size(54.dp))
++        Text(title,color=SettingsLook.text,fontSize=21.sp,fontWeight=FontWeight.Bold,textAlign=TextAlign.Center)
++        Text(detail,color=SettingsLook.secondary,fontSize=14.sp,textAlign=TextAlign.Center)
++        Box(Modifier.fillMaxWidth().height(1.dp).background(SettingsLook.edge))
++        Text(caption,color=SettingsLook.text,fontSize=14.sp,textAlign=TextAlign.Center)
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSetupWizard.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/SubtitleSetupWizard.kt
+@@ -6,11 +6,8 @@
+ import androidx.activity.compose.BackHandler
+ import androidx.compose.foundation.Image
+ import androidx.compose.foundation.background
+-import androidx.compose.foundation.border
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.rememberScrollState
+-import androidx.compose.foundation.shape.CircleShape
+-import androidx.compose.foundation.shape.RoundedCornerShape
+ import androidx.compose.foundation.verticalScroll
+ import androidx.compose.runtime.*
+ import androidx.compose.runtime.saveable.rememberSaveable
+@@ -21,7 +18,6 @@
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.graphics.asImageBitmap
+ import androidx.compose.ui.platform.LocalContext
+-import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
+ import androidx.lifecycle.Lifecycle
+@@ -32,139 +28,116 @@
+ import br.com.flaviotorres.iptvpremium.core.device.DevicePortalQr
+ import br.com.flaviotorres.iptvpremium.core.device.DevicePortalSync
+ import br.com.flaviotorres.iptvpremium.core.player.SubdlCredentialStore
++import br.com.flaviotorres.iptvpremium.core.player.SubsourceCredentialStore
+ import br.com.flaviotorres.iptvpremium.core.player.openSubtitlesClient
+ import br.com.flaviotorres.iptvpremium.ui.components.*
+ import com.google.zxing.BarcodeFormat
+ import com.google.zxing.qrcode.QRCodeWriter
+-import kotlinx.coroutines.CancellationException
+-import kotlinx.coroutines.Dispatchers
+-import kotlinx.coroutines.delay
+-import kotlinx.coroutines.withContext
++import kotlinx.coroutines.*
+ 
+-/** Two separate pages: official signup, then device-bound portal connection. */
++private data class SubtitleProviderChoice(val key:String,val title:String,val description:String,val url:String)
++private val subtitleProviders=listOf(
++    SubtitleProviderChoice("subdl","SubDL","Use sua chave de API pessoal.","https://subdl.com"),
++    SubtitleProviderChoice("opensubtitles","OpenSubtitles","Entre com sua conta do serviço.","https://www.opensubtitles.com"),
++    SubtitleProviderChoice("subsource","SubSource","Use sua chave de API pessoal.","https://subsource.net")
++)
++
++/** No registration QR or device link exists until the corresponding action is chosen. */
+ @Composable
+-fun SubdlAccountScreen(onBack:()->Unit) {
+-    var step by rememberSaveable{mutableIntStateOf(1)}
+-    var editor by rememberSaveable{mutableStateOf<String?>(null)}
++internal fun SubtitleAccountsScreen(onBack:()->Unit) {
++    var providerKey by rememberSaveable{mutableStateOf<String?>(null)}
++    var action by rememberSaveable{mutableStateOf<String?>(null)}
++    var lastProvider by rememberSaveable{mutableIntStateOf(0)}
+     var qrGeneration by remember{mutableIntStateOf(0)}
+-    var localOptions by rememberSaveable{mutableStateOf(false)}
+     val context=LocalContext.current.applicationContext
+     val owner=LocalLifecycleOwner.current
+     val subdl=remember(context){SubdlCredentialStore(context)}
+-    val subsource=remember(context){br.com.flaviotorres.iptvpremium.core.player.SubsourceCredentialStore(context)}
+-    var subsourceReady by remember{mutableStateOf(subsource.isConfigured())}
++    val subsource=remember(context){SubsourceCredentialStore(context)}
+     val open=remember(context){openSubtitlesClient(context)}
+-    var subdlReady by remember{mutableStateOf(subdl.isConfigured())}
+-    var openReady by remember{mutableStateOf(open.connected())}
+-    var pollMessage by remember{mutableStateOf("")}
+-    val nextFocus=remember{FocusRequester()}
+-    val back:()->Unit={if(step==2){step=1;localOptions=false}else onBack()}
+-    if(editor!=null){SubtitleCredentialsEditor(editor!!){editor=null};return}
++    var statuses by remember{mutableStateOf(mapOf<String,Boolean>())}
++    var message by remember{mutableStateOf("")}
++    val first=remember(providerKey,action){FocusRequester()}
++    val back:()->Unit={when{action!=null->action=null;providerKey!=null->providerKey=null;else->onBack()}}
+     BackHandler(onBack=back)
+-    LaunchedEffect(step){runCatching{nextFocus.requestFocus()}}
+-    LaunchedEffect(step,qrGeneration,editor) {
+-        if(step!=2)return@LaunchedEffect
++    LaunchedEffect(providerKey,action) {
++        statuses=withContext(Dispatchers.IO){mapOf("subdl" to subdl.isConfigured(),"opensubtitles" to open.connected(),"subsource" to subsource.isConfigured())}
++        if(action!="local"){withFrameNanos{};runCatching{first.requestFocus()}}
++    }
++    LaunchedEffect(action,qrGeneration) {
++        if(action!="portal"||BuildConfig.DEVICE_PORTAL_URL.isBlank())return@LaunchedEffect
+         owner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+             val started=android.os.SystemClock.elapsedRealtime()
+             while(android.os.SystemClock.elapsedRealtime()-started<900_000L) {
+-                if(BuildConfig.DEVICE_PORTAL_URL.isNotBlank()) {
+-                    try {
+-                        withContext(Dispatchers.IO){DevicePortalSync(context).sync(force=true,includeSubtitleCommands=true)}
+-                        pollMessage=""
+-                    }catch(cancelled:CancellationException){throw cancelled}
+-                    catch(_:Exception){pollMessage="Aguardando conexão. Confira a internet ou gere um novo QR Code."}
+-                }
+-                subdlReady=subdl.isConfigured();openReady=open.connected();subsourceReady=subsource.isConfigured()
+-                delay(8_000)
++                try {
++                    withContext(Dispatchers.IO){DevicePortalSync(context).sync(force=true,includeSubtitleCommands=true)}
++                    statuses=withContext(Dispatchers.IO){mapOf("subdl" to subdl.isConfigured(),"opensubtitles" to open.connected(),"subsource" to subsource.isConfigured())}
++                    message=""
++                }catch(cancelled:CancellationException){throw cancelled}
++                catch(_:Exception){message="Aguardando conexão. Confira a internet ou gere outro QR Code."}
++                delay(8_000L)
+             }
+-            pollMessage="Gere um novo QR Code para continuar a conexão pelo celular."
++            message="Gere outro QR Code para continuar."
+         }
+     }
+-    Box(Modifier.fillMaxSize()) {
+-        SettingsBackdrop(Modifier.fillMaxSize())
+-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=28.dp,vertical=if(step==2)14.dp else 18.dp),
+-            verticalArrangement=Arrangement.spacedBy(if(step==2)8.dp else 14.dp)) {
+-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+-                Text("LEGENDAS EXTERNAS",Modifier.weight(1f),color=SettingsLook.text,fontSize=21.sp,fontWeight=FontWeight.Bold)
+-                MarbleSettingsButton("Voltar",modifier=Modifier.width(108.dp),onClick=back)
+-            }
+-            Box(Modifier.fillMaxWidth().height(1.dp).background(SettingsLook.edge))
+-            Row(Modifier.align(Alignment.CenterHorizontally),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(9.dp)) {
+-                Text("PASSO $step DE 2",color=SettingsLook.secondary,fontSize=12.sp)
+-                for(i in 1..2)Box(Modifier.size(9.dp).background(if(step==i)CatalogStyle.accent else SettingsLook.edge,CircleShape))
+-            }
+-            Text(if(step==1)"Crie sua conta" else "Conecte sua conta à TV",Modifier.align(Alignment.CenterHorizontally),
+-                color=SettingsLook.text,fontSize=27.sp,fontWeight=FontWeight.SemiBold)
+-            if(step==1) {
+-                Text("Se o seu provedor não oferecer legendas, use estas opções gratuitas. Cada serviço tem sua própria conta e limites de uso.",
+-                    color=SettingsLook.secondary,fontSize=14.sp)
+-                BoxWithConstraints {
+-                    if(maxWidth>=680.dp)Row(horizontalArrangement=Arrangement.spacedBy(16.dp)) {
+-                        SignupCard("SubDL","Crie sua conta e gere sua chave de API.","https://subdl.com",Modifier.weight(1f))
+-                        SignupCard("OpenSubtitles","Crie sua conta. Você usará seu usuário e senha.","https://www.opensubtitles.com",Modifier.weight(1f))
+-                    }else Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+-                        SignupCard("SubDL","Crie sua conta e gere sua chave de API.","https://subdl.com",Modifier.fillMaxWidth())
+-                        SignupCard("OpenSubtitles","Crie sua conta. Você usará seu usuário e senha.","https://www.opensubtitles.com",Modifier.fillMaxWidth())
++    val provider=subtitleProviders.firstOrNull{it.key==providerKey}
++    if(provider!=null&&action=="local") {SubtitleCredentialsEditor(provider.key){action=null};return}
++    SubtitleSettingsFrame(provider?.title?.uppercase()?:"CONTAS DE LEGENDAS",
++        if(provider==null)"Escolha o serviço que deseja configurar."else "${provider.description} Cada serviço possui seus próprios limites.",back) {
++        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(14.dp)) {
++            if(provider==null) {
++                subtitleProviders.forEachIndexed{index,p ->
++                    MarbleSettingsButton(p.title+" · "+if(statuses[p.key]==true)"Conectado"else"Configurar",
++                        modifier=Modifier.fillMaxWidth().then(if(index==lastProvider)Modifier.focusRequester(first)else Modifier)) {
++                        lastProvider=index;providerKey=p.key
+                     }
+                 }
+-                SignupCard("SubSource","Crie sua conta e gere sua chave pessoal de API.","https://subsource.net",Modifier.fillMaxWidth())
+-                MarbleSettingsButton("Já tenho uma conta · Continuar ›",modifier=Modifier.widthIn(max=480.dp).fillMaxWidth()
+-                    .align(Alignment.CenterHorizontally).focusRequester(nextFocus)){step=2}
+-            }else {
+-                Text("Agora use nosso site para enviar os dados à sua TV.",color=SettingsLook.secondary,fontSize=14.sp,
+-                    modifier=Modifier.align(Alignment.CenterHorizontally))
+-                Column(Modifier.fillMaxWidth().background(SettingsLook.panel,RoundedCornerShape(18.dp))
+-                    .border(1.dp,SettingsLook.edge,RoundedCornerShape(18.dp)).padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+-                    if(BuildConfig.DEVICE_PORTAL_URL.isNotBlank()) {
++            }else when(action) {
++                "signup" -> {
++                    SettingsCard(Modifier.fillMaxWidth()) {
++                        SubtitleSignupQr(provider.url,provider.title)
++                        Text(if(provider.key=="opensubtitles")"Crie sua conta no site oficial. Depois, volte e escolha conectar."
++                            else "Crie sua conta no site oficial e gere a chave pessoal de API. Depois, volte e escolha conectar.",color=SettingsLook.text,fontSize=15.sp)
++                        MarbleSettingsButton("Acessar site oficial",modifier=Modifier.focusRequester(first)) {
++                            try{context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(provider.url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}
++                            catch(_:Exception){message="Use a câmera do celular para abrir o site oficial."}
++                        }
++                    }
++                }
++                "portal" -> {
++                    SettingsCard(Modifier.fillMaxWidth()) {
+                         DevicePortalQr(destination="subtitles",showRefreshButton=false,refreshKey=qrGeneration,wizard=true)
+-                        if(pollMessage.isNotBlank())Text(pollMessage,color=SettingsLook.secondary,fontSize=13.sp)
+-                        MarbleSettingsButton("Gerar novo QR Code",modifier=Modifier.widthIn(max=350.dp).fillMaxWidth()){qrGeneration++}
+-                    }else Text("O acesso pelo celular ainda não está disponível nesta versão. Você pode configurar pela TV abaixo.",color=SettingsLook.secondary,fontSize=14.sp)
+-                    Text("SubDL: ${if(subdlReady)"configurado" else "não configurado"} · OpenSubtitles: ${if(openReady)"conectado" else "não conectado"} · SubSource: ${if(subsourceReady)"configurado"else"não configurado"}",
+-                        color=SettingsLook.text,fontSize=13.sp)
++                        Text("No site, selecione ${provider.title} e envie os dados para esta TV.",color=SettingsLook.text,fontSize=15.sp)
++                        Text(if(statuses[provider.key]==true)"${provider.title}: conectado nesta TV"else "Aguardando conexão de ${provider.title}…",color=SettingsLook.secondary,fontSize=14.sp)
++                        MarbleSettingsButton("Gerar novo QR Code",modifier=Modifier.focusRequester(first)){qrGeneration++}
++                    }
+                 }
+-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(16.dp)) {
+-                    MarbleSettingsButton("Prefere configurar pela TV? ›",modifier=Modifier.weight(1f)){localOptions=!localOptions}
+-                    MarbleSettingsButton("Concluir",modifier=Modifier.width(170.dp).focusRequester(nextFocus),onClick=onBack)
+-                }
+-                if(localOptions)Row(horizontalArrangement=Arrangement.spacedBy(14.dp)) {
+-                    MarbleSettingsButton("Chave SubSource",modifier=Modifier.weight(1f)){editor="subsource"}
+-                    MarbleSettingsButton("Digitar chave SubDL",modifier=Modifier.weight(1f)){editor="subdl"}
+-                    MarbleSettingsButton("Entrar no OpenSubtitles",modifier=Modifier.weight(1f)){editor="opensubtitles"}
++                else -> {
++                    SettingsCard(Modifier.fillMaxWidth()) {
++                        Text(if(statuses[provider.key]==true)"Conta conectada nesta TV"else "Ainda não conectado nesta TV",color=SettingsLook.text,fontSize=17.sp)
++                        MarbleSettingsButton("Criar conta no site oficial",modifier=Modifier.focusRequester(first)){message="";action="signup"}
++                        if(provider.key!="subsource"&&BuildConfig.DEVICE_PORTAL_URL.isNotBlank())
++                            MarbleSettingsButton("Conectar pelo celular ou PC"){message="";action="portal"}
++                        MarbleSettingsButton(if(provider.key=="opensubtitles")"Entrar pela TV"else"Digitar chave na TV"){message="";action="local"}
++                    }
+                 }
+             }
++            if(message.isNotBlank())Text(message,color=SettingsLook.secondary,fontSize=13.sp)
+         }
+     }
+ }
+ 
+ @Composable
+-private fun SignupCard(name:String,description:String,url:String,modifier:Modifier) {
+-    val context=LocalContext.current
++private fun SubtitleSignupQr(url:String,title:String) {
+     var bitmap by remember(url){mutableStateOf<Bitmap?>(null)}
+-    var notice by remember{mutableStateOf<String?>(null)}
+-    LaunchedEffect(url) {
+-        bitmap=withContext(Dispatchers.Default) {
+-            val matrix=QRCodeWriter().encode(url,BarcodeFormat.QR_CODE,256,256)
+-            Bitmap.createBitmap(IntArray(256*256){i->if(matrix[i%256,i/256])android.graphics.Color.BLACK else android.graphics.Color.WHITE},
+-                256,256,Bitmap.Config.ARGB_8888)
++    LaunchedEffect(url){bitmap=withContext(Dispatchers.Default){
++        val matrix=QRCodeWriter().encode(url,BarcodeFormat.QR_CODE,256,256)
++        Bitmap.createBitmap(IntArray(256*256){i->if(matrix[i%256,i/256])android.graphics.Color.BLACK else android.graphics.Color.WHITE},256,256,Bitmap.Config.ARGB_8888)
++    }}
++    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(18.dp)) {
++        Box(Modifier.size(140.dp).background(Color.White),contentAlignment=Alignment.Center){bitmap?.let{Image(it.asImageBitmap(),"Site oficial do $title",Modifier.fillMaxSize())}}
++        Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
++            Text("Site oficial do $title",color=SettingsLook.text,fontSize=20.sp)
++            Text(url,color=SettingsLook.secondary,fontSize=14.sp)
+         }
+     }
+-    Column(modifier.background(SettingsLook.panel,RoundedCornerShape(18.dp)).border(1.dp,SettingsLook.edge,RoundedCornerShape(18.dp))
+-        .padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+-        Row(horizontalArrangement=Arrangement.spacedBy(14.dp),verticalAlignment=Alignment.CenterVertically) {
+-            Box(Modifier.size(112.dp).background(Color.White),contentAlignment=Alignment.Center) {
+-                bitmap?.let{Image(it.asImageBitmap(),"QR Code do site oficial do $name",Modifier.fillMaxSize())}
+-            }
+-            Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+-                Text(name,color=SettingsLook.text,fontSize=21.sp,fontWeight=FontWeight.SemiBold)
+-                Text("Site oficial do $name",color=SettingsLook.secondary,fontSize=12.sp)
+-                Text(description,color=SettingsLook.text,fontSize=14.sp)
+-            }
+-        }
+-        MarbleSettingsButton("Acessar site do $name") {
+-            try{context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}
+-            catch(_:Exception){notice="Escaneie o QR Code pelo celular para acessar o site oficial."}
+-        }
+-        notice?.let{Text(it,color=SettingsLook.secondary,fontSize=12.sp)}
+-    }
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleRepositor.kt
+@@ -55,6 +55,7 @@
+     val verifyArchiveEpisode: Boolean = false
+ ) {
+     val displayName: String get() {
++        if(provider=="Manual")return "Legenda manual — $releaseName"
+         val languageName = when(language.lowercase(Locale.ROOT)) {
+             "en", "eng" -> "Inglês"
+             "es", "spa" -> "Espanhol"
+@@ -67,7 +68,8 @@
+ data class ExternalSubtitleCue(val startMs: Long, val endMs: Long, val text: String)
+ 
+ /** Busca SubDL com chave individual armazenada no dispositivo. Iniciada apenas no player. */
+-class ExternalSubtitleRepository(private val context: Context) {
++class ExternalSubtitleRepository(private val context: Context,private val playlistId:String?=null) {
++    private val manual=ManualSubtitleStore(context)
+     private companion object {
+         private const val SUBTITLE_CACHE_BYTES = 5L * 1024L * 1024L
+         private const val MAX_ONE_SUBTITLE_BYTES = 1024 * 1024L
+@@ -94,7 +96,7 @@
+     private val tmdbToken = BuildConfig.TMDB_READ_TOKEN.trim()
+     private val prefs = context.getSharedPreferences("iptv_external_subtitle_search_subdl_personal_v2", Context.MODE_PRIVATE)
+ 
+-    val configured: Boolean get() = credentials.isConfigured() || openSubtitles.connected() || subsource.scope()!=null
++    val configured: Boolean get() = credentials.isConfigured() || openSubtitles.connected() || subsource.scope()!=null || manual.hasAny()
+ 
+     /** Mensagem de diagnostico. Nunca inclui a chave ou a URL privada do filme. */
+     @Volatile var lastSearchStatus: String = "Ainda não pesquisado"
+@@ -125,17 +127,18 @@
+ 
+     /** Search both providers on menu demand. Downloads require explicit selection. */
+     suspend fun search(media: PlaybackMedia): List<ExternalSubtitleOption> = withContext(Dispatchers.IO) {
++        val manualOptions=manual.options(media,playlistId,br.com.flaviotorres.iptvpremium.ui.kids.KidsSession.active.value)
+         if(media.type==PlaybackContentType.LIVE_CHANNEL) {
+             lastSearchStatus="Legendas externas indisponíveis em canais ao vivo";return@withContext emptyList()
+         }
+         val title=(media.subtitleSearchTitle?:media.title).trim()
+         if(title.length<2 || (media.type==PlaybackContentType.EPISODE &&
+                     (media.seasonNumber==null || media.episodeNumber==null))) {
+-            lastSearchStatus="Identificação incompleta do conteúdo";return@withContext emptyList()
++            lastSearchStatus="Identificação incompleta do conteúdo";return@withContext manualOptions
+         }
+         val subdlReady=credentials.isConfigured();val openScope=openSubtitles.scope();val sourceScope=subsource.scope()
+         if(!subdlReady && openScope==null && sourceScope==null) {
+-            lastSearchStatus="Configure SubDL, SubSource ou conecte sua conta do OpenSubtitles";return@withContext emptyList()
++            lastSearchStatus=if(manualOptions.isNotEmpty())"${manualOptions.size} legenda(s) manual(is)"else"Configure um provedor ou envie uma legenda manual";return@withContext manualOptions
+         }
+         // Independent providers start together; a slow SubDL request no longer delays OpenSubtitles.
+         val openRequest=async {
+@@ -170,9 +173,10 @@
+             ?.let{savedOptionsForMedia(it)}.orEmpty()+ownSourceKey?.let{savedOptionsForMedia(it)}.orEmpty()
+         val currentScope=openSubtitles.scope()
+         val currentSourceScope=subsource.scope()
+-        val merged=(subdlOptions+openOptions+sourceOptions+downloaded)
++        val merged=(manualOptions+subdlOptions+openOptions+sourceOptions+downloaded)
+             .map { it.copy(language=subtitleProviderLanguageKey(it.provider,it.language,it.releaseName)) }
+             .filter { option->
++                (option.provider=="Manual") ||
+                 (option.provider=="SubDL" && portugueseSubtitleRank(option.language,option.releaseName)<2) ||
+                 (option.provider=="OpenSubtitles" && currentScope!=null && option.accountScope==currentScope &&
+                     option.language in setOf("pt-BR","pt-PT","en","es")) ||
+@@ -460,6 +464,7 @@
+ 
+     /** Download apenas após escolha explícita; serve do cache de 5 MB primeiro. */
+     suspend fun download(option: ExternalSubtitleOption): List<ExternalSubtitleCue> = withContext(Dispatchers.IO) {
++        if(option.provider=="Manual")return@withContext manual.read(option.providerId)?.let{ManualSubtitleArchive.cues(it)}.orEmpty()
+         if(option.provider=="OpenSubtitles")openSubtitles.checkScope(option.accountScope
+             ?:throw OpenSubtitleException(OpenSubtitleProblem.SESSION_EXPIRED))
+         if(option.provider=="SubSource")subsource.checkScope(option.accountScope?:throw SubsourceException("SubSource não configurado."))
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ManualSubtitleArchive.kt
+@@ -0,0 +1,82 @@
++package br.com.flaviotorres.iptvpremium.core.player
++
++import java.io.ByteArrayInputStream
++import java.io.ByteArrayOutputStream
++import java.nio.ByteBuffer
++import java.nio.charset.CodingErrorAction
++import java.util.zip.ZipInputStream
++
++internal data class ManualSubtitleFile(val name:String,val bytes:ByteArray,val season:Int?,val episode:Int?)
++
++/** Original names are labels only: ZIP paths are never extracted onto the filesystem. */
++internal object ManualSubtitleArchive {
++    const val MAX_UPLOAD=8*1024*1024
++    const val MAX_FILE=1024*1024
++    private const val MAX_EXPANDED=16*1024*1024
++    private val numbered=Regex("(?i)(?<![a-z0-9])s([0-9]{1,3})[ ._-]*e([0-9]{1,4})(?![0-9])|(?<![0-9])([0-9]{1,3})x([0-9]{1,4})(?![0-9])")
++    private val time=Regex("(?m)^\\s*([0-9]{1,3}):([0-9]{2}):([0-9]{2})[,.]([0-9]{3})\\s*-->\\s*([0-9]{1,3}):([0-9]{2}):([0-9]{2})[,.]([0-9]{3})[^\\r\\n]*$")
++    fun text(bytes:ByteArray):String {
++        require(bytes.size in 1..MAX_FILE){"Cada legenda deve ter até 1 MB."}
++        val charset=when {
++            bytes.size>1&&bytes[0]==0xFF.toByte()&&bytes[1]==0xFE.toByte()->Charsets.UTF_16LE
++            bytes.size>1&&bytes[0]==0xFE.toByte()&&bytes[1]==0xFF.toByte()->Charsets.UTF_16BE
++            else->Charsets.UTF_8
++        }
++        return try{charset.newDecoder().onMalformedInput(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString()}
++        catch(_:java.nio.charset.CharacterCodingException){String(bytes,java.nio.charset.Charset.forName("windows-1252"))}
++            .removePrefix("\uFEFF").replace("\r\n","\n").replace('\r','\n')
++    }
++    fun cues(bytes:ByteArray):List<ExternalSubtitleCue> {
++        val raw=text(bytes);require('\u0000' !in raw){"Legenda inválida."}
++        return raw.split(Regex("\\n[ \\t]*\\n")).mapNotNull {block->
++            val m=time.find(block)?:return@mapNotNull null
++            fun timestamp(start:Int):Long {
++                val h=m.groupValues[start].toLong();val min=m.groupValues[start+1].toLong();val sec=m.groupValues[start+2].toLong()
++                if(min>59||sec>59)return -1
++                return ((h*60+min)*60+sec)*1000+m.groupValues[start+3].toLong()
++            }
++            val start=timestamp(1);val end=timestamp(5)
++            val caption=block.substring(m.range.last+1).trim().replace(Regex("<[^>]*>"),"").take(8192)
++            if(start<0||end<=start||caption.isBlank())null else ExternalSubtitleCue(start,end,caption)
++        }.sortedBy{it.startMs}.take(20_000)
++    }
++    private fun file(name:String,bytes:ByteArray):ManualSubtitleFile? {
++        if(cues(bytes).isEmpty())return null
++        val matches=numbered.findAll(name).toList()
++        if(matches.size>1||Regex("(?i)s[0-9]+[ ._-]*e[0-9]+[ ._-]*e[0-9]+").containsMatchIn(name))return null
++        val m=matches.singleOrNull()
++        val season=m?.let{(it.groupValues[1].ifEmpty{it.groupValues[3]}).toIntOrNull()}
++        val episode=m?.let{(it.groupValues[2].ifEmpty{it.groupValues[4]}).toIntOrNull()}
++        return ManualSubtitleFile(name.takeLast(200),bytes,season,episode)
++    }
++    fun read(bytes:ByteArray,name:String):List<ManualSubtitleFile> {
++        require(bytes.size in 1..MAX_UPLOAD){"Envie um arquivo SRT ou ZIP de até 8 MB."}
++        if(!name.endsWith(".zip",true)){
++            require(name.endsWith(".srt",true)){"Use SRT ou ZIP."}
++            return listOfNotNull(file(name,bytes)).also{require(it.isNotEmpty()){"O arquivo não contém uma legenda SRT válida."}}
++        }
++        require(bytes.size>=4&&bytes[0]=='P'.code.toByte()&&bytes[1]=='K'.code.toByte()){"Arquivo ZIP inválido."}
++        val result=mutableListOf<ManualSubtitleFile>();var total=0L;var entries=0
++        ZipInputStream(ByteArrayInputStream(bytes)).use {zip->
++            val buffer=ByteArray(8192)
++            while(true){
++                val entry=zip.nextEntry?:break
++                require(++entries<=512){"O ZIP contém arquivos demais."}
++                val accepted=!entry.isDirectory&&entry.name.endsWith(".srt",true)&&
++                    !entry.name.replace('\\','/').split('/').any{it==".."||it=="__MACOSX"}&&
++                    !entry.name.substringAfterLast('/').startsWith("._")
++                val out=if(accepted)ByteArrayOutputStream()else null;var size=0
++                while(true){val count=zip.read(buffer);if(count<0)break;total+=count;size+=count
++                    require(total<=MAX_EXPANDED){"O ZIP expandido excede 16 MB."}
++                    if(size<=MAX_FILE)out?.write(buffer,0,count)
++                }
++                if(accepted&&size in 1..MAX_FILE){
++                    val candidate=runCatching{file(entry.name,out!!.toByteArray())}.getOrNull()
++                    if(candidate!=null){require(result.size<128){"Envie no máximo 128 legendas por ZIP."};result+=candidate}
++                }
++            }
++        }
++        require(result.isNotEmpty()){"Não encontramos legendas SRT válidas no ZIP."}
++        return result
++    }
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ManualSubtitleClient.kt
+@@ -0,0 +1,85 @@
++package br.com.flaviotorres.iptvpremium.core.player
++
++import android.content.Context
++import br.com.flaviotorres.iptvpremium.BuildConfig
++import br.com.flaviotorres.iptvpremium.core.device.PortalIdentityStore
++import kotlinx.coroutines.*
++import org.json.JSONObject
++import java.net.HttpURLConnection
++import java.net.URL
++import java.security.MessageDigest
++import java.util.concurrent.Executors
++import java.util.concurrent.atomic.AtomicReference
++import kotlin.coroutines.resume
++import kotlin.coroutines.resumeWithException
++
++internal data class ManualSubtitleRequest(val id:String,val url:String,val expires:Long)
++internal data class ManualSubtitleDownload(val name:String,val bytes:ByteArray)
++
++/** Same device credential and origin as the portal. Never follows a redirect with that credential. */
++internal class ManualSubtitleClient(context:Context) {
++    private val app=context.applicationContext
++    private val base=BuildConfig.DEVICE_PORTAL_URL.trimEnd('/')
++    suspend fun create(target:ManualSubtitleTarget):ManualSubtitleRequest {
++        val id=java.util.UUID.randomUUID().toString()
++        val result=json("/request","POST",JSONObject().put("id",id).put("target",target.json()))
++        val link=result.getString("url")
++        check(link.startsWith(base+"/#access=")){"A central retornou um acesso incompatível."}
++        return ManualSubtitleRequest(result.getString("id"),link,result.getLong("expires"))
++    }
++    suspend fun status(id:String):JSONObject=json("/request?id=${checked(id)}").getJSONObject("request")
++    suspend fun cancel(id:String){json("/request?id=${checked(id)}","DELETE")}
++    suspend fun receipt(id:String,count:Int,success:Boolean=true){json("/receipt?id=${checked(id)}","POST",JSONObject().put("success",success).put("count",count))}
++    suspend fun download(id:String):ManualSubtitleDownload {
++        val response=request("/file?id=${checked(id)}","GET",null,ManualSubtitleArchive.MAX_UPLOAD)
++        val expected=response.headers["x-subtitle-sha256"]?.singleOrNull().orEmpty()
++        check(expected.matches(Regex("[a-f0-9]{64}"))&&MessageDigest.getInstance("SHA-256").digest(response.bytes).joinToString(""){"%02x".format(it)}==expected){"O arquivo recebido ficou incompleto. Tente novamente."}
++        val name=java.net.URLDecoder.decode(response.headers["x-subtitle-name"]?.singleOrNull().orEmpty(),"UTF-8")
++        return ManualSubtitleDownload(name,response.bytes)
++    }
++    private suspend fun json(path:String,method:String="GET",body:JSONObject?=null):JSONObject {
++        val response=request(path,method,body?.toString()?.toByteArray(Charsets.UTF_8),256*1024)
++        return JSONObject(String(response.bytes,Charsets.UTF_8))
++    }
++    private data class Response(val bytes:ByteArray,val headers:Map<String,List<String>>)
++    private suspend fun request(path:String,method:String,body:ByteArray?,limit:Int):Response {
++        check(base.isNotBlank()){ "A central ainda não foi configurada." }
++        val endpoint=URL(base);check(endpoint.protocol=="https"&&endpoint.userInfo==null)
++        val secret=withContext(Dispatchers.IO){PortalIdentityStore(app).load().optString("secret")}
++        check(secret.matches(Regex("[a-f0-9]{64}"))){"Sincronize o aparelho com a central primeiro."}
++        return suspendCancellableCoroutine {continuation->
++            val connection=AtomicReference<HttpURLConnection?>()
++            val task=java.util.concurrent.FutureTask<Unit> {
++                var c:HttpURLConnection?=null
++                try{
++                    if(!continuation.isActive)return@FutureTask Unit
++                    c=URL(base+"/api/device/manual-subtitles"+path).openConnection() as HttpURLConnection;connection.set(c)
++                    c.connectTimeout=8_000;c.readTimeout=12_000;c.instanceFollowRedirects=false;c.useCaches=false;c.requestMethod=method
++                    c.setRequestProperty("Authorization","Bearer $secret");c.setRequestProperty("Accept","application/json")
++                    if(body!=null){c.doOutput=true;c.setRequestProperty("Content-Type","application/json");c.outputStream.use{it.write(body)}}
++                    val status=c.responseCode
++                    if(status !in 200..299) {
++                        val responseError=runCatching{c?.errorStream?.use{input->val buffer=ByteArray(1024);val n=input.read(buffer);if(n>0)String(buffer,0,n,Charsets.UTF_8)else ""}}.getOrNull()
++                        val message=runCatching{JSONObject(responseError.orEmpty()).optString("error")}.getOrNull()?.takeIf{it.isNotBlank()}
++                        error(message?:"Não foi possível conectar à central (HTTP $status).")
++                    }
++                    val bytes=java.io.ByteArrayOutputStream();val buffer=ByteArray(8192)
++                    c.inputStream.use {input->while(true){if(!continuation.isActive)return@FutureTask Unit
++                        val n=input.read(buffer);if(n<0)break;check(bytes.size()+n<=limit){"Resposta da central excede o limite."};bytes.write(buffer,0,n)}}
++                    val headers=c.headerFields.filterKeys{it!=null}.mapKeys{it.key.lowercase(java.util.Locale.ROOT)}
++                    if(continuation.isActive)continuation.resume(Response(bytes.toByteArray(),headers))
++                }catch(error:Throwable){if(continuation.isActive)continuation.resumeWithException(error)}
++                finally{runCatching{c?.disconnect()}}
++            }
++            continuation.invokeOnCancellation {task.cancel(true);requests.remove(task);connection.get()?.let{c->runCatching{cleanup.execute{runCatching{c.disconnect()}}}}}
++            try{requests.execute(task)}catch(error:java.util.concurrent.RejectedExecutionException){continuation.resumeWithException(java.io.IOException("Aguarde o encerramento do envio anterior."))}
++        }
++    }
++    private fun checked(id:String)=id.also{require(it.matches(Regex("[0-9a-f-]{36}")))}
++    private companion object {
++        val requests=java.util.concurrent.ThreadPoolExecutor(2,2,30,java.util.concurrent.TimeUnit.SECONDS,java.util.concurrent.ArrayBlockingQueue<Runnable>(4),
++            {task->Thread(task,"manual-subtitles").apply{isDaemon=true}})
++        val cleanup=java.util.concurrent.ThreadPoolExecutor(2,2,30,java.util.concurrent.TimeUnit.SECONDS,java.util.concurrent.ArrayBlockingQueue<Runnable>(8),
++            {task->Thread(task,"manual-subtitle-close").apply{isDaemon=true}})
++    }
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ManualSubtitleStore.kt
+@@ -0,0 +1,72 @@
++package br.com.flaviotorres.iptvpremium.core.player
++
++import android.content.Context
++import br.com.flaviotorres.iptvpremium.core.storage.AppCacheStorage
++import br.com.flaviotorres.iptvpremium.data.repository.artworkTitle
++import org.json.JSONArray
++import org.json.JSONObject
++import java.io.File
++import java.io.FileOutputStream
++import java.security.MessageDigest
++
++/** Shares the existing 5 MB subtitle file budget. Persist only validated, chosen SRTs. */
++internal class ManualSubtitleStore(context:Context) {
++    private val app=context.applicationContext
++    private val root=File(app.filesDir,"iptv_subtitles_lru_5mb")
++    private val prefs=app.getSharedPreferences("manual_subtitles_v1",Context.MODE_PRIVATE)
++    private fun records():List<JSONObject> = runCatching{val a=JSONArray(prefs.getString("files","[]"));
++        (0 until a.length()).map{a.getJSONObject(it)}.filter{it.optString("id").matches(Regex("[a-f0-9]{64}"))&&File(root,it.getString("id")+".srt").isFile}}.getOrDefault(emptyList())
++    fun hasAny():Boolean=prefs.getString("files","[]")!="[]"
++    private fun identity(kind:String,title:String,year:Int?,playlist:String?,id:String,kids:Boolean,season:Int?,episode:Int?):String =
++        listOf(if(kids)"kids"else"normal",kind,playlist.orEmpty(),id,artworkTitle(title),season?.toString().orEmpty(),episode?.toString().orEmpty()).joinToString("\u0000")
++    fun options(media:PlaybackMedia,playlist:String?,kids:Boolean):List<ExternalSubtitleOption> = synchronized(lock) {
++        if(media.type==PlaybackContentType.LIVE_CHANNEL)return@synchronized emptyList()
++        val kind=if(media.type==PlaybackContentType.MOVIE)"movie"else"episode"
++        val key=identity(kind,media.subtitleSearchTitle?:media.title,media.year,playlist,
++            if(kind=="movie")media.id else media.seriesId.orEmpty(),kids,if(kind=="movie")null else media.seasonNumber,if(kind=="movie")null else media.episodeNumber)
++        records().filter{it.optString("identity")==key && (media.year==null || it.optInt("year",0)==0 || it.optInt("year")==media.year)}.map {
++            ExternalSubtitleOption("Manual",it.getString("id"),"manual",it.getString("name"))
++        }
++    }
++    fun read(id:String):ByteArray?=synchronized(lock){
++        if(!id.matches(Regex("[a-f0-9]{64}"))||records().none{it.optString("id")==id})return@synchronized null
++        val file=File(root,"$id.srt")
++        AppCacheStorage.get(app).retain(file).use {if(file.length() in 1..ManualSubtitleArchive.MAX_FILE)file.readBytes()else null}
++    }
++    fun save(target:ManualSubtitleTarget,chosen:List<Pair<ManualSubtitleFile,Int>>):Int=synchronized(lock){
++        require(chosen.isNotEmpty()&&chosen.map{it.second}.distinct().size==chosen.size){"Escolha uma legenda por episódio."}
++        require(chosen.sumOf{it.first.bytes.size.toLong()}<=4_000_000L){"As legendas escolhidas excedem 4 MB. Envie a temporada em partes."}
++        root.mkdirs();val budget=AppCacheStorage.get(app)
++        // Reserve and validate everything before replacing the association index.
++        val incoming=chosen.map{(file,number)->
++            require(ManualSubtitleArchive.cues(file.bytes).isNotEmpty()){"Legenda inválida."}
++            val key=identity(if(target.kind=="movie")"movie"else"episode",target.title,target.year,target.playlistId,target.contentId,
++                target.kids,target.season,if(target.kind=="movie")null else number)
++            val id=hex((key+"\u0000"+file.name).toByteArray()+file.bytes)
++            Triple(id,key,file)
++        }
++        val leases=mutableListOf<br.com.flaviotorres.iptvpremium.core.storage.CacheStorageBudget.Reservation>()
++        val created=mutableListOf<File>()
++        try{
++            incoming.forEach{(id,_,file)->leases+=budget.reserve(File(root,"$id.srt"),file.bytes.size.toLong())
++                ?:error("Não há espaço disponível para todas as legendas. Envie em partes.")}
++            incoming.forEachIndexed{index,(id,_,file)->
++                val lease=leases[index];FileOutputStream(lease.temporary).use{it.write(file.bytes);it.fd.sync()}
++                val destination=File(root,"$id.srt")
++                if(destination.exists()){require(destination.readBytes().contentEquals(file.bytes));lease.temporary.delete()}
++                else{check(lease.temporary.renameTo(destination));created+=destination}
++            }
++            val ids=incoming.map{it.first}.toSet()
++            val next=records().filter{it.optString("id") !in ids}.toMutableList()
++            incoming.forEach{(id,key,file)->next+=JSONObject().put("id",id).put("identity",key).put("name",file.name.take(200)).put("year",target.year)}
++            check(next.size<=500){"Remova legendas antigas antes de enviar mais arquivos."}
++            check(prefs.edit().putString("files",JSONArray(next).toString()).commit()){"Não foi possível salvar as associações."}
++            SubtitleProviderUpdates.changed();incoming.size
++        }catch(error:Throwable){created.forEach{it.delete()};throw error}
++        finally{leases.forEach{it.close()}}
++    }
++    private companion object {
++        val lock=Any()
++        fun hex(data:ByteArray)=MessageDigest.getInstance("SHA-256").digest(data).joinToString(""){"%02x".format(it)}
++    }
++}
+--- /dev/null
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ManualSubtitleTarget.kt
+@@ -0,0 +1,19 @@
++package br.com.flaviotorres.iptvpremium.core.player
++
++import org.json.JSONArray
++import org.json.JSONObject
++
++internal data class ManualSubtitleTarget(val kind:String,val playlistId:String,val contentId:String,val title:String,
++    val year:Int?=null,val tmdbId:String?=null,val season:Int?=null,val episode:Int?=null,
++    val episodes:List<Int> = emptyList(),val kids:Boolean=false) {
++    fun json():JSONObject=JSONObject().put("kind",kind).put("playlistId",playlistId).put("contentId",contentId)
++        .put("title",title.take(200)).put("year",year).put("tmdbId",tmdbId).put("season",season).put("episode",episode)
++        .put("episodes",JSONArray(episodes)).put("kids",kids)
++    val description:String get()=when(kind){"movie"->"Filme";"episode"->"Temporada $season · Episódio $episode";else->"Temporada $season · ${episodes.size} episódios"}
++    fun validEpisode(file:ManualSubtitleFile):Int?=when {
++        kind=="movie"->if(file.season==null&&file.episode==null)0 else null
++        kind=="episode"->if(file.season==null&&file.episode==null||file.season==season&&file.episode==episode)episode else null
++        file.season==season&&file.episode in episodes->file.episode
++        else->null
++    }
++}
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/PlaybackScreen.kt
+@@ -257,7 +257,7 @@
+     // Não depender do StateFlow de capabilities aqui: a lista de tracks é a
+     // informação efetiva da sessão, mesmo quando os flows chegam em momentos diferentes.
+     val showAudioButton = audioTracks.isNotEmpty()
+-    val externalSubtitleRepo = remember(context) { ExternalSubtitleRepository(context.applicationContext) }
++    val externalSubtitleRepo = remember(context,playlistId) { ExternalSubtitleRepository(context.applicationContext,playlistId) }
+     var externalOptions by remember(media.id, media.type, media.streamUrl) {
+         mutableStateOf<List<ExternalSubtitleOption>>(emptyList())
+     }
+@@ -358,7 +358,7 @@
+                 externalOptions = emptyList()
+                 externalSearchStatus = "Falha inesperada na pesquisa"
+             } finally { searchingExternal = false }
+-        } else externalSearchStatus = "Conecte um provedor em Configurações > Legendas."
++        } else externalSearchStatus = "Conecte um provedor ou use Envio manual em Configurações > Legendas."
+     }
+ 
+     LaunchedEffect(panel, showAudioButton, showSubtitleButton) {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleMenuPolicy.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleMenuPolicy.kt
+@@ -14,11 +14,11 @@
+     return when(code.substringBefore('-')){"eng","english","en"->"en";"spa","spanish","es"->"es";else->code.substringBefore('-')}
+ }
+ internal fun subtitleLanguageLabel(key:String):String=when(key) {
+-    "pt-BR"->"Português Brasil";"pt-PT"->"Português Portugal";"pt"->"Português";"en"->"Inglês";"es"->"Espanhol";"und"->"Idioma não informado"
++    "manual"->"Legendas manuais";"pt-BR"->"Português Brasil";"pt-PT"->"Português Portugal";"pt"->"Português";"en"->"Inglês";"es"->"Espanhol";"und"->"Idioma não informado"
+     else->java.util.Locale.forLanguageTag(key).getDisplayLanguage(java.util.Locale.forLanguageTag("pt-BR"))
+         .takeIf{it.isNotBlank()}?.replaceFirstChar{it.titlecase(java.util.Locale.forLanguageTag("pt-BR"))}?:key
+ }
+-internal fun subtitleLanguagePriority(key:String):Int=when(key){"pt-BR"->0;"pt-PT"->1;"pt"->2;"en"->3;"es"->4;"und"->99;else->5}
++internal fun subtitleLanguagePriority(key:String):Int=when(key){"manual"->-1;"pt-BR"->0;"pt-PT"->1;"pt"->2;"en"->3;"es"->4;"und"->99;else->5}
+ internal fun subtitleProviderPriority(provider:String):Int=when(provider){"SubDL"->0;"SubSource"->1;"OpenSubtitles"->2;else->3}
+ internal fun subtitleLanguageOrder(keys:List<String>):List<String> = keys.distinct().sortedWith(compareBy<String>{subtitleLanguagePriority(it)}.thenBy{subtitleLanguageLabel(it)})
+ 

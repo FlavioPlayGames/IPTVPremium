@@ -1,0 +1,2 @@
+PASS: nome original, S05E01, temporada/episodio, escolha individual, duplicatas, descarte de extras/caminhos, UTF-8/1252/UTF-16, formato invalido e limites de ZIP.
+PASS adicional: rejeita nomes com multiplos episodios e ordena cues pelo tempo.

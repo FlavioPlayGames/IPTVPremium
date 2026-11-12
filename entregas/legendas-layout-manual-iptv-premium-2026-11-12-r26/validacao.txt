@@ -1,0 +1,33 @@
+Validacao r26 — 12/11/2026
+
+BASE E ESCOPO
+- 12 arquivos Kotlin: 4 alterados, 8 novos. Nenhum Gradle, Manifest, recurso, versao, assinatura ou configuracao privada distribuida.
+- Correcao r25 preservada; arquivos do assistente nao fazem parte desta entrega.
+- Worker base enviado pelo usuario, com rotas manuais adicionais. Nenhuma migracao de banco.
+- Site completo com 17 arquivos, preservando os 15 originais e acrescentando 2.
+
+ANDROID
+- :app:compileDebugKotlin: BUILD SUCCESSFUL (fontes finais, copia isolada).
+- :app:assembleDesempenho: BUILD SUCCESSFUL, incluindo R8, lint vital e empacotamento. APKs de validacao nao sao distribuidos: a instalacao compila com a configuracao e assinatura locais do usuario.
+- Mesmas versoes de dependencias, SDK 37 e fontes/recursos do projeto atualizado. A copia de validacao usa SDK/JDK e mirror Maven locais; essas configuracoes nao integram a entrega.
+- Testes Kotlin reais: SRT UTF-8, Windows-1252, UTF-16, nomes S05E01 originais, temporada/episodio, duplicatas, descarte de extras/caminhos, arquivos invalidos, limite de entradas e ZIP expandido, nomes multiplos e ordenacao de cues.
+
+WORKER
+- PASS com Worker completo e DB/R2 simulados: autenticacao, separacao entre TVs, CSRF, upload/download/confirmacao, SHA-256, exclusao, substituicao e cancelamento.
+- PASS concorrencia: dois uploads para o mesmo pedido e cancelamento durante upload nao deixam arquivo utilizavel no destino errado.
+- PASS formatos/destinos invalidos. Teste repetivel: node testes/worker-check.mjs.
+
+SITE
+- PASS Node syntax para Worker/app/modulo manual.
+- PASS HTML publico/admin sem IDs duplicados.
+- PASS JSDOM 26: destino preenchido, nome original, corpo binario, confirmacao somente apos TV, erros visiveis, troca de TV durante envio.
+
+INSTALADOR
+- PASS PowerShell 7.4.13 em fixtures temporarias LF e CRLF+BOM.
+- PASS aplicacao e reaplicacao idempotente; Gradle e arquivo r25 sentinela preservados.
+- PASS recusa de arquivo desconhecido, ausente, novo conflitante ou pacote adulterado, sem alteracoes parciais.
+- PASS rollback com falha de escrita injetada: restaura existentes e remove somente novos escritos.
+
+LIMITES DA VALIDACAO
+- Nao houve conexao, instalacao ou teste visual por controle remoto na TV do usuario.
+- Nao houve deploy nem teste em bucket R2 real. O envio manual exige publicacao do portal e binding MANUAL_SUBTITLES privado com lifecycle, descritos no LEIA-ME.
