@@ -7,3 +7,7 @@ A referência principal para a entrada é **inicio-retangular.png**: três cart�
 - [Fluxo de envio manual](envio-manual.png)
 
 São propostas visuais geradas para aprovação, não capturas do aplicativo em execução. O QR é ilustrativo. Nenhuma alteração de código ou de tonalidade global do aplicativo foi aplicada nesta entrega. O foco da revisão é aproximar proporções, tipografia, ícones e contraste da referência aprovada; os demais temas serão adaptados depois da aprovação.
+
+## Fundos claro e escuro
+
+[Comparação das duas versões](temas-claro-escuro.png): fundo prata suave no claro e grafite no escuro, com o mesmo azul intenso e os mesmos cartões retangulares. Esta comparação complementa a proposta e ainda depende de aprovação; não altera o código.
