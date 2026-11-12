@@ -1,13 +1,18 @@
 # Prévia das telas de legendas — para aprovação
 
-A referência principal para a entrada é **inicio-retangular.png**: três cartões horizontais mais largos e baixos, fundo liso sem desfoque, azul intenso e seleção com preenchimento azul escuro. Essa imagem substitui a entrada mostrada no primeiro quadro de contas-aparencia.png.
+## Referência corrigida após esclarecimento
 
-- [Entrada corrigida](inicio-retangular.png)
-- [Contas e aparência — quadros 2 e 3](contas-aparencia.png)
-- [Fluxo de envio manual](envio-manual.png)
+**[Ver fundos metálicos claro e escuro](referencia-metalica-claro-escuro.png)**
 
-São propostas visuais geradas para aprovação, não capturas do aplicativo em execução. O QR é ilustrativo. Nenhuma alteração de código ou de tonalidade global do aplicativo foi aplicada nesta entrega. O foco da revisão é aproximar proporções, tipografia, ícones e contraste da referência aprovada; os demais temas serão adaptados depois da aprovação.
+A referência solicitada é a original: prata escovado no claro, grafite escovado no escuro, faixas azuis nas laterais, cartões retangulares e azul intenso na seleção. A frase sobre boa história foi removida. Esta imagem substitui as propostas anteriores de fundo com cor lisa.
 
-## Fundos claro e escuro
+São propostas visuais para aprovação, não capturas do aplicativo em execução. Não houve alteração de código nesta revisão.
 
-[Comparação das duas versões](temas-claro-escuro.png): fundo prata suave no claro e grafite no escuro, com o mesmo azul intenso e os mesmos cartões retangulares. Esta comparação complementa a proposta e ainda depende de aprovação; não altera o código.
+## Estudos anteriores
+
+- [Entrada com fundo liso — superada](inicio-retangular.png)
+- [Claro e escuro lisos — superados](temas-claro-escuro.png)
+- [Estrutura de contas e aparência](contas-aparencia.png)
+- [Estrutura de envio manual; QR ilustrativo](envio-manual.png)
+
+As estruturas internas ainda deverão receber o acabamento da referência metálica após aprovação.
