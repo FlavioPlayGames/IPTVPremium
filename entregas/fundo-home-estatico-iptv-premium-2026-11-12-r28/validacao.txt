@@ -1,0 +1,8 @@
+VALIDACAO r28 — 12/11/2026
+Escopo: somente MetallicThemeBackdrop.kt, aplicado sobre a r27.
+:app:compileDesempenhoKotlin — BUILD SUCCESSFUL em 1m27s, copia isolada do projeto atualizado.
+Recursos existentes home_wallpaper_graphite.png e home_wallpaper_pearl.png inspecionados: imagens estaticas sem logo e sem icones.
+Decoder/cache/filtro de tema existentes reutilizados. Nenhuma imagem nova e distribuida ou reduzida para miniatura.
+PowerShell: aplicacao r27 -> r28, reaplicacao idempotente, Gradle preservado, arquivo desconhecido recusado antes de escrita.
+O APK e compilado/instalado no computador do usuario pelo script incluido, com a configuracao e assinatura locais.
+Nao houve teste visual na TV fisica nem alteracao/publicacao no portal.

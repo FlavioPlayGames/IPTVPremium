@@ -1,0 +1,10 @@
+{
+  "revision": "r28",
+  "files": [
+    {
+      "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/ui/theme/MetallicThemeBackdrop.kt",
+      "before": "5317f079424b584324a2b19a0b28d20cdf110dab0fd0d2f2c96676b4931eb5e3",
+      "after": "5050b028d176783c236abda639b28966f7ce45ea31a86ab108db1a0fc59bf5a7"
+    }
+  ]
+}
