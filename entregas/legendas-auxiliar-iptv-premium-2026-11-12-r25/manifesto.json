@@ -1,0 +1,20 @@
+{
+  "revision": "r25",
+  "files": [
+    {
+      "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleSync.kt",
+      "before": "619f0ca0ff5fc3b8d93292f914885c24f8e93a10e59a6256a005d01ef3854648",
+      "after": "ab6bfb621bafbeb1fbf06fcd7e27e75f7c82dda7ce9fb95a27cb69b0336edeb7"
+    },
+    {
+      "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleSyncAssistantBar.kt",
+      "before": "7ad90a543bf93982941ab5059b5d4a7d14a76de9e0dc4d9da0633e22a9f68e19",
+      "after": "06cd444b9cf75fa9bee31571661fe370ea79a96519d919879271b9c1619566f2"
+    },
+    {
+      "path": "app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleSyncBar.kt",
+      "before": "8486b36acfece61d9b80d1779db4e43066bae523d48490bf2431f056471fcaec",
+      "after": "8862001a00c52d1d241bb114c252201fb96f968fb1d9c4af421bde726d2642cd"
+    }
+  ]
+}

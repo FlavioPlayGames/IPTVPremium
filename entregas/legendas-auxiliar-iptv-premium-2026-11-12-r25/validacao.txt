@@ -1,0 +1,15 @@
+Validacao da entrega r25
+
+PASS: 240001 valores confrontados com HALF_UP; limites, empates, sinais, entradas invalidas e ajustes manuais preservados.
+
+lf: aplicacao, backup, idempotencia e configuracoes preservadas PASS
+crlf-bom: aplicacao, backup, idempotencia e configuracoes preservadas PASS
+base divergente: recusa antes de qualquer escrita PASS
+arquivo ausente: recusa sem escrita PASS
+payload corrompido: recusa sem escrita PASS
+falha simulada na segunda escrita: rollback byte a byte PASS
+
+Kotlin 2.2.10 / Java 21: arquivo ExternalSubtitleSync.kt real da entrega compilado; stub apenas para catalogMetadataKey, que nao participa do calculo testado.
+PowerShell 7.4.13 no Linux: aplicador exercitado em projetos temporarios. Sintaxe compativel com PowerShell 5.1; nao executado em Windows neste ambiente.
+Instalar-TV.ps1 preservado byte a byte do envio do usuario. ADB real, Gradle Android e TV nao executados aqui.
+Apenas tres fontes Kotlin da aplicacao diferem da base; Gradle, versao, recursos e configuracoes permanecem inalterados.

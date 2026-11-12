@@ -1,0 +1,38 @@
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleSync.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/ExternalSubtitleSync.kt
+@@ -24,6 +24,9 @@
+ /** An estimate from the first source cue, replacing (not adding to) the saved offset. */
+ internal fun subtitleAssistantOffset(clickVideoMs:Long,firstSourceCueMs:Long):Long {
+     require(clickVideoMs>=0&&firstSourceCueMs>=0)
+-    return (clickVideoMs.toDouble()-firstSourceCueMs.toDouble()-1_000.0)
+-        .coerceIn(-EXTERNAL_SUBTITLE_OFFSET_LIMIT.toDouble(),EXTERNAL_SUBTITLE_OFFSET_LIMIT.toDouble()).toLong()
++    val difference=(clickVideoMs-firstSourceCueMs)
++        .coerceIn(-EXTERNAL_SUBTITLE_OFFSET_LIMIT,EXTERNAL_SUBTITLE_OFFSET_LIMIT)
++    // Nearest whole second; half a second rounds away from zero in both directions.
++    return if(difference>=0L)((difference+500L)/1_000L)*1_000L
++        else -(((-difference+500L)/1_000L)*1_000L)
+ }
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleSyncAssistantBar.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleSyncAssistantBar.kt
+@@ -25,7 +25,7 @@
+         .border(1.dp,Color(0xFF6F9DBD),RoundedCornerShape(12.dp)).padding(6.dp),
+         verticalArrangement=Arrangement.spacedBy(6.dp)) {
+         if(phase==SubtitleAssistantPhase.EXPLAIN)Text(
+-            "O vídeo voltará ao início. Pressione OK na primeira fala. O cálculo usa o primeiro horário da legenda e desconta 1 s de reação. É um auxílio: créditos e versões diferentes podem exigir ajuste manual. Depois, voltaremos ao ponto anterior.",
++            "O vídeo voltará ao início. Pressione OK na primeira fala. O cálculo usa o primeiro horário da legenda, sem desconto de reação, e arredonda para o segundo mais próximo. É um auxílio: créditos e versões diferentes podem exigir ajuste manual. Depois, voltaremos ao ponto anterior.",
+             color=Color.White,fontSize=13.sp,modifier=Modifier.weight(1f))
+         Row(Modifier.fillMaxWidth().height(36.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+             @Composable fun Button(label:String,initial:Boolean,action:()->Unit) {
+--- a/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleSyncBar.kt
++++ b/app/src/main/java/br/com/flaviotorres/iptvpremium/core/navigation/player/SubtitleSyncBar.kt
+@@ -50,8 +50,8 @@
+                 Text(label,color=Color.White,fontSize=font,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis)
+             }
+         }
+-        Button("+ Atrasar","Atrasar legenda em $step",initial=true){onOffset(offsetMs+stepMs,"CHANGE")}
+-        Button("- Adiantar","Adiantar legenda em $step"){onOffset(offsetMs-stepMs,"CHANGE")}
++        Button("+ Atrasar","+ Atrasar legenda em $step",initial=true){onOffset(offsetMs+stepMs,"CHANGE")}
++        Button("- Adiantar","- Adiantar legenda em $step"){onOffset(offsetMs-stepMs,"CHANGE")}
+         Button("Ajuste: $step","Intervalo por clique: $step",weight=1.3f,action=onStep)
+         Button("Zerar","Zerar ajuste salvo"){onOffset(0L,"RESET")}
+         Button("Auxiliar","Auxiliar de sincronização",action=onAssistant)
