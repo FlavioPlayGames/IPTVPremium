@@ -1,0 +1,35 @@
+VALIDACAO r27 — 12/11/2026
+
+ESCOPO
+18 arquivos Kotlin: 9 existentes na base e 9 novos (incluem o fluxo cumulativo da r26).
+Nenhum Gradle/Manifest/versao/assinatura/configuracao privada distribuido.
+Home, desenhos proprios do Kids, importacao, historico e assistente r25 preservados.
+Fundo compartilhado do tema substituido por metal nitido nos modos claro/escuro e cinco cores.
+Site mantem os tokens e padrao originais preto/dourado; nenhuma paleta da TV e aplicada ao portal.
+
+SERVIDOR
+PASS: Worker completo com DB/R2 simulados; autenticacao, isolamento entre TVs, CSRF, upload/download/confirmacao, SHA256, exclusao, substituicao e cancelamento.
+PASS: uploads concorrentes e cancelamento durante upload.
+PASS adicional: QR abre destino manual, rejeicao permite reenvio, expiracao bloqueia upload/download e limite efetivo de 8 MB.
+O modulo e o Worker sao os mesmos validados na r26, incluidos para publicacao completa.
+
+SITE
+PASS: Node syntax; HTML publico/admin sem IDs duplicados; estrutura nova em ambos.
+PASS: JSDOM: destino preenchido, nome original, corpo binario, confirmacao somente apos TV salvar, erro visivel, troca de TV durante envio.
+PASS: Chromium real, desktop e celular 390px, sem overflow horizontal; as variaveis de fundo e o gradiente do botao coincidem com o site original.
+PASS: escolha de SRT e envio no navegador com resposta de servidor simulada; confirma aguardo da TV.
+Capturas reais de HTML/CSS em capturas-site; destino/API simulados, sem credenciais ou dados reais de usuario.
+
+INSTALADOR
+PASS: PowerShell 7.4.13 em pastas temporarias LF/CRLF+BOM, base original e r26 instalada, idempotencia, preservacao de Gradle/r25.
+PASS: recusa de desconhecido, ausente, novo conflitante e pacote adulterado.
+PASS: rollback com falha injetada, restaurando existentes e removendo apenas arquivos novos escritos.
+
+ANDROID
+PASS: :app:assembleDesempenho — BUILD SUCCESSFUL em 4m21s, com os fontes finais, R8, lint vital e empacotamento. APKs de validacao nao sao distribuidos; o instalador compila com a assinatura/configuracao locais.
+Fontes compilados em copia isolada com SDK 37, dependencias do projeto enviado e ferramentas locais. Configuracoes de validacao nao integram o pacote.
+Teste opcional Robolectric de layout nao foi concluido: o ambiente nao conseguiu baixar o runtime Android/native requerido. Nao se afirma validacao visual automatizada da TV.
+
+LIMITES
+Nao houve instalacao/teste por controle remoto na TV fisica, nem deploy/bucket R2 real.
+A conexao completa em producao depende da publicacao dos assets/Worker e do binding R2 indicado no LEIA-ME.
