@@ -1,0 +1,2 @@
+3813ed2ae7bb1c2ef3ba1a5b8d6cfda104dc94cd737220a2771d0409da3ac235  SitconMania-AndroidStudio-AGP940.zip
+ac33f0be3c13a4bbc2176ecbb2715be8d70b2c57db97ebc6b85db6110005abdf  SitconMania-fontes-app-AGP940.zip
