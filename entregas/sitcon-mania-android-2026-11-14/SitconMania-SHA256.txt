@@ -1,0 +1,2 @@
+ca19f617922b0850a4a15274d0ddc4b5552fa5def40b1144f2ee0736dfa4fcdd  SitconMania-AndroidStudio.zip
+497b761168dd3a9f7181150114174f8cd296c9c8e2785c2d2e22022cfe406b7d  SitconMania-fontes-app.zip
